@@ -1,0 +1,19 @@
+# Compilación
+bin/
+obj/
+*.pdb
+*.cache
+# NuGet (se restauran con packages.config)
+packages/
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.xml
+!*.csproj.xml
+# Respaldos y archivos temporales
+*.bak
+*.7z
+*.log
+# Credenciales locales
+*.local.config
