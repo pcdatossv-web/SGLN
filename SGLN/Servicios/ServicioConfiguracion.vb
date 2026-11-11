@@ -1,0 +1,121 @@
+Imports System
+Imports System.Data
+Imports System.IO
+Imports System.Windows.Forms
+
+''' <summary>
+''' Reglas de configuración, feriados y respaldos. El respaldo se guarda en
+''' la carpeta configurada y se nombra con fecha y hora para no sobrescribir.
+''' </summary>
+Public Class ServicioConfiguracion
+
+    Private ReadOnly _repositorio As New ConfiguracionRepositorio()
+    Private ReadOnly _usuarios As New UsuarioRepositorio()
+
+    Private Const ClavesReservadas As String = "Carpeta_Documentos,Carpeta_Respaldos"
+
+    Public Function Listar() As DataTable
+        Return _repositorio.Listar()
+    End Function
+
+    Public Function Obtener(clave As String) As String
+        Return _repositorio.Obtener(clave)
+    End Function
+
+    Public Function Guardar(clave As String, valor As String) As Respuesta
+        If String.IsNullOrWhiteSpace(clave) Then Return Respuesta.Fallo("Indique la clave de configuración.")
+        If clave.Trim().Length > 60 Then Return Respuesta.Fallo("La clave no puede superar 60 caracteres.")
+
+        _repositorio.Guardar(clave.Trim(), If(valor, "").Trim())
+        Return Respuesta.Ok("Configuración guardada.")
+    End Function
+
+    Public Function Feriados() As DataTable
+        Return _repositorio.Feriados()
+    End Function
+
+    Public Function AgregarFeriado(fecha As Date, descripcion As String) As Respuesta
+        If String.IsNullOrWhiteSpace(descripcion) Then
+            Return Respuesta.Fallo("Indique la descripción del feriado.")
+        End If
+        If fecha.Date.Year < 2000 OrElse fecha.Date.Year > 2100 Then
+            Return Respuesta.Fallo("El año del feriado no es válido.")
+        End If
+
+        Dim existentes As DataTable = _repositorio.Feriados()
+        For Each fila As DataRow In existentes.Rows
+            If Convert.ToDateTime(fila("Fecha")).Date = fecha.Date Then
+                Return Respuesta.Fallo("Ese día ya está registrado como feriado.")
+            End If
+        Next
+
+        _repositorio.InsertarFeriado(fecha.Date, descripcion.Trim())
+        Return Respuesta.Ok("Feriado agregado.")
+    End Function
+
+    Public Function EliminarFeriado(id As Integer) As Respuesta
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un feriado.")
+        _repositorio.EliminarFeriado(id)
+        Return Respuesta.Ok("Feriado eliminado. Los plazos ya confirmados no se recalculan.")
+    End Function
+
+    Public Function Usuarios() As DataTable
+        Return _repositorio.Usuarios()
+    End Function
+
+    Public Function CambiarClave(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
+        If idUsuario <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If String.IsNullOrWhiteSpace(claveNueva) OrElse claveNueva.Length < 8 Then
+            Return Respuesta.Fallo("La nueva clave debe tener al menos 8 caracteres.")
+        End If
+        If Not _usuarios.VerificarClave(idUsuario, claveActual) Then
+            Return Respuesta.Fallo("La clave actual no es correcta.")
+        End If
+
+        Return _usuarios.CambiarClave(idUsuario, claveNueva)
+    End Function
+
+    ''' <summary>
+    ''' Genera el respaldo con nombre único dentro de la carpeta configurada.
+    ''' Devuelve la ruta final para mostrarla al usuario.
+    ''' </summary>
+    Public Function Respaldar() As Respuesta
+        Try
+            Dim carpeta As String = CarpetaRespaldos()
+            Directory.CreateDirectory(carpeta)
+
+            Dim nombre As String = "SGLN_" & DateTime.Now.ToString("yyyyMMdd_HHmmss") & ".sql"
+            Dim ruta As String = Path.Combine(carpeta, nombre)
+
+            _repositorio.RespaldarBaseDatos(ruta)
+
+            If Not File.Exists(ruta) Then
+                Return Respuesta.Fallo(
+                    "mysqldump terminó pero el archivo no quedó en la ruta indicada. " &
+                    "Verifique que la carpeta exista y tenga permisos de escritura.")
+            End If
+
+            Dim informacion As New FileInfo(ruta)
+            Return Respuesta.Ok(
+                "Respaldo creado: " & ruta & " (" & (informacion.Length \ 1024).ToString("N0") & " KB)")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - respaldo", ex)
+            Return Respuesta.Fallo("No se pudo crear el respaldo: " & ex.Message)
+        End Try
+    End Function
+
+    Public Function CarpetaRespaldos() As String
+        Dim carpeta As String = _repositorio.Obtener("Carpeta_Respaldos")
+        If String.IsNullOrWhiteSpace(carpeta) Then carpeta = "Respaldos"
+        If Not Path.IsPathRooted(carpeta) Then
+            carpeta = Path.Combine(Application.StartupPath, carpeta)
+        End If
+        Return carpeta
+    End Function
+
+    Public Function EsClaveReservada(clave As String) As Boolean
+        If String.IsNullOrWhiteSpace(clave) Then Return False
+        Return Array.IndexOf(ClavesReservadas.Split(","c), clave.Trim()) >= 0
+    End Function
+
+End Class

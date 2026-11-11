@@ -1,0 +1,6 @@
+[2026-11-09 19:48:59] Inicio: No se encontró el recurso embebido del esquema: SGLN.Scripts.Esquema.sql
+System.InvalidOperationException: No se encontró el recurso embebido del esquema: SGLN.Scripts.Esquema.sql
+   en SGLN.InicializadorBD.EjecutarEsquema() en D:\PERFIL DE USUARIO\Documents\Default Project\SGLN\SGLN\Datos\InicializadorBD.vb:línea 48
+   en SGLN.InicializadorBD.AsegurarBaseDeDatos() en D:\PERFIL DE USUARIO\Documents\Default Project\SGLN\SGLN\Datos\InicializadorBD.vb:línea 17
+   en SGLN.Program.Main() en D:\PERFIL DE USUARIO\Documents\Default Project\SGLN\SGLN\Program.vb:línea 16
+--------------------------------------------------------------------------------

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8B1F5A2C-3D4E-4F60-9A7B-1C2D3E4F5A6B}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>SGLN</RootNamespace>
+    <AssemblyName>SGLN</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Empty</MyType>
+    <StartupObject>SGLN.Program</StartupObject>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionStrict>On</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <CodePage>65001</CodePage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG,TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Import Include="System" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MySql.Data">
+      <HintPath>..\lib\MySql.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Buffers">
+      <HintPath>..\lib\System.Buffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>..\lib\System.Memory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>..\lib\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.vb" />
+    <Compile Include="Modelos\Entidades.vb" />
+    <Compile Include="Modelos\Respuesta.vb" />
+    <Compile Include="Datos\ConexionBD.vb" />
+    <Compile Include="Datos\ConfiguracionConexion.vb" />
+    <Compile Include="Datos\RepositorioBase.vb" />
+    <Compile Include="Datos\InicializadorBD.vb" />
+    <Compile Include="Datos\Repositorios\UsuarioRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\RolRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\CatalogoRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\ClienteRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\EntidadRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\CasoRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\ProtocoloRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\DocumentoRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\CumplimientoRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\AuditoriaRepositorio.vb" />
+    <Compile Include="Datos\Repositorios\ConfiguracionRepositorio.vb" />
+    <Compile Include="Servicios\Sesion.vb" />
+    <Compile Include="Servicios\Permisos.vb" />
+    <Compile Include="Servicios\SeguridadClave.vb" />
+    <Compile Include="Servicios\RegistroErrores.vb" />
+    <Compile Include="Servicios\ValidadorIdentidad.vb" />
+    <Compile Include="Servicios\CalculadoraDiasHabiles.vb" />
+    <Compile Include="Servicios\ServicioAlertas.vb" />
+    <Compile Include="Servicios\ServicioClientes.vb" />
+    <Compile Include="Servicios\ServicioEntidades.vb" />
+    <Compile Include="Servicios\ServicioCasos.vb" />
+    <Compile Include="Servicios\ServicioPlazos.vb" />
+    <Compile Include="Servicios\ServicioProtocolo.vb" />
+    <Compile Include="Servicios\ServicioDocumentos.vb" />
+    <Compile Include="Servicios\ServicioIA.vb" />
+    <Compile Include="Servicios\ServicioCumplimiento.vb" />
+    <Compile Include="Servicios\ServicioAuditoria.vb" />
+    <Compile Include="Servicios\ServicioConfiguracion.vb" />
+    <Compile Include="Servicios\ServicioUsuarios.vb" />
+    <Compile Include="Servicios\ServicioRoles.vb" />
+    <Compile Include="UI\UtileriasUI.vb" />
+    <Compile Include="UI\FrmLogin.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmLogin.Designer.vb">
+      <DependentUpon>FrmLogin.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmConfiguracionConexion.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmConfiguracionConexion.Designer.vb">
+      <DependentUpon>FrmConfiguracionConexion.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmPrincipal.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmPrincipal.Designer.vb">
+      <DependentUpon>FrmPrincipal.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmAcercaDe.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmAcercaDe.Designer.vb">
+      <DependentUpon>FrmAcercaDe.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmClientes.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmClientes.Designer.vb">
+      <DependentUpon>FrmClientes.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmEntidades.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmEntidades.Designer.vb">
+      <DependentUpon>FrmEntidades.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmCasos.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmCasos.Designer.vb">
+      <DependentUpon>FrmCasos.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmProtocolo.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmProtocolo.Designer.vb">
+      <DependentUpon>FrmProtocolo.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmDocumentos.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmDocumentos.Designer.vb">
+      <DependentUpon>FrmDocumentos.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmCumplimiento.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmCumplimiento.Designer.vb">
+      <DependentUpon>FrmCumplimiento.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmAuditoria.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmAuditoria.Designer.vb">
+      <DependentUpon>FrmAuditoria.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmConfiguracion.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmConfiguracion.Designer.vb">
+      <DependentUpon>FrmConfiguracion.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmUsuarios.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmUsuarios.Designer.vb">
+      <DependentUpon>FrmUsuarios.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmRoles.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmRoles.Designer.vb">
+      <DependentUpon>FrmRoles.vb</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\Esquema_MySQL.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\Triggers_MySQL.sql" />
+    <None Include="Scripts\Instalacion_Servidor_MySQL.sql" />
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>

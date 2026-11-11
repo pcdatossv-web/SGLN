@@ -1,0 +1,258 @@
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+Partial Class FrmConfiguracionConexion
+    Inherits System.Windows.Forms.Form
+
+    'Form reemplaza a Dispose para limpiar la lista de componentes.
+    <System.Diagnostics.DebuggerNonUserCode()>
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        Try
+            If disposing AndAlso components IsNot Nothing Then
+                components.Dispose()
+            End If
+        Finally
+            MyBase.Dispose(disposing)
+        End Try
+    End Sub
+
+    'Requerido por el Diseñador de Windows Forms
+    Private components As System.ComponentModel.IContainer
+
+    'NOTA: el Diseñador de Windows Forms necesita el siguiente procedimiento
+    'Se puede modificar usando el Diseñador de Windows Forms.
+    'No lo modifique con el editor de código.
+    <System.Diagnostics.DebuggerStepThrough()>
+    Private Sub InitializeComponent()
+        Me.grpServidor = New System.Windows.Forms.GroupBox()
+        Me.lblAyuda = New System.Windows.Forms.Label()
+        Me.chkEquipo = New System.Windows.Forms.CheckBox()
+        Me.txtPassword = New System.Windows.Forms.TextBox()
+        Me.lblPassword = New System.Windows.Forms.Label()
+        Me.txtUsuario = New System.Windows.Forms.TextBox()
+        Me.lblUsuario = New System.Windows.Forms.Label()
+        Me.txtBaseDatos = New System.Windows.Forms.TextBox()
+        Me.lblBaseDatos = New System.Windows.Forms.Label()
+        Me.txtPuerto = New System.Windows.Forms.TextBox()
+        Me.lblPuerto = New System.Windows.Forms.Label()
+        Me.txtServidor = New System.Windows.Forms.TextBox()
+        Me.lblServidor = New System.Windows.Forms.Label()
+        Me.lblEstado = New System.Windows.Forms.Label()
+        Me.lblRuta = New System.Windows.Forms.Label()
+        Me.btnProbar = New System.Windows.Forms.Button()
+        Me.btnGuardar = New System.Windows.Forms.Button()
+        Me.btnCancelar = New System.Windows.Forms.Button()
+        Me.grpServidor.SuspendLayout()
+        Me.SuspendLayout()
+        '
+        ' grpServidor
+        '
+        Me.grpServidor.Controls.Add(Me.lblAyuda)
+        Me.grpServidor.Controls.Add(Me.chkEquipo)
+        Me.grpServidor.Controls.Add(Me.txtPassword)
+        Me.grpServidor.Controls.Add(Me.lblPassword)
+        Me.grpServidor.Controls.Add(Me.txtUsuario)
+        Me.grpServidor.Controls.Add(Me.lblUsuario)
+        Me.grpServidor.Controls.Add(Me.txtBaseDatos)
+        Me.grpServidor.Controls.Add(Me.lblBaseDatos)
+        Me.grpServidor.Controls.Add(Me.txtPuerto)
+        Me.grpServidor.Controls.Add(Me.lblPuerto)
+        Me.grpServidor.Controls.Add(Me.txtServidor)
+        Me.grpServidor.Controls.Add(Me.lblServidor)
+        Me.grpServidor.Location = New System.Drawing.Point(15, 12)
+        Me.grpServidor.Name = "grpServidor"
+        Me.grpServidor.Size = New System.Drawing.Size(545, 258)
+        Me.grpServidor.TabIndex = 0
+        Me.grpServidor.TabStop = False
+        Me.grpServidor.Text = "Servidor MySQL"
+        '
+        ' lblAyuda
+        '
+        Me.lblAyuda.ForeColor = System.Drawing.Color.DimGray
+        Me.lblAyuda.Location = New System.Drawing.Point(20, 228)
+        Me.lblAyuda.Name = "lblAyuda"
+        Me.lblAyuda.Size = New System.Drawing.Size(500, 20)
+        Me.lblAyuda.TabIndex = 11
+        Me.lblAyuda.Text = "En un equipo cliente use la IP o el nombre del servidor (ej. 192.168.1.10), no ""localhost""."
+        '
+        ' chkEquipo
+        '
+        Me.chkEquipo.AutoSize = True
+        Me.chkEquipo.Location = New System.Drawing.Point(20, 203)
+        Me.chkEquipo.Name = "chkEquipo"
+        Me.chkEquipo.Size = New System.Drawing.Size(451, 19)
+        Me.chkEquipo.TabIndex = 10
+        Me.chkEquipo.Text = "Guardar para todos los usuarios de este equipo (requiere ser administrador)"
+        Me.chkEquipo.UseVisualStyleBackColor = True
+        '
+        ' txtPassword
+        '
+        Me.txtPassword.Location = New System.Drawing.Point(185, 166)
+        Me.txtPassword.Name = "txtPassword"
+        Me.txtPassword.Size = New System.Drawing.Size(335, 23)
+        Me.txtPassword.TabIndex = 9
+        Me.txtPassword.UseSystemPasswordChar = True
+        '
+        ' lblPassword
+        '
+        Me.lblPassword.AutoSize = True
+        Me.lblPassword.Location = New System.Drawing.Point(20, 169)
+        Me.lblPassword.Name = "lblPassword"
+        Me.lblPassword.Size = New System.Drawing.Size(70, 15)
+        Me.lblPassword.TabIndex = 8
+        Me.lblPassword.Text = "Contraseña:"
+        '
+        ' txtUsuario
+        '
+        Me.txtUsuario.Location = New System.Drawing.Point(185, 132)
+        Me.txtUsuario.Name = "txtUsuario"
+        Me.txtUsuario.Size = New System.Drawing.Size(335, 23)
+        Me.txtUsuario.TabIndex = 7
+        '
+        ' lblUsuario
+        '
+        Me.lblUsuario.AutoSize = True
+        Me.lblUsuario.Location = New System.Drawing.Point(20, 135)
+        Me.lblUsuario.Name = "lblUsuario"
+        Me.lblUsuario.Size = New System.Drawing.Size(91, 15)
+        Me.lblUsuario.TabIndex = 6
+        Me.lblUsuario.Text = "Usuario MySQL:"
+        '
+        ' txtBaseDatos
+        '
+        Me.txtBaseDatos.Location = New System.Drawing.Point(185, 98)
+        Me.txtBaseDatos.Name = "txtBaseDatos"
+        Me.txtBaseDatos.Size = New System.Drawing.Size(335, 23)
+        Me.txtBaseDatos.TabIndex = 5
+        '
+        ' lblBaseDatos
+        '
+        Me.lblBaseDatos.AutoSize = True
+        Me.lblBaseDatos.Location = New System.Drawing.Point(20, 101)
+        Me.lblBaseDatos.Name = "lblBaseDatos"
+        Me.lblBaseDatos.Size = New System.Drawing.Size(80, 15)
+        Me.lblBaseDatos.TabIndex = 4
+        Me.lblBaseDatos.Text = "Base de datos:"
+        '
+        ' txtPuerto
+        '
+        Me.txtPuerto.Location = New System.Drawing.Point(185, 64)
+        Me.txtPuerto.Name = "txtPuerto"
+        Me.txtPuerto.Size = New System.Drawing.Size(90, 23)
+        Me.txtPuerto.TabIndex = 3
+        '
+        ' lblPuerto
+        '
+        Me.lblPuerto.AutoSize = True
+        Me.lblPuerto.Location = New System.Drawing.Point(20, 67)
+        Me.lblPuerto.Name = "lblPuerto"
+        Me.lblPuerto.Size = New System.Drawing.Size(45, 15)
+        Me.lblPuerto.TabIndex = 2
+        Me.lblPuerto.Text = "Puerto:"
+        '
+        ' txtServidor
+        '
+        Me.txtServidor.Location = New System.Drawing.Point(185, 30)
+        Me.txtServidor.Name = "txtServidor"
+        Me.txtServidor.Size = New System.Drawing.Size(335, 23)
+        Me.txtServidor.TabIndex = 1
+        '
+        ' lblServidor
+        '
+        Me.lblServidor.AutoSize = True
+        Me.lblServidor.Location = New System.Drawing.Point(20, 33)
+        Me.lblServidor.Name = "lblServidor"
+        Me.lblServidor.Size = New System.Drawing.Size(74, 15)
+        Me.lblServidor.TabIndex = 0
+        Me.lblServidor.Text = "Servidor o IP:"
+        '
+        ' lblEstado
+        '
+        Me.lblEstado.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
+        Me.lblEstado.ForeColor = System.Drawing.Color.DimGray
+        Me.lblEstado.Location = New System.Drawing.Point(15, 278)
+        Me.lblEstado.Name = "lblEstado"
+        Me.lblEstado.Size = New System.Drawing.Size(545, 36)
+        Me.lblEstado.TabIndex = 1
+        Me.lblEstado.Text = "Presione ""Probar conexión"" para verificar los datos."
+        '
+        ' lblRuta
+        '
+        Me.lblRuta.AutoSize = True
+        Me.lblRuta.ForeColor = System.Drawing.Color.DimGray
+        Me.lblRuta.Location = New System.Drawing.Point(15, 318)
+        Me.lblRuta.Name = "lblRuta"
+        Me.lblRuta.Size = New System.Drawing.Size(0, 15)
+        Me.lblRuta.TabIndex = 2
+        '
+        ' btnProbar
+        '
+        Me.btnProbar.Location = New System.Drawing.Point(215, 345)
+        Me.btnProbar.Name = "btnProbar"
+        Me.btnProbar.Size = New System.Drawing.Size(115, 30)
+        Me.btnProbar.TabIndex = 3
+        Me.btnProbar.Text = "Probar conexión"
+        Me.btnProbar.UseVisualStyleBackColor = True
+        '
+        ' btnGuardar
+        '
+        Me.btnGuardar.Location = New System.Drawing.Point(340, 345)
+        Me.btnGuardar.Name = "btnGuardar"
+        Me.btnGuardar.Size = New System.Drawing.Size(100, 30)
+        Me.btnGuardar.TabIndex = 4
+        Me.btnGuardar.Text = "Guardar"
+        Me.btnGuardar.UseVisualStyleBackColor = True
+        '
+        ' btnCancelar
+        '
+        Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.btnCancelar.Location = New System.Drawing.Point(450, 345)
+        Me.btnCancelar.Name = "btnCancelar"
+        Me.btnCancelar.Size = New System.Drawing.Size(100, 30)
+        Me.btnCancelar.TabIndex = 5
+        Me.btnCancelar.Text = "Cancelar"
+        Me.btnCancelar.UseVisualStyleBackColor = True
+        '
+        ' FrmConfiguracionConexion
+        '
+        Me.AcceptButton = Me.btnGuardar
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.CancelButton = Me.btnCancelar
+        Me.ClientSize = New System.Drawing.Size(575, 390)
+        Me.Controls.Add(Me.btnCancelar)
+        Me.Controls.Add(Me.btnGuardar)
+        Me.Controls.Add(Me.btnProbar)
+        Me.Controls.Add(Me.lblRuta)
+        Me.Controls.Add(Me.lblEstado)
+        Me.Controls.Add(Me.grpServidor)
+        Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+        Me.MaximizeBox = False
+        Me.MinimizeBox = False
+        Me.Name = "FrmConfiguracionConexion"
+        Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
+        Me.Text = "Configuración de conexión - SGLN El Salvador"
+        Me.grpServidor.ResumeLayout(False)
+        Me.grpServidor.PerformLayout()
+        Me.ResumeLayout(False)
+        Me.PerformLayout()
+    End Sub
+
+    Friend WithEvents grpServidor As System.Windows.Forms.GroupBox
+    Friend WithEvents lblServidor As System.Windows.Forms.Label
+    Friend WithEvents txtServidor As System.Windows.Forms.TextBox
+    Friend WithEvents lblPuerto As System.Windows.Forms.Label
+    Friend WithEvents txtPuerto As System.Windows.Forms.TextBox
+    Friend WithEvents lblBaseDatos As System.Windows.Forms.Label
+    Friend WithEvents txtBaseDatos As System.Windows.Forms.TextBox
+    Friend WithEvents lblUsuario As System.Windows.Forms.Label
+    Friend WithEvents txtUsuario As System.Windows.Forms.TextBox
+    Friend WithEvents lblPassword As System.Windows.Forms.Label
+    Friend WithEvents txtPassword As System.Windows.Forms.TextBox
+    Friend WithEvents chkEquipo As System.Windows.Forms.CheckBox
+    Friend WithEvents lblAyuda As System.Windows.Forms.Label
+    Friend WithEvents lblEstado As System.Windows.Forms.Label
+    Friend WithEvents lblRuta As System.Windows.Forms.Label
+    Friend WithEvents btnProbar As System.Windows.Forms.Button
+    Friend WithEvents btnGuardar As System.Windows.Forms.Button
+    Friend WithEvents btnCancelar As System.Windows.Forms.Button
+End Class
