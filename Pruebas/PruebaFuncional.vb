@@ -335,14 +335,14 @@ Module PruebaFuncional
                   Not cuentaBorrableExiste)
 
         Dim rAdmin2 As Respuesta = servicioUsuarios.Crear(
-            "admin2", "Administrador de Prueba", "Admin2-123", idRolAdmin, True)
+            "admin2", "Administrador de Prueba", "AdminSecundario123!", idRolAdmin, True)
         Verificar("Crear un segundo administrador", rAdmin2.Exito, rAdmin2.Mensaje)
 
         Dim idAdmin2 As Integer = 0
         For Each fila As DataRow In servicioUsuarios.Listar().Rows
             If UtileriasUI.Texto(fila, "Usuario") = "admin2" Then idAdmin2 = UtileriasUI.Entero(fila, "ID")
         Next
-        Dim sesionAdmin2 As UsuarioSesion = usuarios.Autenticar("admin2", "Admin2-123")
+        Dim sesionAdmin2 As UsuarioSesion = usuarios.Autenticar("admin2", "AdminSecundario123!")
         Verificar("El segundo administrador inicia sesión con rol protegido",
                   sesionAdmin2 IsNot Nothing AndAlso sesionAdmin2.RolProtegido)
 
@@ -350,7 +350,7 @@ Module PruebaFuncional
                   servicioUsuarios.Actualizar(idAdmin2, "Administrador de Prueba", idRolAbogado, True).Exito)
         Verificar("Al devolverle el rol de administrador vuelve a ser protegido",
                   servicioUsuarios.Actualizar(idAdmin2, "Administrador de Prueba", idRolAdmin, True).Exito AndAlso
-                  usuarios.Autenticar("admin2", "Admin2-123").RolProtegido)
+                  usuarios.Autenticar("admin2", "AdminSecundario123!").RolProtegido)
 
         ' ---------- 2c. Candados del lado de la base (triggers) ----------
         Console.WriteLine()
