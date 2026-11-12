@@ -17,6 +17,10 @@ jobs:
       - name: Configure MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Inventory bundled dependency assemblies
+        shell: pwsh
+        run: ./Pruebas/Inventario-Dependencias.ps1
+
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
         run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
