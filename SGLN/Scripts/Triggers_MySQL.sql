@@ -18,6 +18,8 @@ DROP TRIGGER IF EXISTS trg_roles_protegido_bd;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bu;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bd;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bd;
+DROP TRIGGER IF EXISTS trg_audit_log_no_update;
+DROP TRIGGER IF EXISTS trg_audit_log_no_delete;
 
 DELIMITER $$
 
@@ -91,6 +93,22 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'El Administrador no puede perder los permisos de Usuarios ni de Roles.';
     END IF;
-END$$
+END$
+
+/* La bitácora es append-only: la aplicación solo puede consultar e insertar.
+   UPDATE y DELETE se bloquean incluso si la cuenta conserva permisos DML generales. */
+CREATE TRIGGER trg_audit_log_no_update BEFORE UPDATE ON Audit_Log
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Audit_Log es inmutable: no se permite modificar registros.';
+END$
+
+CREATE TRIGGER trg_audit_log_no_delete BEFORE DELETE ON Audit_Log
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Audit_Log es inmutable: no se permite eliminar registros.';
+END$
 
 DELIMITER ;
