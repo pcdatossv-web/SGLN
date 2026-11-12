@@ -48,6 +48,7 @@ Public Class FrmConfiguracion
         Dim puedeSeguridad As Boolean = Permisos.Puede("config.seguridad")
         grpClave.Enabled = puedeSeguridad
 
+        grpEditor.Enabled = Permisos.Puede("config.editar")
         btnRespaldar.Enabled = Permisos.Puede("config.respaldos")
     End Sub
 
@@ -77,7 +78,7 @@ Public Class FrmConfiguracion
     End Sub
 
     Private Sub GuardarConfiguracion()
-        If Not Permisos.ExigirAccion("config.ver") Then Return
+        If Not Permisos.ExigirAccion("config.editar") Then Return
 
         If String.IsNullOrWhiteSpace(txtClave.Text) Then
             UtileriasUI.MostrarError("Indique la clave de configuración.")

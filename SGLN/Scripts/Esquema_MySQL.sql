@@ -406,6 +406,7 @@ INSERT INTO Permisos (Codigo, Modulo, Descripcion) VALUES
     ('auditoria.ver',             'Auditoría',     'Consultar la bitácora'),
     ('auditoria.exportar',        'Auditoría',     'Exportar la bitácora a CSV'),
     ('config.ver',                'Configuración', 'Acceder a configuración'),
+    ('config.editar',             'Configuración', 'Modificar parámetros de configuración'),
     ('config.feriados',           'Configuración', 'Administrar feriados'),
     ('config.usuarios',           'Configuración', 'Administrar usuarios'),
     ('config.roles',              'Configuración', 'Administrar roles y permisos'),

@@ -183,6 +183,7 @@ Module PruebaFuncional
         Verificar("La sesión se revalida contra la cuenta y rol vigentes", Permisos.TieneAcceso("config.usuarios"))
         Verificar("La sesión del administrador tiene acceso total", Permisos.AccesoTotal)
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
+        Verificar("El Administrador puede modificar configuración", Permisos.Puede("config.editar"))
 
         If idRolAbogado > 0 Then
             Dim usuarioBloqueo As String = "bloq" & Guid.NewGuid().ToString("N").Substring(0, 8)
@@ -205,6 +206,7 @@ Module PruebaFuncional
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))
         Verificar("El rol Abogado no administra roles", Not Permisos.Puede("config.roles"))
+        Verificar("El rol Abogado no puede modificar configuración", Not Permisos.Puede("config.editar"))
         Verificar("El rol Abogado no puede crear respaldos", Not Permisos.Puede("config.respaldos"))
         Verificar("Un código de permiso vacío se deniega", Not Permisos.Puede(""))
         Verificar("Un código de permiso con espacios se deniega", Not Permisos.Puede("   "))

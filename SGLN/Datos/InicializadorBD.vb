@@ -146,6 +146,7 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarDatosIniciales()
+        SembrarPermisosAdicionales()
         SembrarConfiguracion()
         SembrarFeriados()
         SembrarJuzgados()
@@ -236,6 +237,17 @@ Public Module InicializadorBD
                 End If
             End Try
         End Using
+    End Sub
+
+    ''' <summary>Agrega permisos nuevos de forma compatible con bases ya instaladas.</summary>
+    Private Sub SembrarPermisosAdicionales()
+        Ejecutar(
+            "INSERT IGNORE INTO Permisos (Codigo, Modulo, Descripcion) " &
+            "VALUES ('config.editar', 'Configuración', 'Modificar parámetros de configuración')")
+
+        Ejecutar(
+            "INSERT IGNORE INTO Rol_Permiso (ID_Rol, Codigo) " &
+            "SELECT ID, 'config.editar' FROM Roles WHERE Protegido = 1")
     End Sub
 
     Private Sub SembrarConfiguracion()

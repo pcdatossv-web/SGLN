@@ -23,7 +23,7 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function Guardar(clave As String, valor As String) As Respuesta
-        If Not Permisos.TieneAcceso("config.ver") Then Return Respuesta.Fallo("No tiene permiso para modificar la configuración.")
+        If Not Permisos.TieneAcceso("config.editar") Then Return Respuesta.Fallo("No tiene permiso para modificar la configuración.")
 
         If String.IsNullOrWhiteSpace(clave) Then Return Respuesta.Fallo("Indique la clave de configuración.")
         If clave.Trim().Length > 60 Then Return Respuesta.Fallo("La clave no puede superar 60 caracteres.")
