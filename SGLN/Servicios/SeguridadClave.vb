@@ -12,6 +12,9 @@ End Class
 ''' </summary>
 Public Module SeguridadClave
 
+    ' Debe coincidir con la clave usada al sembrar la primera cuenta admin.
+    Public Const ClaveInicialAdministrador As String = "Admin123*"
+
     Private Const Iteraciones As Integer = 100000
     Private Const LongitudHash As Integer = 32
     Private Const LongitudSalt As Integer = 16
@@ -35,6 +38,30 @@ Public Module SeguridadClave
                 .Salt = Convert.ToBase64String(salt)
             }
         End Using
+    End Function
+
+    Public Function EsClaveInicial(hashBase64 As String, saltBase64 As String) As Boolean
+        Return Verificar(ClaveInicialAdministrador, hashBase64, saltBase64)
+    End Function
+
+    ''' <summary>
+    ''' La clave inicial solo puede sustituirse por una clave robusta.
+    ''' Se aplica en el primer ingreso cuando aún se conserva la clave sembrada.
+    ''' </summary>
+    Public Function ValidarClaveNuevaInicial(clave As String) As String
+        If String.IsNullOrWhiteSpace(clave) OrElse clave.Length < 12 Then
+            Return "La nueva clave debe tener al menos 12 caracteres."
+        End If
+        If String.Equals(clave, ClaveInicialAdministrador, StringComparison.Ordinal) Then
+            Return "Debe utilizar una clave distinta de la clave inicial."
+        End If
+        If Not clave.Any(Function(ch As Char) Char.IsUpper(ch)) OrElse
+           Not clave.Any(Function(ch As Char) Char.IsLower(ch)) OrElse
+           Not clave.Any(Function(ch As Char) Char.IsDigit(ch)) OrElse
+           Not clave.Any(Function(ch As Char) Not Char.IsLetterOrDigit(ch)) Then
+            Return "La clave debe incluir mayúsculas, minúsculas, números y símbolos."
+        End If
+        Return ""
     End Function
 
     Public Function Verificar(clave As String, hashBase64 As String, saltBase64 As String) As Boolean
