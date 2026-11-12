@@ -161,7 +161,11 @@ CREATE TABLE IF NOT EXISTS Perfil_LDAFT (
     CONSTRAINT FK_Perfil_Cliente FOREIGN KEY (ID_Cliente) REFERENCES Clientes(ID),
     CONSTRAINT FK_Perfil_Entidad FOREIGN KEY (ID_Entidad) REFERENCES Entidades_Legales(ID),
     CONSTRAINT CK_Perfil_Riesgo CHECK (Nivel_Riesgo IN ('Bajo', 'Medio', 'Alto')),
-    CONSTRAINT CK_Perfil_Dueno CHECK (ID_Cliente IS NOT NULL OR ID_Entidad IS NOT NULL)
+    CONSTRAINT CK_Perfil_Dueno CHECK (ID_Cliente IS NOT NULL OR ID_Entidad IS NOT NULL),
+    CONSTRAINT CK_Perfil_Dueno_Exclusivo CHECK (
+        (ID_Cliente IS NOT NULL AND ID_Entidad IS NULL) OR
+        (ID_Cliente IS NULL AND ID_Entidad IS NOT NULL)
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 /* ------------------------------------------------------------------
