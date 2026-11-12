@@ -1,5 +1,6 @@
 Imports System
 Imports System.Data
+Imports System.Collections.Generic
 Imports MySql.Data.MySqlClient
 
 ''' <summary>
@@ -165,6 +166,155 @@ Public Class UsuarioRepositorio
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
             End Sub) > 0
+    End Function
+
+
+    ''' <summary>
+    ''' Elimina únicamente cuentas sin referencias operativas ni actividad
+    ''' propia. Bloquea la fila padre y comprueba referencias dentro de una
+    ''' transacción serializable. Conserva el evento CREAR de la bitácora.
+    ''' </summary>
+    Public Function EliminarSiNoTieneHistorial(id As Integer) As Respuesta
+        Using conexion As MySqlConnection = CrearConexion()
+            Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.Serializable)
+                Try
+                    Dim usuario As String = ""
+                    Dim esAdmin As Boolean = False
+                    Dim existeUsuario As Boolean = False
+
+                    Using cmd As New MySqlCommand(
+                        "SELECT u.Usuario, IFNULL(r.Protegido, 0) AS Protegido " &
+                        "FROM Usuarios u LEFT JOIN Roles r ON r.ID = u.ID_Rol " &
+                        "WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(cmd, "@id", id)
+                        Using lector As MySqlDataReader = cmd.ExecuteReader()
+                            If lector.Read() Then
+                                existeUsuario = True
+                                usuario = Convert.ToString(lector("Usuario"))
+                                esAdmin = Convert.ToInt32(lector("Protegido")) = 1
+                            End If
+                        End Using
+                    End Using
+
+                    If Not existeUsuario Then
+                        transaccion.Rollback()
+                        Return Respuesta.Fallo("El usuario ya no existe.")
+                    End If
+
+                    If esAdmin Then
+                        Using cmd As New MySqlCommand(
+                            "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                            "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id",
+                            conexion, transaccion)
+                            Parametro(cmd, "@id", id)
+                            If Convert.ToInt32(cmd.ExecuteScalar()) = 0 Then
+                                transaccion.Rollback()
+                                Return Respuesta.Fallo("No se puede eliminar: debe quedar al menos un administrador activo.")
+                            End If
+                        End Using
+                    End If
+
+                    Using cmd As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Audit_Log WHERE Usuario = @usuario " &
+                        "AND NOT (Tabla_Afectada = 'Usuarios' AND Accion = 'CREAR' AND ID_Registro = @id)",
+                        conexion, transaccion)
+                        Parametro(cmd, "@usuario", usuario)
+                        Parametro(cmd, "@id", id)
+                        If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                            transaccion.Rollback()
+                            Return Respuesta.Fallo("No se puede eliminar: el usuario tiene actividad registrada en la bitácora.")
+                        End If
+                    End Using
+
+                    Dim referencias As New List(Of String())()
+                    Using cmd As New MySqlCommand(
+                        "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " &
+                        "WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME = 'Usuarios' " &
+                        "AND REFERENCED_COLUMN_NAME = 'ID'",
+                        conexion, transaccion)
+                        Using lector As MySqlDataReader = cmd.ExecuteReader()
+                            While lector.Read()
+                                referencias.Add(New String() {Convert.ToString(lector(0)), Convert.ToString(lector(1))})
+                            End While
+                        End Using
+                    End Using
+
+                    For Each referencia As String() In referencias
+                        Dim tabla As String = referencia(0).Replace(ChrW(96), ChrW(96) & ChrW(96))
+                        Dim columna As String = referencia(1).Replace(ChrW(96), ChrW(96) & ChrW(96))
+                        Using cmd As New MySqlCommand(
+                            "SELECT COUNT(*) FROM " & ChrW(96) & tabla & ChrW(96) &
+                            " WHERE " & ChrW(96) & columna & ChrW(96) & " = @id",
+                            conexion, transaccion)
+                            Parametro(cmd, "@id", id)
+                            If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                                transaccion.Rollback()
+                                Return Respuesta.Fallo("No se puede eliminar: existen registros relacionados en " & referencia(0) & ".")
+                            End If
+                        End Using
+                    Next
+
+                    Dim columnasTexto As New List(Of String())()
+                    Using cmd As New MySqlCommand(
+                        "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " &
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME <> 'Usuarios' " &
+                        "AND DATA_TYPE IN ('char','varchar','tinytext','text','mediumtext','longtext') " &
+                        "AND COLUMN_NAME REGEXP 'Usuario|Responsable|Creado|Modificado|Autor|Asignado|Propietario|Firmante|Confirma'",
+                        conexion, transaccion)
+                        Using lector As MySqlDataReader = cmd.ExecuteReader()
+                            While lector.Read()
+                                columnasTexto.Add(New String() {Convert.ToString(lector(0)), Convert.ToString(lector(1))})
+                            End While
+                        End Using
+                    End Using
+
+                    For Each referencia As String() In columnasTexto
+                        Dim tabla As String = referencia(0).Replace(ChrW(96), ChrW(96) & ChrW(96))
+                        Dim columna As String = referencia(1).Replace(ChrW(96), ChrW(96) & ChrW(96))
+                        Using cmd As New MySqlCommand(
+                            "SELECT COUNT(*) FROM " & ChrW(96) & tabla & ChrW(96) &
+                            " WHERE CAST(" & ChrW(96) & columna & ChrW(96) & " AS CHAR) = @usuario",
+                            conexion, transaccion)
+                            Parametro(cmd, "@usuario", usuario)
+                            If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                                transaccion.Rollback()
+                                Return Respuesta.Fallo("No se puede eliminar: existen referencias históricas al usuario en " & referencia(0) & ".")
+                            End If
+                        End Using
+                    Next
+
+                    Using cmd As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Usuarios' " &
+                        "AND ID_Registro = @id AND Accion <> 'CREAR'",
+                        conexion, transaccion)
+                        Parametro(cmd, "@id", id)
+                        If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                            transaccion.Rollback()
+                            Return Respuesta.Fallo("No se puede eliminar: el usuario tiene historial de mantenimiento en la bitácora.")
+                        End If
+                    End Using
+
+                    Using cmd As New MySqlCommand("DELETE FROM Usuarios WHERE ID = @id", conexion, transaccion)
+                        Parametro(cmd, "@id", id)
+                        If cmd.ExecuteNonQuery() <> 1 Then
+                            transaccion.Rollback()
+                            Return Respuesta.Fallo("No se pudo confirmar la eliminación del usuario.")
+                        End If
+                    End Using
+
+                    transaccion.Commit()
+                    Auditar("ELIMINAR", "Usuarios", id, "Cuenta sin referencias operativas ni actividad propia: " & usuario)
+                    Return Respuesta.Ok("Usuario eliminado. Se conservó la bitácora de creación y eliminación.")
+                Catch ex As Exception
+                    Try
+                        transaccion.Rollback()
+                    Catch
+                    End Try
+                    RegistroErrores.Escribir("Usuarios - eliminación segura", ex)
+                    Return Respuesta.Fallo("No se pudo eliminar el usuario. La operación fue cancelada para proteger la integridad de los datos.")
+                End Try
+            End Using
+        End Using
     End Function
 
     Private Function Existe(id As Integer) As Boolean
