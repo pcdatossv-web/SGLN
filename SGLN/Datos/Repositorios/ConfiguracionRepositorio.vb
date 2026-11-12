@@ -123,8 +123,8 @@ Public Class ConfiguracionRepositorio
         Try
             ' La clave no se pasa por argumentos del proceso. Se escribe en un
             ' archivo temporal privado y se elimina al finalizar.
-            If usuarioBackup.Contains(vbCr) OrElse usuarioBackup.Contains(vbLf) OrElse
-               claveBackup.Contains(vbCr) OrElse claveBackup.Contains(vbLf) Then
+            If usuarioBackup.Contains(Convert.ToChar(13).ToString()) OrElse usuarioBackup.Contains(Convert.ToChar(10).ToString()) OrElse
+               claveBackup.Contains(Convert.ToChar(13).ToString()) OrElse claveBackup.Contains(Convert.ToChar(10).ToString()) Then
                 Throw New InvalidOperationException("Las credenciales de respaldo contienen caracteres de control no permitidos.")
             End If
             File.WriteAllText(credenciales,
@@ -164,8 +164,8 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Private Shared Function EscaparOpcionMySQL(valor As String) As String
-        Dim barra As String = ChrW(92).ToString()
-        Dim comilla As String = ChrW(34).ToString()
+        Dim barra As String = Convert.ToChar(92).ToString()
+        Dim comilla As String = Convert.ToChar(34).ToString()
         Return If(valor, "").Replace(barra, barra & barra).
             Replace(comilla, barra & comilla)
     End Function
