@@ -223,8 +223,13 @@ Public Class FrmEntidades
 
         If Not UtileriasUI.Confirmar("¿Quitar el representante seleccionado?") Then Return
 
-        _servicio.QuitarRepresentante(UtileriasUI.Entero(fila, "ID"))
+        Dim respuesta As Respuesta = _servicio.QuitarRepresentante(UtileriasUI.Entero(fila, "ID"))
+        If Not respuesta.Exito Then
+            MostrarMensaje(respuesta.Mensaje, False)
+            Return
+        End If
         CargarRepresentantes()
+        MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
     Private Sub SeleccionarEntidad(id As Integer)
