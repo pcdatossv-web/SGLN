@@ -15,6 +15,7 @@ Public Class FrmConfiguracionConexion
         txtPassword.Text = datos.Password
         txtUsuarioRespaldo.Text = datos.UsuarioRespaldo
         txtPasswordRespaldo.Text = datos.PasswordRespaldo
+        txtCertificadoCa.Text = datos.CertificadoCa
 
         ' Si está guardada por equipo, se mantiene esa elección al volver a guardar.
         chkEquipo.Checked = (datos.Origen <> "HKCU")
@@ -75,9 +76,23 @@ Public Class FrmConfiguracionConexion
             .Usuario = txtUsuario.Text.Trim(),
             .Password = txtPassword.Text,
             .UsuarioRespaldo = txtUsuarioRespaldo.Text.Trim(),
-            .PasswordRespaldo = txtPasswordRespaldo.Text
+            .PasswordRespaldo = txtPasswordRespaldo.Text,
+            .ModoSsl = ConfiguracionConexion.Actual.ModoSsl,
+            .CertificadoCa = txtCertificadoCa.Text.Trim()
         }
     End Function
+
+    Private Sub btnBuscarCertificado_Click(sender As Object, e As EventArgs) Handles btnBuscarCertificado.Click
+        Using dialogo As New OpenFileDialog()
+            dialogo.Title = "Seleccionar certificado CA de MySQL"
+            dialogo.Filter = "Certificados PEM (*.pem;*.crt)|*.pem;*.crt|Todos los archivos (*.*)|*.*"
+            dialogo.CheckFileExists = True
+            dialogo.Multiselect = False
+            If dialogo.ShowDialog(Me) = DialogResult.OK Then
+                txtCertificadoCa.Text = dialogo.FileName
+            End If
+        End Using
+    End Sub
 
     Private Sub btnProbar_Click(sender As Object, e As EventArgs) Handles btnProbar.Click
         Dim datos As DatosConexion = LeerFormulario()
