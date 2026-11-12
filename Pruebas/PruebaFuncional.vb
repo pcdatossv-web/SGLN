@@ -7,6 +7,7 @@ Imports System.Configuration
 Imports System.Data
 Imports System.IO
 Imports System.Text
+Imports System.Threading
 Imports MySql.Data.MySqlClient
 Imports SGLN
 
@@ -558,6 +559,55 @@ Module PruebaFuncional
                       .FechaHoraOtorgamiento = Date.Now,
                       .FolioInicio = 50, .FolioFin = 40,
                       .ObjetoActo = "Folios invertidos"}).Exito)
+
+        ' Dos sesiones intentan reservar intervalos que se cruzan al mismo tiempo.
+        ' El bloqueo FOR UPDATE del libro debe permitir exactamente una escritura.
+        Dim iniciarConcurrentes As New ManualResetEvent(False)
+        Dim exitosConcurrentes As Integer = 0
+        Dim erroresConcurrentes As String = ""
+        Dim tareaA As New Thread(New ThreadStart(
+            Sub()
+                Try
+                    iniciarConcurrentes.WaitOne()
+                    Dim resultado As Respuesta =
+                        (New ServicioProtocolo()).GuardarInstrumento(New Instrumento With {
+                            .IDLibro = idLibro, .NumeroEscritura = 20,
+                            .FechaHoraOtorgamiento = Date.Now,
+                            .FolioInicio = 31, .FolioFin = 40,
+                            .ObjetoActo = "Prueba concurrente A"})
+                    If resultado.Exito Then Interlocked.Increment(exitosConcurrentes)
+                Catch ex As Exception
+                    SyncLock erroresConcurrentes
+                        erroresConcurrentes &= "A: " & ex.Message & " "
+                    End SyncLock
+                End Try
+            End Sub))
+        Dim tareaB As New Thread(New ThreadStart(
+            Sub()
+                Try
+                    iniciarConcurrentes.WaitOne()
+                    Dim resultado As Respuesta =
+                        (New ServicioProtocolo()).GuardarInstrumento(New Instrumento With {
+                            .IDLibro = idLibro, .NumeroEscritura = 21,
+                            .FechaHoraOtorgamiento = Date.Now,
+                            .FolioInicio = 35, .FolioFin = 45,
+                            .ObjetoActo = "Prueba concurrente B"})
+                    If resultado.Exito Then Interlocked.Increment(exitosConcurrentes)
+                Catch ex As Exception
+                    SyncLock erroresConcurrentes
+                        erroresConcurrentes &= "B: " & ex.Message & " "
+                    End SyncLock
+                End Try
+            End Sub))
+        tareaA.Start()
+        tareaB.Start()
+        iniciarConcurrentes.Set()
+        tareaA.Join()
+        tareaB.Join()
+        iniciarConcurrentes.Dispose()
+        Verificar("Dos escrituras concurrentes con folios traslapados: solo una se guarda",
+                  exitosConcurrentes = 1,
+                  "Guardadas: " & exitosConcurrentes.ToString() & ". " & erroresConcurrentes)
 
         Dim rComp1 As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
         Verificar("Agregar compareciente otorgante a la escritura 1", rComp1.Exito, rComp1.Mensaje)

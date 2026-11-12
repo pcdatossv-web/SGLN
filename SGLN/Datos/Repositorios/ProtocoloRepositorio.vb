@@ -169,6 +169,124 @@ Public Class ProtocoloRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Guarda un instrumento serializando las escrituras por libro.
+    ''' El bloqueo de la fila del libro evita que dos sesiones validen
+    ''' simultáneamente el mismo intervalo de folios y ambas lo inserten.
+    ''' Devuelve False si el libro no está vigente, el instrumento no existe
+    ''' en ese libro o los folios se traslapan.
+    ''' </summary>
+    Public Function GuardarInstrumentoConBloqueo(instrumento As Instrumento,
+                                                 ByRef idGuardado As Integer,
+                                                 ByRef motivo As String) As Boolean
+        idGuardado = 0
+        motivo = ""
+
+        Using conexion As MySqlConnection = CrearConexion()
+            Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.ReadCommitted)
+                Try
+                    ' Todos los guardados de instrumentos de un mismo libro
+                    ' deben adquirir primero este bloqueo, en el mismo orden.
+                    Dim estadoLibro As String = Nothing
+                    Using comandoLibro As New MySqlCommand(
+                        "SELECT Estado FROM Libros_Protocolo WHERE ID = @libro FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(comandoLibro, "@libro", instrumento.IDLibro)
+                        Dim valor As Object = comandoLibro.ExecuteScalar()
+                        If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then
+                            estadoLibro = Convert.ToString(valor)
+                        End If
+                    End Using
+
+                    If estadoLibro <> "Vigente" Then
+                        motivo = "El libro no existe o ya no está vigente."
+                        transaccion.Rollback()
+                        Return False
+                    End If
+
+                    If instrumento.ID > 0 Then
+                        Dim existe As Integer
+                        Using comandoExiste As New MySqlCommand(
+                            "SELECT COUNT(*) FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro",
+                            conexion, transaccion)
+                            Parametro(comandoExiste, "@id", instrumento.ID)
+                            Parametro(comandoExiste, "@libro", instrumento.IDLibro)
+                            existe = Convert.ToInt32(comandoExiste.ExecuteScalar())
+                        End Using
+                        If existe = 0 Then
+                            motivo = "El instrumento no existe en el libro seleccionado."
+                            transaccion.Rollback()
+                            Return False
+                        End If
+                    End If
+
+                    If String.Equals(instrumento.Estado, "Vigente", StringComparison.OrdinalIgnoreCase) Then
+                        Dim traslapes As Integer
+                        Using comandoTraslape As New MySqlCommand(
+                            "SELECT COUNT(*) FROM Instrumentos " &
+                            "WHERE ID_Libro = @libro AND ID <> @excluir AND Estado = 'Vigente' " &
+                            "AND Folio_Inicio <= @fin AND Folio_Fin >= @inicio",
+                            conexion, transaccion)
+                            Parametro(comandoTraslape, "@libro", instrumento.IDLibro)
+                            Parametro(comandoTraslape, "@excluir", instrumento.ID)
+                            Parametro(comandoTraslape, "@inicio", instrumento.FolioInicio)
+                            Parametro(comandoTraslape, "@fin", instrumento.FolioFin)
+                            traslapes = Convert.ToInt32(comandoTraslape.ExecuteScalar())
+                        End Using
+
+                        If traslapes > 0 Then
+                            motivo = "Los folios indicados se traslapan con otra escritura del mismo libro."
+                            transaccion.Rollback()
+                            Return False
+                        End If
+                    End If
+
+                    If instrumento.ID = 0 Then
+                        Using comandoInsertar As New MySqlCommand(
+                            "INSERT INTO Instrumentos (ID_Libro, Numero_Escritura, Fecha_Hora_Otorgamiento, " &
+                            "Folio_Inicio, Folio_Fin, Objeto_Acto, Estado) " &
+                            "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, @estado)",
+                            conexion, transaccion)
+                            AgregarParametrosInstrumento(comandoInsertar, instrumento)
+                            comandoInsertar.ExecuteNonQuery()
+                        End Using
+                        Using comandoId As New MySqlCommand("SELECT LAST_INSERT_ID()", conexion, transaccion)
+                            idGuardado = Convert.ToInt32(comandoId.ExecuteScalar())
+                        End Using
+                    Else
+                        Using comandoActualizar As New MySqlCommand(
+                            "UPDATE Instrumentos SET Numero_Escritura = @numero, Fecha_Hora_Otorgamiento = @fecha, " &
+                            "Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto, Estado = @estado " &
+                            "WHERE ID = @id AND ID_Libro = @libro",
+                            conexion, transaccion)
+                            AgregarParametrosInstrumento(comandoActualizar, instrumento)
+                            Parametro(comandoActualizar, "@id", instrumento.ID)
+                            comandoActualizar.ExecuteNonQuery()
+                        End Using
+                        idGuardado = instrumento.ID
+                    End If
+
+                    transaccion.Commit()
+                Catch
+                    Try
+                        transaccion.Rollback()
+                    Catch
+                        ' Se conserva la excepción original si el rollback también falla.
+                    End Try
+                    Throw
+                End Try
+            End Using
+        End Using
+
+        If instrumento.ID = 0 Then
+            Auditar("CREAR", "Instrumentos", idGuardado, "Escritura " & instrumento.NumeroEscritura)
+        Else
+            Auditar("MODIFICAR", "Instrumentos", idGuardado, "Escritura " & instrumento.NumeroEscritura)
+        End If
+
+        Return True
+    End Function
+
     Public Function InstrumentosSinOtorgante(idLibro As Integer) As Integer
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Instrumentos i " &

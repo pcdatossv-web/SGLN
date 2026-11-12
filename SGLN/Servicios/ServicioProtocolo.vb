@@ -157,16 +157,14 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Solo se pueden registrar escrituras en libros vigentes.")
         End If
 
-        If HayTraslapeDeFolios(instrumento) Then
-            Return Respuesta.Fallo("Los folios indicados se traslapan con otra escritura del mismo libro.")
-        End If
-
         Try
-            If instrumento.ID = 0 Then
-                instrumento.ID = _repositorio.InsertarInstrumento(instrumento)
-            Else
-                _repositorio.ActualizarInstrumento(instrumento)
+            Dim idGuardado As Integer = 0
+            Dim motivo As String = ""
+            If Not _repositorio.GuardarInstrumentoConBloqueo(instrumento, idGuardado, motivo) Then
+                Return Respuesta.Fallo(motivo)
             End If
+
+            instrumento.ID = idGuardado
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe una escritura con ese número en el libro.")
         End Try
@@ -176,16 +174,6 @@ Public Class ServicioProtocolo
             .Mensaje = "Instrumento guardado correctamente.",
             .ID = instrumento.ID
         }
-    End Function
-
-    Private Function HayTraslapeDeFolios(instrumento As Instrumento) As Boolean
-        Dim ocupados As DataTable = _repositorio.FoliosOcupados(instrumento.IDLibro, instrumento.ID)
-        For Each fila As DataRow In ocupados.Rows
-            Dim inicio As Integer = Convert.ToInt32(fila("Folio_Inicio"))
-            Dim fin As Integer = Convert.ToInt32(fila("Folio_Fin"))
-            If instrumento.FolioInicio <= fin AndAlso inicio <= instrumento.FolioFin Then Return True
-        Next
-        Return False
     End Function
 
     Public Function AnularInstrumento(id As Integer) As Respuesta
