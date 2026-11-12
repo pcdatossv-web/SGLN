@@ -236,17 +236,25 @@ Public Class ConfiguracionRepositorio
         }
 
         Using proceso As Process = Process.Start(informacion)
-            Dim salida As String = proceso.StandardOutput.ReadToEnd()
-            Dim errores As String = proceso.StandardError.ReadToEnd()
-            If Not proceso.WaitForExit(5000) Then
+            Dim lecturaSalida As Task(Of String) = Task.Run(Function() proceso.StandardOutput.ReadToEnd())
+            Dim lecturaErrores As Task(Of String) = Task.Run(Function() proceso.StandardError.ReadToEnd())
+
+            If Not proceso.WaitForExit(10000) Then
                 Try
                     proceso.Kill()
                 Catch
                 End Try
-                Throw New InvalidOperationException("No se pudo identificar el cliente de respaldo.")
+                proceso.WaitForExit()
+                Try
+                    Task.WaitAll(lecturaSalida, lecturaErrores)
+                Catch
+                    ' Se conserva el error de identificación que se mostrará al usuario.
+                End Try
+                Throw New TimeoutException("El cliente de respaldo no respondió al consultar su versión.")
             End If
 
-            Dim version As String = salida & " " & errores
+            Task.WaitAll(lecturaSalida, lecturaErrores)
+            Dim version As String = lecturaSalida.Result & " " & lecturaErrores.Result
             Return version.IndexOf("MariaDB", StringComparison.OrdinalIgnoreCase) >= 0
         End Using
     End Function
@@ -261,13 +269,30 @@ Public Class ConfiguracionRepositorio
 
         Using proceso As Process = Process.Start(informacion)
             Using salida As FileStream = File.Create(rutaDestino)
-                ' La salida estándar se copia en segundo plano para que el
-                ' proceso no se bloquee si el respaldo es grande.
-                Dim copia As Task = Task.Run(Sub() proceso.StandardOutput.BaseStream.CopyTo(salida))
-                Dim errores As String = proceso.StandardError.ReadToEnd()
-                proceso.WaitForExit()
-                copia.Wait()
+                ' Ambas tuberías se consumen en paralelo para evitar bloqueos
+                ' por buffers llenos. El respaldo admite archivos grandes, pero
+                ' no deja el formulario esperando indefinidamente.
+                Dim copiaSalida As Task = Task.Run(Sub() proceso.StandardOutput.BaseStream.CopyTo(salida))
+                Dim lecturaErrores As Task(Of String) = Task.Run(Function() proceso.StandardError.ReadToEnd())
+                Dim termino As Boolean = proceso.WaitForExit(CInt(TimeSpan.FromHours(2).TotalMilliseconds))
 
+                If Not termino Then
+                    Try
+                        proceso.Kill()
+                    Catch
+                        ' Puede haber terminado justo al vencer el tiempo.
+                    End Try
+                    proceso.WaitForExit()
+                    Try
+                        Task.WaitAll(copiaSalida, lecturaErrores)
+                    Catch
+                        ' El timeout es el error principal; la limpieza se hace en el Finally externo.
+                    End Try
+                    Throw New TimeoutException("La generación del respaldo superó el límite de dos horas y se canceló.")
+                End If
+
+                Task.WaitAll(copiaSalida, lecturaErrores)
+                Dim errores As String = lecturaErrores.Result
                 If proceso.ExitCode <> 0 Then
                     Throw New InvalidOperationException(
                         "mysqldump terminó con código " & proceso.ExitCode & ": " & errores.Trim())
