@@ -45,9 +45,15 @@ Public Class FrmRoles
             Next
 
             clbPermisos.DataSource = Nothing
+            clbPermisos.DisplayMember = String.Empty
+            clbPermisos.ValueMember = String.Empty
+
+            ' Asignar primero el origen y después los miembros evita que
+            ' CheckedListBox muestre System.Data.DataRowView como texto.
+            clbPermisos.DataSource = vista
             clbPermisos.DisplayMember = "Texto"
             clbPermisos.ValueMember = "Codigo"
-            clbPermisos.DataSource = vista
+            clbPermisos.CheckOnClick = True
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - catálogo de permisos", ex)
             Mostrar("No se pudo cargar el catálogo de permisos: " & ex.Message, False)
