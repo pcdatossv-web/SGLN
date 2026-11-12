@@ -140,7 +140,6 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarDatosIniciales()
-        SembrarAdministrador()
         SembrarConfiguracion()
         SembrarFeriados()
         SembrarJuzgados()
@@ -148,22 +147,89 @@ Public Module InicializadorBD
         SembrarPlantillas()
     End Sub
 
-    Private Sub SembrarAdministrador()
-        If EscalarEntero("SELECT COUNT(*) FROM Usuarios") > 0 Then Return
+    Public Function HayUsuarios() As Boolean
+        Return EscalarEntero("SELECT COUNT(*) FROM Usuarios") > 0
+    End Function
 
-        Dim idRol As Integer = EscalarEntero("SELECT ID FROM Roles WHERE Protegido = 1 LIMIT 1")
-        Dim credencial As SalHash = SeguridadClave.CrearHash(SeguridadClave.ClaveInicialAdministrador)
+    ''' <summary>Alta protegida del primer administrador; evita carreras entre estaciones.</summary>
+    Public Sub CrearAdministradorInicial(usuario As String, nombreCompleto As String, clave As String)
+        usuario = If(usuario, "").Trim()
+        nombreCompleto = If(nombreCompleto, "").Trim()
+        If usuario.Length < 3 OrElse usuario.Length > 50 OrElse Not Regex.IsMatch(usuario, "^[A-Za-z0-9._-]+$") Then
+            Throw New InvalidOperationException("El usuario debe tener entre 3 y 50 caracteres y usar solo letras, números, punto, guion o guion bajo.")
+        End If
+        If nombreCompleto.Length = 0 OrElse nombreCompleto.Length > 150 Then
+            Throw New InvalidOperationException("Ingrese el nombre completo (máximo 150 caracteres).")
+        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
+        If errorClave <> "" Then Throw New InvalidOperationException(errorClave)
 
-        Ejecutar(
-            "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
-            "VALUES (@usuario, @nombre, @hash, @salt, @rol, 1)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@usuario", "admin")
-                Parametro(comando, "@nombre", "Administrador del sistema")
-                Parametro(comando, "@hash", credencial.Hash)
-                Parametro(comando, "@salt", credencial.Salt)
-                Parametro(comando, "@rol", idRol)
-            End Sub)
+        Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexion.Open()
+            Dim bloqueo As Boolean = False
+            Try
+                Using cmd As New MySqlCommand("SELECT GET_LOCK('SGLN_BOOTSTRAP_ADMIN', 15)", conexion)
+                    bloqueo = Convert.ToInt32(cmd.ExecuteScalar()) = 1
+                End Using
+                If Not bloqueo Then Throw New InvalidOperationException("No se pudo bloquear la creación inicial. Intente nuevamente.")
+
+                Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.Serializable)
+                    Try
+                        Using cmd As New MySqlCommand("SELECT COUNT(*) FROM Usuarios", conexion, transaccion)
+                            If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                                Throw New InvalidOperationException("Ya existe al menos un usuario. La creación inicial quedó deshabilitada.")
+                            End If
+                        End Using
+
+                        Dim idRol As Integer
+                        Using cmd As New MySqlCommand(
+                            "SELECT r.ID FROM Roles r WHERE r.Protegido = 1 AND r.Activo = 1 " &
+                            "AND EXISTS (SELECT 1 FROM Rol_Permiso rp WHERE rp.ID_Rol = r.ID) LIMIT 1", conexion, transaccion)
+                            Dim valor As Object = cmd.ExecuteScalar()
+                            If valor Is Nothing OrElse valor Is DBNull.Value Then
+                                Throw New InvalidOperationException("No existe un rol administrador protegido con permisos. Revise Esquema_MySQL.sql.")
+                            End If
+                            idRol = Convert.ToInt32(valor)
+                        End Using
+
+                        Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
+                        Dim nuevoId As Integer
+                        Using cmd As New MySqlCommand(
+                            "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
+                            "VALUES (@usuario, @nombre, @hash, @salt, @rol, 1)", conexion, transaccion)
+                            cmd.Parameters.AddWithValue("@usuario", usuario)
+                            cmd.Parameters.AddWithValue("@nombre", nombreCompleto)
+                            cmd.Parameters.AddWithValue("@hash", credencial.Hash)
+                            cmd.Parameters.AddWithValue("@salt", credencial.Salt)
+                            cmd.Parameters.AddWithValue("@rol", idRol)
+                            cmd.ExecuteNonQuery()
+                            nuevoId = CInt(cmd.LastInsertedId)
+                        End Using
+
+                        Using cmd As New MySqlCommand(
+                            "INSERT INTO Audit_Log (Usuario, Accion, Tabla_Afectada, ID_Registro, Detalle) " &
+                            "VALUES (@usuario, 'CREAR', 'Usuarios', @id, 'Creación del primer administrador')", conexion, transaccion)
+                            cmd.Parameters.AddWithValue("@usuario", usuario)
+                            cmd.Parameters.AddWithValue("@id", nuevoId)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                        transaccion.Commit()
+                    Catch
+                        Try
+                            transaccion.Rollback()
+                        Catch
+                        End Try
+                        Throw
+                    End Try
+                End Using
+            Finally
+                If bloqueo Then
+                    Using cmd As New MySqlCommand("SELECT RELEASE_LOCK('SGLN_BOOTSTRAP_ADMIN')", conexion)
+                        cmd.ExecuteScalar()
+                    End Using
+                End If
+            End Try
+        End Using
     End Sub
 
     Private Sub SembrarConfiguracion()
