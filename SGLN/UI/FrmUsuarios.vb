@@ -65,6 +65,7 @@ Public Class FrmUsuarios
         UtileriasUI.SeleccionarValor(cboRol, UtileriasUI.Entero(fila, "ID_Rol"))
         chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
         btnDesactivar.Enabled = chkActivo.Checked
+        btnEliminar.Enabled = EsAdministradorActual() AndAlso _idSeleccionado > 0
         Mostrar("", True)
     End Sub
 
@@ -82,6 +83,7 @@ Public Class FrmUsuarios
         txtClaveNueva.Clear()
         txtClaveConfirmar.Clear()
         btnDesactivar.Enabled = False
+        btnEliminar.Enabled = False
         Mostrar("", True)
         txtUsuario.Focus()
     End Sub
@@ -156,6 +158,43 @@ Public Class FrmUsuarios
             Nuevo()
         End If
     End Sub
+
+
+    Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
+        If Not EsAdministradorActual() Then
+            Mostrar("Solo un administrador puede eliminar definitivamente usuarios.", False)
+            Return
+        End If
+        If _idSeleccionado <= 0 Then
+            Mostrar("Seleccione el usuario que desea eliminar.", False)
+            Return
+        End If
+        If _idSeleccionado = Sesion.UsuarioActual.ID Then
+            Mostrar("No puede eliminar la cuenta con la que inició sesión.", False)
+            Return
+        End If
+
+        Dim aviso As String =
+            "Esta acción es irreversible." & Environment.NewLine & Environment.NewLine &
+            "Solo se permitirá si el usuario no tiene registros operativos, referencias históricas ni actividad propia." &
+            Environment.NewLine & "La bitácora de creación y eliminación se conservará." &
+            Environment.NewLine & Environment.NewLine &
+            "¿Desea intentar eliminar definitivamente a '" & txtUsuario.Text & "'?"
+
+        If Not UtileriasUI.Confirmar(aviso) Then Return
+
+        Dim respuesta As Respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado)
+        Mostrar(respuesta.Mensaje, respuesta.Exito)
+        If respuesta.Exito Then
+            CargarUsuarios()
+            Nuevo()
+        End If
+    End Sub
+
+    Private Function EsAdministradorActual() As Boolean
+        Return Sesion.UsuarioActual IsNot Nothing AndAlso
+               Sesion.UsuarioActual.RolProtegido AndAlso Permisos.AccesoTotal
+    End Function
 
     Private Sub Mostrar(mensaje As String, correcto As Boolean)
         lblMensaje.Text = mensaje
