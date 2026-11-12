@@ -20,3 +20,11 @@ jobs:
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
         run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+
+      - name: Compile functional test harness
+        shell: pwsh
+        run: |
+          $bin = Join-Path $PWD 'SGLN\bin\Release'
+          $vbc = Join-Path $env:windir 'Microsoft.NET\Framework64\v4.0.30319\vbc.exe'
+          & $vbc /nologo /quiet /codepage:65001 /target:exe "/out:$bin\PruebaFuncional.exe" "/r:$bin\SGLN.exe" "/r:$bin\MySql.Data.dll" "/r:$bin\System.Buffers.dll" "/r:$bin\System.Memory.dll" "/r:$bin\System.Numerics.Vectors.dll" /r:System.dll /r:System.Core.dll /r:System.Data.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Configuration.dll /r:System.Xml.dll "$PWD\Pruebas\PruebaFuncional.vb"
+          if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del arnés de pruebas funcionales.' }
