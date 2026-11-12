@@ -189,9 +189,29 @@ Public Class ProtocoloRepositorio
     Public Function AnularInstrumento(id As Integer) As Integer
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' La misma fila de Instrumentos se bloquea al expedir testimonios;
+                ' así se serializa la anulación frente a una expedición concurrente.
+                Dim estado As String = Nothing
+                Using consultar As New MySqlCommand(
+                    "SELECT Estado FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", id)
+                    Dim valor As Object = consultar.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estado = Convert.ToString(valor)
+                End Using
+                If estado <> "Vigente" Then Return 0
+
+                Dim testimonios As Integer
+                Using consultarTestimonios As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Testimonios_Expedidos WHERE ID_Instrumento = @id",
+                    conexion, transaccion)
+                    Parametro(consultarTestimonios, "@id", id)
+                    testimonios = Convert.ToInt32(consultarTestimonios.ExecuteScalar())
+                End Using
+                If testimonios > 0 Then Return 0
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Instrumentos i SET Estado = 'Anulado' WHERE i.ID = @id AND i.Estado = 'Vigente' " &
-                    "AND NOT EXISTS (SELECT 1 FROM Testimonios_Expedidos t WHERE t.ID_Instrumento = i.ID)",
+                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id AND Estado = 'Vigente'",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
