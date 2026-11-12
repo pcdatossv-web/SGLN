@@ -164,7 +164,10 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Private Shared Function EscaparOpcionMySQL(valor As String) As String
-        Return If(valor, "").Replace("\", "\\").Replace("""", "\"""")
+        Dim barra As String = ChrW(92).ToString()
+        Dim comilla As String = ChrW(34).ToString()
+        Return If(valor, "").Replace(barra, barra & barra).
+            Replace(comilla, barra & comilla)
     End Function
 
     Private Sub EjecutarMySqlDump(ejecutable As String, argumentos As String, rutaDestino As String)
