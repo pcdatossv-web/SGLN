@@ -1,5 +1,5 @@
 /* ============================================================
-   SGLN El Salvador - Instalacion del servidor MySQL 8.0
+   SGLN El Salvador - Instalacion del servidor MySQL 8.0.18+
 
    Ejecutar UNA SOLA VEZ como administrador (root) en el servidor:
      mysql -u root -p < Instalacion_Servidor_MySQL.sql
@@ -14,8 +14,10 @@
      mysql -u root -p sgln_sv < Esquema_MySQL.sql
      mysql -u root -p sgln_sv < Triggers_MySQL.sql
 
-   Cambie las claves de abajo y repliquelas en App.config antes de
-   instalar en el servidor real.
+   Las cuentas se crean con contraseñas aleatorias que MySQL muestra en
+   la salida de este script. Guarde esos valores en la configuración del
+   cliente. Ejecute este instalador una sola vez: al repetirlo se rotan
+   las contraseñas locales y deberá actualizar los clientes.
    ============================================================ */
 
 CREATE DATABASE IF NOT EXISTS sgln_sv
@@ -34,7 +36,11 @@ CREATE DATABASE IF NOT EXISTS sgln_sv
    de cuentas que ya existen.
    ------------------------------------------------------------------ */
 
-CREATE USER IF NOT EXISTS 'sgln_app'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
+DROP USER IF EXISTS 'sgln_app'@'%';
+DROP USER IF EXISTS 'sgln_backup'@'%';
+
+CREATE USER IF NOT EXISTS 'sgln_app'@'localhost';
+ALTER USER 'sgln_app'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
 GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 
 /* ------------------------------------------------------------------
@@ -43,7 +49,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
    exacta de ese equipo y los mismos privilegios de solo lectura.
    ------------------------------------------------------------------ */
 
-CREATE USER IF NOT EXISTS 'sgln_backup'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
+CREATE USER IF NOT EXISTS 'sgln_backup'@'localhost';
+ALTER USER 'sgln_backup'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
 GRANT SELECT, SHOW VIEW, TRIGGER
     ON sgln_sv.* TO 'sgln_backup'@'localhost';
 FLUSH PRIVILEGES;
