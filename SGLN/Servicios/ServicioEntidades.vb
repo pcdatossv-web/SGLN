@@ -80,13 +80,15 @@ Public Class ServicioEntidades
         End Try
     End Function
 
-    Public Sub QuitarRepresentante(id As Integer)
+    Public Function QuitarRepresentante(id As Integer) As Respuesta
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un representante.")
         Try
             _repositorio.QuitarRepresentante(id)
+            Return Respuesta.Ok("Representante removido.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - quitar representante", ex)
-            Throw
+            Return Respuesta.Fallo("No se pudo quitar el representante: " & ex.Message)
         End Try
-    End Sub
+    End Function
 
 End Class
