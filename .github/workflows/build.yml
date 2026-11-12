@@ -19,4 +19,4 @@ jobs:
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
-        run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform=AnyCPU /verbosity:minimal
+        run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
