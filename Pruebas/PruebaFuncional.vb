@@ -38,6 +38,30 @@ Module PruebaFuncional
             tlsSinCaRechazado = ex.Message.Contains("certificado CA")
         End Try
         Verificar("TLS con validación CA rechaza una conexión sin certificado raíz", tlsSinCaRechazado)
+
+        Dim preferredProduccionRechazado As Boolean = False
+        Try
+            Dim datosPreferidos As New DatosConexion With {
+                .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "sgln_sv",
+                .Usuario = "sgln_app", .Password = "Prueba", .ModoSsl = "Preferred"
+            }
+            datosPreferidos.ConstruirCadena()
+        Catch ex As InvalidOperationException
+            preferredProduccionRechazado = ex.Message.Contains("Preferred solo se permite")
+        End Try
+        Verificar("TLS Preferred se rechaza en la base de producción", preferredProduccionRechazado)
+
+        Dim preferredPruebasAceptado As Boolean = False
+        Try
+            Dim datosPreferidos As New DatosConexion With {
+                .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "sgln_sv_pruebas",
+                .Usuario = "sgln_test_app", .Password = "Prueba", .ModoSsl = "Preferred"
+            }
+            preferredPruebasAceptado = datosPreferidos.ConstruirCadena().Length > 0
+        Catch
+            preferredPruebasAceptado = False
+        End Try
+        Verificar("TLS Preferred solo se admite para la base aislada de pruebas", preferredPruebasAceptado)
         IntentarSinExcepcion("El inicializador verifica el esquema y siembra catálogos y configuración",
             Sub()
                 InicializadorBD.AsegurarBaseDeDatos()
