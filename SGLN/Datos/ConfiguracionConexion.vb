@@ -59,6 +59,11 @@ Public Class DatosConexion
            Not String.Equals(modo, "Preferred", StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("El modo TLS configurado no está permitido.")
         End If
+        If String.Equals(modo, "Preferred", StringComparison.OrdinalIgnoreCase) AndAlso
+           Not (BaseDatos.Trim().EndsWith("_pruebas", StringComparison.OrdinalIgnoreCase) OrElse
+                String.Equals(Process.GetCurrentProcess().ProcessName, "PruebaFuncional", StringComparison.OrdinalIgnoreCase)) Then
+            Throw New InvalidOperationException("Las conexiones normales requieren TLS con validación de CA. Preferred solo se permite en pruebas aisladas.")
+        End If
         If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) Then
             If String.IsNullOrWhiteSpace(CertificadoCa) OrElse Not System.IO.File.Exists(CertificadoCa.Trim()) Then
                 Throw New InvalidOperationException(
