@@ -70,18 +70,33 @@ if ($cadena -notmatch 'Database=sgln_sv_pruebas') {
 
 $servidor = 'localhost'
 $puerto = '3306'
-$usuarioApp = 'sgln_app'
+$usuarioApp = 'sgln_test_app'
 $claveApp = ''
 if ($cadena -match 'Server=([^;]+)') { $servidor = $Matches[1].Trim() }
 if ($cadena -match 'Port=([^;]+)') { $puerto = $Matches[1].Trim() }
 if ($cadena -match 'Uid=([^;]+)') { $usuarioApp = $Matches[1].Trim() }
 if ($cadena -match 'Pwd=([^;]+)') { $claveApp = $Matches[1] }
 
-$usuarioRespaldo = 'sgln_backup'
-$claveRespaldo = 'Abog@dos26'
+$usuarioRespaldo = 'sgln_test_backup'
+$claveRespaldo = ''
 foreach ($ajuste in $xmlConfig.configuration.appSettings.add) {
     if ($ajuste.key -eq 'Respaldos_Usuario') { $usuarioRespaldo = $ajuste.value }
     if ($ajuste.key -eq 'Respaldos_Clave') { $claveRespaldo = $ajuste.value }
+}
+
+# Credenciales aleatorias y exclusivas de esta base temporal. Nunca se reutilizan
+# las cuentas de la instalación real ni se guardan en los archivos del repositorio.
+$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $bytesApp = New-Object byte[] 32
+    $rng.GetBytes($bytesApp)
+    $claveApp = ([BitConverter]::ToString($bytesApp) -replace '-', '') + 'aA1!'
+    $bytesBackup = New-Object byte[] 32
+    $rng.GetBytes($bytesBackup)
+    $claveRespaldo = ([BitConverter]::ToString($bytesBackup) -replace '-', '') + 'bB2!'
+}
+finally {
+    $rng.Dispose()
 }
 
 function Buscar-MySqlExe([string]$nombre) {
@@ -180,17 +195,11 @@ try {
     Write-Host 'Ajustando usuarios y permisos sobre la base de pruebas...' -ForegroundColor Cyan
     Invoke-MySqlCommand (
         "CREATE USER IF NOT EXISTS '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
-        "CREATE USER IF NOT EXISTS '$usuarioApp'@'%' IDENTIFIED BY '$claveApp'; " +
+        "ALTER USER '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
         "CREATE USER IF NOT EXISTS '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
-        "CREATE USER IF NOT EXISTS '$usuarioRespaldo'@'%' IDENTIFIED BY '$claveRespaldo'; " +
-        "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES, TRIGGER " +
-        "ON ``$basePruebas``.* TO '$usuarioApp'@'localhost'; " +
-        "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES, TRIGGER " +
-        "ON ``$basePruebas``.* TO '$usuarioApp'@'%'; " +
-        "GRANT SELECT, LOCK TABLES, SHOW VIEW, EVENT, TRIGGER " +
-        "ON ``$basePruebas``.* TO '$usuarioRespaldo'@'localhost'; " +
-        "GRANT SELECT, LOCK TABLES, SHOW VIEW, EVENT, TRIGGER " +
-        "ON ``$basePruebas``.* TO '$usuarioRespaldo'@'%'; " +
+        "ALTER USER '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.* TO '$usuarioApp'@'localhost'; " +
+        "GRANT SELECT, SHOW VIEW, TRIGGER ON ``$basePruebas``.* TO '$usuarioRespaldo'@'localhost'; " +
         "FLUSH PRIVILEGES;")
 
     Write-Host 'Aplicando esquema y triggers...' -ForegroundColor Cyan
@@ -210,7 +219,14 @@ try {
     # detectada, que puede no estar en PATH en el equipo de pruebas.
     $configBin = Join-Path $carpetaBin 'PruebaFuncional.exe.config'
     [xml]$xmlBin = Get-Content $configBin
+    foreach ($conexionConfig in $xmlBin.configuration.connectionStrings.add) {
+        if ($conexionConfig.name -eq 'SGLN') {
+            $conexionConfig.connectionString = $conexionConfig.connectionString -replace '(?i)(Pwd=)[^;]*', "Pwd=$claveApp"
+        }
+    }
     foreach ($ajuste in $xmlBin.configuration.appSettings.add) {
+        if ($ajuste.key -eq 'Respaldos_Usuario') { $ajuste.value = $usuarioRespaldo }
+        if ($ajuste.key -eq 'Respaldos_Clave') { $ajuste.value = $claveRespaldo }
         if ($ajuste.key -eq 'Respaldos_RutaMySQLDump') { $ajuste.value = $mysqldumpExe }
     }
     $xmlBin.Save($configBin)
