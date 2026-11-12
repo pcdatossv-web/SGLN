@@ -63,7 +63,7 @@ Public Class ServicioRoles
         Dim fila As DataRow = actual.Rows(0)
         Dim protegido As Boolean = Convert.ToInt32(fila("Protegido")) = 1
         Dim nombreActual As String = Convert.ToString(fila("Nombre"))
-        Dim permisos As List(Of String) = NormalizarCodigos(codigos)
+        Dim codigosNormalizados As List(Of String) = NormalizarCodigos(codigos)
 
         If protegido Then
             ' El rol administrador solo puede cambiar su descripción y sus
@@ -72,7 +72,7 @@ Public Class ServicioRoles
             activo = True
 
             For Each obligatorio As String In PermisosObligatorios
-                If Not permisos.Contains(obligatorio) Then
+                If Not codigosNormalizados.Contains(obligatorio) Then
                     Return Respuesta.Fallo(
                         "El rol " & nombreActual & " no puede perder los permisos 'config.usuarios' ni 'config.roles'.")
                 End If
@@ -92,7 +92,7 @@ Public Class ServicioRoles
             End If
         End If
 
-        Return _repositorio.Actualizar(id, nombre, descripcion.Trim(), activo, permisos)
+        Return _repositorio.Actualizar(id, nombre, descripcion.Trim(), activo, codigosNormalizados)
     End Function
 
     Public Function Eliminar(id As Integer) As Respuesta

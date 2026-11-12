@@ -24,6 +24,9 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Console.WriteLine()
 
+        Sesion.Limpiar()
+        Verificar("Las operaciones de servicio deniegan acceso sin sesión", Not Permisos.TieneAcceso("config.usuarios"))
+
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
         Dim tlsSinCaRechazado As Boolean = False
@@ -73,6 +76,10 @@ Module PruebaFuncional
         Dim usuarios As New UsuarioRepositorio()
         If Not InicializadorBD.HayUsuarios() Then InicializadorBD.CrearAdministradorInicial("admin", "Administrador de pruebas", "PruebaInicial99!")
         Dim admin As UsuarioSesion = usuarios.Autenticar("admin", "PruebaInicial99!")
+        If admin IsNot Nothing Then
+            Sesion.UsuarioActual = admin
+            Sesion.CargarPermisos()
+        End If
         Verificar("Login acepta la cuenta creada por el asistente inicial", admin IsNot Nothing)
         Verificar("La cuenta creada con clave propia no requiere cambio forzado",
                   admin IsNot Nothing AndAlso Not admin.DebeCambiarClave)
@@ -175,6 +182,9 @@ Module PruebaFuncional
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
 
         Permisos.Cargar(idRolAbogado, False)
+        Dim intentoSinPermiso As Respuesta = servicioUsuarios.Desactivar(admin.ID)
+        Verificar("La capa de servicios bloquea la administración de usuarios sin permiso",
+                  Not intentoSinPermiso.Exito AndAlso intentoSinPermiso.Mensaje.Contains("No tiene permiso"))
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))
         Verificar("El rol Abogado no administra roles", Not Permisos.Puede("config.roles"))

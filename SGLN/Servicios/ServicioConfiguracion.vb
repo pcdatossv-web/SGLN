@@ -71,7 +71,7 @@ Public Class ServicioConfiguracion
 
     Public Function CambiarClave(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
         If Not Permisos.TieneAcceso("config.seguridad") Then Return Respuesta.Fallo("No tiene permiso para cambiar la configuración de seguridad.")
-                If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario Then Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
+        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario Then Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
 
         If idUsuario <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
