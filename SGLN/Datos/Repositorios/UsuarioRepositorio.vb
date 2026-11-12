@@ -175,6 +175,11 @@ Public Class UsuarioRepositorio
     ''' transacción serializable. Conserva el evento CREAR de la bitácora.
     ''' </summary>
     Public Function EliminarSiNoTieneHistorial(id As Integer) As Respuesta
+        If Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido OrElse
+           Not Permisos.AccesoTotal Then
+            Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
+        End If
+
         Using conexion As MySqlConnection = CrearConexion()
             Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.Serializable)
                 Try
