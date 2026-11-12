@@ -36,7 +36,8 @@ $ErrorActionPreference = 'Stop'
 $carpeta = $PSScriptRoot
 $raizSolucion = Split-Path -Parent $carpeta
 $proyectoSgln = Join-Path $raizSolucion 'SGLN'
-$ejecutableSgln = Join-Path $proyectoSgln 'bin\Debug\SGLN.exe'
+$ejecutableSgln = Join-Path $proyectoSgln 'bin\Release\SGLN.exe'
+$solucion = Join-Path $raizSolucion 'SGLN.sln'
 $configPruebas = Join-Path $carpeta 'PruebaFuncional.exe.config'
 $carpetaBin = Join-Path $carpeta 'bin'
 $carpetaLib = Join-Path $raizSolucion 'lib'
@@ -44,11 +45,34 @@ $carpetaScripts = Join-Path $proyectoSgln 'Scripts'
 $basePruebas = 'sgln_sv_pruebas'
 
 # ------------------------------------------------------------------
-# 1. Comprobaciones previas
+# 1. Compilación limpia y comprobaciones previas
 # ------------------------------------------------------------------
 
+# No reutilizar SGLN.exe de Debug: puede ser una compilación antigua y
+# provocar errores engañosos al compilar el arnés (por ejemplo, métodos
+# públicos que sí existen en el código fuente pero no en el EXE copiado).
+$msbuild = (Get-Command 'MSBuild.exe' -ErrorAction SilentlyContinue).Source
+if ([string]::IsNullOrWhiteSpace($msbuild)) {
+    $vswhere = Join-Path $env:ProgramFiles(x86) 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path $vswhere) {
+        $hallado = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+        if ($hallado) { $msbuild = $hallado }
+    }
+}
+if ([string]::IsNullOrWhiteSpace($msbuild) -or -not (Test-Path $msbuild)) {
+    throw 'No se encontró MSBuild. Instale Visual Studio o Build Tools con la carga de trabajo .NET de escritorio.'
+}
+if (-not (Test-Path $solucion)) {
+    throw "No existe la solución $solucion."
+}
+
+Write-Host 'Compilando la solución SGLN en Release...' -ForegroundColor Cyan
+& $msbuild $solucion /m /p:Configuration=Release '/p:Platform=Any CPU' /verbosity:minimal
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló la compilación de SGLN (MSBuild: $LASTEXITCODE). No se ejecutarán las pruebas."
+}
 if (-not (Test-Path $ejecutableSgln)) {
-    throw "No existe $ejecutableSgln. Compile la solución antes de ejecutar las pruebas."
+    throw "La compilación terminó sin generar $ejecutableSgln."
 }
 if (-not (Test-Path $configPruebas)) {
     throw "No existe $configPruebas."
