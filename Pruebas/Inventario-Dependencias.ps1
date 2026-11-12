@@ -31,4 +31,4 @@ $inventory = foreach ($relativePath in $dependencyPaths) {
 }
 
 Write-Host "Inventario de dependencias incluidas en SGLN:"
-$inventory | Format-Table -AutoSize
+$inventory | Format-List
