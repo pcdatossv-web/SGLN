@@ -225,7 +225,7 @@ Public Class RolRepositorio
 
         For Each codigo As String In nuevos
             Using comando As New MySqlCommand(
-                "INSERT IGNORE INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, @codigo)",
+                "INSERT INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, @codigo)",
                 conexion, transaccion)
                 Parametro(comando, "@rol", idRol)
                 Parametro(comando, "@codigo", codigo)
