@@ -370,6 +370,44 @@ Module PruebaFuncional
 
         EjecutarSqlDirecto("UPDATE Usuarios SET Activo = 1 WHERE ID = " & idAdmin2.ToString())
 
+        ' Dos estaciones intentan desactivar a los dos administradores al mismo
+        ' tiempo. El bloqueo común del rol debe permitir solo una operación.
+        Dim inicioDesactivacion As New ManualResetEvent(False)
+        Dim desactivacionesExitosas As Integer = 0
+        Dim tareaDesactivarAdmin As New Thread(New ThreadStart(
+            Sub()
+                inicioDesactivacion.WaitOne()
+                Try
+                    If EjecutarSqlDirecto("UPDATE Usuarios SET Activo = 0 WHERE ID = " & admin.ID.ToString()) = 1 Then
+                        Interlocked.Increment(desactivacionesExitosas)
+                    End If
+                Catch ex As MySqlException
+                    ' El trigger debe rechazar la segunda desactivación.
+                End Try
+            End Sub))
+        Dim tareaDesactivarAdmin2 As New Thread(New ThreadStart(
+            Sub()
+                inicioDesactivacion.WaitOne()
+                Try
+                    If EjecutarSqlDirecto("UPDATE Usuarios SET Activo = 0 WHERE ID = " & idAdmin2.ToString()) = 1 Then
+                        Interlocked.Increment(desactivacionesExitosas)
+                    End If
+                Catch ex As MySqlException
+                    ' El trigger debe rechazar la segunda desactivación.
+                End Try
+            End Sub))
+        tareaDesactivarAdmin.Start()
+        tareaDesactivarAdmin2.Start()
+        inicioDesactivacion.Set()
+        tareaDesactivarAdmin.Join()
+        tareaDesactivarAdmin2.Join()
+        inicioDesactivacion.Dispose()
+        Verificar("Dos desactivaciones simultáneas conservan al menos un administrador",
+                  desactivacionesExitosas = 1 AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol WHERE r.Protegido = 1 AND u.Activo = 1") = 1)
+        EjecutarSqlDirecto("UPDATE Usuarios SET Activo = 1 WHERE ID IN (" &
+                           admin.ID.ToString() & ", " & idAdmin2.ToString() & ")")
+
         Verificar("El trigger impide renombrar el rol Administrador",
                   NumeroErrorSql("UPDATE Roles SET Nombre = 'Administrador X' WHERE ID = " &
                                  idRolAdmin.ToString()) = 1644)
