@@ -60,12 +60,12 @@ Public Class DatosConexion
             Throw New InvalidOperationException("El modo TLS configurado no está permitido.")
         End If
         If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) Then
-            If String.IsNullOrWhiteSpace(CertificadoCa) OrElse Not System.IO.File.Exists(CertificadoCa) Then
+            If String.IsNullOrWhiteSpace(CertificadoCa) OrElse Not System.IO.File.Exists(CertificadoCa.Trim()) Then
                 Throw New InvalidOperationException(
                     "Debe seleccionar el certificado CA PEM de MySQL para validar la conexión TLS.")
             End If
         End If
-        constructor("SslMode") = modo
+        constructor.SslMode = CType([Enum].Parse(GetType(MySqlSslMode), modo, True), MySqlSslMode)
         If Not String.IsNullOrWhiteSpace(CertificadoCa) Then
             constructor("SslCa") = CertificadoCa.Trim()
         End If
