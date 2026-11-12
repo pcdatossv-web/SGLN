@@ -85,7 +85,7 @@ Partial Class FrmConfiguracionConexion
         Me.lblAyuda.Name = "lblAyuda"
         Me.lblAyuda.Size = New System.Drawing.Size(500, 32)
         Me.lblAyuda.TabIndex = 11
-        Me.lblAyuda.Text = "En red use la IP del servidor. Seleccione el CA PEM que firmó el certificado TLS de MySQL."
+        Me.lblAyuda.Text = "TLS obligatorio: seleccione el CA PEM de MySQL. Se valida la CA, no el nombre DNS del servidor."
         '
         ' Credenciales separadas para respaldos
         '
