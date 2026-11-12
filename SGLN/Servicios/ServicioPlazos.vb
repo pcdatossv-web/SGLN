@@ -22,6 +22,8 @@ Public Class ServicioPlazos
     End Function
 
     Public Function Confirmar(actuacion As ActuacionProcesal) As Respuesta
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Return Respuesta.Fallo("No tiene permiso para confirmar plazos.")
+
         If actuacion.IDCaso <= 0 Then Return Respuesta.Fallo("Seleccione un caso.")
         If actuacion.IDTipoActuacion <= 0 Then Return Respuesta.Fallo("Seleccione el tipo de actuación.")
         If actuacion.PlazoLegalDias <= 0 Then Return Respuesta.Fallo("El plazo legal debe ser mayor que cero.")
@@ -49,6 +51,8 @@ Public Class ServicioPlazos
     End Function
 
     Public Function MarcarCumplida(idActuacion As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Return Respuesta.Fallo("No tiene permiso para marcar actuaciones como cumplidas.")
+
         If idActuacion <= 0 Then Return Respuesta.Fallo("Seleccione una actuación.")
         _repositorio.MarcarCumplida(idActuacion)
         Return Respuesta.Ok("Actuación marcada como cumplida.")

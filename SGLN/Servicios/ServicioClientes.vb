@@ -18,6 +18,8 @@ Public Class ServicioClientes
     End Function
 
     Public Function Guardar(cliente As Cliente, perfil As PerfilLdaft) As Respuesta
+        If Not Permisos.TieneAcceso("clientes.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar clientes.")
+
         Dim errorValidacion As String = Validar(cliente, perfil)
         If errorValidacion <> "" Then Return Respuesta.Fallo(errorValidacion)
 
@@ -40,6 +42,8 @@ Public Class ServicioClientes
     End Function
 
     Public Function Desactivar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("clientes.desactivar") Then Return Respuesta.Fallo("No tiene permiso para desactivar clientes.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
         Try
             _repositorio.Desactivar(id)

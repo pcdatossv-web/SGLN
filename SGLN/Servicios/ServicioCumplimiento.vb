@@ -24,6 +24,8 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function GuardarOperacion(operacion As OperacionLdaft) As Respuesta
+        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
+
         If Not TipoOperacionValido(operacion.TipoOperacion) Then
             Return Respuesta.Fallo("El tipo de operación no es válido.")
         End If
@@ -63,6 +65,8 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Respuesta
+        If Not Permisos.TieneAcceso("cumplimiento.reportar_uif") Then Return Respuesta.Fallo("No tiene permiso para reportar operaciones a la UIF.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
 
         Dim tabla As DataTable = _repositorio.ObtenerOperacion(id)
@@ -81,6 +85,8 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function Descartar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
         _repositorio.Descartar(id)
         Return Respuesta.Ok("Operación descartada. El registro se conserva para auditoría.")
@@ -106,6 +112,8 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function GuardarSolicitud(solicitud As SolicitudArco) As Respuesta
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para gestionar solicitudes ARCO.")
+
         If solicitud.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente.")
         If Not TipoDerechoValido(solicitud.TipoDerecho) Then
             Return Respuesta.Fallo("El tipo de derecho ARCO no es válido.")
@@ -146,6 +154,8 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function ResponderSolicitud(id As Integer, fechaRespuesta As Date) As Respuesta
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para responder solicitudes ARCO.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una solicitud.")
 
         Dim tabla As DataTable = _repositorio.ObtenerSolicitud(id)

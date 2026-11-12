@@ -42,6 +42,8 @@ Public Class ServicioDocumentos
     ''' </summary>
     Public Function Importar(rutaOrigen As String, tipoDocumento As String,
                              idCaso As Integer?, idInstrumento As Integer?) As Respuesta
+        If Not Permisos.TieneAcceso("documentos.importar") Then Return Respuesta.Fallo("No tiene permiso para importar documentos.")
+
 
         If String.IsNullOrWhiteSpace(rutaOrigen) OrElse Not File.Exists(rutaOrigen) Then
             Return Respuesta.Fallo("El archivo seleccionado no existe.")
@@ -105,6 +107,8 @@ Public Class ServicioDocumentos
 
     Public Function ActualizarMetadatos(id As Integer, tipoDocumento As String,
                                         idCaso As Integer?, idInstrumento As Integer?) As Respuesta
+        If Not Permisos.TieneAcceso("documentos.metadatos") Then Return Respuesta.Fallo("No tiene permiso para modificar metadatos de documentos.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
         If String.IsNullOrWhiteSpace(tipoDocumento) Then Return Respuesta.Fallo("Seleccione el tipo de documento.")
 
@@ -123,6 +127,8 @@ Public Class ServicioDocumentos
     ''' Recalcula el hash del archivo y lo compara con el registrado.
     ''' </summary>
     Public Function VerificarIntegridad(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("documentos.verificar") Then Return Respuesta.Fallo("No tiene permiso para verificar documentos.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
 
         Dim tabla As DataTable = _repositorio.Obtener(id)

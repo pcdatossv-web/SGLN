@@ -67,6 +67,11 @@ Public NotInheritable Class Permisos
         _accesoTotal = False
     End Sub
 
+    ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
+    Public Shared Function TieneAcceso(codigo As String) As Boolean
+        Return Sesion.UsuarioActual IsNot Nothing AndAlso Puede(codigo)
+    End Function
+
     Public Shared Function Puede(codigo As String) As Boolean
         ' Un permiso sin código nunca debe conceder acceso (fail-closed).
         If String.IsNullOrWhiteSpace(codigo) Then Return False

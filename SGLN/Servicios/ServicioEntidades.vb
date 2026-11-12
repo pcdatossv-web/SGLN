@@ -18,6 +18,8 @@ Public Class ServicioEntidades
     End Function
 
     Public Function Guardar(entidad As EntidadLegal, perfil As PerfilLdaft) As Respuesta
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar entidades.")
+
         If String.IsNullOrWhiteSpace(entidad.RazonSocial) Then
             Return Respuesta.Fallo("La razón social es obligatoria.")
         End If
@@ -51,6 +53,8 @@ Public Class ServicioEntidades
     End Function
 
     Public Function Desactivar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar entidades.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una entidad.")
         Try
             _repositorio.Desactivar(id)
@@ -70,6 +74,8 @@ Public Class ServicioEntidades
     End Function
 
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar representantes.")
+
         If idEntidad <= 0 Then Return Respuesta.Fallo("Guarde primero la entidad.")
         If idCliente <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
         Try
@@ -81,6 +87,8 @@ Public Class ServicioEntidades
     End Function
 
     Public Function QuitarRepresentante(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar representantes.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un representante.")
         Try
             _repositorio.QuitarRepresentante(id)

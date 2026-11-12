@@ -19,6 +19,8 @@ Public Class ServicioCasos
     End Function
 
     Public Function Guardar(caso As Caso) As Respuesta
+        If Not Permisos.TieneAcceso("casos.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar casos.")
+
         If caso.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente del caso.")
         If String.IsNullOrWhiteSpace(caso.NumeroExpediente) Then Return Respuesta.Fallo("El número de expediente es obligatorio.")
         If String.IsNullOrWhiteSpace(caso.Materia) Then Return Respuesta.Fallo("Seleccione la materia del caso.")

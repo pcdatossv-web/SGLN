@@ -23,6 +23,8 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function Guardar(clave As String, valor As String) As Respuesta
+        If Not Permisos.TieneAcceso("config.ver") Then Return Respuesta.Fallo("No tiene permiso para modificar la configuración.")
+
         If String.IsNullOrWhiteSpace(clave) Then Return Respuesta.Fallo("Indique la clave de configuración.")
         If clave.Trim().Length > 60 Then Return Respuesta.Fallo("La clave no puede superar 60 caracteres.")
 
@@ -35,6 +37,8 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function AgregarFeriado(fecha As Date, descripcion As String) As Respuesta
+        If Not Permisos.TieneAcceso("config.feriados") Then Return Respuesta.Fallo("No tiene permiso para administrar feriados.")
+
         If String.IsNullOrWhiteSpace(descripcion) Then
             Return Respuesta.Fallo("Indique la descripción del feriado.")
         End If
@@ -54,6 +58,8 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function EliminarFeriado(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.feriados") Then Return Respuesta.Fallo("No tiene permiso para administrar feriados.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un feriado.")
         _repositorio.EliminarFeriado(id)
         Return Respuesta.Ok("Feriado eliminado. Los plazos ya confirmados no se recalculan.")
@@ -64,6 +70,9 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function CambiarClave(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
+        If Not Permisos.TieneAcceso("config.seguridad") Then Return Respuesta.Fallo("No tiene permiso para cambiar la configuración de seguridad.")
+                If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario Then Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
+
         If idUsuario <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
@@ -79,6 +88,8 @@ Public Class ServicioConfiguracion
     ''' Devuelve la ruta final para mostrarla al usuario.
     ''' </summary>
     Public Function Respaldar() As Respuesta
+        If Not Permisos.TieneAcceso("config.respaldos") Then Return Respuesta.Fallo("No tiene permiso para crear respaldos.")
+
         Try
             Dim carpeta As String = CarpetaRespaldos()
             Directory.CreateDirectory(carpeta)

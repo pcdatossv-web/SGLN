@@ -23,6 +23,8 @@ Public Class ServicioUsuarios
 
     Public Function Crear(usuario As String, nombreCompleto As String, clave As String,
                           idRol As Integer, activo As Boolean) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+
 
         Dim errorValidacion As String = ValidarDatos(usuario, nombreCompleto, clave, idRol)
         If errorValidacion <> "" Then Return Respuesta.Fallo(errorValidacion)
@@ -32,6 +34,8 @@ Public Class ServicioUsuarios
 
     Public Function Actualizar(id As Integer, nombreCompleto As String, idRol As Integer,
                                activo As Boolean) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         If String.IsNullOrWhiteSpace(nombreCompleto) Then Return Respuesta.Fallo("Indique el nombre completo.")
@@ -61,6 +65,8 @@ Public Class ServicioUsuarios
     ''' (permiso config.usuarios).
     ''' </summary>
     Public Function RestablecerClave(id As Integer, claveNueva As String) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para restablecer claves de otros usuarios.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
@@ -69,6 +75,8 @@ Public Class ServicioUsuarios
 
     ''' <summary>Cambio de la propia clave: exige la clave actual.</summary>
     Public Function CambiarClavePropia(id As Integer, claveActual As String, claveNueva As String) As Respuesta
+        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> id Then Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
@@ -79,6 +87,8 @@ Public Class ServicioUsuarios
     End Function
 
     Public Function Desactivar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         If Sesion.UsuarioActual IsNot Nothing AndAlso id = Sesion.UsuarioActual.ID Then
             Return Respuesta.Fallo("No puede desactivar el usuario con el que inició sesión.")

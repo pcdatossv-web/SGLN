@@ -24,6 +24,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function GuardarLibro(libro As LibroProtocolo) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If libro.NumeroLibro <= 0 Then Return Respuesta.Fallo("El número de libro debe ser mayor que cero.")
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
             Return Respuesta.Fallo("El año de vigencia no es válido.")
@@ -60,6 +62,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function CerrarLibro(id As Integer, razon As String) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.cerrar_libro") Then Return Respuesta.Fallo("No tiene permiso para cerrar libros del protocolo.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
         If String.IsNullOrWhiteSpace(razon) Then Return Respuesta.Fallo("Indique la razón del cierre del libro.")
 
@@ -97,6 +101,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function RegistrarEntrega(id As Integer, fechaEntrega As Date) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.entregar") Then Return Respuesta.Fallo("No tiene permiso para registrar entregas al Notariado.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
 
         Dim libro As DataTable = _repositorio.ObtenerLibro(id)
@@ -140,6 +146,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function GuardarInstrumento(instrumento As Instrumento) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If instrumento.IDLibro <= 0 Then Return Respuesta.Fallo("Seleccione el libro del protocolo.")
         If instrumento.NumeroEscritura <= 0 Then Return Respuesta.Fallo("El número de escritura debe ser mayor que cero.")
         If String.IsNullOrWhiteSpace(instrumento.ObjetoActo) Then Return Respuesta.Fallo("Describa el objeto del acto.")
@@ -177,6 +185,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function AnularInstrumento(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
         _repositorio.AnularInstrumento(id)
         Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
@@ -191,6 +201,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function AgregarCompareciente(idInstrumento As Integer, idCliente As Integer, calidad As String) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If idInstrumento <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
         If idCliente <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
         If Not CalidadValida(calidad) Then Return Respuesta.Fallo("La calidad del compareciente no es válida.")
@@ -214,6 +226,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function QuitarCompareciente(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un compareciente.")
         _repositorio.QuitarCompareciente(id)
         Return Respuesta.Ok("Compareciente eliminado.")
@@ -232,6 +246,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function ExpedirTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.testimonios") Then Return Respuesta.Fallo("No tiene permiso para expedir testimonios.")
+
         If idInstrumento <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
         If String.IsNullOrWhiteSpace(destinatario) Then Return Respuesta.Fallo("Indique el destinatario del testimonio.")
         If tipo <> "Primer" AndAlso tipo <> "Ulterior" Then Return Respuesta.Fallo("El tipo de testimonio no es válido.")
@@ -256,6 +272,8 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function GenerarIndice(idLibro As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
         Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
         If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")

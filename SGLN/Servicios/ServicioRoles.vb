@@ -37,6 +37,8 @@ Public Class ServicioRoles
     End Function
 
     Public Function Crear(nombre As String, descripcion As String, codigos As List(Of String)) As Respuesta
+        If Not Permisos.TieneAcceso("config.roles") Then Return Respuesta.Fallo("No tiene permiso para administrar roles.")
+
         Dim errorNombre As String = ValidarNombre(nombre, 0)
         If errorNombre <> "" Then Return Respuesta.Fallo(errorNombre)
 
@@ -52,6 +54,8 @@ Public Class ServicioRoles
 
     Public Function Actualizar(id As Integer, nombre As String, descripcion As String,
                                activo As Boolean, codigos As List(Of String)) As Respuesta
+        If Not Permisos.TieneAcceso("config.roles") Then Return Respuesta.Fallo("No tiene permiso para administrar roles.")
+
 
         Dim actual As DataTable = _repositorio.Obtener(id)
         If actual.Rows.Count = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
@@ -92,6 +96,8 @@ Public Class ServicioRoles
     End Function
 
     Public Function Eliminar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.roles") Then Return Respuesta.Fallo("No tiene permiso para administrar roles.")
+
         Dim actual As DataTable = _repositorio.Obtener(id)
         If actual.Rows.Count = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
 
