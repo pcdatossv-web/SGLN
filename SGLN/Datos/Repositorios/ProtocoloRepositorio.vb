@@ -190,7 +190,8 @@ Public Class ProtocoloRepositorio
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id AND Estado = 'Vigente'",
+                    "UPDATE Instrumentos i SET Estado = 'Anulado' WHERE i.ID = @id AND i.Estado = 'Vigente' " &
+                    "AND NOT EXISTS (SELECT 1 FROM Testimonios_Expedidos t WHERE t.ID_Instrumento = i.ID)",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
@@ -444,6 +445,40 @@ Public Class ProtocoloRepositorio
     Public Sub InsertarTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String)
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim fechaOtorgamiento As Date
+                Dim estadoInstrumento As String = Nothing
+                Using consultar As New MySqlCommand(
+                    "SELECT Estado, Fecha_Hora_Otorgamiento FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", idInstrumento)
+                    Using lector As MySqlDataReader = consultar.ExecuteReader()
+                        If Not lector.Read() Then Throw New InvalidOperationException("La escritura no existe.")
+                        estadoInstrumento = Convert.ToString(lector("Estado"))
+                        fechaOtorgamiento = Convert.ToDateTime(lector("Fecha_Hora_Otorgamiento")).Date
+                    End Using
+                End Using
+                If estadoInstrumento <> "Vigente" Then
+                    Throw New InvalidOperationException("No se pueden expedir testimonios de una escritura anulada.")
+                End If
+                If fecha.Date < fechaOtorgamiento Then
+                    Throw New InvalidOperationException("La fecha del testimonio no puede ser anterior al otorgamiento.")
+                End If
+
+                Dim primeros As Integer
+                Using consultarPrimer As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Testimonios_Expedidos " &
+                    "WHERE ID_Instrumento = @id AND Tipo_Testimonio = 'Primer'",
+                    conexion, transaccion)
+                    Parametro(consultarPrimer, "@id", idInstrumento)
+                    primeros = Convert.ToInt32(consultarPrimer.ExecuteScalar())
+                End Using
+                If tipo = "Primer" AndAlso primeros > 0 Then
+                    Throw New InvalidOperationException("Ya existe un primer testimonio expedido para esta escritura.")
+                End If
+                If tipo = "Ulterior" AndAlso primeros = 0 Then
+                    Throw New InvalidOperationException("No se puede expedir un testimonio ulterior sin un primer testimonio registrado.")
+                End If
+
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Testimonios_Expedidos (ID_Instrumento, Tipo_Testimonio, Fecha_Expedicion, Destinatario, Usuario) " &
                     "VALUES (@instrumento, @tipo, @fecha, @destinatario, @usuario)",

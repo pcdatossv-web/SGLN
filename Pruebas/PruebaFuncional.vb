@@ -971,6 +971,12 @@ Module PruebaFuncional
 
         Dim rTestimonio As Respuesta = protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today, "Banco Cuscatlán, S.A.")
         Verificar("Expedir primer testimonio de la escritura 1", rTestimonio.Exito, rTestimonio.Mensaje)
+        Verificar("No se permite expedir un segundo primer testimonio",
+                  Not protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today, "Destinatario duplicado").Exito)
+        Verificar("Se permite expedir un ulterior después del primero",
+                  protocolo.ExpedirTestimonio(idInstrumento1, "Ulterior", Date.Today, "Destinatario ulterior").Exito)
+        Verificar("No se puede anular una escritura con testimonios expedidos",
+                  Not protocolo.AnularInstrumento(idInstrumento1).Exito)
         Verificar("Testimonio con fecha futura se rechaza",
                   Not protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today.AddDays(1), "X").Exito)
 

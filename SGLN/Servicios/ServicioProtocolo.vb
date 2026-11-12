@@ -226,7 +226,7 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("La escritura ya está anulada.")
         End If
         If _repositorio.AnularInstrumento(id) = 0 Then
-            Return Respuesta.Fallo("La escritura cambió de estado. Actualice la lista.")
+            Return Respuesta.Fallo("No se puede anular: la escritura ya cambió de estado o tiene testimonios expedidos.")
         End If
         Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
     End Function
@@ -309,7 +309,11 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("La fecha del testimonio no puede ser anterior al otorgamiento.")
         End If
 
-        _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
+        Try
+            _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
+        End Try
         Return Respuesta.Ok("Testimonio registrado correctamente.")
     End Function
 
