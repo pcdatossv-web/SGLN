@@ -69,6 +69,14 @@ Public Class FrmConfiguracionConexion
             Return Nothing
         End If
 
+        If String.IsNullOrWhiteSpace(txtCertificadoCa.Text) OrElse
+           Not System.IO.File.Exists(txtCertificadoCa.Text.Trim()) Then
+            MessageBox.Show("Seleccione el certificado CA PEM válido que firmó el certificado TLS del servidor MySQL.",
+                            "Validación TLS", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtCertificadoCa.Focus()
+            Return Nothing
+        End If
+
         Return New DatosConexion With {
             .Servidor = txtServidor.Text.Trim(),
             .Puerto = puerto,
