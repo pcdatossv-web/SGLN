@@ -18,6 +18,7 @@ DROP TRIGGER IF EXISTS trg_roles_protegido_bu;
 DROP TRIGGER IF EXISTS trg_roles_protegido_bd;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bu;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bd;
+DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bu;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bd;
 DROP TRIGGER IF EXISTS trg_audit_log_no_update;
 DROP TRIGGER IF EXISTS trg_audit_log_no_delete;
@@ -82,6 +83,21 @@ BEGIN
         END IF;
     END IF;
 END$$
+
+CREATE TRIGGER trg_rol_permiso_admin_bu BEFORE UPDATE ON Rol_Permiso
+FOR EACH ROW
+BEGIN
+    DECLARE v_protegido TINYINT;
+
+    SELECT Protegido INTO v_protegido FROM Roles WHERE ID = OLD.ID_Rol LIMIT 1;
+
+    IF v_protegido = 1
+       AND OLD.Codigo IN ('config.usuarios', 'config.roles')
+       AND (NEW.ID_Rol <> OLD.ID_Rol OR NEW.Codigo <> OLD.Codigo) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se pueden reasignar ni cambiar los permisos esenciales del Administrador.';
+    END IF;
+END$
 
 CREATE TRIGGER trg_rol_permiso_admin_bd BEFORE DELETE ON Rol_Permiso
 FOR EACH ROW
