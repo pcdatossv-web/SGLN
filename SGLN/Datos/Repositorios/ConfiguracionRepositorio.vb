@@ -88,7 +88,7 @@ Public Class ConfiguracionRepositorio
         Dim claveBackup As String = ClaveRespaldo()
         If String.IsNullOrWhiteSpace(claveBackup) Then
             Throw New InvalidOperationException(
-                "No se ha configurado la contraseña de la cuenta sgln_backup. " &
+                "No se ha configurado la contraseña de la cuenta de respaldos. " &
                 "Abra Configurar servidor de base de datos y registre la clave de la cuenta de respaldos.")
         End If
 
