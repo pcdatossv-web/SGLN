@@ -116,7 +116,7 @@ Public Class FrmLogin
             dialogo.Text = "Cambio obligatorio de clave"
             dialogo.StartPosition = FormStartPosition.CenterParent
             dialogo.FormBorderStyle = FormBorderStyle.FixedDialog
-            dialogo.ClientSize = New Drawing.Size(430, 235)
+            dialogo.ClientSize = New System.Drawing.Size(430, 235)
             dialogo.MaximizeBox = False
             dialogo.MinimizeBox = False
             dialogo.ShowInTaskbar = False
@@ -124,40 +124,40 @@ Public Class FrmLogin
             Dim titulo As New Label() With {
                 .Text = "Por seguridad, debe reemplazar la clave inicial.",
                 .AutoSize = False,
-                .Location = New Drawing.Point(18, 15),
-                .Size = New Drawing.Size(394, 35)
+                .Location = New System.Drawing.Point(18, 15),
+                .Size = New System.Drawing.Size(394, 35)
             }
             Dim lblNueva As New Label() With {
                 .Text = "Nueva clave:",
                 .AutoSize = True,
-                .Location = New Drawing.Point(20, 65)
+                .Location = New System.Drawing.Point(20, 65)
             }
             Dim txtNueva As New TextBox() With {
-                .Location = New Drawing.Point(135, 61),
-                .Size = New Drawing.Size(265, 23),
+                .Location = New System.Drawing.Point(135, 61),
+                .Size = New System.Drawing.Size(265, 23),
                 .UseSystemPasswordChar = True,
                 .MaxLength = 128
             }
             Dim lblConfirmar As New Label() With {
                 .Text = "Confirmar clave:",
                 .AutoSize = True,
-                .Location = New Drawing.Point(20, 105)
+                .Location = New System.Drawing.Point(20, 105)
             }
             Dim txtConfirmar As New TextBox() With {
-                .Location = New Drawing.Point(135, 101),
-                .Size = New Drawing.Size(265, 23),
+                .Location = New System.Drawing.Point(135, 101),
+                .Size = New System.Drawing.Size(265, 23),
                 .UseSystemPasswordChar = True,
                 .MaxLength = 128
             }
             Dim btnAceptar As New Button() With {
                 .Text = "Guardar clave",
-                .Location = New Drawing.Point(135, 155),
-                .Size = New Drawing.Size(125, 32)
+                .Location = New System.Drawing.Point(135, 155),
+                .Size = New System.Drawing.Size(125, 32)
             }
             Dim btnCancelar As New Button() With {
                 .Text = "Cancelar",
-                .Location = New Drawing.Point(275, 155),
-                .Size = New Drawing.Size(125, 32),
+                .Location = New System.Drawing.Point(275, 155),
+                .Size = New System.Drawing.Size(125, 32),
                 .DialogResult = DialogResult.Cancel
             }
 
