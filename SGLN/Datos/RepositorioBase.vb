@@ -49,6 +49,71 @@ Public MustInherit Class RepositorioBase
     End Function
 
     ''' <summary>
+    ''' Ejecuta una operación completa en una única transacción InnoDB.
+    ''' Si cualquier paso falla, incluidos los registros de auditoría, revierte todo.
+    ''' </summary>
+    Protected Function EnTransaccion(Of T)(operacion As Func(Of MySqlConnection, MySqlTransaction, T)) As T
+        Using conexion As MySqlConnection = CrearConexion()
+            Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.ReadCommitted)
+                Try
+                    Dim resultado As T = operacion(conexion, transaccion)
+                    transaccion.Commit()
+                    Return resultado
+                Catch
+                    Try
+                        transaccion.Rollback()
+                    Catch
+                        ' Se conserva la excepción original.
+                    End Try
+                    Throw
+                End Try
+            End Using
+        End Using
+    End Function
+
+    Protected Function Ejecutar(conexion As MySqlConnection,
+                                transaccion As MySqlTransaction,
+                                consulta As String,
+                                Optional parametros As Action(Of MySqlCommand) = Nothing) As Integer
+        Using comando As New MySqlCommand(consulta, conexion, transaccion)
+            If parametros IsNot Nothing Then parametros(comando)
+            Return comando.ExecuteNonQuery()
+        End Using
+    End Function
+
+    Protected Function InsertarYObtenerId(conexion As MySqlConnection,
+                                          transaccion As MySqlTransaction,
+                                          consulta As String,
+                                          Optional parametros As Action(Of MySqlCommand) = Nothing) As Integer
+        Ejecutar(conexion, transaccion, consulta, parametros)
+        Using comandoId As New MySqlCommand("SELECT LAST_INSERT_ID()", conexion, transaccion)
+            Return Convert.ToInt32(comandoId.ExecuteScalar())
+        End Using
+    End Function
+
+    ''' <summary>
+    ''' Registra la auditoría dentro de la misma transacción de negocio.
+    ''' A diferencia de Auditar(), un fallo aquí cancela también el cambio de datos.
+    ''' </summary>
+    Protected Sub AuditarEnTransaccion(conexion As MySqlConnection,
+                                       transaccion As MySqlTransaction,
+                                       accion As String,
+                                       tabla As String,
+                                       idRegistro As Integer?,
+                                       detalle As String)
+        Ejecutar(conexion, transaccion,
+            "INSERT INTO Audit_Log (Usuario, Fecha_Hora, Accion, Tabla_Afectada, ID_Registro, Detalle) " &
+            "VALUES (@usuario, NOW(), @accion, @tabla, @id, @detalle)",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@usuario", Recortar(Sesion.NombreUsuario, 50))
+                Parametro(comando, "@accion", Recortar(accion, 40))
+                Parametro(comando, "@tabla", Recortar(tabla, 80))
+                Parametro(comando, "@id", If(idRegistro.HasValue, CObj(idRegistro.Value), DBNull.Value))
+                Parametro(comando, "@detalle", Recortar(detalle, 1000))
+            End Sub)
+    End Sub
+
+    ''' <summary>
     ''' Inserta una fila y devuelve su ID. MySQL no tiene "OUTPUT INSERTED":
     ''' el INSERT y LAST_INSERT_ID() deben ejecutarse en la MISMA conexión.
     ''' </summary>
