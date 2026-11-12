@@ -28,6 +28,9 @@ Partial Class FrmConfiguracionConexion
         Me.txtUsuarioRespaldo = New System.Windows.Forms.TextBox()
         Me.lblPasswordRespaldo = New System.Windows.Forms.Label()
         Me.txtPasswordRespaldo = New System.Windows.Forms.TextBox()
+        Me.lblCertificadoCa = New System.Windows.Forms.Label()
+        Me.txtCertificadoCa = New System.Windows.Forms.TextBox()
+        Me.btnBuscarCertificado = New System.Windows.Forms.Button()
         Me.chkEquipo = New System.Windows.Forms.CheckBox()
         Me.txtPassword = New System.Windows.Forms.TextBox()
         Me.lblPassword = New System.Windows.Forms.Label()
@@ -52,6 +55,9 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.txtPasswordRespaldo)
         Me.grpServidor.Controls.Add(Me.lblPasswordRespaldo)
         Me.grpServidor.Controls.Add(Me.txtUsuarioRespaldo)
+        Me.grpServidor.Controls.Add(Me.btnBuscarCertificado)
+        Me.grpServidor.Controls.Add(Me.txtCertificadoCa)
+        Me.grpServidor.Controls.Add(Me.lblCertificadoCa)
         Me.grpServidor.Controls.Add(Me.lblUsuarioRespaldo)
         Me.grpServidor.Controls.Add(Me.lblAyuda)
         Me.grpServidor.Controls.Add(Me.chkEquipo)
@@ -67,7 +73,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblServidor)
         Me.grpServidor.Location = New System.Drawing.Point(15, 12)
         Me.grpServidor.Name = "grpServidor"
-        Me.grpServidor.Size = New System.Drawing.Size(545, 330)
+        Me.grpServidor.Size = New System.Drawing.Size(545, 380)
         Me.grpServidor.TabIndex = 0
         Me.grpServidor.TabStop = False
         Me.grpServidor.Text = "Servidor MySQL"
@@ -113,6 +119,31 @@ Partial Class FrmConfiguracionConexion
         Me.txtPasswordRespaldo.Size = New System.Drawing.Size(335, 23)
         Me.txtPasswordRespaldo.TabIndex = 15
         Me.txtPasswordRespaldo.UseSystemPasswordChar = True
+        '
+        ' lblCertificadoCa
+        '
+        Me.lblCertificadoCa.AutoSize = True
+        Me.lblCertificadoCa.Location = New System.Drawing.Point(20, 333)
+        Me.lblCertificadoCa.Name = "lblCertificadoCa"
+        Me.lblCertificadoCa.Size = New System.Drawing.Size(92, 15)
+        Me.lblCertificadoCa.TabIndex = 16
+        Me.lblCertificadoCa.Text = "Certificado CA:"
+        '
+        ' txtCertificadoCa
+        '
+        Me.txtCertificadoCa.Location = New System.Drawing.Point(185, 328)
+        Me.txtCertificadoCa.Name = "txtCertificadoCa"
+        Me.txtCertificadoCa.Size = New System.Drawing.Size(245, 23)
+        Me.txtCertificadoCa.TabIndex = 17
+        '
+        ' btnBuscarCertificado
+        '
+        Me.btnBuscarCertificado.Location = New System.Drawing.Point(440, 326)
+        Me.btnBuscarCertificado.Name = "btnBuscarCertificado"
+        Me.btnBuscarCertificado.Size = New System.Drawing.Size(80, 27)
+        Me.btnBuscarCertificado.TabIndex = 18
+        Me.btnBuscarCertificado.Text = "Examinar..."
+        Me.btnBuscarCertificado.UseVisualStyleBackColor = True
         '
         ' chkEquipo
         '
@@ -209,7 +240,7 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblEstado.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblEstado.ForeColor = System.Drawing.Color.DimGray
-        Me.lblEstado.Location = New System.Drawing.Point(15, 350)
+        Me.lblEstado.Location = New System.Drawing.Point(15, 400)
         Me.lblEstado.Name = "lblEstado"
         Me.lblEstado.Size = New System.Drawing.Size(545, 36)
         Me.lblEstado.TabIndex = 1
@@ -219,14 +250,14 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblRuta.AutoSize = True
         Me.lblRuta.ForeColor = System.Drawing.Color.DimGray
-        Me.lblRuta.Location = New System.Drawing.Point(15, 390)
+        Me.lblRuta.Location = New System.Drawing.Point(15, 440)
         Me.lblRuta.Name = "lblRuta"
         Me.lblRuta.Size = New System.Drawing.Size(0, 15)
         Me.lblRuta.TabIndex = 2
         '
         ' btnProbar
         '
-        Me.btnProbar.Location = New System.Drawing.Point(215, 420)
+        Me.btnProbar.Location = New System.Drawing.Point(215, 465)
         Me.btnProbar.Name = "btnProbar"
         Me.btnProbar.Size = New System.Drawing.Size(115, 30)
         Me.btnProbar.TabIndex = 3
@@ -235,7 +266,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' btnGuardar
         '
-        Me.btnGuardar.Location = New System.Drawing.Point(340, 420)
+        Me.btnGuardar.Location = New System.Drawing.Point(340, 465)
         Me.btnGuardar.Name = "btnGuardar"
         Me.btnGuardar.Size = New System.Drawing.Size(100, 30)
         Me.btnGuardar.TabIndex = 4
@@ -245,7 +276,7 @@ Partial Class FrmConfiguracionConexion
         ' btnCancelar
         '
         Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancelar.Location = New System.Drawing.Point(450, 420)
+        Me.btnCancelar.Location = New System.Drawing.Point(450, 465)
         Me.btnCancelar.Name = "btnCancelar"
         Me.btnCancelar.Size = New System.Drawing.Size(100, 30)
         Me.btnCancelar.TabIndex = 5
@@ -258,7 +289,7 @@ Partial Class FrmConfiguracionConexion
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancelar
-        Me.ClientSize = New System.Drawing.Size(575, 465)
+        Me.ClientSize = New System.Drawing.Size(575, 510)
         Me.Controls.Add(Me.btnCancelar)
         Me.Controls.Add(Me.btnGuardar)
         Me.Controls.Add(Me.btnProbar)
@@ -295,6 +326,9 @@ Partial Class FrmConfiguracionConexion
     Friend WithEvents txtUsuarioRespaldo As System.Windows.Forms.TextBox
     Friend WithEvents lblPasswordRespaldo As System.Windows.Forms.Label
     Friend WithEvents txtPasswordRespaldo As System.Windows.Forms.TextBox
+    Friend WithEvents lblCertificadoCa As System.Windows.Forms.Label
+    Friend WithEvents txtCertificadoCa As System.Windows.Forms.TextBox
+    Friend WithEvents btnBuscarCertificado As System.Windows.Forms.Button
     Friend WithEvents lblEstado As System.Windows.Forms.Label
     Friend WithEvents lblRuta As System.Windows.Forms.Label
     Friend WithEvents btnProbar As System.Windows.Forms.Button
