@@ -25,6 +25,18 @@ Module PruebaFuncional
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
+        Dim tlsSinCaRechazado As Boolean = False
+        Try
+            Dim datosTls As New DatosConexion With {
+                .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "sgln_sv",
+                .Usuario = "sgln_app", .Password = "Prueba",
+                .ModoSsl = "VerifyCA", .CertificadoCa = ""
+            }
+            datosTls.ConstruirCadena()
+        Catch ex As InvalidOperationException
+            tlsSinCaRechazado = ex.Message.Contains("certificado CA")
+        End Try
+        Verificar("TLS con validación CA rechaza una conexión sin certificado raíz", tlsSinCaRechazado)
         IntentarSinExcepcion("El inicializador verifica el esquema y siembra los datos mínimos",
             Sub()
                 InicializadorBD.AsegurarBaseDeDatos()
