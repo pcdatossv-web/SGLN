@@ -59,9 +59,34 @@ Public Class ProtocoloRepositorio
             End Function)
     End Sub
 
-    Public Sub CerrarLibro(id As Integer, razon As String, fechaCierre As Date)
-        EnTransaccion(
+    Public Function CerrarLibro(id As Integer, razon As String, fechaCierre As Date) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim estado As String = Nothing
+                Using consultar As New MySqlCommand(
+                    "SELECT Estado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", id)
+                    Dim valor As Object = consultar.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estado = Convert.ToString(valor)
+                End Using
+
+                If estado <> "Vigente" Then Return 0
+
+                ' El bloqueo del libro serializa el cierre con las altas y bajas
+                ' de instrumentos/comparecientes que también bloquean esta fila.
+                Dim pendientes As Integer
+                Using consultarPendientes As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Instrumentos i " &
+                    "WHERE i.ID_Libro = @id AND i.Estado = 'Vigente' " &
+                    "AND NOT EXISTS (SELECT 1 FROM Comparecientes_Instrumento c " &
+                    "                WHERE c.ID_Instrumento = i.ID AND c.Calidad = 'Otorgante')",
+                    conexion, transaccion)
+                    Parametro(consultarPendientes, "@id", id)
+                    pendientes = Convert.ToInt32(consultarPendientes.ExecuteScalar())
+                End Using
+                If pendientes > 0 Then Return -1
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Estado = 'Cerrado', Razon_Cierre = @razon, Fecha_Cierre = @fecha " &
                     "WHERE ID = @id AND Estado = 'Vigente'",
@@ -73,14 +98,15 @@ Public Class ProtocoloRepositorio
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CERRAR", "Libros_Protocolo", id, razon)
                 Return filas
             End Function)
-    End Sub
+    End Function
 
-    Public Sub RegistrarEntrega(id As Integer, fechaEntrega As Date)
-        EnTransaccion(
+    Public Function RegistrarEntrega(id As Integer, fechaEntrega As Date) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Fecha_Entrega_Notariado = @fecha, Estado = 'Entregado' " &
-                    "WHERE ID = @id AND Estado = 'Cerrado'",
+                    "WHERE ID = @id AND Estado = 'Cerrado' AND Fecha_Entrega_Notariado IS NULL " &
+                    "AND Fecha_Cierre IS NOT NULL AND Fecha_Cierre <= @fecha",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaEntrega)
                         Parametro(comando, "@id", id)
@@ -89,7 +115,7 @@ Public Class ProtocoloRepositorio
                     "Entrega al Notariado el " & fechaEntrega.ToString("dd/MM/yyyy"))
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function MarcarIndiceGenerado(idLibro As Integer) As Integer
         Return EnTransaccion(
@@ -160,18 +186,18 @@ Public Class ProtocoloRepositorio
             End Function)
     End Sub
 
-    Public Sub AnularInstrumento(id As Integer)
-        EnTransaccion(
+    Public Function AnularInstrumento(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id",
+                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id AND Estado = 'Vigente'",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ANULAR", "Instrumentos", id, "Instrumento anulado")
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     ''' <summary>
     ''' Devuelve los folios ya ocupados del libro para validar traslapes.
@@ -205,14 +231,20 @@ Public Class ProtocoloRepositorio
                     ' Todos los guardados de instrumentos de un mismo libro
                     ' deben adquirir primero este bloqueo, en el mismo orden.
                     Dim estadoLibro As String = Nothing
+                    Dim fechaAutorizacion As Date = Date.MinValue
+                    Dim fechaVencimiento As Date = Date.MaxValue
                     Using comandoLibro As New MySqlCommand(
-                        "SELECT Estado FROM Libros_Protocolo WHERE ID = @libro FOR UPDATE",
+                        "SELECT Estado, Fecha_Autorizacion, Fecha_Vencimiento " &
+                        "FROM Libros_Protocolo WHERE ID = @libro FOR UPDATE",
                         conexion, transaccion)
                         Parametro(comandoLibro, "@libro", instrumento.IDLibro)
-                        Dim valor As Object = comandoLibro.ExecuteScalar()
-                        If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then
-                            estadoLibro = Convert.ToString(valor)
-                        End If
+                        Using lector As MySqlDataReader = comandoLibro.ExecuteReader()
+                            If lector.Read() Then
+                                estadoLibro = Convert.ToString(lector("Estado"))
+                                fechaAutorizacion = Convert.ToDateTime(lector("Fecha_Autorizacion")).Date
+                                fechaVencimiento = Convert.ToDateTime(lector("Fecha_Vencimiento")).Date
+                            End If
+                        End Using
                     End Using
 
                     If estadoLibro <> "Vigente" Then
@@ -220,18 +252,30 @@ Public Class ProtocoloRepositorio
                         transaccion.Rollback()
                         Return False
                     End If
+                    If Not String.Equals(instrumento.Estado, "Vigente", StringComparison.OrdinalIgnoreCase) Then
+                        motivo = "El guardado solo admite escrituras en estado Vigente; use la acción de anulación."
+                        transaccion.Rollback()
+                        Return False
+                    End If
+                    If instrumento.FechaHoraOtorgamiento.Date < fechaAutorizacion OrElse
+                       instrumento.FechaHoraOtorgamiento.Date > fechaVencimiento Then
+                        motivo = "La fecha de otorgamiento debe estar dentro de la vigencia autorizada del libro."
+                        transaccion.Rollback()
+                        Return False
+                    End If
 
                     If instrumento.ID > 0 Then
-                        Dim existe As Integer
+                        Dim estadoExistente As String = Nothing
                         Using comandoExiste As New MySqlCommand(
-                            "SELECT COUNT(*) FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro",
+                            "SELECT Estado FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
                             conexion, transaccion)
                             Parametro(comandoExiste, "@id", instrumento.ID)
                             Parametro(comandoExiste, "@libro", instrumento.IDLibro)
-                            existe = Convert.ToInt32(comandoExiste.ExecuteScalar())
+                            Dim valor As Object = comandoExiste.ExecuteScalar()
+                            If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estadoExistente = Convert.ToString(valor)
                         End Using
-                        If existe = 0 Then
-                            motivo = "El instrumento no existe en el libro seleccionado."
+                        If estadoExistente <> "Vigente" Then
+                            motivo = "El instrumento no existe en el libro seleccionado o ya fue anulado."
                             transaccion.Rollback()
                             Return False
                         End If
@@ -332,6 +376,11 @@ Public Class ProtocoloRepositorio
     Public Sub AgregarCompareciente(idInstrumento As Integer, idCliente As Integer, calidad As String)
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim motivo As String = ""
+                If Not BloquearInstrumentoVigente(conexion, transaccion, idInstrumento, motivo) Then
+                    Throw New InvalidOperationException(motivo)
+                End If
+
                 Ejecutar(conexion, transaccion,
                     "INSERT INTO Comparecientes_Instrumento (ID_Instrumento, ID_Cliente, Calidad) VALUES (@instrumento, @cliente, @calidad)",
                     Sub(comando As MySqlCommand)
@@ -345,19 +394,35 @@ Public Class ProtocoloRepositorio
             End Function)
     End Sub
 
-    Public Sub QuitarCompareciente(id As Integer)
-        EnTransaccion(
+    Public Function QuitarCompareciente(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim idInstrumento As Integer = 0
+                Using consultar As New MySqlCommand(
+                    "SELECT ID_Instrumento FROM Comparecientes_Instrumento WHERE ID = @id",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", id)
+                    Dim valor As Object = consultar.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then idInstrumento = Convert.ToInt32(valor)
+                End Using
+                If idInstrumento <= 0 Then Return 0
+
+                Dim motivo As String = ""
+                If Not BloquearInstrumentoVigente(conexion, transaccion, idInstrumento, motivo) Then
+                    Throw New InvalidOperationException(motivo)
+                End If
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "DELETE FROM Comparecientes_Instrumento WHERE ID = @id",
+                    "DELETE FROM Comparecientes_Instrumento WHERE ID = @id AND ID_Instrumento = @instrumento",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
+                        Parametro(comando, "@instrumento", idInstrumento)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "QUITAR COMPARECIENTE",
                     "Comparecientes_Instrumento", id, "Compareciente eliminado")
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     ' ------------------------------------------------------------------
     ' Testimonios
@@ -420,6 +485,57 @@ Public Class ProtocoloRepositorio
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos, IFNULL(CONCAT(' (', DUI, ')'), '')) AS Nombre " &
             "FROM Clientes WHERE Activo = 1 ORDER BY Apellidos, Nombres")
+    End Function
+
+    ''' <summary>
+    ''' Bloquea primero el libro y después la escritura para impedir cambios
+    ''' concurrentes de comparecientes mientras se cierra el protocolo.
+    ''' </summary>
+    Private Function BloquearInstrumentoVigente(conexion As MySqlConnection,
+                                                transaccion As MySqlTransaction,
+                                                idInstrumento As Integer,
+                                                ByRef motivo As String) As Boolean
+        Dim idLibro As Integer = 0
+        Using consultar As New MySqlCommand(
+            "SELECT ID_Libro FROM Instrumentos WHERE ID = @id",
+            conexion, transaccion)
+            Parametro(consultar, "@id", idInstrumento)
+            Dim valor As Object = consultar.ExecuteScalar()
+            If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then idLibro = Convert.ToInt32(valor)
+        End Using
+        If idLibro <= 0 Then
+            motivo = "El instrumento no existe."
+            Return False
+        End If
+
+        Dim estadoLibro As String = Nothing
+        Using consultarLibro As New MySqlCommand(
+            "SELECT Estado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+            conexion, transaccion)
+            Parametro(consultarLibro, "@id", idLibro)
+            Dim valor As Object = consultarLibro.ExecuteScalar()
+            If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estadoLibro = Convert.ToString(valor)
+        End Using
+        If estadoLibro <> "Vigente" Then
+            motivo = "No se pueden modificar comparecientes de un libro cerrado o entregado."
+            Return False
+        End If
+
+        Dim estadoInstrumento As String = Nothing
+        Using consultarInstrumento As New MySqlCommand(
+            "SELECT Estado FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
+            conexion, transaccion)
+            Parametro(consultarInstrumento, "@id", idInstrumento)
+            Parametro(consultarInstrumento, "@libro", idLibro)
+            Dim valor As Object = consultarInstrumento.ExecuteScalar()
+            If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estadoInstrumento = Convert.ToString(valor)
+        End Using
+        If estadoInstrumento <> "Vigente" Then
+            motivo = "No se pueden modificar comparecientes de una escritura inexistente o anulada."
+            Return False
+        End If
+
+        Return True
     End Function
 
     Private Sub AgregarParametrosLibro(comando As MySqlCommand, libro As LibroProtocolo)

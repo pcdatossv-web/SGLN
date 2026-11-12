@@ -943,12 +943,25 @@ Module PruebaFuncional
         Dim rCerrar As Respuesta = protocolo.CerrarLibro(idLibro, "Libro completo")
         Verificar("Cerrar libro con escritura sin otorgante se bloquea",
                   Not rCerrar.Exito AndAlso rCerrar.Mensaje.Contains("otorgante"), rCerrar.Mensaje)
+        Verificar("El índice no se genera mientras el libro sigue vigente",
+                  Not protocolo.GenerarIndice(idLibro).Exito)
 
         Dim rComp2 As Respuesta = protocolo.AgregarCompareciente(idInstrumento2, idCliente, "Otorgante")
         Verificar("Agregar otorgante a la escritura 2", rComp2.Exito, rComp2.Mensaje)
 
         Dim rCerrar2 As Respuesta = protocolo.CerrarLibro(idLibro, "Libro completo, 2 instrumentos")
         Verificar("Cerrar libro con todos los otorgantes registrados", rCerrar2.Exito, rCerrar2.Mensaje)
+        Verificar("Un libro cerrado no puede modificarse desde el editor",
+                  Not protocolo.GuardarLibro(New LibroProtocolo With {
+                      .ID = idLibro, .NumeroLibro = 2, .AnioVigencia = 2026,
+                      .FechaAutorizacion = New Date(2026, 1, 5),
+                      .FechaVencimiento = New Date(2027, 1, 5)}).Exito)
+        Verificar("No se puede agregar comparecientes después del cierre",
+                  Not protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Testigo").Exito)
+        Dim idComparecienteCerrado As Integer =
+            UtileriasUI.Entero(protocolo.Comparecientes(idInstrumento1).Rows(0), "ID")
+        Verificar("No se puede quitar comparecientes después del cierre",
+                  Not protocolo.QuitarCompareciente(idComparecienteCerrado).Exito)
         Verificar("Registrar escritura en libro cerrado se rechaza",
                   Not protocolo.GuardarInstrumento(New Instrumento With {
                       .IDLibro = idLibro, .NumeroEscritura = 6,
@@ -966,6 +979,8 @@ Module PruebaFuncional
         Verificar("No se expiden testimonios de escritura anulada",
                   Not protocolo.ExpedirTestimonio(idInstrumento2, "Ulterior", Date.Today, "X").Exito)
 
+        Dim rEntregaAnterior As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today.AddDays(-1))
+        Verificar("La fecha de entrega no puede ser anterior al cierre", Not rEntregaAnterior.Exito)
         Dim rEntregaFutura As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today.AddDays(1))
         Verificar("Entrega al Notariado con fecha futura se rechaza", Not rEntregaFutura.Exito)
         Dim rEntrega As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today)

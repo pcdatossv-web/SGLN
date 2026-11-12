@@ -25,6 +25,7 @@ Public Class ServicioProtocolo
 
     Public Function GuardarLibro(libro As LibroProtocolo) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+        If libro Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos del libro.")
 
         If libro.NumeroLibro <= 0 Then Return Respuesta.Fallo("El número de libro debe ser mayor que cero.")
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
@@ -34,15 +35,17 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("La fecha de vencimiento no puede ser anterior a la de autorización.")
         End If
 
-        ' Un libro cerrado o entregado no se reabre desde el editor: se conserva
-        ' el estado registrado para no romper la trazabilidad del protocolo.
+        ' Los libros cerrados o entregados son inmutables desde el editor.
         If libro.ID > 0 Then
             Dim actual As DataTable = _repositorio.ObtenerLibro(libro.ID)
-            If actual.Rows.Count > 0 Then
-                Dim estadoActual As String = Convert.ToString(actual.Rows(0)("Estado"))
-                If estadoActual <> "Vigente" Then libro.Estado = estadoActual
+            If actual.Rows.Count = 0 Then Return Respuesta.Fallo("El libro ya no existe.")
+            Dim estadoActual As String = Convert.ToString(actual.Rows(0)("Estado"))
+            If estadoActual <> "Vigente" Then
+                Return Respuesta.Fallo("No se puede modificar un libro cerrado o entregado.")
             End If
         End If
+        ' El estado solo cambia mediante las acciones controladas de cierre y entrega.
+        libro.Estado = "Vigente"
 
         Try
             If libro.ID = 0 Then
@@ -80,7 +83,11 @@ Public Class ServicioProtocolo
                 " instrumento(s) no tienen otorgante registrado.")
         End If
 
-        _repositorio.CerrarLibro(id, razon.Trim(), Date.Today)
+        If razon.Trim().Length > 1000 Then Return Respuesta.Fallo("La razón del cierre no puede superar 1000 caracteres.")
+
+        Dim cierre As Integer = _repositorio.CerrarLibro(id, razon.Trim(), Date.Today)
+        If cierre = -1 Then Return Respuesta.Fallo("No se puede cerrar el libro: apareció una escritura sin otorgante durante la operación.")
+        If cierre = 0 Then Return Respuesta.Fallo("El libro cambió de estado y ya no puede cerrarse.")
         Return Respuesta.Ok("Libro cerrado. Recuerde la entrega al Notariado.")
     End Function
 
@@ -122,7 +129,12 @@ Public Class ServicioProtocolo
         Dim cierre As Date = Convert.ToDateTime(fila("Fecha_Cierre")).Date
         Dim limite As Date = FechaLimiteEntrega(cierre)
 
-        _repositorio.RegistrarEntrega(id, fechaEntrega.Date)
+        If fechaEntrega.Date < cierre Then
+            Return Respuesta.Fallo("La fecha de entrega no puede ser anterior a la fecha de cierre del libro.")
+        End If
+
+        Dim filasEntrega As Integer = _repositorio.RegistrarEntrega(id, fechaEntrega.Date)
+        If filasEntrega = 0 Then Return Respuesta.Fallo("El libro ya fue entregado o cambió de estado. Actualice la lista.")
 
         If fechaEntrega.Date > limite Then
             Return Respuesta.Ok(
@@ -147,10 +159,12 @@ Public Class ServicioProtocolo
 
     Public Function GuardarInstrumento(instrumento As Instrumento) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
+        If instrumento Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la escritura.")
 
         If instrumento.IDLibro <= 0 Then Return Respuesta.Fallo("Seleccione el libro del protocolo.")
         If instrumento.NumeroEscritura <= 0 Then Return Respuesta.Fallo("El número de escritura debe ser mayor que cero.")
         If String.IsNullOrWhiteSpace(instrumento.ObjetoActo) Then Return Respuesta.Fallo("Describa el objeto del acto.")
+        If instrumento.ObjetoActo.Trim().Length > 500 Then Return Respuesta.Fallo("El objeto del acto no puede superar 500 caracteres.")
         If instrumento.FolioInicio < 1 Then Return Respuesta.Fallo("El folio inicial debe ser mayor o igual a 1.")
         If instrumento.FolioFin < instrumento.FolioInicio Then
             Return Respuesta.Fallo("El folio final no puede ser menor que el folio inicial.")
@@ -164,6 +178,24 @@ Public Class ServicioProtocolo
         If Convert.ToString(libro.Rows(0)("Estado")) <> "Vigente" Then
             Return Respuesta.Fallo("Solo se pueden registrar escrituras en libros vigentes.")
         End If
+        Dim fechaAutorizacion As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Autorizacion")).Date
+        Dim fechaVencimiento As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Vencimiento")).Date
+        If instrumento.FechaHoraOtorgamiento.Date < fechaAutorizacion OrElse
+           instrumento.FechaHoraOtorgamiento.Date > fechaVencimiento Then
+            Return Respuesta.Fallo("La fecha de otorgamiento debe estar dentro de la vigencia autorizada del libro.")
+        End If
+
+        If instrumento.ID > 0 Then
+            Dim existente As DataTable = _repositorio.ObtenerInstrumento(instrumento.ID)
+            If existente.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura ya no existe.")
+            If Convert.ToInt32(existente.Rows(0)("ID_Libro")) <> instrumento.IDLibro Then
+                Return Respuesta.Fallo("La escritura no pertenece al libro seleccionado.")
+            End If
+            If Convert.ToString(existente.Rows(0)("Estado")) <> "Vigente" Then
+                Return Respuesta.Fallo("Una escritura anulada no se puede modificar.")
+            End If
+        End If
+        instrumento.Estado = "Vigente"
 
         Try
             Dim idGuardado As Integer = 0
@@ -188,7 +220,14 @@ Public Class ServicioProtocolo
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
-        _repositorio.AnularInstrumento(id)
+        Dim actual As DataTable = _repositorio.ObtenerInstrumento(id)
+        If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura no existe.")
+        If Convert.ToString(actual.Rows(0)("Estado")) <> "Vigente" Then
+            Return Respuesta.Fallo("La escritura ya está anulada.")
+        End If
+        If _repositorio.AnularInstrumento(id) = 0 Then
+            Return Respuesta.Fallo("La escritura cambió de estado. Actualice la lista.")
+        End If
         Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
     End Function
 
@@ -211,6 +250,8 @@ Public Class ServicioProtocolo
             _repositorio.AgregarCompareciente(idInstrumento, idCliente, calidad)
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ese cliente ya está registrado con la misma calidad en el instrumento.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         End Try
 
         Return Respuesta.Ok("Compareciente agregado.")
@@ -229,8 +270,13 @@ Public Class ServicioProtocolo
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un compareciente.")
-        _repositorio.QuitarCompareciente(id)
-        Return Respuesta.Ok("Compareciente eliminado.")
+        Try
+            Dim filas As Integer = _repositorio.QuitarCompareciente(id)
+            If filas = 0 Then Return Respuesta.Fallo("El compareciente ya no existe.")
+            Return Respuesta.Ok("Compareciente eliminado.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
+        End Try
     End Function
 
     Public Function ClientesCombo() As DataTable
@@ -250,6 +296,7 @@ Public Class ServicioProtocolo
 
         If idInstrumento <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
         If String.IsNullOrWhiteSpace(destinatario) Then Return Respuesta.Fallo("Indique el destinatario del testimonio.")
+        If destinatario.Trim().Length > 200 Then Return Respuesta.Fallo("El destinatario no puede superar 200 caracteres.")
         If tipo <> "Primer" AndAlso tipo <> "Ulterior" Then Return Respuesta.Fallo("El tipo de testimonio no es válido.")
         If fecha.Date > Date.Today Then Return Respuesta.Fallo("La fecha de expedición no puede ser futura.")
 
@@ -257,6 +304,9 @@ Public Class ServicioProtocolo
         If instrumento.Rows.Count = 0 Then Return Respuesta.Fallo("El instrumento no existe.")
         If Convert.ToString(instrumento.Rows(0)("Estado")) = "Anulado" Then
             Return Respuesta.Fallo("No se pueden expedir testimonios de un instrumento anulado.")
+        End If
+        If fecha.Date < Convert.ToDateTime(instrumento.Rows(0)("Fecha_Hora_Otorgamiento")).Date Then
+            Return Respuesta.Fallo("La fecha del testimonio no puede ser anterior al otorgamiento.")
         End If
 
         _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
@@ -275,6 +325,11 @@ Public Class ServicioProtocolo
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
 
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
+        Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
+        If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
+        If Convert.ToString(libro.Rows(0)("Estado")) = "Vigente" Then
+            Return Respuesta.Fallo("El índice solo se puede generar después del cierre del libro.")
+        End If
         Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
         If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
 
