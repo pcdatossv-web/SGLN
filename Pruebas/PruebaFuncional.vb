@@ -1144,6 +1144,17 @@ Module PruebaFuncional
                   calculadoraFeriados.CalcularVencimiento(
                       UtileriasUI.Fecha(tablaProrroga.Rows(0), "Fecha_Vencimiento").Value, 5))
 
+        Dim fechaProrrogaOriginal As Date =
+            UtileriasUI.Fecha(tablaProrroga.Rows(0), "Fecha_Vencimiento_Prorroga").Value
+        Dim editarProrroga As Respuesta = cumplimiento.GuardarSolicitud(New SolicitudArco With {
+            .ID = arcoProrroga.ID, .IDCliente = idCliente, .TipoDerecho = "Rectificación",
+            .FechaSolicitud = Date.Today, .ProrrogaAplicada = False, .Detalle = "Detalle actualizado"})
+        Dim tablaProrrogaActualizada As DataTable = cumplimiento.ObtenerSolicitud(arcoProrroga.ID)
+        Verificar("Una prórroga ya aplicada no puede retirarse al editar la solicitud",
+                  editarProrroga.Exito AndAlso
+                  Convert.ToBoolean(tablaProrrogaActualizada.Rows(0)("Prorroga_Aplicada")) AndAlso
+                  UtileriasUI.Fecha(tablaProrrogaActualizada.Rows(0), "Fecha_Vencimiento_Prorroga") = fechaProrrogaOriginal)
+
         Verificar("Solicitud ARCO con fecha futura se rechaza",
                   Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
                       .IDCliente = idCliente, .TipoDerecho = "Acceso",

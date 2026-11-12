@@ -47,6 +47,7 @@ Public Class ServicioCumplimiento
             Return Respuesta.Fallo("La fecha de la operación no puede ser futura.")
         End If
 
+        Dim recalcularPlazos As Boolean = True
         If operacion.ID > 0 Then
             Dim actual As DataTable = _repositorio.ObtenerOperacion(operacion.ID)
             If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La operación ya no existe.")
@@ -59,18 +60,30 @@ Public Class ServicioCumplimiento
                 Return Respuesta.Fallo("El estado actual de la operación no permite modificarla.")
             End If
             operacion.Estado = estadoActual
+
+            Dim fechaOriginal As Date = Convert.ToDateTime(actual.Rows(0)("Fecha_Operacion")).Date
+            If operacion.FechaOperacion.Date = fechaOriginal AndAlso
+               Not actual.Rows(0).IsNull("Fecha_Vencimiento_Analisis") AndAlso
+               Not actual.Rows(0).IsNull("Fecha_Vencimiento_Reporte") Then
+                operacion.FechaVencimientoAnalisis =
+                    Convert.ToDateTime(actual.Rows(0)("Fecha_Vencimiento_Analisis")).Date
+                operacion.FechaVencimientoReporte =
+                    Convert.ToDateTime(actual.Rows(0)("Fecha_Vencimiento_Reporte")).Date
+                recalcularPlazos = False
+            End If
         Else
             operacion.Estado = "Registrada"
             operacion.FechaReporte = Nothing
             operacion.ReportadoUIF = False
         End If
 
-        Dim calculadora As CalculadoraDiasHabiles = NuevaCalculadora()
-
-        operacion.FechaVencimientoAnalisis =
-            calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Analisis_Dias", 5))
-        operacion.FechaVencimientoReporte =
-            calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Reporte_Dias", 15))
+        If recalcularPlazos Then
+            Dim calculadora As CalculadoraDiasHabiles = NuevaCalculadora()
+            operacion.FechaVencimientoAnalisis =
+                calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Analisis_Dias", 5))
+            operacion.FechaVencimientoReporte =
+                calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Reporte_Dias", 15))
+        End If
 
         Try
             If operacion.ID = 0 Then
@@ -185,10 +198,11 @@ Public Class ServicioCumplimiento
             prorrogaExistente = Convert.ToBoolean(actual.Rows(0)("Prorroga_Aplicada"))
             If prorrogaExistente Then
                 solicitud.ProrrogaAplicada = True
-                If Not actual.Rows(0).IsNull("Fecha_Vencimiento_Prorroga") Then
-                    solicitud.FechaVencimientoProrroga =
-                        Convert.ToDateTime(actual.Rows(0)("Fecha_Vencimiento_Prorroga")).Date
+                If actual.Rows(0).IsNull("Fecha_Vencimiento_Prorroga") Then
+                    Return Respuesta.Fallo("La solicitud tiene una prórroga marcada sin fecha de vencimiento. Revise el registro antes de modificarlo.")
                 End If
+                solicitud.FechaVencimientoProrroga =
+                    Convert.ToDateTime(actual.Rows(0)("Fecha_Vencimiento_Prorroga")).Date
             End If
         Else
             solicitud.Estado = "Pendiente"
