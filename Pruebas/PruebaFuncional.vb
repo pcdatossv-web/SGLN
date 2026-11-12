@@ -255,9 +255,12 @@ Module PruebaFuncional
         Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable)
         Verificar("El administrador puede eliminar una cuenta sin historial",
                   eliminacionBorrable.Exito, eliminacionBorrable.Mensaje)
+        Dim cuentaBorrableExiste As Boolean = False
+        For Each fila As DataRow In servicioUsuarios.Listar().Rows
+            If UtileriasUI.Texto(fila, "Usuario") = "borrable" Then cuentaBorrableExiste = True
+        Next
         Verificar("La cuenta temporal ya no aparece después de eliminarla",
-                  Not servicioUsuarios.Listar().AsEnumerable().Any(
-                      Function(fila) UtileriasUI.Texto(fila, "Usuario") = "borrable"))
+                  Not cuentaBorrableExiste)
 
         Dim rAdmin2 As Respuesta = servicioUsuarios.Crear(
             "admin2", "Administrador de Prueba", "Admin2-123", idRolAdmin, True)
