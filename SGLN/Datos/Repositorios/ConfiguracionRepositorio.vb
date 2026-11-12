@@ -96,43 +96,62 @@ Public Class ConfiguracionRepositorio
         Dim credenciales As String = Path.Combine(
             Path.GetTempPath(), "sgln_dump_" & Guid.NewGuid().ToString("N") & ".cnf")
 
+        If constructor.SslMode <> MySqlSslMode.VerifyCA Then
+            Throw New InvalidOperationException("El respaldo requiere TLS con validación de CA. Configure el certificado CA antes de continuar.")
+        End If
+        Dim certificadoCa As String = Convert.ToString(constructor("SslCa"))
+        If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
+            Throw New InvalidOperationException("No se encontró el certificado CA configurado para validar TLS en el respaldo.")
+        End If
+        If String.IsNullOrWhiteSpace(rutaDestino) Then Throw New ArgumentException("Indique la ruta del respaldo.")
+        Dim destinoFinal As String = Path.GetFullPath(rutaDestino)
+        Dim carpetaDestino As String = Path.GetDirectoryName(destinoFinal)
+        If String.IsNullOrWhiteSpace(carpetaDestino) Then Throw New ArgumentException("La ruta del respaldo no es válida.")
+        Directory.CreateDirectory(carpetaDestino)
+        Dim temporalSalida As String = destinoFinal & "." & Guid.NewGuid().ToString("N") & ".tmp"
+
         Try
-            ' La clave no se pasa por la línea de comandos: se usa un archivo
-            ' temporal de credenciales que se borra al terminar.
+            ' La clave no se pasa por argumentos del proceso. Se escribe en un
+            ' archivo temporal privado y se elimina al finalizar.
+            If usuarioBackup.Contains(vbCr) OrElse usuarioBackup.Contains(vbLf) OrElse
+               claveBackup.Contains(vbCr) OrElse claveBackup.Contains(vbLf) Then
+                Throw New InvalidOperationException("Las credenciales de respaldo contienen caracteres de control no permitidos.")
+            End If
             File.WriteAllText(credenciales,
                 "[client]" & Environment.NewLine &
-                "user=" & usuarioBackup & Environment.NewLine &
-                "password=" & claveBackup & Environment.NewLine)
+                "user=""" & EscaparOpcionMySQL(usuarioBackup) & """" & Environment.NewLine &
+                "password=""" & EscaparOpcionMySQL(claveBackup) & """" & Environment.NewLine)
 
-            Dim sslArgumentos As String = "--ssl-mode=PREFERRED "
-            If constructor.SslMode = MySqlSslMode.VerifyCA Then
-                Dim certificadoCa As String = Convert.ToString(constructor("SslCa"))
-                If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
-                    Throw New InvalidOperationException(
-                        "No se encontró el certificado CA configurado para validar TLS en el respaldo.")
-                End If
-                sslArgumentos = "--ssl-mode=VERIFY_CA --ssl-ca=""" & certificadoCa & """ "
-            End If
-
+            Dim sslArgumentos As String = "--ssl-mode=VERIFY_CA --ssl-ca=""" & certificadoCa & """ "
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
                 sslArgumentos &
-                "--host=" & constructor.Server & " --port=" & constructor.Port & " " &
+                "--host=""" & constructor.Server & """ --port=" & constructor.Port & " " &
                 "--single-transaction --skip-lock-tables --no-tablespaces --triggers " &
                 "--default-character-set=utf8mb4 " &
-                "--databases " & constructor.Database
+                "--databases """ & constructor.Database & """"
 
-            EjecutarMySqlDump(ejecutable, argumentos, rutaDestino)
+            EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
+            If Not File.Exists(temporalSalida) OrElse New FileInfo(temporalSalida).Length = 0 Then
+                Throw New InvalidOperationException("mysqldump no generó un archivo de respaldo válido.")
+            End If
+            If File.Exists(destinoFinal) Then File.Delete(destinoFinal)
+            File.Move(temporalSalida, destinoFinal)
         Finally
             Try
                 If File.Exists(credenciales) Then File.Delete(credenciales)
+                If File.Exists(temporalSalida) Then File.Delete(temporalSalida)
             Catch
-                ' La limpieza del archivo temporal es best-effort.
+                ' La limpieza temporal no debe ocultar el error original.
             End Try
         End Try
 
-        Auditar("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & rutaDestino)
+        Auditar("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
     End Sub
+
+    Private Shared Function EscaparOpcionMySQL(valor As String) As String
+        Return If(valor, "").Replace("\", "\\").Replace("""", "\"""")
+    End Function
 
     Private Sub EjecutarMySqlDump(ejecutable As String, argumentos As String, rutaDestino As String)
         Dim informacion As New ProcessStartInfo(ejecutable, argumentos) With {
