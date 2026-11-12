@@ -330,27 +330,33 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub AgregarCompareciente(idInstrumento As Integer, idCliente As Integer, calidad As String)
-        Ejecutar(
-            "INSERT INTO Comparecientes_Instrumento (ID_Instrumento, ID_Cliente, Calidad) " &
-            "VALUES (@instrumento, @cliente, @calidad)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@instrumento", idInstrumento)
-                Parametro(comando, "@cliente", idCliente)
-                Parametro(comando, "@calidad", calidad)
-            End Sub)
-
-        Auditar("AGREGAR COMPARECIENTE", "Comparecientes_Instrumento", idInstrumento,
-                "Cliente " & idCliente & " como " & calidad)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Ejecutar(conexion, transaccion,
+                    "INSERT INTO Comparecientes_Instrumento (ID_Instrumento, ID_Cliente, Calidad) VALUES (@instrumento, @cliente, @calidad)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@instrumento", idInstrumento)
+                        Parametro(comando, "@cliente", idCliente)
+                        Parametro(comando, "@calidad", calidad)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "AGREGAR COMPARECIENTE", "Comparecientes_Instrumento",
+                    idInstrumento, "Cliente " & idCliente & " como " & calidad)
+                Return 1
+            End Function)
     End Sub
 
     Public Sub QuitarCompareciente(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "DELETE FROM Comparecientes_Instrumento WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("QUITAR COMPARECIENTE", "Comparecientes_Instrumento", id, "Compareciente eliminado")
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "DELETE FROM Comparecientes_Instrumento WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "QUITAR COMPARECIENTE",
+                    "Comparecientes_Instrumento", id, "Compareciente eliminado")
+                Return filas
+            End Function)
     End Sub
 
     ' ------------------------------------------------------------------
@@ -371,19 +377,22 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub InsertarTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String)
-        Ejecutar(
-            "INSERT INTO Testimonios_Expedidos (ID_Instrumento, Tipo_Testimonio, Fecha_Expedicion, Destinatario, Usuario) " &
-            "VALUES (@instrumento, @tipo, @fecha, @destinatario, @usuario)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@instrumento", idInstrumento)
-                Parametro(comando, "@tipo", tipo)
-                Parametro(comando, "@fecha", fecha)
-                Parametro(comando, "@destinatario", destinatario)
-                Parametro(comando, "@usuario", Sesion.NombreUsuario)
-            End Sub)
-
-        Auditar("EXPEDIR TESTIMONIO", "Testimonios_Expedidos", idInstrumento,
-                tipo & " testimonio para " & destinatario)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Testimonios_Expedidos (ID_Instrumento, Tipo_Testimonio, Fecha_Expedicion, Destinatario, Usuario) " &
+                    "VALUES (@instrumento, @tipo, @fecha, @destinatario, @usuario)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@instrumento", idInstrumento)
+                        Parametro(comando, "@tipo", tipo)
+                        Parametro(comando, "@fecha", fecha)
+                        Parametro(comando, "@destinatario", destinatario)
+                        Parametro(comando, "@usuario", Sesion.NombreUsuario)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "EXPEDIR TESTIMONIO", "Testimonios_Expedidos",
+                    nuevoId, tipo & " testimonio para " & destinatario)
+                Return nuevoId
+            End Function)
     End Sub
 
     ' ------------------------------------------------------------------
