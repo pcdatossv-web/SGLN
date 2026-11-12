@@ -440,18 +440,20 @@ Module PruebaFuncional
         Verificar("Dos altas concurrentes con el mismo DUI solo permiten una inserción",
                   exitosDuiConcurrentes = 1 AndAlso clientes.Buscar("11111111-1").Rows.Count = 1)
 
-        Dim falloRollbackCliente As Boolean = False
+        Dim errorRollbackCliente As Integer = 0
         Dim detalleRollbackCliente As String = ""
         Try
             New ClienteRepositorio().GuardarCompleto(
                 New Cliente With {.Nombres = "RollbackClienteLDAFT", .Apellidos = "Prueba"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As MySqlException
+            errorRollbackCliente = ex.Number
+            detalleRollbackCliente = ex.Message
         Catch ex As Exception
-            falloRollbackCliente = True
             detalleRollbackCliente = ex.Message
         End Try
         Verificar("Si falla el perfil LDA/FT, también se revierte el cliente y su auditoría",
-                  falloRollbackCliente AndAlso clientes.Buscar("RollbackClienteLDAFT").Rows.Count = 0 AndAlso
+                  errorRollbackCliente = 3819 AndAlso clientes.Buscar("RollbackClienteLDAFT").Rows.Count = 0 AndAlso
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Clientes' " &
                                    "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackClienteLDAFT%'") = 0,
                   detalleRollbackCliente)
@@ -476,18 +478,20 @@ Module PruebaFuncional
         Verificar("Razón social vacía se rechaza",
                   Not entidades.Guardar(New EntidadLegal(), Nothing).Exito)
 
-        Dim falloRollbackEntidad As Boolean = False
+        Dim errorRollbackEntidad As Integer = 0
         Dim detalleRollbackEntidad As String = ""
         Try
             New EntidadRepositorio().GuardarCompleto(
                 New EntidadLegal With {.RazonSocial = "RollbackEntidadLDAFT"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As MySqlException
+            errorRollbackEntidad = ex.Number
+            detalleRollbackEntidad = ex.Message
         Catch ex As Exception
-            falloRollbackEntidad = True
             detalleRollbackEntidad = ex.Message
         End Try
         Verificar("Si falla el perfil LDA/FT, también se revierte la entidad y su auditoría",
-                  falloRollbackEntidad AndAlso entidades.Buscar("RollbackEntidadLDAFT").Rows.Count = 0 AndAlso
+                  errorRollbackEntidad = 3819 AndAlso entidades.Buscar("RollbackEntidadLDAFT").Rows.Count = 0 AndAlso
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Entidades_Legales' " &
                                    "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackEntidadLDAFT%'") = 0,
                   detalleRollbackEntidad)
