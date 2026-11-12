@@ -416,6 +416,20 @@ Module PruebaFuncional
                   excepcionDui = "" AndAlso rDuplicadoDui IsNot Nothing AndAlso Not rDuplicadoDui.Exito,
                   If(excepcionDui <> "", "EXCEPCIÓN SIN CONTROLAR: " & excepcionDui, rDuplicadoDui.Mensaje))
 
+        Dim falloRollbackCliente As Boolean = False
+        Dim detalleRollbackCliente As String = ""
+        Try
+            New ClienteRepositorio().GuardarCompleto(
+                New Cliente With {.Nombres = "RollbackClienteLDAFT", .Apellidos = "Prueba"},
+                New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As Exception
+            falloRollbackCliente = True
+            detalleRollbackCliente = ex.Message
+        End Try
+        Verificar("Si falla el perfil LDA/FT, también se revierte el cliente y su auditoría",
+                  falloRollbackCliente AndAlso clientes.Buscar("RollbackClienteLDAFT").Rows.Count = 0,
+                  detalleRollbackCliente)
+
         ' ---------- 4. Entidades legales ----------
         Console.WriteLine()
         Console.WriteLine("-- 4. Entidades legales y representantes")
@@ -435,6 +449,37 @@ Module PruebaFuncional
                   Not entidades.Guardar(New EntidadLegal With {.RazonSocial = "X", .NIT = "12"}, Nothing).Exito)
         Verificar("Razón social vacía se rechaza",
                   Not entidades.Guardar(New EntidadLegal(), Nothing).Exito)
+
+        Dim falloRollbackEntidad As Boolean = False
+        Dim detalleRollbackEntidad As String = ""
+        Try
+            New EntidadRepositorio().GuardarCompleto(
+                New EntidadLegal With {.RazonSocial = "RollbackEntidadLDAFT"},
+                New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As Exception
+            falloRollbackEntidad = True
+            detalleRollbackEntidad = ex.Message
+        End Try
+        Verificar("Si falla el perfil LDA/FT, también se revierte la entidad y su auditoría",
+                  falloRollbackEntidad AndAlso entidades.Buscar("RollbackEntidadLDAFT").Rows.Count = 0,
+                  detalleRollbackEntidad)
+
+        Dim entidadSinPerfil As New EntidadLegal With {
+            .RazonSocial = "Entidad sin perfil para validar titular",
+            .NIT = "06140108081003"
+        }
+        Dim rEntidadSinPerfil As Respuesta = entidades.Guardar(entidadSinPerfil, Nothing)
+        Verificar("Crear entidad sin perfil para prueba de titular exclusivo", rEntidadSinPerfil.Exito)
+        If rEntidadSinPerfil.ID.HasValue Then
+            Dim errorTitularDoble As Integer = NumeroErrorSql(
+                "UPDATE Perfil_LDAFT SET ID_Entidad = " & rEntidadSinPerfil.ID.Value.ToString() &
+                " WHERE ID_Cliente = " & idCliente.ToString())
+            Verificar("Un perfil LDA/FT no puede pertenecer a cliente y entidad a la vez",
+                      errorTitularDoble = 3819, "Error MySQL: " & errorTitularDoble.ToString())
+        Else
+            Verificar("Un perfil LDA/FT no puede pertenecer a cliente y entidad a la vez", False,
+                      "No se pudo crear la entidad auxiliar.")
+        End If
 
         Dim rRep As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Presidenta de la junta directiva", "Judicial y extrajudicial")
         Verificar("Agregar representante a la entidad", rRep.Exito, rRep.Mensaje)
