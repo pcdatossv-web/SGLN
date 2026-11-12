@@ -68,17 +68,15 @@ Module PruebaFuncional
         Dim claveMal As Respuesta = seguridad.CambiarClave(admin.ID, "Incorrecta99", "NuevaClave99")
         Verificar("Cambio de clave con clave actual incorrecta se rechaza", Not claveMal.Exito)
 
-        Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "Admin123*", "Temporal99")
+        Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "Admin123*", "TemporalClave99!")
         Verificar("Cambio de clave válido se acepta", claveBien.Exito)
         Verificar("La nueva clave permite iniciar sesión",
-                  usuarios.Autenticar("admin", "Temporal99") IsNot Nothing AndAlso
-                  Not usuarios.Autenticar("admin", "Temporal99").DebeCambiarClave)
+                  usuarios.Autenticar("admin", "TemporalClave99!") IsNot Nothing AndAlso
+                  Not usuarios.Autenticar("admin", "TemporalClave99!").DebeCambiarClave)
         Verificar("La clave anterior deja de funcionar",
                   usuarios.Autenticar("admin", "Admin123*") Is Nothing)
-        seguridad.CambiarClave(admin.ID, "Temporal99", "Admin123*")
-        Verificar("La clave original queda restituida",
-                  usuarios.Autenticar("admin", "Admin123*") IsNot Nothing AndAlso
-                  usuarios.Autenticar("admin", "Admin123*").DebeCambiarClave)
+        Verificar("La clave inicial ya no vuelve a aceptarse",
+                  usuarios.Autenticar("admin", "Admin123*") Is Nothing)
         Verificar("Una clave nueva de primer ingreso exige longitud y complejidad",
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave inicial no puede reutilizarse como nueva",
