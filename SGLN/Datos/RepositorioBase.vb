@@ -184,8 +184,13 @@ Public MustInherit Class RepositorioBase
                     Parametro(comando, "@detalle", Recortar(detalle, 1000))
                 End Sub)
         Catch ex As Exception
-            ' La auditoría nunca debe interrumpir la operación principal.
-            RegistroErrores.Escribir("Auditoría", ex)
+            ' Las operaciones antiguas que aún auditan después del COMMIT no se
+            ' revierten, pero la pérdida del evento queda identificada en el log local.
+            Dim idTexto As String = If(idRegistro.HasValue, idRegistro.Value.ToString(), "N/D")
+            Dim contexto As String = "No se pudo registrar auditoría: usuario=" & If(usuario, "sistema") &
+                                     "; acción=" & accion & "; tabla=" & tabla &
+                                     "; ID=" & idTexto & "; detalle=" & If(detalle, "")
+            RegistroErrores.Escribir(contexto, ex)
         End Try
     End Sub
 
