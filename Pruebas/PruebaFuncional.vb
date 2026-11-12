@@ -101,7 +101,7 @@ Module PruebaFuncional
             End Sub)
 
         Dim seguridad As New ServicioConfiguracion()
-        Dim claveMal As Respuesta = seguridad.CambiarClave(admin.ID, "Incorrecta99", "NuevaClave99")
+        Dim claveMal As Respuesta = seguridad.CambiarClave(admin.ID, "Incorrecta99", "NuevaClave99!")
         Verificar("Cambio de clave con clave actual incorrecta se rechaza", Not claveMal.Exito)
 
         Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "PruebaInicial99!", "TemporalClave99!")
