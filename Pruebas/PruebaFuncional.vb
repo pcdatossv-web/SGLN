@@ -926,6 +926,8 @@ Module PruebaFuncional
         Verificar("Sin el feriado, el 31/12/2026 vuelve a ser hábil",
                   calculadora3.EsDiaHabil(New Date(2026, 12, 31)))
 
+        Verificar("La configuración aislada carga la contraseña temporal de respaldos",
+                  Not String.IsNullOrWhiteSpace(ConfiguracionConexion.Actual.PasswordRespaldo))
         Dim rRespaldo As Respuesta = seguridad.Respaldar()
         Verificar("El respaldo de la base se crea y se reporta su ruta",
                   rRespaldo.Exito, rRespaldo.Mensaje)
