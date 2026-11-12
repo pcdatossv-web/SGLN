@@ -195,6 +195,8 @@ try {
         "ALTER USER '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
         "CREATE USER IF NOT EXISTS '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
         "ALTER USER '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
+        "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioApp'@'localhost'; " +
+        "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioRespaldo'@'localhost'; " +
         "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.* TO '$usuarioApp'@'localhost'; " +
         "GRANT SELECT, SHOW VIEW, TRIGGER ON ``$basePruebas``.* TO '$usuarioRespaldo'@'localhost'; " +
         "FLUSH PRIVILEGES;")
