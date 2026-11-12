@@ -58,7 +58,7 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ActualizarOperacion(operacion As OperacionLdaft) As Integer
-        EnTransaccion(
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Operaciones_LDAFT SET ID_Caso = @caso, ID_Instrumento = @instrumento, " &
@@ -106,7 +106,7 @@ Public Class CumplimientoRepositorio
                     "Operaciones_LDAFT", id, "Operación descartada")
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     ' ------------------------------------------------------------------
     ' Solicitudes ARCO
@@ -188,7 +188,7 @@ Public Class CumplimientoRepositorio
                     "Solicitudes_ARCO", id, "Respuesta el " & fechaRespuesta.ToString("dd/MM/yyyy"))
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     ' ------------------------------------------------------------------
     ' Catálogos
