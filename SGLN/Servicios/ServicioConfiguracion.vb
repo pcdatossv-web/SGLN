@@ -120,7 +120,7 @@ Public Class ServicioConfiguracion
                 "Respaldo creado: " & ruta & " (" & (informacion.Length \ 1024).ToString("N0") & " KB)")
         Catch ex As Exception
             RegistroErrores.Escribir("Configuración - respaldo", ex)
-            Return Respuesta.Fallo("No se pudo crear el respaldo: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo crear el respaldo. Revise la configuración, los permisos de la carpeta y el registro local de errores.")
         End Try
     End Function
 
