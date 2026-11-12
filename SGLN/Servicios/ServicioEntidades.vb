@@ -72,11 +72,21 @@ Public Class ServicioEntidades
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
         If idEntidad <= 0 Then Return Respuesta.Fallo("Guarde primero la entidad.")
         If idCliente <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
-        Return _repositorio.AgregarRepresentante(idEntidad, idCliente, cargo, tipo)
+        Try
+            Return _repositorio.AgregarRepresentante(idEntidad, idCliente, cargo, tipo)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Entidades - agregar representante", ex)
+            Return Respuesta.Fallo("No se pudo agregar el representante: " & ex.Message)
+        End Try
     End Function
 
     Public Sub QuitarRepresentante(id As Integer)
-        _repositorio.QuitarRepresentante(id)
+        Try
+            _repositorio.QuitarRepresentante(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Entidades - quitar representante", ex)
+            Throw
+        End Try
     End Sub
 
 End Class
