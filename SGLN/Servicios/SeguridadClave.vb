@@ -16,7 +16,11 @@ Public Module SeguridadClave
     ' Nunca se utiliza para crear nuevas cuentas.
     Private Const ClaveInicialLegada As String = "Admin123*"
 
-    Private Const Iteraciones As Integer = 100000
+    ' PBKDF2-HMAC-SHA256 con coste reforzado para nuevas claves.
+    Private Const Iteraciones As Integer = 600000
+    ' Compatibilidad temporal con hashes creados por versiones anteriores
+    ' (PBKDF2-HMAC-SHA1, 100 000 iteraciones).
+    Private Const IteracionesLegadas As Integer = 100000
     Private Const LongitudHash As Integer = 32
     Private Const LongitudSalt As Integer = 16
 
@@ -32,7 +36,7 @@ Public Module SeguridadClave
             salt = Convert.FromBase64String(saltBase64)
         End If
 
-        Using derivador As New Rfc2898DeriveBytes(clave, salt, Iteraciones)
+        Using derivador As New Rfc2898DeriveBytes(clave, salt, Iteraciones, HashAlgorithmName.SHA256)
             Dim hash As Byte() = derivador.GetBytes(LongitudHash)
             Return New SalHash With {
                 .Hash = Convert.ToBase64String(hash),
@@ -67,21 +71,29 @@ Public Module SeguridadClave
 
     Public Function Verificar(clave As String, hashBase64 As String, saltBase64 As String) As Boolean
         Try
-            Dim calculado As SalHash = CrearHash(clave, saltBase64)
             Dim esperado As Byte() = Convert.FromBase64String(hashBase64)
-            Dim obtenido As Byte() = Convert.FromBase64String(calculado.Hash)
+            Dim salt As Byte() = Convert.FromBase64String(saltBase64)
+            If esperado.Length <> LongitudHash OrElse salt.Length < 16 Then Return False
 
-            If esperado.Length <> obtenido.Length Then Return False
+            ' Primero prueba el formato vigente. Después admite hashes antiguos
+            ' para que las cuentas existentes no queden bloqueadas tras actualizar.
+            If CoincideHash(clave, salt, esperado, Iteraciones, HashAlgorithmName.SHA256) Then Return True
+            Return CoincideHash(clave, salt, esperado, IteracionesLegadas, HashAlgorithmName.SHA1)
+        Catch
+            Return False
+        End Try
+    End Function
 
-            ' Comparación en tiempo constante para no filtrar información.
+    Private Function CoincideHash(clave As String, salt As Byte(), esperado As Byte(),
+                                  iteraciones As Integer, algoritmo As HashAlgorithmName) As Boolean
+        Using derivador As New Rfc2898DeriveBytes(clave, salt, iteraciones, algoritmo)
+            Dim obtenido As Byte() = derivador.GetBytes(LongitudHash)
             Dim diferencias As Integer = 0
             For i As Integer = 0 To esperado.Length - 1
                 diferencias = diferencias Or (esperado(i) Xor obtenido(i))
             Next
             Return diferencias = 0
-        Catch
-            Return False
-        End Try
+        End Using
     End Function
 
 End Module
