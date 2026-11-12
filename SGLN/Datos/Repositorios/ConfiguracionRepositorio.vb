@@ -37,7 +37,7 @@ Public Class ConfiguracionRepositorio
                         Parametro(comando, "@clave", clave)
                         Parametro(comando, "@valor", valor)
                     End Sub)
-                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing, clave & " = " & valor)
+                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing, "Clave actualizada: " & clave)
                 Return filas
             End Function)
     End Sub
