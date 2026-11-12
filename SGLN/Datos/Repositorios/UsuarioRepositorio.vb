@@ -78,76 +78,86 @@ Public Class UsuarioRepositorio
 
     Public Function Crear(usuario As String, nombreCompleto As String, clave As String,
                           idRol As Integer, activo As Boolean) As Respuesta
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
 
         Try
-            Dim nuevoId As Integer = InsertarYObtenerId(
-                "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
-                "VALUES (@usuario, @nombre, @hash, @salt, @rol, @activo)",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@usuario", usuario.Trim())
-                    Parametro(comando, "@nombre", nombreCompleto.Trim())
-                    Parametro(comando, "@hash", credencial.Hash)
-                    Parametro(comando, "@salt", credencial.Salt)
-                    Parametro(comando, "@rol", idRol)
-                    Parametro(comando, "@activo", activo)
-                End Sub)
-
-            Auditar("CREAR", "Usuarios", nuevoId, usuario.Trim() & " con rol " & idRol)
+            EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                        "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
+                        "VALUES (@usuario, @nombre, @hash, @salt, @rol, @activo)",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@usuario", usuario.Trim())
+                            Parametro(comando, "@nombre", nombreCompleto.Trim())
+                            Parametro(comando, "@hash", credencial.Hash)
+                            Parametro(comando, "@salt", credencial.Salt)
+                            Parametro(comando, "@rol", idRol)
+                            Parametro(comando, "@activo", activo)
+                        End Sub)
+                    AuditarEnTransaccion(conexion, transaccion, "CREAR", "Usuarios", nuevoId,
+                        usuario.Trim() & " con rol " & idRol)
+                    Return nuevoId
+                End Function)
             Return Respuesta.Ok("Usuario creado correctamente.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un usuario con ese nombre de acceso.")
+        Catch ex As MySqlException When ex.Number = 1452
+            Return Respuesta.Fallo("El rol seleccionado ya no existe.")
         End Try
     End Function
 
     Public Function Actualizar(id As Integer, nombreCompleto As String, idRol As Integer,
                                activo As Boolean) As Respuesta
         Try
-            Dim filas As Integer = Ejecutar(
-                "UPDATE Usuarios SET Nombre_Completo = @nombre, ID_Rol = @rol, Activo = @activo " &
-                "WHERE ID = @id",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@nombre", nombreCompleto.Trim())
-                    Parametro(comando, "@rol", idRol)
-                    Parametro(comando, "@activo", activo)
-                    Parametro(comando, "@id", id)
-                End Sub)
+            Dim filas As Integer = EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim afectadas As Integer = Ejecutar(conexion, transaccion,
+                        "UPDATE Usuarios SET Nombre_Completo = @nombre, ID_Rol = @rol, Activo = @activo WHERE ID = @id",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@nombre", nombreCompleto.Trim())
+                            Parametro(comando, "@rol", idRol)
+                            Parametro(comando, "@activo", activo)
+                            Parametro(comando, "@id", id)
+                        End Sub)
 
-            ' MySQL puede devolver cero filas afectadas cuando los valores enviados
-            ' son idénticos a los existentes. Solo se informa que no existe si
-            ' una consulta independiente confirma que el registro desapareció.
-            If filas = 0 AndAlso Not Existe(id) Then
-                Return Respuesta.Fallo("El usuario ya no existe.")
-            End If
+                    If afectadas > 0 Then
+                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios", id,
+                            "Rol " & idRol & ", activo = " & activo)
+                    End If
+                    Return afectadas
+                End Function)
 
-            Auditar("MODIFICAR", "Usuarios", id, "Rol " & idRol & ", activo = " & activo)
+            If filas = 0 AndAlso Not Existe(id) Then Return Respuesta.Fallo("El usuario ya no existe.")
             Return Respuesta.Ok("Usuario actualizado.")
         Catch ex As MySqlException When ex.Number = 1644
-            ' 1644 = SIGNAL del trigger que protege al último administrador.
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As MySqlException When ex.Number = 1452
+            Return Respuesta.Fallo("El rol seleccionado ya no existe.")
         End Try
     End Function
 
     Public Function CambiarClave(idUsuario As Integer, claveNueva As String) As Respuesta
-        ' La regla se aplica en el repositorio para que ningún formulario o
-        ' servicio pueda omitirla al cambiar o restablecer una contraseña.
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
 
         Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@hash", credencial.Hash)
-                Parametro(comando, "@salt", credencial.Salt)
-                Parametro(comando, "@id", idUsuario)
-            End Sub)
+        Dim filas As Integer = EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim afectadas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@hash", credencial.Hash)
+                        Parametro(comando, "@salt", credencial.Salt)
+                        Parametro(comando, "@id", idUsuario)
+                    End Sub)
+                If afectadas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios",
+                    idUsuario, "Cambio de clave")
+                Return afectadas
+            End Function)
 
-        If filas = 0 AndAlso Not Existe(idUsuario) Then
-            Return Respuesta.Fallo("El usuario ya no existe.")
-        End If
-
-        Auditar("MODIFICAR", "Usuarios", idUsuario, "Cambio de clave")
+        If filas = 0 AndAlso Not Existe(idUsuario) Then Return Respuesta.Fallo("El usuario ya no existe.")
         Return Respuesta.Ok("Clave actualizada correctamente.")
     End Function
 
