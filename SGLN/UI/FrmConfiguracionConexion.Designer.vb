@@ -24,6 +24,10 @@ Partial Class FrmConfiguracionConexion
     Private Sub InitializeComponent()
         Me.grpServidor = New System.Windows.Forms.GroupBox()
         Me.lblAyuda = New System.Windows.Forms.Label()
+        Me.lblUsuarioRespaldo = New System.Windows.Forms.Label()
+        Me.txtUsuarioRespaldo = New System.Windows.Forms.TextBox()
+        Me.lblPasswordRespaldo = New System.Windows.Forms.Label()
+        Me.txtPasswordRespaldo = New System.Windows.Forms.TextBox()
         Me.chkEquipo = New System.Windows.Forms.CheckBox()
         Me.txtPassword = New System.Windows.Forms.TextBox()
         Me.lblPassword = New System.Windows.Forms.Label()
@@ -45,6 +49,10 @@ Partial Class FrmConfiguracionConexion
         '
         ' grpServidor
         '
+        Me.grpServidor.Controls.Add(Me.txtPasswordRespaldo)
+        Me.grpServidor.Controls.Add(Me.lblPasswordRespaldo)
+        Me.grpServidor.Controls.Add(Me.txtUsuarioRespaldo)
+        Me.grpServidor.Controls.Add(Me.lblUsuarioRespaldo)
         Me.grpServidor.Controls.Add(Me.lblAyuda)
         Me.grpServidor.Controls.Add(Me.chkEquipo)
         Me.grpServidor.Controls.Add(Me.txtPassword)
@@ -59,7 +67,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblServidor)
         Me.grpServidor.Location = New System.Drawing.Point(15, 12)
         Me.grpServidor.Name = "grpServidor"
-        Me.grpServidor.Size = New System.Drawing.Size(545, 258)
+        Me.grpServidor.Size = New System.Drawing.Size(545, 340)
         Me.grpServidor.TabIndex = 0
         Me.grpServidor.TabStop = False
         Me.grpServidor.Text = "Servidor MySQL"
@@ -72,6 +80,39 @@ Partial Class FrmConfiguracionConexion
         Me.lblAyuda.Size = New System.Drawing.Size(500, 20)
         Me.lblAyuda.TabIndex = 11
         Me.lblAyuda.Text = "En un equipo cliente use la IP o el nombre del servidor (ej. 192.168.1.10), no ""localhost""."
+        '
+        ' Credenciales separadas para respaldos
+        '
+        Me.lblUsuarioRespaldo.AutoSize = True
+        Me.lblUsuarioRespaldo.Location = New System.Drawing.Point(20, 265)
+        Me.lblUsuarioRespaldo.Name = "lblUsuarioRespaldo"
+        Me.lblUsuarioRespaldo.Size = New System.Drawing.Size(110, 15)
+        Me.lblUsuarioRespaldo.TabIndex = 12
+        Me.lblUsuarioRespaldo.Text = "Usuario respaldos:"
+        '
+        ' txtUsuarioRespaldo
+        '
+        Me.txtUsuarioRespaldo.Location = New System.Drawing.Point(185, 260)
+        Me.txtUsuarioRespaldo.Name = "txtUsuarioRespaldo"
+        Me.txtUsuarioRespaldo.Size = New System.Drawing.Size(335, 23)
+        Me.txtUsuarioRespaldo.TabIndex = 13
+        '
+        ' lblPasswordRespaldo
+        '
+        Me.lblPasswordRespaldo.AutoSize = True
+        Me.lblPasswordRespaldo.Location = New System.Drawing.Point(20, 299)
+        Me.lblPasswordRespaldo.Name = "lblPasswordRespaldo"
+        Me.lblPasswordRespaldo.Size = New System.Drawing.Size(125, 15)
+        Me.lblPasswordRespaldo.TabIndex = 14
+        Me.lblPasswordRespaldo.Text = "Clave de respaldos:"
+        '
+        ' txtPasswordRespaldo
+        '
+        Me.txtPasswordRespaldo.Location = New System.Drawing.Point(185, 294)
+        Me.txtPasswordRespaldo.Name = "txtPasswordRespaldo"
+        Me.txtPasswordRespaldo.Size = New System.Drawing.Size(335, 23)
+        Me.txtPasswordRespaldo.TabIndex = 15
+        Me.txtPasswordRespaldo.UseSystemPasswordChar = True
         '
         ' chkEquipo
         '
@@ -168,7 +209,7 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblEstado.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblEstado.ForeColor = System.Drawing.Color.DimGray
-        Me.lblEstado.Location = New System.Drawing.Point(15, 278)
+        Me.lblEstado.Location = New System.Drawing.Point(15, 350)
         Me.lblEstado.Name = "lblEstado"
         Me.lblEstado.Size = New System.Drawing.Size(545, 36)
         Me.lblEstado.TabIndex = 1
@@ -178,14 +219,14 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblRuta.AutoSize = True
         Me.lblRuta.ForeColor = System.Drawing.Color.DimGray
-        Me.lblRuta.Location = New System.Drawing.Point(15, 318)
+        Me.lblRuta.Location = New System.Drawing.Point(15, 390)
         Me.lblRuta.Name = "lblRuta"
         Me.lblRuta.Size = New System.Drawing.Size(0, 15)
         Me.lblRuta.TabIndex = 2
         '
         ' btnProbar
         '
-        Me.btnProbar.Location = New System.Drawing.Point(215, 345)
+        Me.btnProbar.Location = New System.Drawing.Point(215, 420)
         Me.btnProbar.Name = "btnProbar"
         Me.btnProbar.Size = New System.Drawing.Size(115, 30)
         Me.btnProbar.TabIndex = 3
@@ -194,7 +235,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' btnGuardar
         '
-        Me.btnGuardar.Location = New System.Drawing.Point(340, 345)
+        Me.btnGuardar.Location = New System.Drawing.Point(340, 420)
         Me.btnGuardar.Name = "btnGuardar"
         Me.btnGuardar.Size = New System.Drawing.Size(100, 30)
         Me.btnGuardar.TabIndex = 4
@@ -204,7 +245,7 @@ Partial Class FrmConfiguracionConexion
         ' btnCancelar
         '
         Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancelar.Location = New System.Drawing.Point(450, 345)
+        Me.btnCancelar.Location = New System.Drawing.Point(450, 420)
         Me.btnCancelar.Name = "btnCancelar"
         Me.btnCancelar.Size = New System.Drawing.Size(100, 30)
         Me.btnCancelar.TabIndex = 5
@@ -217,7 +258,7 @@ Partial Class FrmConfiguracionConexion
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancelar
-        Me.ClientSize = New System.Drawing.Size(575, 390)
+        Me.ClientSize = New System.Drawing.Size(575, 465)
         Me.Controls.Add(Me.btnCancelar)
         Me.Controls.Add(Me.btnGuardar)
         Me.Controls.Add(Me.btnProbar)
@@ -250,6 +291,10 @@ Partial Class FrmConfiguracionConexion
     Friend WithEvents txtPassword As System.Windows.Forms.TextBox
     Friend WithEvents chkEquipo As System.Windows.Forms.CheckBox
     Friend WithEvents lblAyuda As System.Windows.Forms.Label
+    Friend WithEvents lblUsuarioRespaldo As System.Windows.Forms.Label
+    Friend WithEvents txtUsuarioRespaldo As System.Windows.Forms.TextBox
+    Friend WithEvents lblPasswordRespaldo As System.Windows.Forms.Label
+    Friend WithEvents txtPasswordRespaldo As System.Windows.Forms.TextBox
     Friend WithEvents lblEstado As System.Windows.Forms.Label
     Friend WithEvents lblRuta As System.Windows.Forms.Label
     Friend WithEvents btnProbar As System.Windows.Forms.Button
