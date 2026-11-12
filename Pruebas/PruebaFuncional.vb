@@ -77,6 +77,16 @@ Module PruebaFuncional
         Verificar("La cuenta creada con clave propia no requiere cambio forzado",
                   admin IsNot Nothing AndAlso Not admin.DebeCambiarClave)
 
+        Dim segundoAdminRechazado As Boolean = False
+        Try
+            InicializadorBD.CrearAdministradorInicial("admin2", "Segundo administrador no permitido",
+                                                       "SegundaClaveSegura123!")
+        Catch ex As InvalidOperationException
+            segundoAdminRechazado = ex.Message.Contains("Ya existe al menos un usuario")
+        End Try
+        Verificar("El asistente inicial no permite crear un segundo administrador",
+                  segundoAdminRechazado)
+
         IntentarSinExcepcion("Login con clave incorrecta solo devuelve Nothing",
             Sub()
                 If usuarios.Autenticar("admin", "ClaveMala1") IsNot Nothing Then
