@@ -71,7 +71,8 @@ BEGIN
     DECLARE v_rol_protegido INT;
     DECLARE v_otros INT;
 
-    SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1;
+    /* Mismo bloqueo en eliminación: serializa la comprobación del último administrador. */
+    SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1 FOR UPDATE;
 
     IF OLD.ID_Rol = v_rol_protegido THEN
         SELECT COUNT(*) INTO v_otros
