@@ -53,7 +53,8 @@ $basePruebas = 'sgln_sv_pruebas'
 # públicos que sí existen en el código fuente pero no en el EXE copiado).
 $msbuild = (Get-Command 'MSBuild.exe' -ErrorAction SilentlyContinue).Source
 if ([string]::IsNullOrWhiteSpace($msbuild)) {
-    $vswhere = Join-Path $env:ProgramFiles(x86) 'Microsoft Visual Studio\Installer\vswhere.exe'
+    $programFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+    $vswhere = Join-Path $programFilesX86 'Microsoft Visual Studio\Installer\vswhere.exe'
     if (Test-Path $vswhere) {
         $hallado = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
         if ($hallado) { $msbuild = $hallado }
