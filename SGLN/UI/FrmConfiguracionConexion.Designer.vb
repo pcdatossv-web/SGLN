@@ -67,7 +67,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblServidor)
         Me.grpServidor.Location = New System.Drawing.Point(15, 12)
         Me.grpServidor.Name = "grpServidor"
-        Me.grpServidor.Size = New System.Drawing.Size(545, 340)
+        Me.grpServidor.Size = New System.Drawing.Size(545, 330)
         Me.grpServidor.TabIndex = 0
         Me.grpServidor.TabStop = False
         Me.grpServidor.Text = "Servidor MySQL"
