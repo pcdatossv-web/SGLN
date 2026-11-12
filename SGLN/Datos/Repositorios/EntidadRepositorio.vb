@@ -4,6 +4,7 @@ Imports MySql.Data.MySqlClient
 
 ''' <summary>
 ''' Acceso a datos de entidades legales, representantes y perfil LDA/FT.
+''' La entidad, su perfil y la auditoría se guardan atómicamente.
 ''' </summary>
 Public Class EntidadRepositorio
     Inherits RepositorioBase
@@ -35,62 +36,94 @@ Public Class EntidadRepositorio
             End Sub)
     End Function
 
-    Public Function Insertar(entidad As EntidadLegal) As Integer
-        Dim nuevoId As Integer = InsertarYObtenerId(
-            "INSERT INTO Entidades_Legales (Razon_Social, NIT, NRC, Domicilio, Activo) " &
-            "VALUES (@razon, @nit, @nrc, @domicilio, @activo)",
-            Sub(comando As MySqlCommand)
-                AgregarParametros(comando, entidad)
-            End Sub)
+    ''' <summary>
+    ''' Guarda entidad, perfil LDA/FT y auditoría en una única transacción.
+    ''' Si falla el perfil o la auditoría, la entidad también se revierte.
+    ''' </summary>
+    Public Function GuardarCompleto(entidad As EntidadLegal, perfil As PerfilLdaft) As Integer
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim idEntidad As Integer = entidad.ID
 
-        Auditar("CREAR", "Entidades_Legales", nuevoId, entidad.RazonSocial)
-        Return nuevoId
+                If idEntidad <= 0 Then
+                    idEntidad = InsertarYObtenerId(
+                        conexion, transaccion,
+                        "INSERT INTO Entidades_Legales (Razon_Social, NIT, NRC, Domicilio, Activo) " &
+                        "VALUES (@razon, @nit, @nrc, @domicilio, @activo)",
+                        Sub(comando As MySqlCommand)
+                            AgregarParametros(comando, entidad)
+                        End Sub)
+
+                    AuditarEnTransaccion(conexion, transaccion, "CREAR", "Entidades_Legales",
+                                         idEntidad, entidad.RazonSocial)
+                Else
+                    Using comandoExiste As New MySqlCommand(
+                            "SELECT ID FROM Entidades_Legales WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(comandoExiste, "@id", idEntidad)
+                        If comandoExiste.ExecuteScalar() Is Nothing Then
+                            Throw New InvalidOperationException("La entidad que intenta modificar ya no existe.")
+                        End If
+                    End Using
+
+                    Ejecutar(conexion, transaccion,
+                        "UPDATE Entidades_Legales SET Razon_Social = @razon, NIT = @nit, NRC = @nrc, " &
+                        "       Domicilio = @domicilio, Activo = @activo WHERE ID = @id",
+                        Sub(comando As MySqlCommand)
+                            AgregarParametros(comando, entidad)
+                            Parametro(comando, "@id", idEntidad)
+                        End Sub)
+
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Entidades_Legales",
+                                         idEntidad, entidad.RazonSocial)
+                End If
+
+                If perfil IsNot Nothing Then
+                    perfil.IDCliente = Nothing
+                    perfil.IDEntidad = idEntidad
+
+                    Ejecutar(conexion, transaccion,
+                        "INSERT INTO Perfil_LDAFT (ID_Cliente, ID_Entidad, Nivel_Riesgo, Origen_Fondos_Verificado, " &
+                        "       Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones) " &
+                        "VALUES (NULL, @idEntidad, @riesgo, @origen, @detalle, @fecha, @observaciones) " &
+                        "ON DUPLICATE KEY UPDATE Nivel_Riesgo = VALUES(Nivel_Riesgo), " &
+                        "       Origen_Fondos_Verificado = VALUES(Origen_Fondos_Verificado), " &
+                        "       Detalle_Origen_Fondos = VALUES(Detalle_Origen_Fondos), " &
+                        "       Fecha_Verificacion_Listas = VALUES(Fecha_Verificacion_Listas), " &
+                        "       Fecha_Actualizacion = NOW(), " &
+                        "       Observaciones = VALUES(Observaciones)",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@idEntidad", idEntidad)
+                            Parametro(comando, "@riesgo", perfil.NivelRiesgo)
+                            Parametro(comando, "@origen", perfil.OrigenFondosVerificado)
+                            Parametro(comando, "@detalle", perfil.DetalleOrigenFondos)
+                            Parametro(comando, "@fecha", If(perfil.FechaVerificacionListas.HasValue,
+                                                             CObj(perfil.FechaVerificacionListas.Value), DBNull.Value))
+                            Parametro(comando, "@observaciones", perfil.Observaciones)
+                        End Sub)
+
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Perfil_LDAFT",
+                                         idEntidad, "Perfil LDA/FT de entidad actualizado")
+                End If
+
+                Return idEntidad
+            End Function)
     End Function
 
-    Public Sub Actualizar(entidad As EntidadLegal)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Entidades_Legales SET Razon_Social = @razon, NIT = @nit, NRC = @nrc, " &
-            "       Domicilio = @domicilio, Activo = @activo WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                AgregarParametros(comando, entidad)
-                Parametro(comando, "@id", entidad.ID)
-            End Sub)
-
-        If filas > 0 Then Auditar("MODIFICAR", "Entidades_Legales", entidad.ID, entidad.RazonSocial)
-    End Sub
-
     Public Sub Desactivar(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Entidades_Legales SET Activo = 0 WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Entidades_Legales SET Activo = 0 WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
 
-        If filas > 0 Then Auditar("DESACTIVAR", "Entidades_Legales", id, "Entidad desactivada")
-    End Sub
-
-    Public Sub GuardarPerfil(perfil As PerfilLdaft)
-        ' Un solo perfil por entidad: el duplicado se actualiza.
-        Ejecutar(
-            "INSERT INTO Perfil_LDAFT (ID_Entidad, Nivel_Riesgo, Origen_Fondos_Verificado, " &
-            "       Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones) " &
-            "VALUES (@idEntidad, @riesgo, @origen, @detalle, @fecha, @observaciones) " &
-            "ON DUPLICATE KEY UPDATE Nivel_Riesgo = VALUES(Nivel_Riesgo), " &
-            "       Origen_Fondos_Verificado = VALUES(Origen_Fondos_Verificado), " &
-            "       Detalle_Origen_Fondos = VALUES(Detalle_Origen_Fondos), " &
-            "       Fecha_Verificacion_Listas = VALUES(Fecha_Verificacion_Listas), " &
-            "       Fecha_Actualizacion = NOW(), " &
-            "       Observaciones = VALUES(Observaciones)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@idEntidad", perfil.IDEntidad)
-                Parametro(comando, "@riesgo", perfil.NivelRiesgo)
-                Parametro(comando, "@origen", perfil.OrigenFondosVerificado)
-                Parametro(comando, "@detalle", perfil.DetalleOrigenFondos)
-                Parametro(comando, "@fecha", If(perfil.FechaVerificacionListas.HasValue, CObj(perfil.FechaVerificacionListas.Value), DBNull.Value))
-                Parametro(comando, "@observaciones", perfil.Observaciones)
-            End Sub)
-
-        Auditar("MODIFICAR", "Perfil_LDAFT", perfil.IDEntidad, "Perfil LDA/FT de entidad actualizado")
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "DESACTIVAR", "Entidades_Legales",
+                                         id, "Entidad desactivada")
+                End If
+                Return filas
+            End Function)
     End Sub
 
     Public Function Representantes(idEntidad As Integer) As DataTable
@@ -113,32 +146,43 @@ Public Class EntidadRepositorio
 
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
         Try
-            Ejecutar(
-                "INSERT INTO Representantes_Legales (ID_Entidad, ID_Cliente, Cargo, Tipo_Representacion) " &
-                "VALUES (@entidad, @cliente, @cargo, @tipo)",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@entidad", idEntidad)
-                    Parametro(comando, "@cliente", idCliente)
-                    Parametro(comando, "@cargo", cargo)
-                    Parametro(comando, "@tipo", tipo)
-                End Sub)
+            EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Ejecutar(conexion, transaccion,
+                        "INSERT INTO Representantes_Legales (ID_Entidad, ID_Cliente, Cargo, Tipo_Representacion) " &
+                        "VALUES (@entidad, @cliente, @cargo, @tipo)",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@entidad", idEntidad)
+                            Parametro(comando, "@cliente", idCliente)
+                            Parametro(comando, "@cargo", cargo)
+                            Parametro(comando, "@tipo", tipo)
+                        End Sub)
 
-            Auditar("CREAR", "Representantes_Legales", Nothing, "Representante agregado a entidad " & idEntidad)
+                    AuditarEnTransaccion(conexion, transaccion, "CREAR", "Representantes_Legales",
+                                         Nothing, "Representante " & idCliente & " agregado a entidad " & idEntidad)
+                    Return 1
+                End Function)
             Return Respuesta.Ok("Representante agregado.")
         Catch ex As MySqlException When ex.Number = 1062
-            ' 1062 = entrada duplicada (equivale a 2601/2627 de SQL Server).
             Return Respuesta.Fallo("Ese cliente ya está registrado como representante de la entidad.")
         End Try
     End Function
 
     Public Sub QuitarRepresentante(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "DELETE FROM Representantes_Legales WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "DELETE FROM Representantes_Legales WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
 
-        If filas > 0 Then Auditar("ELIMINAR", "Representantes_Legales", id, "Representante removido")
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "ELIMINAR", "Representantes_Legales",
+                                         id, "Representante removido")
+                End If
+                Return filas
+            End Function)
     End Sub
 
     Private Sub AgregarParametros(comando As MySqlCommand, entidad As EntidadLegal)
