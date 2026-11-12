@@ -18,34 +18,44 @@ Public Class FrmPrincipal
     ''' Ocultar no es la única defensa: cada formulario vuelve a validar.
     ''' </summary>
     Private Sub AplicarPermisos()
-        RecorrerMenu(mnuPrincipal.Items)
-    End Sub
-
-    Private Sub RecorrerMenu(items As ToolStripItemCollection)
-        For Each item As ToolStripItem In items
-            If item.Tag IsNot Nothing Then
-                item.Visible = Permisos.Puede(Convert.ToString(item.Tag))
-            End If
-
-            Dim desplegable As ToolStripDropDownItem = TryCast(item, ToolStripDropDownItem)
-            If desplegable Is Nothing Then Continue For
-
-            RecorrerMenu(desplegable.DropDownItems)
-
-            ' Un menú contenedor (Módulos, Herramientas) se oculta si todas
-            ' sus opciones quedaron ocultas.
-            If desplegable.Tag Is Nothing AndAlso desplegable.DropDownItems.Count > 0 Then
-                Dim hayVisibles As Boolean = False
-                For Each hijo As ToolStripItem In desplegable.DropDownItems
-                    If hijo.Visible Then
-                        hayVisibles = True
-                        Exit For
-                    End If
-                Next
-                desplegable.Visible = hayVisibles
-            End If
+        For Each item As ToolStripItem In mnuPrincipal.Items
+            AplicarPermisosItem(item)
         Next
+
+        ' Los menús generales siempre deben permanecer disponibles.
+        mnuArchivo.Visible = True
+        mnuAyuda.Visible = True
     End Sub
+
+    Private Function AplicarPermisosItem(item As ToolStripItem) As Boolean
+        If TypeOf item Is ToolStripSeparator Then Return False
+
+        Dim autorizado As Boolean =
+            item.Tag Is Nothing OrElse
+            Permisos.Puede(Convert.ToString(item.Tag))
+
+        Dim desplegable As ToolStripDropDownItem =
+            TryCast(item, ToolStripDropDownItem)
+
+        If desplegable IsNot Nothing AndAlso
+           desplegable.DropDownItems.Count > 0 Then
+
+            Dim tieneOpcionesDisponibles As Boolean = False
+
+            For Each hijo As ToolStripItem In desplegable.DropDownItems
+                If AplicarPermisosItem(hijo) Then
+                    tieneOpcionesDisponibles = True
+                End If
+            Next
+
+            Dim mostrar As Boolean = autorizado AndAlso tieneOpcionesDisponibles
+            item.Visible = mostrar
+            Return mostrar
+        End If
+
+        item.Visible = autorizado
+        Return autorizado
+    End Function
 
     Private Sub CargarPanel()
         Try

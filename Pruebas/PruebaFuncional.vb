@@ -107,6 +107,12 @@ Module PruebaFuncional
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))
         Verificar("El rol Abogado no administra roles", Not Permisos.Puede("config.roles"))
         Verificar("El rol Abogado no puede crear respaldos", Not Permisos.Puede("config.respaldos"))
+        Verificar("Un código de permiso vacío se deniega", Not Permisos.Puede(""))
+        Verificar("Un código de permiso con espacios se deniega", Not Permisos.Puede("   "))
+        Verificar("Abrir un formulario sin código de permiso se deniega",
+                  Not Permisos.Exigir("", Nothing))
+        Verificar("Ejecutar una acción sin código de permiso se deniega",
+                  Not Permisos.ExigirAccion(""))
 
         Sesion.CargarPermisos()
         Verificar("Al recargar la sesión del administrador vuelve el acceso total", Permisos.AccesoTotal)
