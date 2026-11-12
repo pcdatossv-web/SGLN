@@ -537,7 +537,8 @@ Module PruebaFuncional
         Dim errorRollbackCliente As Integer = 0
         Dim detalleRollbackCliente As String = ""
         Try
-            New ClienteRepositorio().GuardarCompleto(
+            Dim repoAltaRollbackCliente As New ClienteRepositorio()
+            repoAltaRollbackCliente.GuardarCompleto(
                 New Cliente With {.Nombres = "RollbackClienteLDAFT", .Apellidos = "Prueba"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
         Catch ex As MySqlException
@@ -554,7 +555,8 @@ Module PruebaFuncional
 
         Dim errorRollbackActualizacionCliente As Integer = 0
         Try
-            New ClienteRepositorio().GuardarCompleto(
+            Dim repoEdicionRollbackCliente As New ClienteRepositorio()
+            repoEdicionRollbackCliente.GuardarCompleto(
                 New Cliente With {.ID = idCliente, .Nombres = "Nombre temporal", .Apellidos = "No persistir"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
         Catch ex As MySqlException
@@ -590,7 +592,8 @@ Module PruebaFuncional
         Dim errorRollbackEntidad As Integer = 0
         Dim detalleRollbackEntidad As String = ""
         Try
-            New EntidadRepositorio().GuardarCompleto(
+            Dim repoAltaRollbackEntidad As New EntidadRepositorio()
+            repoAltaRollbackEntidad.GuardarCompleto(
                 New EntidadLegal With {.RazonSocial = "RollbackEntidadLDAFT"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
         Catch ex As MySqlException
@@ -607,7 +610,8 @@ Module PruebaFuncional
 
         Dim errorRollbackActualizacionEntidad As Integer = 0
         Try
-            New EntidadRepositorio().GuardarCompleto(
+            Dim repoEdicionRollbackEntidad As New EntidadRepositorio()
+            repoEdicionRollbackEntidad.GuardarCompleto(
                 New EntidadLegal With {.ID = idEntidad, .RazonSocial = "Razón temporal"},
                 New PerfilLdaft With {.NivelRiesgo = "Extremo"})
         Catch ex As MySqlException
