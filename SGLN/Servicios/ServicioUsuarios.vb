@@ -62,9 +62,8 @@ Public Class ServicioUsuarios
     ''' </summary>
     Public Function RestablecerClave(id As Integer, claveNueva As String) As Respuesta
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
-        If String.IsNullOrWhiteSpace(claveNueva) OrElse claveNueva.Length < 8 Then
-            Return Respuesta.Fallo("La nueva clave debe tener al menos 8 caracteres.")
-        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         Return _repositorio.CambiarClave(id, claveNueva)
     End Function
 
@@ -121,9 +120,8 @@ Public Class ServicioUsuarios
         End If
         If String.IsNullOrWhiteSpace(nombreCompleto) Then Return "Indique el nombre completo."
         If nombreCompleto.Trim().Length > 150 Then Return "El nombre no puede superar 150 caracteres."
-        If String.IsNullOrWhiteSpace(clave) OrElse clave.Length < 8 Then
-            Return "La clave debe tener al menos 8 caracteres."
-        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
+        If errorClave <> "" Then Return errorClave
         If idRol <= 0 Then Return "Seleccione un rol."
 
         Return ValidarRolActivo(idRol)
