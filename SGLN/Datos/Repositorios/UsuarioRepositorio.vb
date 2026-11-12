@@ -27,7 +27,24 @@ Public Class UsuarioRepositorio
         Dim hash As String = Convert.ToString(fila("Clave_Hash"))
         Dim salt As String = Convert.ToString(fila("Clave_Salt"))
 
-        If Not SeguridadClave.Verificar(clave, hash, salt) Then Return Nothing
+        Dim requiereActualizacionHash As Boolean = False
+        If Not SeguridadClave.Verificar(clave, hash, salt, requiereActualizacionHash) Then Return Nothing
+
+        If requiereActualizacionHash Then
+            ' Migra silenciosamente hashes SHA1 antiguos al formato SHA256 actual.
+            ' La condición sobre el hash anterior evita sobrescribir un cambio
+            ' de contraseña concurrente realizado desde otra estación.
+            Dim credencialNueva As SalHash = SeguridadClave.CrearHash(clave)
+            Ejecutar(
+                "UPDATE Usuarios SET Clave_Hash = @nuevoHash, Clave_Salt = @nuevoSalt " &
+                "WHERE ID = @id AND Clave_Hash = @hashAnterior",
+                Sub(comando As MySqlCommand)
+                    Parametro(comando, "@nuevoHash", credencialNueva.Hash)
+                    Parametro(comando, "@nuevoSalt", credencialNueva.Salt)
+                    Parametro(comando, "@id", Convert.ToInt32(fila("ID")))
+                    Parametro(comando, "@hashAnterior", hash)
+                End Sub)
+        End If
 
         Dim sesion As New UsuarioSesion With {
             .ID = Convert.ToInt32(fila("ID")),
