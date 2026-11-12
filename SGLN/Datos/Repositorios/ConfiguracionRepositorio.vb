@@ -149,13 +149,20 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Private Function UsuarioRespaldo() As String
-        Dim usuario As String = ConfigurationManager.AppSettings("Respaldos_Usuario")
+        Dim usuario As String = ConfiguracionConexion.Actual.UsuarioRespaldo
+        If String.IsNullOrWhiteSpace(usuario) Then
+            usuario = ConfigurationManager.AppSettings("Respaldos_Usuario")
+        End If
         If String.IsNullOrWhiteSpace(usuario) Then usuario = "sgln_backup"
-        Return usuario
+        Return usuario.Trim()
     End Function
 
     Private Function ClaveRespaldo() As String
-        Return If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
+        Dim clave As String = ConfiguracionConexion.Actual.PasswordRespaldo
+        If String.IsNullOrEmpty(clave) Then
+            clave = If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
+        End If
+        Return clave
     End Function
 
     ''' <summary>
