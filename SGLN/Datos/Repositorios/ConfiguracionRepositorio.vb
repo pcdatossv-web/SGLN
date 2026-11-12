@@ -28,15 +28,18 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Sub Guardar(clave As String, valor As String)
-        Ejecutar(
-            "INSERT INTO Configuracion (Clave, Valor) VALUES (@clave, @valor) " &
-            "ON DUPLICATE KEY UPDATE Valor = VALUES(Valor)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@clave", clave)
-                Parametro(comando, "@valor", valor)
-            End Sub)
-
-        Auditar("MODIFICAR", "Configuracion", Nothing, clave & " = " & valor)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "INSERT INTO Configuracion (Clave, Valor) VALUES (@clave, @valor) " &
+                    "ON DUPLICATE KEY UPDATE Valor = VALUES(Valor)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@clave", clave)
+                        Parametro(comando, "@valor", valor)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing, clave & " = " & valor)
+                Return filas
+            End Function)
     End Sub
 
     Public Function Feriados() As DataTable
@@ -44,24 +47,31 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Sub InsertarFeriado(fecha As Date, descripcion As String)
-        Ejecutar(
-            "INSERT INTO Feriados (Fecha, Descripcion) VALUES (@fecha, @descripcion)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@fecha", fecha.Date)
-                Parametro(comando, "@descripcion", descripcion)
-            End Sub)
-
-        Auditar("CREAR", "Feriados", Nothing, fecha.ToString("dd/MM/yyyy") & " - " & descripcion)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim id As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Feriados (Fecha, Descripcion) VALUES (@fecha, @descripcion)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@fecha", fecha.Date)
+                        Parametro(comando, "@descripcion", descripcion)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Feriados", id,
+                    fecha.ToString("dd/MM/yyyy") & " - " & descripcion)
+                Return id
+            End Function)
     End Sub
 
     Public Sub EliminarFeriado(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "DELETE FROM Feriados WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("ELIMINAR", "Feriados", id, "Feriado eliminado")
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "DELETE FROM Feriados WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ELIMINAR", "Feriados", id, "Feriado eliminado")
+                Return filas
+            End Function)
     End Sub
 
     Public Function Usuarios() As DataTable
