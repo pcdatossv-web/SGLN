@@ -65,9 +65,8 @@ Public Class ServicioConfiguracion
 
     Public Function CambiarClave(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
         If idUsuario <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
-        If String.IsNullOrWhiteSpace(claveNueva) OrElse claveNueva.Length < 8 Then
-            Return Respuesta.Fallo("La nueva clave debe tener al menos 8 caracteres.")
-        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         If Not _usuarios.VerificarClave(idUsuario, claveActual) Then
             Return Respuesta.Fallo("La clave actual no es correcta.")
         End If
