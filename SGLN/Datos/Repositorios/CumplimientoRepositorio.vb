@@ -57,14 +57,15 @@ Public Class CumplimientoRepositorio
             End Function)
     End Function
 
-    Public Sub ActualizarOperacion(operacion As OperacionLdaft)
+    Public Function ActualizarOperacion(operacion As OperacionLdaft) As Integer
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Operaciones_LDAFT SET ID_Caso = @caso, ID_Instrumento = @instrumento, " &
                     "Tipo_Operacion = @tipo, Monto = @monto, Moneda = @moneda, Fecha_Operacion = @fecha, " &
                     "Descripcion = @descripcion, Estado = @estado, Fecha_Vencimiento_Analisis = @analisis, " &
-                    "Fecha_Vencimiento_Reporte = @reporte, Observaciones = @observaciones WHERE ID = @id",
+                    "Fecha_Vencimiento_Reporte = @reporte, Observaciones = @observaciones " &
+                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosOperacion(comando, operacion)
                         Parametro(comando, "@id", operacion.ID)
@@ -74,13 +75,14 @@ Public Class CumplimientoRepositorio
                     operacion.TipoOperacion & " por " & operacion.Monto.ToString("N2") & " " & operacion.Moneda)
                 Return filas
             End Function)
-    End Sub
+    End Function
 
-    Public Sub MarcarReportada(id As Integer, fechaReporte As Date)
-        EnTransaccion(
+    Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Operaciones_LDAFT SET Estado = 'Reportada', Reportado_UIF = 1, Fecha_Reporte = @fecha WHERE ID = @id",
+                    "UPDATE Operaciones_LDAFT SET Estado = 'Reportada', Reportado_UIF = 1, Fecha_Reporte = @fecha " &
+                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaReporte)
                         Parametro(comando, "@id", id)
@@ -89,13 +91,14 @@ Public Class CumplimientoRepositorio
                     "Operaciones_LDAFT", id, "Reporte registrado el " & fechaReporte.ToString("dd/MM/yyyy"))
                 Return filas
             End Function)
-    End Sub
+    End Function
 
-    Public Sub Descartar(id As Integer)
-        EnTransaccion(
+    Public Function Descartar(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Operaciones_LDAFT SET Estado = 'Descartada' WHERE ID = @id",
+                    "UPDATE Operaciones_LDAFT SET Estado = 'Descartada' " &
+                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
@@ -152,14 +155,15 @@ Public Class CumplimientoRepositorio
             End Function)
     End Function
 
-    Public Sub ActualizarSolicitud(solicitud As SolicitudArco)
-        EnTransaccion(
+    Public Function ActualizarSolicitud(solicitud As SolicitudArco) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Solicitudes_ARCO SET ID_Cliente = @cliente, Tipo_Derecho = @derecho, " &
                     "Fecha_Solicitud = @solicitud, Fecha_Vencimiento = @vencimiento, " &
                     "Fecha_Vencimiento_Prorroga = @prorroga, Prorroga_Aplicada = @aplicada, " &
-                    "Estado = @estado, Fecha_Respuesta = @respuesta, Detalle = @detalle WHERE ID = @id",
+                    "Estado = @estado, Fecha_Respuesta = @respuesta, Detalle = @detalle " &
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosSolicitud(comando, solicitud)
                         Parametro(comando, "@id", solicitud.ID)
@@ -168,13 +172,14 @@ Public Class CumplimientoRepositorio
                     "Solicitudes_ARCO", solicitud.ID, solicitud.TipoDerecho)
                 Return filas
             End Function)
-    End Sub
+    End Function
 
-    Public Sub Responder(id As Integer, fechaRespuesta As Date)
-        EnTransaccion(
+    Public Function Responder(id As Integer, fechaRespuesta As Date) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Solicitudes_ARCO SET Estado = 'Respondida', Fecha_Respuesta = @fecha WHERE ID = @id",
+                    "UPDATE Solicitudes_ARCO SET Estado = 'Respondida', Fecha_Respuesta = @fecha " &
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaRespuesta)
                         Parametro(comando, "@id", id)

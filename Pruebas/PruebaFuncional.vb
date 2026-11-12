@@ -1104,13 +1104,21 @@ Module PruebaFuncional
 
         Verificar("Reporte a la UIF con fecha futura se rechaza",
                   Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(1)).Exito)
+        Verificar("Reporte con fecha anterior a la operación se rechaza",
+                  Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(-1)).Exito)
         Dim rReporte As Respuesta = cumplimiento.MarcarReportada(operacion.ID, Date.Today)
         Verificar("Registrar reporte a la UIF", rReporte.Exito, rReporte.Mensaje)
+        Verificar("No se vuelve a reportar una operación ya reportada",
+                  Not cumplimiento.MarcarReportada(operacion.ID, Date.Today).Exito)
+        Verificar("No se descarta una operación reportada a la UIF",
+                  Not cumplimiento.Descartar(operacion.ID).Exito)
 
         Dim rDescartar As Respuesta = cumplimiento.Descartar(sospechosa.ID)
         Verificar("Descartar operación conservando el registro", rDescartar.Exito, rDescartar.Mensaje)
         Verificar("No se puede reportar una operación descartada",
                   Not cumplimiento.MarcarReportada(sospechosa.ID, Date.Today).Exito)
+        Verificar("No se puede descartar dos veces la misma operación",
+                  Not cumplimiento.Descartar(sospechosa.ID).Exito)
 
         Dim arco As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Acceso",
@@ -1144,6 +1152,12 @@ Module PruebaFuncional
                   Not cumplimiento.ResponderSolicitud(arco.ID, Date.Today.AddDays(-5)).Exito)
         Dim rResponder As Respuesta = cumplimiento.ResponderSolicitud(arco.ID, Date.Today)
         Verificar("Responder solicitud ARCO", rResponder.Exito, rResponder.Mensaje)
+        Verificar("No se responde dos veces una solicitud ARCO",
+                  Not cumplimiento.ResponderSolicitud(arco.ID, Date.Today).Exito)
+        Verificar("No se modifica una solicitud ARCO después de responderla",
+                  Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
+                      .ID = arco.ID, .IDCliente = idCliente, .TipoDerecho = "Acceso",
+                      .FechaSolicitud = Date.Today, .Detalle = "Intento de modificación posterior"}).Exito)
 
         ' ---------- 10. Auditoría ----------
         Console.WriteLine()
