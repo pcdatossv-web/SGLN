@@ -64,7 +64,7 @@ Public Class FrmConfiguracion
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Configuración - listar", ex)
-            MostrarMensaje("No se pudo cargar la configuración: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar la configuración. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -118,7 +118,7 @@ Public Class FrmConfiguracion
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Configuración - feriados", ex)
-            MostrarMensaje("No se pudieron cargar los feriados: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los feriados. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 

@@ -2,6 +2,7 @@ Imports System
 Imports System.Data
 Imports System.IO
 Imports System.Windows.Forms
+Imports MySql.Data.MySqlClient
 
 ''' <summary>
 ''' Reglas de configuración, feriados y respaldos. El respaldo se guarda en
@@ -56,23 +57,47 @@ Public Class ServicioConfiguracion
             Return Respuesta.Fallo("El año del feriado no es válido.")
         End If
 
-        Dim existentes As DataTable = _repositorio.Feriados()
-        For Each fila As DataRow In existentes.Rows
-            If Convert.ToDateTime(fila("Fecha")).Date = fecha.Date Then
+        Dim descripcionNormalizada As String = descripcion.Trim()
+        If descripcionNormalizada.Length > 120 Then
+            Return Respuesta.Fallo("La descripción del feriado no puede superar 120 caracteres.")
+        End If
+
+        Try
+            Dim existentes As DataTable = _repositorio.Feriados()
+            For Each fila As DataRow In existentes.Rows
+                If Convert.ToDateTime(fila("Fecha")).Date = fecha.Date Then
+                    Return Respuesta.Fallo("Ese día ya está registrado como feriado.")
+                End If
+            Next
+
+            ' La restricción UNIQUE de la base de datos protege también frente
+            ' a dos usuarios que intenten registrar la misma fecha a la vez.
+            _repositorio.InsertarFeriado(fecha.Date, descripcionNormalizada)
+            Return Respuesta.Ok("Feriado agregado.")
+        Catch ex As MySqlException
+            RegistroErrores.Escribir("Configuración - agregar feriado", ex)
+            If ex.Number = 1062 Then
                 Return Respuesta.Fallo("Ese día ya está registrado como feriado.")
             End If
-        Next
-
-        _repositorio.InsertarFeriado(fecha.Date, descripcion.Trim())
-        Return Respuesta.Ok("Feriado agregado.")
+            Return Respuesta.Fallo("No se pudo agregar el feriado. Verifique la conexión y los datos.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - agregar feriado", ex)
+            Return Respuesta.Fallo("No se pudo agregar el feriado. Verifique la conexión y los datos.")
+        End Try
     End Function
 
     Public Function EliminarFeriado(id As Integer) As Respuesta
         If Not Permisos.TieneAcceso("config.feriados") Then Return Respuesta.Fallo("No tiene permiso para administrar feriados.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un feriado.")
-        _repositorio.EliminarFeriado(id)
-        Return Respuesta.Ok("Feriado eliminado. Los plazos ya confirmados no se recalculan.")
+
+        Try
+            _repositorio.EliminarFeriado(id)
+            Return Respuesta.Ok("Feriado eliminado. Los plazos ya confirmados no se recalculan.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - eliminar feriado", ex)
+            Return Respuesta.Fallo("No se pudo eliminar el feriado. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
     Public Function Usuarios() As DataTable
