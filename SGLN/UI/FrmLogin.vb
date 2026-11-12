@@ -9,7 +9,7 @@ Public Class FrmLogin
         ConfiguracionConexion.Inicializar()
         VerificarConexionAlInicio()
 
-        txtUsuario.Text = "admin"
+        txtUsuario.Clear()
         txtClave.Clear()
         txtUsuario.Focus()
     End Sub
