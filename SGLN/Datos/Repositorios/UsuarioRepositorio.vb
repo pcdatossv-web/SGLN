@@ -291,7 +291,7 @@ Public Class UsuarioRepositorio
                     Dim columnasTexto As New List(Of String())()
                     Using cmd As New MySqlCommand(
                         "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " &
-                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME <> 'Usuarios' " &
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME NOT IN ('Usuarios', 'Audit_Log') " &
                         "AND DATA_TYPE IN ('char','varchar','tinytext','text','mediumtext','longtext') " &
                         "AND COLUMN_NAME REGEXP 'Usuario|Responsable|Creado|Modificado|Autor|Asignado|Propietario|Firmante|Confirma'",
                         conexion, transaccion)
