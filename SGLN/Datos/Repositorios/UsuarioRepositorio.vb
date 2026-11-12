@@ -274,11 +274,9 @@ Public Class UsuarioRepositorio
                     End Using
 
                     For Each referencia As String() In referencias
-                        Dim tabla As String = referencia(0).Replace(ChrW(96), ChrW(96) & ChrW(96))
-                        Dim columna As String = referencia(1).Replace(ChrW(96), ChrW(96) & ChrW(96))
                         Using cmd As New MySqlCommand(
-                            "SELECT COUNT(*) FROM " & ChrW(96) & tabla & ChrW(96) &
-                            " WHERE " & ChrW(96) & columna & ChrW(96) & " = @id",
+                            "SELECT COUNT(*) FROM " & IdentificadorSeguro(referencia(0)) &
+                            " WHERE " & IdentificadorSeguro(referencia(1)) & " = @id",
                             conexion, transaccion)
                             Parametro(cmd, "@id", id)
                             If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
@@ -303,11 +301,9 @@ Public Class UsuarioRepositorio
                     End Using
 
                     For Each referencia As String() In columnasTexto
-                        Dim tabla As String = referencia(0).Replace(ChrW(96), ChrW(96) & ChrW(96))
-                        Dim columna As String = referencia(1).Replace(ChrW(96), ChrW(96) & ChrW(96))
                         Using cmd As New MySqlCommand(
-                            "SELECT COUNT(*) FROM " & ChrW(96) & tabla & ChrW(96) &
-                            " WHERE CAST(" & ChrW(96) & columna & ChrW(96) & " AS CHAR) = @usuario",
+                            "SELECT COUNT(*) FROM " & IdentificadorSeguro(referencia(0)) &
+                            " WHERE CAST(" & IdentificadorSeguro(referencia(1)) & " AS CHAR) = @usuario",
                             conexion, transaccion)
                             Parametro(cmd, "@usuario", usuario)
                             If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
@@ -353,6 +349,11 @@ Public Class UsuarioRepositorio
                 End Try
             End Using
         End Using
+    End Function
+
+    Private Shared Function IdentificadorSeguro(nombre As String) As String
+        Dim delimitador As String = Convert.ToChar(96).ToString()
+        Return delimitador & nombre.Replace(delimitador, delimitador & delimitador) & delimitador
     End Function
 
     Private Function Existe(id As Integer) As Boolean
