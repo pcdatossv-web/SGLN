@@ -121,6 +121,25 @@ Public Class ConfiguracionRepositorio
         If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
             Throw New InvalidOperationException("No se encontró el certificado CA configurado para validar TLS en el respaldo.")
         End If
+
+        ' Los valores se insertan como argumentos de proceso, no como SQL.
+        ' Validarlos evita que comillas o espacios introduzcan opciones adicionales
+        ' en la línea de comandos de mysqldump.
+        Dim servidor As String = If(constructor.Server, "").Trim()
+        If Uri.CheckHostName(servidor) = UriHostNameType.Unknown Then
+            Throw New InvalidOperationException("El servidor MySQL configurado no es un nombre DNS o una dirección IP válida.")
+        End If
+
+        Dim baseDatos As String = If(constructor.Database, "").Trim()
+        If String.IsNullOrWhiteSpace(baseDatos) OrElse
+           baseDatos.Any(Function(caracter As Char)
+                             Return Not ((caracter >= "a"c AndAlso caracter <= "z"c) OrElse
+                                         (caracter >= "A"c AndAlso caracter <= "Z"c) OrElse
+                                         (caracter >= "0"c AndAlso caracter <= "9"c) OrElse
+                                         caracter = "_"c OrElse caracter = "$"c)
+                         End Function) Then
+            Throw New InvalidOperationException("El nombre de la base de datos contiene caracteres no permitidos para el respaldo.")
+        End If
         If String.IsNullOrWhiteSpace(rutaDestino) Then Throw New ArgumentException("Indique la ruta del respaldo.")
         Dim destinoFinal As String = Path.GetFullPath(rutaDestino)
         Dim carpetaDestino As String = Path.GetDirectoryName(destinoFinal)
@@ -151,10 +170,10 @@ Public Class ConfiguracionRepositorio
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
                 sslArgumentos &
-                "--host=""" & constructor.Server & """ --port=" & constructor.Port & " " &
+                "--host=""" & servidor & """ --port=" & constructor.Port & " " &
                 "--single-transaction --skip-lock-tables --no-tablespaces --triggers " &
                 "--default-character-set=utf8mb4 " &
-                "--databases """ & constructor.Database & """"
+                "--databases """ & baseDatos & """"
 
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
             If Not File.Exists(temporalSalida) OrElse New FileInfo(temporalSalida).Length = 0 Then
