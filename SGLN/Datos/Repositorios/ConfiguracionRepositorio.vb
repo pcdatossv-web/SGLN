@@ -135,8 +135,12 @@ Public Class ConfiguracionRepositorio
             If Not File.Exists(temporalSalida) OrElse New FileInfo(temporalSalida).Length = 0 Then
                 Throw New InvalidOperationException("mysqldump no generó un archivo de respaldo válido.")
             End If
-            If File.Exists(destinoFinal) Then File.Delete(destinoFinal)
-            File.Move(temporalSalida, destinoFinal)
+            If File.Exists(destinoFinal) Then
+                ' Reemplazo atómico: si falla, el respaldo anterior permanece intacto.
+                File.Replace(temporalSalida, destinoFinal, Nothing)
+            Else
+                File.Move(temporalSalida, destinoFinal)
+            End If
         Finally
             Try
                 If File.Exists(credenciales) Then File.Delete(credenciales)
