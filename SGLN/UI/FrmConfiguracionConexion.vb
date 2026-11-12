@@ -93,7 +93,7 @@ Public Class FrmConfiguracionConexion
     Private Sub btnBuscarCertificado_Click(sender As Object, e As EventArgs) Handles btnBuscarCertificado.Click
         Using dialogo As New OpenFileDialog()
             dialogo.Title = "Seleccionar certificado CA de MySQL"
-            dialogo.Filter = "Certificados PEM (*.pem;*.crt)|*.pem;*.crt|Todos los archivos (*.*)|*.*"
+            dialogo.Filter = "Certificados PEM (*.pem)|*.pem|Todos los archivos (*.*)|*.*"
             dialogo.CheckFileExists = True
             dialogo.Multiselect = False
             If dialogo.ShowDialog(Me) = DialogResult.OK Then
