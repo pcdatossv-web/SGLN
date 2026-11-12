@@ -21,6 +21,13 @@ Public Module Program
 
         If Not PrepararBaseDeDatos() Then Return
 
+        ' Una instalación nueva exige crear una clave única; no hay credencial predeterminada.
+        If Not InicializadorBD.HayUsuarios() Then
+            Using primerAdmin As New FrmPrimerAdministrador()
+                If primerAdmin.ShowDialog() <> DialogResult.OK Then Return
+            End Using
+        End If
+
         Do
             Sesion.UsuarioActual = Nothing
             Sesion.CerrarSesionSolicitado = False
