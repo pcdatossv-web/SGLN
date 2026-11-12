@@ -240,6 +240,25 @@ Module PruebaFuncional
         Sesion.UsuarioActual = admin
         Sesion.CargarPermisos()
 
+        ' Una cuenta recién creada, sin referencias ni actividad propia, sí
+        ' puede eliminarse; el evento de alta y el de eliminación permanecen.
+        Dim altaBorrable As Respuesta = servicioUsuarios.Crear(
+            "borrable", "Cuenta desechable", "Borrable123*", idRolPrueba, True)
+        Dim idBorrable As Integer = 0
+        For Each fila As DataRow In servicioUsuarios.Listar().Rows
+            If UtileriasUI.Texto(fila, "Usuario") = "borrable" Then
+                idBorrable = UtileriasUI.Entero(fila, "ID")
+            End If
+        Next
+        Verificar("Crear cuenta temporal para probar eliminación segura",
+                  altaBorrable.Exito AndAlso idBorrable > 0, altaBorrable.Mensaje)
+        Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable)
+        Verificar("El administrador puede eliminar una cuenta sin historial",
+                  eliminacionBorrable.Exito, eliminacionBorrable.Mensaje)
+        Verificar("La cuenta temporal ya no aparece después de eliminarla",
+                  Not servicioUsuarios.Listar().AsEnumerable().Any(
+                      Function(fila) UtileriasUI.Texto(fila, "Usuario") = "borrable"))
+
         Dim rAdmin2 As Respuesta = servicioUsuarios.Crear(
             "admin2", "Administrador de Prueba", "Admin2-123", idRolAdmin, True)
         Verificar("Crear un segundo administrador", rAdmin2.Exito, rAdmin2.Mensaje)
