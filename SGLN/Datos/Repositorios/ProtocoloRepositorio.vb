@@ -29,71 +29,80 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InsertarLibro(libro As LibroProtocolo) As Integer
-        Dim nuevoId As Integer = InsertarYObtenerId(
-            "INSERT INTO Libros_Protocolo (Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, " &
-            "       Fecha_Vencimiento, Estado) " &
-            "VALUES (@numero, @anio, @autorizacion, @vencimiento, @estado)",
-            Sub(comando As MySqlCommand)
-                AgregarParametrosLibro(comando, libro)
-            End Sub)
-
-        Auditar("CREAR", "Libros_Protocolo", nuevoId,
-                "Libro " & libro.NumeroLibro & " del año " & libro.AnioVigencia)
-        Return nuevoId
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Libros_Protocolo (Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, Fecha_Vencimiento, Estado) " &
+                    "VALUES (@numero, @anio, @autorizacion, @vencimiento, @estado)",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametrosLibro(comando, libro)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Libros_Protocolo", nuevoId,
+                    "Libro " & libro.NumeroLibro & " del año " & libro.AnioVigencia)
+                Return nuevoId
+            End Function)
     End Function
 
     Public Sub ActualizarLibro(libro As LibroProtocolo)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Libros_Protocolo SET Numero_Libro = @numero, Anio_Vigencia = @anio, " &
-            "       Fecha_Autorizacion = @autorizacion, Fecha_Vencimiento = @vencimiento, " &
-            "       Estado = @estado " &
-            "WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                AgregarParametrosLibro(comando, libro)
-                Parametro(comando, "@id", libro.ID)
-            End Sub)
-
-        If filas > 0 Then
-            Auditar("MODIFICAR", "Libros_Protocolo", libro.ID,
-                    "Libro " & libro.NumeroLibro & " del año " & libro.AnioVigencia)
-        End If
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Libros_Protocolo SET Numero_Libro = @numero, Anio_Vigencia = @anio, " &
+                    "Fecha_Autorizacion = @autorizacion, Fecha_Vencimiento = @vencimiento, Estado = @estado WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametrosLibro(comando, libro)
+                        Parametro(comando, "@id", libro.ID)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Libros_Protocolo",
+                    libro.ID, "Libro " & libro.NumeroLibro & " del año " & libro.AnioVigencia)
+                Return filas
+            End Function)
     End Sub
 
     Public Sub CerrarLibro(id As Integer, razon As String, fechaCierre As Date)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Libros_Protocolo SET Estado = 'Cerrado', Razon_Cierre = @razon, " &
-            "       Fecha_Cierre = @fecha " &
-            "WHERE ID = @id AND Estado = 'Vigente'",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@razon", razon)
-                Parametro(comando, "@fecha", fechaCierre)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("CERRAR", "Libros_Protocolo", id, razon)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Libros_Protocolo SET Estado = 'Cerrado', Razon_Cierre = @razon, Fecha_Cierre = @fecha " &
+                    "WHERE ID = @id AND Estado = 'Vigente'",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@razon", razon)
+                        Parametro(comando, "@fecha", fechaCierre)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CERRAR", "Libros_Protocolo", id, razon)
+                Return filas
+            End Function)
     End Sub
 
     Public Sub RegistrarEntrega(id As Integer, fechaEntrega As Date)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Libros_Protocolo SET Fecha_Entrega_Notariado = @fecha, Estado = 'Entregado' " &
-            "WHERE ID = @id AND Estado = 'Cerrado'",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@fecha", fechaEntrega)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("ENTREGAR", "Libros_Protocolo", id, "Entrega al Notariado el " & fechaEntrega.ToString("dd/MM/yyyy"))
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Libros_Protocolo SET Fecha_Entrega_Notariado = @fecha, Estado = 'Entregado' " &
+                    "WHERE ID = @id AND Estado = 'Cerrado'",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@fecha", fechaEntrega)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ENTREGAR", "Libros_Protocolo", id,
+                    "Entrega al Notariado el " & fechaEntrega.ToString("dd/MM/yyyy"))
+                Return filas
+            End Function)
     End Sub
 
     Public Function MarcarIndiceGenerado(idLibro As Integer) As Integer
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Libros_Protocolo SET Indice_Generado = 1 WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", idLibro)
-            End Sub)
-
-        If filas > 0 Then Auditar("GENERAR ÍNDICE", "Libros_Protocolo", idLibro, "Índice del libro marcado como generado")
-        Return filas
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Libros_Protocolo SET Indice_Generado = 1 WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", idLibro)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "GENERAR ÍNDICE", "Libros_Protocolo",
+                    idLibro, "Índice del libro marcado como generado")
+                Return filas
+            End Function)
     End Function
 
     ' ------------------------------------------------------------------
@@ -121,39 +130,47 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InsertarInstrumento(instrumento As Instrumento) As Integer
-        Dim nuevoId As Integer = InsertarYObtenerId(
-            "INSERT INTO Instrumentos (ID_Libro, Numero_Escritura, Fecha_Hora_Otorgamiento, " &
-            "       Folio_Inicio, Folio_Fin, Objeto_Acto, Estado) " &
-            "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, @estado)",
-            Sub(comando As MySqlCommand)
-                AgregarParametrosInstrumento(comando, instrumento)
-            End Sub)
-
-        Auditar("CREAR", "Instrumentos", nuevoId, "Escritura " & instrumento.NumeroEscritura)
-        Return nuevoId
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Instrumentos (ID_Libro, Numero_Escritura, Fecha_Hora_Otorgamiento, Folio_Inicio, Folio_Fin, Objeto_Acto, Estado) " &
+                    "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, @estado)",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametrosInstrumento(comando, instrumento)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Instrumentos", nuevoId,
+                    "Escritura " & instrumento.NumeroEscritura)
+                Return nuevoId
+            End Function)
     End Function
 
     Public Sub ActualizarInstrumento(instrumento As Instrumento)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Instrumentos SET Numero_Escritura = @numero, Fecha_Hora_Otorgamiento = @fecha, " &
-            "       Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto, Estado = @estado " &
-            "WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                AgregarParametrosInstrumento(comando, instrumento)
-                Parametro(comando, "@id", instrumento.ID)
-            End Sub)
-
-        If filas > 0 Then Auditar("MODIFICAR", "Instrumentos", instrumento.ID, "Escritura " & instrumento.NumeroEscritura)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Instrumentos SET Numero_Escritura = @numero, Fecha_Hora_Otorgamiento = @fecha, " &
+                    "Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto, Estado = @estado WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametrosInstrumento(comando, instrumento)
+                        Parametro(comando, "@id", instrumento.ID)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Instrumentos",
+                    instrumento.ID, "Escritura " & instrumento.NumeroEscritura)
+                Return filas
+            End Function)
     End Sub
 
     Public Sub AnularInstrumento(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("ANULAR", "Instrumentos", id, "Instrumento anulado")
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ANULAR", "Instrumentos", id, "Instrumento anulado")
+                Return filas
+            End Function)
     End Sub
 
     ''' <summary>
@@ -266,6 +283,9 @@ Public Class ProtocoloRepositorio
                         idGuardado = instrumento.ID
                     End If
 
+                    AuditarEnTransaccion(conexion, transaccion,
+                        If(instrumento.ID = 0, "CREAR", "MODIFICAR"), "Instrumentos", idGuardado,
+                        "Escritura " & instrumento.NumeroEscritura)
                     transaccion.Commit()
                 Catch
                     Try
@@ -277,12 +297,6 @@ Public Class ProtocoloRepositorio
                 End Try
             End Using
         End Using
-
-        If instrumento.ID = 0 Then
-            Auditar("CREAR", "Instrumentos", idGuardado, "Escritura " & instrumento.NumeroEscritura)
-        Else
-            Auditar("MODIFICAR", "Instrumentos", idGuardado, "Escritura " & instrumento.NumeroEscritura)
-        End If
 
         Return True
     End Function
