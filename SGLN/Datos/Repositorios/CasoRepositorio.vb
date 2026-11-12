@@ -36,29 +36,33 @@ Public Class CasoRepositorio
     End Function
 
     Public Function Insertar(caso As Caso) As Integer
-        Dim nuevoId As Integer = InsertarYObtenerId(
-            "INSERT INTO Casos (ID_Cliente, Numero_Expediente, Materia, ID_Juzgado, Descripcion, Estado, Fecha_Apertura, Responsable) " &
-            "VALUES (@cliente, @expediente, @materia, @juzgado, @descripcion, @estado, @apertura, @responsable)",
-            Sub(comando As MySqlCommand)
-                AgregarParametros(comando, caso)
-            End Sub)
-
-        Auditar("CREAR", "Casos", nuevoId, caso.NumeroExpediente)
-        Return nuevoId
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Casos (ID_Cliente, Numero_Expediente, Materia, ID_Juzgado, Descripcion, Estado, Fecha_Apertura, Responsable) " &
+                    "VALUES (@cliente, @expediente, @materia, @juzgado, @descripcion, @estado, @apertura, @responsable)",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametros(comando, caso)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Casos", nuevoId, caso.NumeroExpediente)
+                Return nuevoId
+            End Function)
     End Function
 
     Public Sub Actualizar(caso As Caso)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Casos SET ID_Cliente = @cliente, Numero_Expediente = @expediente, " &
-            "       Materia = @materia, ID_Juzgado = @juzgado, Descripcion = @descripcion, " &
-            "       Estado = @estado, Fecha_Apertura = @apertura, Responsable = @responsable " &
-            "WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                AgregarParametros(comando, caso)
-                Parametro(comando, "@id", caso.ID)
-            End Sub)
-
-        If filas > 0 Then Auditar("MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Casos SET ID_Cliente = @cliente, Numero_Expediente = @expediente, Materia = @materia, " &
+                    "ID_Juzgado = @juzgado, Descripcion = @descripcion, Estado = @estado, Fecha_Apertura = @apertura, " &
+                    "Responsable = @responsable WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametros(comando, caso)
+                        Parametro(comando, "@id", caso.ID)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
+                Return filas
+            End Function)
     End Sub
 
     Public Function ActuacionesPorCaso(idCaso As Integer) As DataTable
@@ -76,60 +80,60 @@ Public Class CasoRepositorio
     End Function
 
     Public Function GuardarActuacion(actuacion As ActuacionProcesal) As Integer
-        If actuacion.ID = 0 Then
-            Dim nuevoId As Integer = InsertarYObtenerId(
-                "INSERT INTO Actuaciones_Procesales (ID_Caso, ID_Tipo_Actuacion, Fecha_Notificacion, " &
-                "       Plazo_Legal_Dias, Fecha_Vencimiento_Calculada, Estado, Fecha_Confirmacion, " &
-                "       Usuario_Confirma, Observaciones) " &
-                "VALUES (@caso, @tipo, @notificacion, @plazo, @vencimiento, @estado, " &
-                "        NOW(), @usuario, @observaciones)",
-                Sub(comando As MySqlCommand)
-                    AgregarParametrosActuacion(comando, actuacion)
-                End Sub)
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                If actuacion.ID = 0 Then
+                    Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                        "INSERT INTO Actuaciones_Procesales (ID_Caso, ID_Tipo_Actuacion, Fecha_Notificacion, " &
+                        "Plazo_Legal_Dias, Fecha_Vencimiento_Calculada, Estado, Fecha_Confirmacion, Usuario_Confirma, Observaciones) " &
+                        "VALUES (@caso, @tipo, @notificacion, @plazo, @vencimiento, @estado, NOW(), @usuario, @observaciones)",
+                        Sub(comando As MySqlCommand)
+                            AgregarParametrosActuacion(comando, actuacion)
+                        End Sub)
+                    AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales", nuevoId,
+                        "Vencimiento " & If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D"))
+                    Return nuevoId
+                End If
 
-            Auditar("CONFIRMAR PLAZO", "Actuaciones_Procesales", nuevoId,
-                    "Vencimiento " & actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"))
-            Return nuevoId
-        End If
-
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, " &
-            "       Fecha_Notificacion = @notificacion, Plazo_Legal_Dias = @plazo, " &
-            "       Fecha_Vencimiento_Calculada = @vencimiento, Estado = @estado, " &
-            "       Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, " &
-            "       Observaciones = @observaciones " &
-            "WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                AgregarParametrosActuacion(comando, actuacion)
-                Parametro(comando, "@id", actuacion.ID)
-            End Sub)
-
-        If filas > 0 Then
-            Auditar("CONFIRMAR PLAZO", "Actuaciones_Procesales", actuacion.ID,
-                    "Vencimiento " & actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"))
-        End If
-
-        Return actuacion.ID
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &
+                    "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, Estado = @estado, " &
+                    "Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, Observaciones = @observaciones WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        AgregarParametrosActuacion(comando, actuacion)
+                        Parametro(comando, "@id", actuacion.ID)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
+                    actuacion.ID, "Vencimiento " & If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D"))
+                Return actuacion.ID
+            End Function)
     End Function
 
     Public Function MarcarVencidas() As Integer
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
-            "WHERE Estado = 'Pendiente' AND Fecha_Vencimiento_Calculada IS NOT NULL " &
-            "  AND Fecha_Vencimiento_Calculada < CURDATE()")
-
-        If filas > 0 Then Auditar("ACTUALIZAR", "Actuaciones_Procesales", Nothing, filas & " plazos marcados como vencidos")
-        Return filas
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
+                    "WHERE Estado = 'Pendiente' AND Fecha_Vencimiento_Calculada IS NOT NULL " &
+                    "AND Fecha_Vencimiento_Calculada < CURDATE()")
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ACTUALIZAR", "Actuaciones_Procesales",
+                    Nothing, filas & " plazos marcados como vencidos")
+                Return filas
+            End Function)
     End Function
 
     Public Sub MarcarCumplida(id As Integer)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@id", id)
-            End Sub)
-
-        If filas > 0 Then Auditar("CUMPLIR PLAZO", "Actuaciones_Procesales", id, "Actuación marcada como cumplida")
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@id", id)
+                    End Sub)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CUMPLIR PLAZO", "Actuaciones_Procesales",
+                    id, "Actuación marcada como cumplida")
+                Return filas
+            End Function)
     End Sub
 
     Public Function ClientesCombo() As DataTable
