@@ -28,8 +28,18 @@ Public Class ServicioConfiguracion
         If String.IsNullOrWhiteSpace(clave) Then Return Respuesta.Fallo("Indique la clave de configuración.")
         If clave.Trim().Length > 60 Then Return Respuesta.Fallo("La clave no puede superar 60 caracteres.")
 
-        _repositorio.Guardar(clave.Trim(), If(valor, "").Trim())
-        Return Respuesta.Ok("Configuración guardada.")
+        Dim valorNormalizado As String = If(valor, "").Trim()
+        If valorNormalizado.Length > 500 Then
+            Return Respuesta.Fallo("El valor de configuración no puede superar 500 caracteres.")
+        End If
+
+        Try
+            _repositorio.Guardar(clave.Trim(), valorNormalizado)
+            Return Respuesta.Ok("Configuración guardada.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - guardar", ex)
+            Return Respuesta.Fallo("No se pudo guardar la configuración. Verifique los datos y la conexión con la base de datos.")
+        End Try
     End Function
 
     Public Function Feriados() As DataTable
