@@ -68,9 +68,10 @@ Public NotInheritable Class Permisos
     End Sub
 
     Public Shared Function Puede(codigo As String) As Boolean
-        If String.IsNullOrWhiteSpace(codigo) Then Return True
+        ' Un permiso sin código nunca debe conceder acceso (fail-closed).
+        If String.IsNullOrWhiteSpace(codigo) Then Return False
         If _accesoTotal Then Return True
-        Return _activos.Contains(codigo)
+        Return _activos.Contains(codigo.Trim())
     End Function
 
     ''' <summary>
