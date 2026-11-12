@@ -70,9 +70,8 @@ Public Class ServicioUsuarios
     ''' <summary>Cambio de la propia clave: exige la clave actual.</summary>
     Public Function CambiarClavePropia(id As Integer, claveActual As String, claveNueva As String) As Respuesta
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
-        If String.IsNullOrWhiteSpace(claveNueva) OrElse claveNueva.Length < 8 Then
-            Return Respuesta.Fallo("La nueva clave debe tener al menos 8 caracteres.")
-        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         If Not _repositorio.VerificarClave(id, claveActual) Then
             Return Respuesta.Fallo("La clave actual no es correcta.")
         End If
