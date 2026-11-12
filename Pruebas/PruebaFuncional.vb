@@ -999,6 +999,21 @@ Module PruebaFuncional
         Verificar("La bitácora acumula todas las operaciones de la prueba",
                   bitacoraTodo.Rows.Count >= 20, "Registros: " & bitacoraTodo.Rows.Count.ToString())
 
+        If bitacoraTodo.Rows.Count > 0 Then
+            Dim idAuditInmutable As Integer = Convert.ToInt32(bitacoraTodo.Rows(0)("ID"))
+            Dim errorModificarAudit As Integer = NumeroErrorSql(
+                "UPDATE Audit_Log SET Detalle = 'alteración no permitida' WHERE ID = " & idAuditInmutable.ToString())
+            Dim errorEliminarAudit As Integer = NumeroErrorSql(
+                "DELETE FROM Audit_Log WHERE ID = " & idAuditInmutable.ToString())
+            Verificar("La bitácora bloquea modificaciones directas", errorModificarAudit = 1644,
+                      "Error MySQL: " & errorModificarAudit.ToString())
+            Verificar("La bitácora bloquea eliminaciones directas", errorEliminarAudit = 1644,
+                      "Error MySQL: " & errorEliminarAudit.ToString())
+        Else
+            Verificar("La bitácora bloquea modificaciones directas", False, "No hay registros para probar.")
+            Verificar("La bitácora bloquea eliminaciones directas", False, "No hay registros para probar.")
+        End If
+
         Dim tablasAfectadas As DataTable = auditoria.TablasAfectadas()
         Dim incluyeClientes As Boolean = False
         For Each fila As DataRow In tablasAfectadas.Rows
