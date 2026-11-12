@@ -55,6 +55,8 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.txtPasswordRespaldo)
         Me.grpServidor.Controls.Add(Me.lblPasswordRespaldo)
         Me.grpServidor.Controls.Add(Me.txtUsuarioRespaldo)
+        Me.grpServidor.Controls.Add(Me.cmbModoSsl)
+        Me.grpServidor.Controls.Add(Me.lblModoSsl)
         Me.grpServidor.Controls.Add(Me.btnBuscarCertificado)
         Me.grpServidor.Controls.Add(Me.txtCertificadoCa)
         Me.grpServidor.Controls.Add(Me.lblCertificadoCa)
@@ -73,7 +75,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblServidor)
         Me.grpServidor.Location = New System.Drawing.Point(15, 12)
         Me.grpServidor.Name = "grpServidor"
-        Me.grpServidor.Size = New System.Drawing.Size(545, 380)
+        Me.grpServidor.Size = New System.Drawing.Size(545, 410)
         Me.grpServidor.TabIndex = 0
         Me.grpServidor.TabStop = False
         Me.grpServidor.Text = "Servidor MySQL"
@@ -85,7 +87,7 @@ Partial Class FrmConfiguracionConexion
         Me.lblAyuda.Name = "lblAyuda"
         Me.lblAyuda.Size = New System.Drawing.Size(500, 32)
         Me.lblAyuda.TabIndex = 11
-        Me.lblAyuda.Text = "TLS obligatorio: seleccione el CA PEM de MySQL. Se valida la CA, no el nombre DNS del servidor."
+        Me.lblAyuda.Text = "VerifyCA valida la CA. VerifyFull también valida el nombre del servidor contra el SAN del certificado."
         '
         ' Credenciales separadas para respaldos
         '
@@ -144,6 +146,25 @@ Partial Class FrmConfiguracionConexion
         Me.btnBuscarCertificado.TabIndex = 18
         Me.btnBuscarCertificado.Text = "Examinar..."
         Me.btnBuscarCertificado.UseVisualStyleBackColor = True
+        '
+        ' lblModoSsl
+        '
+        Me.lblModoSsl.AutoSize = True
+        Me.lblModoSsl.Location = New System.Drawing.Point(20, 367)
+        Me.lblModoSsl.Name = "lblModoSsl"
+        Me.lblModoSsl.Size = New System.Drawing.Size(88, 15)
+        Me.lblModoSsl.TabIndex = 19
+        Me.lblModoSsl.Text = "Validación TLS:"
+        '
+        ' cmbModoSsl
+        '
+        Me.cmbModoSsl.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cmbModoSsl.FormattingEnabled = True
+        Me.cmbModoSsl.Items.AddRange(New Object() {"VerifyCA", "VerifyFull"})
+        Me.cmbModoSsl.Location = New System.Drawing.Point(185, 362)
+        Me.cmbModoSsl.Name = "cmbModoSsl"
+        Me.cmbModoSsl.Size = New System.Drawing.Size(335, 23)
+        Me.cmbModoSsl.TabIndex = 20
         '
         ' chkEquipo
         '
@@ -240,7 +261,7 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblEstado.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblEstado.ForeColor = System.Drawing.Color.DimGray
-        Me.lblEstado.Location = New System.Drawing.Point(15, 400)
+        Me.lblEstado.Location = New System.Drawing.Point(15, 430)
         Me.lblEstado.Name = "lblEstado"
         Me.lblEstado.Size = New System.Drawing.Size(545, 36)
         Me.lblEstado.TabIndex = 1
@@ -250,14 +271,14 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblRuta.AutoSize = True
         Me.lblRuta.ForeColor = System.Drawing.Color.DimGray
-        Me.lblRuta.Location = New System.Drawing.Point(15, 440)
+        Me.lblRuta.Location = New System.Drawing.Point(15, 470)
         Me.lblRuta.Name = "lblRuta"
         Me.lblRuta.Size = New System.Drawing.Size(0, 15)
         Me.lblRuta.TabIndex = 2
         '
         ' btnProbar
         '
-        Me.btnProbar.Location = New System.Drawing.Point(215, 465)
+        Me.btnProbar.Location = New System.Drawing.Point(215, 495)
         Me.btnProbar.Name = "btnProbar"
         Me.btnProbar.Size = New System.Drawing.Size(115, 30)
         Me.btnProbar.TabIndex = 3
@@ -266,7 +287,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' btnGuardar
         '
-        Me.btnGuardar.Location = New System.Drawing.Point(340, 465)
+        Me.btnGuardar.Location = New System.Drawing.Point(340, 495)
         Me.btnGuardar.Name = "btnGuardar"
         Me.btnGuardar.Size = New System.Drawing.Size(100, 30)
         Me.btnGuardar.TabIndex = 4
@@ -276,7 +297,7 @@ Partial Class FrmConfiguracionConexion
         ' btnCancelar
         '
         Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancelar.Location = New System.Drawing.Point(450, 465)
+        Me.btnCancelar.Location = New System.Drawing.Point(450, 495)
         Me.btnCancelar.Name = "btnCancelar"
         Me.btnCancelar.Size = New System.Drawing.Size(100, 30)
         Me.btnCancelar.TabIndex = 5
@@ -289,7 +310,7 @@ Partial Class FrmConfiguracionConexion
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancelar
-        Me.ClientSize = New System.Drawing.Size(575, 510)
+        Me.ClientSize = New System.Drawing.Size(575, 540)
         Me.Controls.Add(Me.btnCancelar)
         Me.Controls.Add(Me.btnGuardar)
         Me.Controls.Add(Me.btnProbar)
@@ -329,6 +350,8 @@ Partial Class FrmConfiguracionConexion
     Friend WithEvents lblCertificadoCa As System.Windows.Forms.Label
     Friend WithEvents txtCertificadoCa As System.Windows.Forms.TextBox
     Friend WithEvents btnBuscarCertificado As System.Windows.Forms.Button
+    Friend WithEvents lblModoSsl As System.Windows.Forms.Label
+    Friend WithEvents cmbModoSsl As System.Windows.Forms.ComboBox
     Friend WithEvents lblEstado As System.Windows.Forms.Label
     Friend WithEvents lblRuta As System.Windows.Forms.Label
     Friend WithEvents btnProbar As System.Windows.Forms.Button
