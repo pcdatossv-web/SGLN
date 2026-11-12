@@ -30,6 +30,7 @@ CREATE DATABASE IF NOT EXISTS sgln_sv
    la muestra en la salida. Guárdela en Configurar servidor de base de datos.
    Para clientes remotos, cree una cuenta adicional usando la IP exacta:
      CREATE USER 'sgln_app'@'192.168.1.25' IDENTIFIED BY RANDOM PASSWORD;
+     ALTER USER 'sgln_app'@'192.168.1.25' REQUIRE SSL;
      GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'192.168.1.25';
    Repita con cada IP autorizada. No utilice el host comodín.
    Este instalador se ejecuta una sola vez; no vuelve a mostrar contraseñas
@@ -41,6 +42,7 @@ DROP USER IF EXISTS 'sgln_backup'@'%';
 
 CREATE USER IF NOT EXISTS 'sgln_app'@'localhost';
 ALTER USER 'sgln_app'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
+ALTER USER 'sgln_app'@'localhost' REQUIRE SSL;
 GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 
 /* ------------------------------------------------------------------
@@ -51,6 +53,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 
 CREATE USER IF NOT EXISTS 'sgln_backup'@'localhost';
 ALTER USER 'sgln_backup'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
+ALTER USER 'sgln_backup'@'localhost' REQUIRE SSL;
 GRANT SELECT, SHOW VIEW, TRIGGER
     ON sgln_sv.* TO 'sgln_backup'@'localhost';
 FLUSH PRIVILEGES;
