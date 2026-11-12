@@ -26,8 +26,8 @@ CREATE DATABASE IF NOT EXISTS sgln_sv
 
 /* ------------------------------------------------------------------
    Usuario de la aplicación: solo DML y limitado al propio servidor.
-   MySQL 8.0.18+ genera una contraseña aleatoria y la muestra al crear
-   la cuenta. Guarde el valor mostrado en la configuración del cliente.
+   MySQL 8.0.18+ genera una contraseña aleatoria al ejecutar ALTER USER y
+   la muestra en la salida. Guárdela en Configurar servidor de base de datos.
    Para clientes remotos, cree una cuenta adicional usando la IP exacta:
      CREATE USER 'sgln_app'@'192.168.1.25' IDENTIFIED BY RANDOM PASSWORD;
      GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'192.168.1.25';
