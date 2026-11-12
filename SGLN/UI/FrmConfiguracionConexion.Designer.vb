@@ -31,6 +31,8 @@ Partial Class FrmConfiguracionConexion
         Me.lblCertificadoCa = New System.Windows.Forms.Label()
         Me.txtCertificadoCa = New System.Windows.Forms.TextBox()
         Me.btnBuscarCertificado = New System.Windows.Forms.Button()
+        Me.lblModoSsl = New System.Windows.Forms.Label()
+        Me.cmbModoSsl = New System.Windows.Forms.ComboBox()
         Me.chkEquipo = New System.Windows.Forms.CheckBox()
         Me.txtPassword = New System.Windows.Forms.TextBox()
         Me.lblPassword = New System.Windows.Forms.Label()
