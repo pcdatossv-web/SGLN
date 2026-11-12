@@ -197,6 +197,16 @@ Module PruebaFuncional
         Next
         Verificar("El usuario nuevo aparece en el listado", idUsuarioPrueba > 0)
 
+        Dim actualizarSinCambios As Respuesta = servicioUsuarios.Actualizar(
+            idUsuarioPrueba, "Usuario de Prueba", idRolPrueba, True)
+        Verificar("Guardar un usuario sin modificar sus datos no se reporta como inexistente",
+                  actualizarSinCambios.Exito, actualizarSinCambios.Mensaje)
+
+        Dim claveUsuarioInexistente As Respuesta = usuarios.CambiarClave(
+            Integer.MaxValue, "ClavePrueba123")
+        Verificar("Cambiar clave de un usuario inexistente se rechaza",
+                  Not claveUsuarioInexistente.Exito)
+
         Dim sesionPrueba As UsuarioSesion = usuarios.Autenticar("pruebauser", "Prueba123*")
         Verificar("El usuario nuevo puede iniciar sesión", sesionPrueba IsNot Nothing)
         Verificar("La sesión del usuario nuevo trae su rol y no es protegido",
