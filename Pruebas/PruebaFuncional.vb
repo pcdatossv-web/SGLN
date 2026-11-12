@@ -327,6 +327,10 @@ Module PruebaFuncional
         Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable)
         Verificar("El administrador puede eliminar una cuenta sin historial",
                   eliminacionBorrable.Exito, eliminacionBorrable.Mensaje)
+        Verificar("La bitácora conserva los eventos de alta y eliminación de la cuenta",
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Usuarios' " &
+                                   "AND ID_Registro = " & idBorrable.ToString() &
+                                   " AND Accion IN ('CREAR','ELIMINAR')") = 2)
         Dim cuentaBorrableExiste As Boolean = False
         For Each fila As DataRow In servicioUsuarios.Listar().Rows
             If UtileriasUI.Texto(fila, "Usuario") = "borrable" Then cuentaBorrableExiste = True
