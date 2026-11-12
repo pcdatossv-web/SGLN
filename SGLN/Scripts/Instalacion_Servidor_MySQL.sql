@@ -9,13 +9,17 @@
      2. Crea el usuario de la aplicacion sgln_app con permisos DML
         (SELECT, INSERT, UPDATE, DELETE).
      3. Crea el usuario de respaldos sgln_backup para mysqldump.
-   4. Exige TLS para ambas cuentas; MySQL debe tener certificados activos.
+     4. Exige TLS para ambas cuentas; MySQL debe tener certificados activos.
       MySQL 8 genera ca.pem en el directorio de datos cuando TLS está disponible.
       Copie ca.pem a cada cliente y selecciónelo en la configuración de SGLN.
 
    Despues, en este orden y con el mismo root:
      mysql -u root -p sgln_sv < Esquema_MySQL.sql
      mysql -u root -p sgln_sv < Triggers_MySQL.sql
+
+   Si sgln_sv YA existía antes de esta versión, ejecutar además UNA VEZ:
+     mysql -u root -p sgln_sv < Migracion_Integridad_Clientes_LDAFT.sql
+   No ejecutar esa migración en bases nuevas: el esquema ya incluye la regla.
 
    Las cuentas se crean con contraseñas aleatorias que MySQL muestra en
    la salida de este script. Guarde esos valores en la configuración del
