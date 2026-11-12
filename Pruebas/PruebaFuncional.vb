@@ -952,6 +952,14 @@ Module PruebaFuncional
         Console.WriteLine()
         Console.WriteLine("-- 8. Documentos e integridad SHA-256")
         Dim documentos As New ServicioDocumentos()
+        Dim rutaManipuladaRechazada As Boolean = False
+        Try
+            documentos.RutaCompleta(Path.Combine("..", "..", "..", "Windows", "win.ini"))
+        Catch ex As InvalidOperationException
+            rutaManipuladaRechazada = ex.Message.Contains("fuera de la carpeta")
+        End Try
+        Verificar("Una ruta manipulada no puede salir de la carpeta documental", rutaManipuladaRechazada)
+
         Dim carpetaTrabajo As String = Path.Combine(Path.GetTempPath(), "sgln_pruebas_archivos")
         Directory.CreateDirectory(carpetaTrabajo)
         Dim rutaPdf As String = Path.Combine(carpetaTrabajo, "contrato_prueba.pdf")
