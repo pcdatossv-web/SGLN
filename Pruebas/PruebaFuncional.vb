@@ -427,7 +427,9 @@ Module PruebaFuncional
             detalleRollbackCliente = ex.Message
         End Try
         Verificar("Si falla el perfil LDA/FT, también se revierte el cliente y su auditoría",
-                  falloRollbackCliente AndAlso clientes.Buscar("RollbackClienteLDAFT").Rows.Count = 0,
+                  falloRollbackCliente AndAlso clientes.Buscar("RollbackClienteLDAFT").Rows.Count = 0 AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Clientes' " &
+                                   "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackClienteLDAFT%'") = 0,
                   detalleRollbackCliente)
 
         ' ---------- 4. Entidades legales ----------
@@ -461,7 +463,9 @@ Module PruebaFuncional
             detalleRollbackEntidad = ex.Message
         End Try
         Verificar("Si falla el perfil LDA/FT, también se revierte la entidad y su auditoría",
-                  falloRollbackEntidad AndAlso entidades.Buscar("RollbackEntidadLDAFT").Rows.Count = 0,
+                  falloRollbackEntidad AndAlso entidades.Buscar("RollbackEntidadLDAFT").Rows.Count = 0 AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Entidades_Legales' " &
+                                   "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackEntidadLDAFT%'") = 0,
                   detalleRollbackEntidad)
 
         Dim entidadSinPerfil As New EntidadLegal With {
@@ -1038,6 +1042,18 @@ Module PruebaFuncional
             conexion.Open()
             Using comando As New MySqlCommand(consulta, conexion)
                 Return comando.ExecuteNonQuery()
+            End Using
+        End Using
+    End Function
+
+    ''' <summary>
+    ''' Ejecuta una consulta escalar de verificación contra la base temporal.
+    ''' </summary>
+    Private Function ContarSqlDirecto(consulta As String) As Integer
+        Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexion.Open()
+            Using comando As New MySqlCommand(consulta, conexion)
+                Return Convert.ToInt32(comando.ExecuteScalar())
             End Using
         End Using
     End Function
