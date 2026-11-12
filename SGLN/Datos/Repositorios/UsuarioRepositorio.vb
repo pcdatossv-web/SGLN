@@ -94,7 +94,12 @@ Public Class UsuarioRepositorio
                     Parametro(comando, "@id", id)
                 End Sub)
 
-            If filas = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
+            ' MySQL puede devolver cero filas afectadas cuando los valores enviados
+            ' son idénticos a los existentes. Solo se informa que no existe si
+            ' una consulta independiente confirma que el registro desapareció.
+            If filas = 0 AndAlso Not Existe(id) Then
+                Return Respuesta.Fallo("El usuario ya no existe.")
+            End If
 
             Auditar("MODIFICAR", "Usuarios", id, "Rol " & idRol & ", activo = " & activo)
             Return Respuesta.Ok("Usuario actualizado.")
@@ -110,13 +115,17 @@ Public Class UsuarioRepositorio
         End If
 
         Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
-        Ejecutar(
+        Dim filas As Integer = Ejecutar(
             "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@hash", credencial.Hash)
                 Parametro(comando, "@salt", credencial.Salt)
                 Parametro(comando, "@id", idUsuario)
             End Sub)
+
+        If filas = 0 AndAlso Not Existe(idUsuario) Then
+            Return Respuesta.Fallo("El usuario ya no existe.")
+        End If
 
         Auditar("MODIFICAR", "Usuarios", idUsuario, "Cambio de clave")
         Return Respuesta.Ok("Clave actualizada correctamente.")
@@ -153,6 +162,14 @@ Public Class UsuarioRepositorio
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
             "WHERE u.ID = @id AND r.Protegido = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", id)
+            End Sub) > 0
+    End Function
+
+    Private Function Existe(id As Integer) As Boolean
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Usuarios WHERE ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
             End Sub) > 0
