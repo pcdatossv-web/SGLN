@@ -69,23 +69,23 @@ Public NotInheritable Class Permisos
 
     ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
     Public Shared Function TieneAcceso(codigo As String) As Boolean
-        Dim sesion As UsuarioSesion = Sesion.UsuarioActual
-        If sesion Is Nothing OrElse sesion.ID <= 0 Then Return False
+        Dim usuarioSesion As UsuarioSesion = Sesion.UsuarioActual
+        If usuarioSesion Is Nothing OrElse usuarioSesion.ID <= 0 Then Return False
 
         Try
             ' Revalidar estado y rol en la base evita conservar permisos de una
             ' cuenta desactivada o de un rol cuyos permisos fueron modificados.
-            Dim estado As UsuarioSesion = New UsuarioRepositorio().ObtenerEstadoSesion(sesion.ID)
+            Dim estado As UsuarioSesion = New UsuarioRepositorio().ObtenerEstadoSesion(usuarioSesion.ID)
             If estado Is Nothing Then
                 Sesion.Limpiar()
                 Return False
             End If
 
-            sesion.Usuario = estado.Usuario
-            sesion.NombreCompleto = estado.NombreCompleto
-            sesion.IDRol = estado.IDRol
-            sesion.Rol = estado.Rol
-            sesion.RolProtegido = estado.RolProtegido
+            usuarioSesion.Usuario = estado.Usuario
+            usuarioSesion.NombreCompleto = estado.NombreCompleto
+            usuarioSesion.IDRol = estado.IDRol
+            usuarioSesion.Rol = estado.Rol
+            usuarioSesion.RolProtegido = estado.RolProtegido
 
             Cargar(estado.IDRol, estado.RolProtegido)
             Return Puede(codigo)
