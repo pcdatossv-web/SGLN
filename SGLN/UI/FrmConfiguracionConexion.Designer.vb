@@ -83,9 +83,9 @@ Partial Class FrmConfiguracionConexion
         Me.lblAyuda.ForeColor = System.Drawing.Color.DimGray
         Me.lblAyuda.Location = New System.Drawing.Point(20, 228)
         Me.lblAyuda.Name = "lblAyuda"
-        Me.lblAyuda.Size = New System.Drawing.Size(500, 20)
+        Me.lblAyuda.Size = New System.Drawing.Size(500, 32)
         Me.lblAyuda.TabIndex = 11
-        Me.lblAyuda.Text = "En un equipo cliente use la IP o el nombre del servidor (ej. 192.168.1.10), no ""localhost""."
+        Me.lblAyuda.Text = "En red use la IP del servidor. Seleccione el CA PEM que firmó el certificado TLS de MySQL."
         '
         ' Credenciales separadas para respaldos
         '
