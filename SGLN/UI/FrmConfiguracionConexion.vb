@@ -17,6 +17,14 @@ Public Class FrmConfiguracionConexion
         txtPasswordRespaldo.Text = datos.PasswordRespaldo
         txtCertificadoCa.Text = datos.CertificadoCa
 
+        ' Compatibilidad con instalaciones anteriores: TLS con validación de CA.
+        Dim modoActual As String = If(String.IsNullOrWhiteSpace(datos.ModoSsl), "VerifyCA", datos.ModoSsl.Trim())
+        If cmbModoSsl.Items.Contains(modoActual) Then
+            cmbModoSsl.SelectedItem = modoActual
+        Else
+            cmbModoSsl.SelectedItem = "VerifyCA"
+        End If
+
         ' Si está guardada por equipo, se mantiene esa elección al volver a guardar.
         chkEquipo.Checked = (datos.Origen <> "HKCU")
 
@@ -85,7 +93,7 @@ Public Class FrmConfiguracionConexion
             .Password = txtPassword.Text,
             .UsuarioRespaldo = txtUsuarioRespaldo.Text.Trim(),
             .PasswordRespaldo = txtPasswordRespaldo.Text,
-            .ModoSsl = Convert.ToString(cmbModoSsl.SelectedItem),
+            .ModoSsl = If(cmbModoSsl.SelectedItem Is Nothing, "VerifyCA", Convert.ToString(cmbModoSsl.SelectedItem)),
             .CertificadoCa = txtCertificadoCa.Text.Trim()
         }
     End Function
