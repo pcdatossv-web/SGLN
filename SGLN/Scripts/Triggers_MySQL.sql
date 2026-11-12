@@ -49,7 +49,8 @@ BEGIN
     DECLARE v_rol_protegido INT;
     DECLARE v_otros INT;
 
-    SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1;
+    /* Bloqueo común para serializar cambios sobre cuentas administradoras. */
+    SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1 FOR UPDATE;
 
     IF OLD.ID_Rol = v_rol_protegido
        AND (NOT (NEW.ID_Rol <=> OLD.ID_Rol) OR NEW.Activo = 0) THEN
