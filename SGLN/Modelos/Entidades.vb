@@ -132,4 +132,6 @@ Public Class UsuarioSesion
     Public Property Rol As String = ""
     ''' <summary>True para el rol Administrador: obtiene acceso total.</summary>
     Public Property RolProtegido As Boolean
+    ''' <summary>Indica que aún utiliza la clave sembrada por defecto.</summary>
+    Public Property DebeCambiarClave As Boolean
 End Class
