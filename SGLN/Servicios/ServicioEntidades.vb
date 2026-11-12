@@ -20,6 +20,7 @@ Public Class ServicioEntidades
     Public Function Guardar(entidad As EntidadLegal, perfil As PerfilLdaft) As Respuesta
         If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar entidades.")
 
+        If entidad Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la entidad.")
         If String.IsNullOrWhiteSpace(entidad.RazonSocial) Then
             Return Respuesta.Fallo("La razón social es obligatoria.")
         End If
@@ -48,7 +49,7 @@ Public Class ServicioEntidades
             Return Respuesta.Fallo("La entidad o su perfil LDA/FT ya está registrado.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - guardar", ex)
-            Return Respuesta.Fallo("No se pudo guardar la entidad y su perfil: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo guardar la entidad y su perfil. Verifique los datos y la conexión con la base de datos.")
         End Try
     End Function
 
@@ -61,7 +62,7 @@ Public Class ServicioEntidades
             Return Respuesta.Ok("Entidad desactivada.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - desactivar", ex)
-            Return Respuesta.Fallo("No se pudo desactivar la entidad: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo desactivar la entidad. Verifique la conexión y vuelva a intentarlo.")
         End Try
     End Function
 
@@ -82,7 +83,7 @@ Public Class ServicioEntidades
             Return _repositorio.AgregarRepresentante(idEntidad, idCliente, cargo, tipo)
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - agregar representante", ex)
-            Return Respuesta.Fallo("No se pudo agregar el representante: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo agregar el representante. Verifique los datos y la conexión con la base de datos.")
         End Try
     End Function
 
@@ -95,7 +96,7 @@ Public Class ServicioEntidades
             Return Respuesta.Ok("Representante removido.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - quitar representante", ex)
-            Return Respuesta.Fallo("No se pudo quitar el representante: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo quitar el representante. Verifique la conexión y vuelva a intentarlo.")
         End Try
     End Function
 

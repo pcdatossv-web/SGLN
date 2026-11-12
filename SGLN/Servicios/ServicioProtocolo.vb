@@ -252,6 +252,9 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Ese cliente ya está registrado con la misma calidad en el instrumento.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - AgregarCompareciente", ex)
+            Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
         End Try
 
         Return Respuesta.Ok("Compareciente agregado.")
@@ -276,6 +279,9 @@ Public Class ServicioProtocolo
             Return Respuesta.Ok("Compareciente eliminado.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - QuitarCompareciente", ex)
+            Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
         End Try
     End Function
 
@@ -313,6 +319,9 @@ Public Class ServicioProtocolo
             _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - ExpedirTestimonio", ex)
+            Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
         End Try
         Return Respuesta.Ok("Testimonio registrado correctamente.")
     End Function

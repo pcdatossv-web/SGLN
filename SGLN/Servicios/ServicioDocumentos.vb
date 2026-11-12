@@ -101,7 +101,7 @@ Public Class ServicioDocumentos
             End Try
 
             RegistroErrores.Escribir("Documentos - importar", ex)
-            Return Respuesta.Fallo("No se pudo importar el documento: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo importar el documento. Verifique el archivo, los permisos de almacenamiento y la conexión con la base de datos.")
         End Try
     End Function
 

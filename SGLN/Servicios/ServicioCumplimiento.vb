@@ -95,7 +95,7 @@ Public Class ServicioCumplimiento
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Cumplimiento - guardar operación", ex)
-            Return Respuesta.Fallo("No se pudo guardar la operación: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo guardar la operación. Verifique los datos y la conexión con la base de datos.")
         End Try
 
         Dim mensaje As String = "Operación guardada. Análisis: " &
@@ -234,7 +234,7 @@ Public Class ServicioCumplimiento
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Cumplimiento - guardar solicitud ARCO", ex)
-            Return Respuesta.Fallo("No se pudo guardar la solicitud: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo guardar la solicitud. Verifique los datos y la conexión con la base de datos.")
         End Try
 
         Dim mensaje As String = "Solicitud guardada. Vence el " & solicitud.FechaVencimiento.ToString("dd/MM/yyyy")
