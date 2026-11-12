@@ -7,6 +7,7 @@ Imports System.Configuration
 Imports System.Data
 Imports System.IO
 Imports System.Text
+Imports System.Security.Cryptography
 Imports System.Threading
 Imports MySql.Data.MySqlClient
 Imports SGLN
@@ -82,6 +83,20 @@ Module PruebaFuncional
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave inicial no puede reutilizarse como nueva",
                   SeguridadClave.ValidarClaveNuevaInicial("Admin123*") <> "")
+
+        ' Compatibilidad de hashes PBKDF2-SHA1 creados por versiones anteriores.
+        Dim saltLegado(15) As Byte
+        Using rng As RandomNumberGenerator = RandomNumberGenerator.Create()
+            rng.GetBytes(saltLegado)
+        End Using
+        Dim hashLegado As String
+        Using derivador As New Rfc2898DeriveBytes("ClaveLegada99!", saltLegado, 100000)
+            hashLegado = Convert.ToBase64String(derivador.GetBytes(32))
+        End Using
+        Dim requiereMigracion As Boolean = False
+        Verificar("Los hashes PBKDF2-SHA1 antiguos siguen autenticando y se marcan para migración",
+                  SeguridadClave.Verificar("ClaveLegada99!", hashLegado,
+                      Convert.ToBase64String(saltLegado), requiereMigracion) AndAlso requiereMigracion)
 
         Sesion.UsuarioActual = admin
 
