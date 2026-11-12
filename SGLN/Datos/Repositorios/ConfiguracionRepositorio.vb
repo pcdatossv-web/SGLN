@@ -140,7 +140,14 @@ Public Class ConfiguracionRepositorio
                 "user=""" & EscaparOpcionMySQL(usuarioBackup) & """" & Environment.NewLine &
                 "password=""" & EscaparOpcionMySQL(claveBackup) & """" & Environment.NewLine)
 
-            Dim sslArgumentos As String = "--ssl-mode=" & modoSslDump & " --ssl-ca=""" & certificadoCa & """ "
+            Dim sslArgumentos As String
+            If EsClienteMariaDB(ejecutable) Then
+                ' MariaDB usa --ssl-verify-server-cert; no reconoce --ssl-mode de MySQL.
+                ' Su verificación incluye la identidad del servidor y es más estricta que VerifyCA.
+                sslArgumentos = "--ssl --ssl-ca=""" & certificadoCa & """ --ssl-verify-server-cert "
+            Else
+                sslArgumentos = "--ssl-mode=" & modoSslDump & " --ssl-ca=""" & certificadoCa & """ "
+            End If
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
                 sslArgumentos &
@@ -176,6 +183,30 @@ Public Class ConfiguracionRepositorio
         Dim comilla As String = Convert.ToChar(34).ToString()
         Return If(valor, "").Replace(barra, barra & barra).
             Replace(comilla, barra & comilla)
+    End Function
+
+    Private Function EsClienteMariaDB(ejecutable As String) As Boolean
+        Dim informacion As New ProcessStartInfo(ejecutable, "--version") With {
+            .UseShellExecute = False,
+            .RedirectStandardOutput = True,
+            .RedirectStandardError = True,
+            .CreateNoWindow = True
+        }
+
+        Using proceso As Process = Process.Start(informacion)
+            Dim salida As String = proceso.StandardOutput.ReadToEnd()
+            Dim errores As String = proceso.StandardError.ReadToEnd()
+            If Not proceso.WaitForExit(5000) Then
+                Try
+                    proceso.Kill()
+                Catch
+                End Try
+                Throw New InvalidOperationException("No se pudo identificar el cliente de respaldo.")
+            End If
+
+            Dim version As String = salida & " " & errores
+            Return version.IndexOf("MariaDB", StringComparison.OrdinalIgnoreCase) >= 0
+        End Using
     End Function
 
     Private Sub EjecutarMySqlDump(ejecutable As String, argumentos As String, rutaDestino As String)
