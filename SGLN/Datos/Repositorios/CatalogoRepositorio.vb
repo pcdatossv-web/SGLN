@@ -45,15 +45,19 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function GuardarConfig(clave As String, valor As String) As Respuesta
-        Ejecutar(
-            "INSERT INTO Configuracion (Clave, Valor) VALUES (@clave, @valor) " &
-            "ON DUPLICATE KEY UPDATE Valor = VALUES(Valor)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@clave", clave)
-                Parametro(comando, "@valor", valor)
-            End Sub)
-
-        Auditar("MODIFICAR", "Configuracion", Nothing, clave & " = " & valor)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "INSERT INTO Configuracion (Clave, Valor) VALUES (@clave, @valor) " &
+                    "ON DUPLICATE KEY UPDATE Valor = VALUES(Valor)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@clave", clave)
+                        Parametro(comando, "@valor", valor)
+                    End Sub)
+                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing,
+                    clave & " = " & valor)
+                Return filas
+            End Function)
         Return Respuesta.Ok("Configuración guardada.")
     End Function
 
