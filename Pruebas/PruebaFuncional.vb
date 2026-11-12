@@ -458,6 +458,21 @@ Module PruebaFuncional
                                    "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackClienteLDAFT%'") = 0,
                   detalleRollbackCliente)
 
+        Dim errorRollbackActualizacionCliente As Integer = 0
+        Try
+            New ClienteRepositorio().GuardarCompleto(
+                New Cliente With {.ID = idCliente, .Nombres = "Nombre temporal", .Apellidos = "No persistir"},
+                New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As MySqlException
+            errorRollbackActualizacionCliente = ex.Number
+        End Try
+        Dim clienteTrasRollback As DataTable = clientes.Obtener(idCliente)
+        Verificar("La actualización del cliente también se revierte si falla su perfil",
+                  errorRollbackActualizacionCliente = 3819 AndAlso clienteTrasRollback.Rows.Count = 1 AndAlso
+                  Convert.ToString(clienteTrasRollback.Rows(0)("Nombres")) = "Ana María" AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Clientes' " &
+                                   "AND Accion = 'MODIFICAR' AND Detalle LIKE '%Nombre temporal%'") = 0)
+
         ' ---------- 4. Entidades legales ----------
         Console.WriteLine()
         Console.WriteLine("-- 4. Entidades legales y representantes")
@@ -495,6 +510,21 @@ Module PruebaFuncional
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Entidades_Legales' " &
                                    "AND Accion = 'CREAR' AND Detalle LIKE '%RollbackEntidadLDAFT%'") = 0,
                   detalleRollbackEntidad)
+
+        Dim errorRollbackActualizacionEntidad As Integer = 0
+        Try
+            New EntidadRepositorio().GuardarCompleto(
+                New EntidadLegal With {.ID = idEntidad, .RazonSocial = "Razón temporal"},
+                New PerfilLdaft With {.NivelRiesgo = "Extremo"})
+        Catch ex As MySqlException
+            errorRollbackActualizacionEntidad = ex.Number
+        End Try
+        Dim entidadTrasRollback As DataTable = entidades.Obtener(idEntidad)
+        Verificar("La actualización de entidad también se revierte si falla su perfil",
+                  errorRollbackActualizacionEntidad = 3819 AndAlso entidadTrasRollback.Rows.Count = 1 AndAlso
+                  Convert.ToString(entidadTrasRollback.Rows(0)("Razon_Social")) = "Inversiones Cuscatlán S.A. de C.V." AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Entidades_Legales' " &
+                                   "AND Accion = 'MODIFICAR' AND Detalle LIKE '%Razón temporal%'") = 0)
 
         Dim entidadSinPerfil As New EntidadLegal With {
             .RazonSocial = "Entidad sin perfil para validar titular",
