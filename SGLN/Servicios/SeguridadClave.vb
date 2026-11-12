@@ -12,8 +12,9 @@ End Class
 ''' </summary>
 Public Module SeguridadClave
 
-    ' Debe coincidir con la clave usada al sembrar la primera cuenta admin.
-    Public Const ClaveInicialAdministrador As String = "Admin123*"
+    ' Solo reconoce cuentas antiguas creadas con la contraseña fija.
+    ' Nunca se utiliza para crear nuevas cuentas.
+    Private Const ClaveInicialLegada As String = "Admin123*"
 
     Private Const Iteraciones As Integer = 100000
     Private Const LongitudHash As Integer = 32
@@ -41,7 +42,7 @@ Public Module SeguridadClave
     End Function
 
     Public Function EsClaveInicial(hashBase64 As String, saltBase64 As String) As Boolean
-        Return Verificar(ClaveInicialAdministrador, hashBase64, saltBase64)
+        Return Verificar(ClaveInicialLegada, hashBase64, saltBase64)
     End Function
 
     ''' <summary>
@@ -52,7 +53,7 @@ Public Module SeguridadClave
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Length < 12 Then
             Return "La nueva clave debe tener al menos 12 caracteres."
         End If
-        If String.Equals(clave, ClaveInicialAdministrador, StringComparison.Ordinal) Then
+        If String.Equals(clave, ClaveInicialLegada, StringComparison.Ordinal) Then
             Return "Debe utilizar una clave distinta de la clave inicial."
         End If
         If Not clave.Any(Function(ch As Char) Char.IsUpper(ch)) OrElse
