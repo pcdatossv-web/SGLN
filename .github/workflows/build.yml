@@ -1,0 +1,22 @@
+name: Build SGLN
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build .NET Framework 4.8 solution
+        shell: pwsh
+        run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform=AnyCPU /verbosity:minimal
