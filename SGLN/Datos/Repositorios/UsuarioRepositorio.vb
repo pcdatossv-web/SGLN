@@ -112,9 +112,10 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function CambiarClave(idUsuario As Integer, claveNueva As String) As Respuesta
-        If String.IsNullOrWhiteSpace(claveNueva) OrElse claveNueva.Length < 8 Then
-            Return Respuesta.Fallo("La nueva clave debe tener al menos 8 caracteres.")
-        End If
+        ' La regla se aplica en el repositorio para que ningún formulario o
+        ' servicio pueda omitirla al cambiar o restablecer una contraseña.
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
 
         Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
         Dim filas As Integer = Ejecutar(
