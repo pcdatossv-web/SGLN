@@ -24,26 +24,19 @@ Public Class ServicioClientes
         Normalizar(cliente)
 
         Try
-            If cliente.ID = 0 Then
-                cliente.ID = _repositorio.Insertar(cliente)
-            Else
-                _repositorio.Actualizar(cliente)
-            End If
+            cliente.ID = _repositorio.GuardarCompleto(cliente, perfil)
+            Return New Respuesta With {
+                .Exito = True,
+                .Mensaje = "Cliente y perfil guardados correctamente.",
+                .ID = cliente.ID
+            }
         Catch ex As MySqlException When ex.Number = 1062
-            ' 1062 = entrada duplicada en un índice único (DUI repetido).
-            Return Respuesta.Fallo("Ya existe un cliente registrado con ese DUI.")
+            ' La restricción única del DUI y la del perfil se aplican en el servidor.
+            Return Respuesta.Fallo("El DUI ya está registrado o existe un perfil LDA/FT duplicado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Clientes - guardar", ex)
+            Return Respuesta.Fallo("No se pudo guardar el cliente y su perfil: " & ex.Message)
         End Try
-
-        If perfil IsNot Nothing Then
-            perfil.IDCliente = cliente.ID
-            _repositorio.GuardarPerfil(perfil)
-        End If
-
-        Return New Respuesta With {
-            .Exito = True,
-            .Mensaje = "Cliente guardado correctamente.",
-            .ID = cliente.ID
-        }
     End Function
 
     Public Function Desactivar(id As Integer) As Respuesta
@@ -84,9 +77,9 @@ Public Class ServicioClientes
         If Not String.IsNullOrWhiteSpace(cliente.NIT) Then
             cliente.NIT = ValidadorIdentidad.FormatearNit(cliente.NIT)
         End If
-        cliente.Nombres = cliente.Nombres.Trim()
-        cliente.Apellidos = cliente.Apellidos.Trim()
-        cliente.Email = cliente.Email.Trim()
+        cliente.Nombres = If(cliente.Nombres, "").Trim()
+        cliente.Apellidos = If(cliente.Apellidos, "").Trim()
+        cliente.Email = If(cliente.Email, "").Trim()
     End Sub
 
 End Class
