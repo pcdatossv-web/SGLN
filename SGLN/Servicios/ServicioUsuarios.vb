@@ -99,6 +99,20 @@ Public Class ServicioUsuarios
             False)
     End Function
 
+
+    ''' <summary>Eliminación física excepcional reservada al administrador autenticado.</summary>
+    Public Function EliminarDefinitivamente(id As Integer) As Respuesta
+        If Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido OrElse
+           Not Permisos.AccesoTotal Then
+            Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
+        End If
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If id = Sesion.UsuarioActual.ID Then
+            Return Respuesta.Fallo("No puede eliminar la cuenta con la que inició sesión.")
+        End If
+        Return _repositorio.EliminarSiNoTieneHistorial(id)
+    End Function
+
     Private Function ValidarDatos(usuario As String, nombreCompleto As String, clave As String,
                                   idRol As Integer) As String
         If String.IsNullOrWhiteSpace(usuario) Then Return "Indique el nombre de acceso."
