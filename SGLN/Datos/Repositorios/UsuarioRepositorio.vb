@@ -309,8 +309,12 @@ Public Class UsuarioRepositorio
                         End If
                     End Using
 
+                    ' La eliminación y su evento de auditoría deben confirmarse juntos.
+                    ' Si el INSERT de auditoría falla, también se revierte el DELETE.
+                    AuditarEnTransaccion(
+                        conexion, transaccion, "ELIMINAR", "Usuarios", id,
+                        "Cuenta sin referencias operativas ni actividad propia: " & usuario)
                     transaccion.Commit()
-                    Auditar("ELIMINAR", "Usuarios", id, "Cuenta sin referencias operativas ni actividad propia: " & usuario)
                     Return Respuesta.Ok("Usuario eliminado. Se conservó la bitácora de creación y eliminación.")
                 Catch ex As Exception
                     Try
