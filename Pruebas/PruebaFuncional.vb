@@ -36,6 +36,8 @@ Module PruebaFuncional
         Dim usuarios As New UsuarioRepositorio()
         Dim admin As UsuarioSesion = usuarios.Autenticar("admin", "Admin123*")
         Verificar("Login acepta admin/Admin123*", admin IsNot Nothing)
+        Verificar("La cuenta admin detecta que debe cambiar la clave inicial",
+                  admin IsNot Nothing AndAlso admin.DebeCambiarClave)
 
         IntentarSinExcepcion("Login con clave incorrecta solo devuelve Nothing",
             Sub()
@@ -57,12 +59,18 @@ Module PruebaFuncional
         Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "Admin123*", "Temporal99")
         Verificar("Cambio de clave válido se acepta", claveBien.Exito)
         Verificar("La nueva clave permite iniciar sesión",
-                  usuarios.Autenticar("admin", "Temporal99") IsNot Nothing)
+                  usuarios.Autenticar("admin", "Temporal99") IsNot Nothing AndAlso
+                  Not usuarios.Autenticar("admin", "Temporal99").DebeCambiarClave)
         Verificar("La clave anterior deja de funcionar",
                   usuarios.Autenticar("admin", "Admin123*") Is Nothing)
         seguridad.CambiarClave(admin.ID, "Temporal99", "Admin123*")
         Verificar("La clave original queda restituida",
-                  usuarios.Autenticar("admin", "Admin123*") IsNot Nothing)
+                  usuarios.Autenticar("admin", "Admin123*") IsNot Nothing AndAlso
+                  usuarios.Autenticar("admin", "Admin123*").DebeCambiarClave)
+        Verificar("Una clave nueva de primer ingreso exige longitud y complejidad",
+                  SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
+        Verificar("La clave inicial no puede reutilizarse como nueva",
+                  SeguridadClave.ValidarClaveNuevaInicial(SeguridadClave.ClaveInicialAdministrador) <> "")
 
         Sesion.UsuarioActual = admin
 
