@@ -167,11 +167,19 @@ Public Class ServicioDocumentos
     Public Function RutaCompleta(rutaRegistrada As String) As String
         If String.IsNullOrWhiteSpace(rutaRegistrada) Then Return ""
 
-        Dim base As String = Path.GetFullPath(RutaBaseDocumentos()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        Dim base As String = Path.GetFullPath(RutaBaseDocumentos())
+        Dim raiz As String = Path.GetPathRoot(base)
+        ' No quitar el separador de una raíz (C:\ o una raíz UNC):
+        ' hacerlo convertiría, por ejemplo, C:\ en la ruta relativa C:.
+        If Not String.Equals(base, raiz, StringComparison.OrdinalIgnoreCase) Then
+            base = base.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        End If
+
         Dim destino As String = If(Path.IsPathRooted(rutaRegistrada),
                                    Path.GetFullPath(rutaRegistrada),
                                    Path.GetFullPath(Path.Combine(Application.StartupPath, rutaRegistrada)))
-        Dim prefijo As String = base & Path.DirectorySeparatorChar
+        Dim prefijo As String = If(base.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal),
+                                  base, base & Path.DirectorySeparatorChar)
 
         If Not destino.StartsWith(prefijo, StringComparison.OrdinalIgnoreCase) AndAlso
            Not String.Equals(destino, base, StringComparison.OrdinalIgnoreCase) Then
