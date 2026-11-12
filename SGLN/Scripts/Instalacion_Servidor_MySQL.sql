@@ -50,6 +50,7 @@ DROP USER IF EXISTS 'sgln_backup'@'%';
 CREATE USER IF NOT EXISTS 'sgln_app'@'localhost';
 ALTER USER 'sgln_app'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
 ALTER USER 'sgln_app'@'localhost' REQUIRE SSL;
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 
 /* ------------------------------------------------------------------
@@ -64,6 +65,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 CREATE USER IF NOT EXISTS 'sgln_backup'@'localhost';
 ALTER USER 'sgln_backup'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
 ALTER USER 'sgln_backup'@'localhost' REQUIRE SSL;
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'sgln_backup'@'localhost';
 GRANT SELECT, SHOW VIEW, TRIGGER
     ON sgln_sv.* TO 'sgln_backup'@'localhost';
 FLUSH PRIVILEGES;
