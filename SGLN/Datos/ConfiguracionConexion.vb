@@ -19,6 +19,8 @@ Public Class DatosConexion
     Public Property Password As String = ""
     Public Property UsuarioRespaldo As String = "sgln_backup"
     Public Property PasswordRespaldo As String = ""
+    Public Property ModoSsl As String = "VerifyCA"
+    Public Property CertificadoCa As String = ""
     ' De dónde se leyó: HKLM, HKCU, App.config o Defecto.
     Public Property Origen As String = ""
 
@@ -32,6 +34,8 @@ Public Class DatosConexion
             .Password = Password,
             .UsuarioRespaldo = UsuarioRespaldo,
             .PasswordRespaldo = PasswordRespaldo,
+            .ModoSsl = ModoSsl,
+            .CertificadoCa = CertificadoCa,
             .Origen = Origen
         }
     End Function
@@ -50,8 +54,21 @@ Public Class DatosConexion
         constructor.Password = Password
         constructor.ConnectionTimeout = 15
         constructor.DefaultCommandTimeout = 30
-        constructor.SslMode = MySqlSslMode.Preferred
-        constructor.AllowPublicKeyRetrieval = True
+        Dim modo As String = If(String.IsNullOrWhiteSpace(ModoSsl), "VerifyCA", ModoSsl.Trim())
+        If Not String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) AndAlso
+           Not String.Equals(modo, "Preferred", StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("El modo TLS configurado no está permitido.")
+        End If
+        If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) Then
+            If String.IsNullOrWhiteSpace(CertificadoCa) OrElse Not System.IO.File.Exists(CertificadoCa) Then
+                Throw New InvalidOperationException(
+                    "Debe seleccionar el certificado CA PEM de MySQL para validar la conexión TLS.")
+            End If
+        End If
+        constructor("SslMode") = modo
+        If Not String.IsNullOrWhiteSpace(CertificadoCa) Then
+            constructor("SslCa") = CertificadoCa.Trim()
+        End If
         constructor.CharacterSet = "utf8mb4"
         constructor.Pooling = True
         Return constructor.ConnectionString
@@ -80,6 +97,8 @@ Public Class ConfiguracionConexion
     Private Const ValorPassword As String = "Password"
     Private Const ValorUsuarioRespaldo As String = "RespaldosUsuario"
     Private Const ValorPasswordRespaldo As String = "RespaldosPassword"
+    Private Const ValorModoSsl As String = "ModoSsl"
+    Private Const ValorCertificadoCa As String = "CertificadoCa"
     Private Const ValorActualizado As String = "Actualizado"
 
     ' Entropía fija: evita que el blob cifrado se pueda descifrar en otro equipo.
@@ -250,6 +269,8 @@ Public Class ConfiguracionConexion
         datos.Password = Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")))
         datos.UsuarioRespaldo = Convert.ToString(clave.GetValue(ValorUsuarioRespaldo, "sgln_backup"))
         datos.PasswordRespaldo = Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")))
+        datos.ModoSsl = Convert.ToString(clave.GetValue(ValorModoSsl, "VerifyCA"))
+        datos.CertificadoCa = Convert.ToString(clave.GetValue(ValorCertificadoCa, ""))
         Return datos
     End Function
 
@@ -266,6 +287,8 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorPassword, Cifrar(datos.Password), RegistryValueKind.String)
                     clave.SetValue(ValorUsuarioRespaldo, datos.UsuarioRespaldo.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorPasswordRespaldo, Cifrar(datos.PasswordRespaldo), RegistryValueKind.String)
+                    clave.SetValue(ValorModoSsl, datos.ModoSsl, RegistryValueKind.String)
+                    clave.SetValue(ValorCertificadoCa, datos.CertificadoCa, RegistryValueKind.String)
                     clave.SetValue(ValorActualizado, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), RegistryValueKind.String)
                     Return True
                 End Using
@@ -378,6 +401,8 @@ Public Class ConfiguracionConexion
             datos.UsuarioRespaldo = If(String.IsNullOrWhiteSpace(ConfigurationManager.AppSettings("Respaldos_Usuario")),
                                        "sgln_backup", ConfigurationManager.AppSettings("Respaldos_Usuario"))
             datos.PasswordRespaldo = If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
+            datos.ModoSsl = constructor.SslMode.ToString()
+            datos.CertificadoCa = If(constructor.ContainsKey("SslCa"), Convert.ToString(constructor("SslCa")), "")
             Return datos
         Catch ex As Exception
             RegistroErrores.Escribir("ConfiguracionConexion.LeerAppConfig", ex)
