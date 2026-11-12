@@ -13,6 +13,8 @@ Public Class FrmConfiguracionConexion
         txtBaseDatos.Text = datos.BaseDatos
         txtUsuario.Text = datos.Usuario
         txtPassword.Text = datos.Password
+        txtUsuarioRespaldo.Text = datos.UsuarioRespaldo
+        txtPasswordRespaldo.Text = datos.PasswordRespaldo
 
         ' Si está guardada por equipo, se mantiene esa elección al volver a guardar.
         chkEquipo.Checked = (datos.Origen <> "HKCU")
@@ -71,7 +73,9 @@ Public Class FrmConfiguracionConexion
             .Puerto = puerto,
             .BaseDatos = txtBaseDatos.Text.Trim(),
             .Usuario = txtUsuario.Text.Trim(),
-            .Password = txtPassword.Text
+            .Password = txtPassword.Text,
+            .UsuarioRespaldo = txtUsuarioRespaldo.Text.Trim(),
+            .PasswordRespaldo = txtPasswordRespaldo.Text
         }
     End Function
 
