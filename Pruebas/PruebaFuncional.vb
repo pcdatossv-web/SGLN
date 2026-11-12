@@ -37,7 +37,7 @@ Module PruebaFuncional
             tlsSinCaRechazado = ex.Message.Contains("certificado CA")
         End Try
         Verificar("TLS con validación CA rechaza una conexión sin certificado raíz", tlsSinCaRechazado)
-        IntentarSinExcepcion("El inicializador verifica el esquema y siembra los datos mínimos",
+        IntentarSinExcepcion("El inicializador verifica el esquema y siembra catálogos y configuración",
             Sub()
                 InicializadorBD.AsegurarBaseDeDatos()
             End Sub)
@@ -46,10 +46,11 @@ Module PruebaFuncional
         Console.WriteLine()
         Console.WriteLine("-- 2. Autenticación y cambio de clave")
         Dim usuarios As New UsuarioRepositorio()
-        Dim admin As UsuarioSesion = usuarios.Autenticar("admin", "Admin123*")
-        Verificar("Login acepta admin/Admin123*", admin IsNot Nothing)
-        Verificar("La cuenta admin detecta que debe cambiar la clave inicial",
-                  admin IsNot Nothing AndAlso admin.DebeCambiarClave)
+        If Not InicializadorBD.HayUsuarios() Then InicializadorBD.CrearAdministradorInicial("admin", "Administrador de pruebas", "PruebaInicial99!")
+        Dim admin As UsuarioSesion = usuarios.Autenticar("admin", "PruebaInicial99!")
+        Verificar("Login acepta la cuenta creada por el asistente inicial", admin IsNot Nothing)
+        Verificar("La cuenta creada con clave propia no requiere cambio forzado",
+                  admin IsNot Nothing AndAlso Not admin.DebeCambiarClave)
 
         IntentarSinExcepcion("Login con clave incorrecta solo devuelve Nothing",
             Sub()
@@ -68,19 +69,19 @@ Module PruebaFuncional
         Dim claveMal As Respuesta = seguridad.CambiarClave(admin.ID, "Incorrecta99", "NuevaClave99")
         Verificar("Cambio de clave con clave actual incorrecta se rechaza", Not claveMal.Exito)
 
-        Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "Admin123*", "TemporalClave99!")
+        Dim claveBien As Respuesta = seguridad.CambiarClave(admin.ID, "PruebaInicial99!", "TemporalClave99!")
         Verificar("Cambio de clave válido se acepta", claveBien.Exito)
         Verificar("La nueva clave permite iniciar sesión",
                   usuarios.Autenticar("admin", "TemporalClave99!") IsNot Nothing AndAlso
                   Not usuarios.Autenticar("admin", "TemporalClave99!").DebeCambiarClave)
         Verificar("La clave anterior deja de funcionar",
-                  usuarios.Autenticar("admin", "Admin123*") Is Nothing)
+                  usuarios.Autenticar("admin", "PruebaInicial99!") Is Nothing)
         Verificar("La clave inicial ya no vuelve a aceptarse",
-                  usuarios.Autenticar("admin", "Admin123*") Is Nothing)
+                  usuarios.Autenticar("admin", "PruebaInicial99!") Is Nothing)
         Verificar("Una clave nueva de primer ingreso exige longitud y complejidad",
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave inicial no puede reutilizarse como nueva",
-                  SeguridadClave.ValidarClaveNuevaInicial(SeguridadClave.ClaveInicialAdministrador) <> "")
+                  SeguridadClave.ValidarClaveNuevaInicial("Admin123*") <> "")
 
         Sesion.UsuarioActual = admin
 
