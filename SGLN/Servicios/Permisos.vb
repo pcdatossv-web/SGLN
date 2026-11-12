@@ -15,6 +15,7 @@ Imports System.Windows.Forms
 Public NotInheritable Class Permisos
 
     Private Shared ReadOnly _activos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+    Private Shared ReadOnly _sync As New Object()
     Private Shared _accesoTotal As Boolean
 
     Private Sub New()
@@ -28,13 +29,17 @@ Public NotInheritable Class Permisos
 
     Public Shared ReadOnly Property AccesoTotal As Boolean
         Get
-            Return _accesoTotal
+            SyncLock _sync
+                Return _accesoTotal
+            End SyncLock
         End Get
     End Property
 
     Public Shared ReadOnly Property CantidadPermisos As Integer
         Get
-            Return _activos.Count
+            SyncLock _sync
+                Return _activos.Count
+            End SyncLock
         End Get
     End Property
 
@@ -44,27 +49,38 @@ Public NotInheritable Class Permisos
     ''' incompleta: así nunca se queda fuera del sistema.
     ''' </summary>
     Public Shared Sub Cargar(idRol As Integer, esRolProtegido As Boolean)
-        _activos.Clear()
-        _accesoTotal = esRolProtegido
+        Dim permisosNuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
-        If idRol <= 0 Then Return
+        If idRol > 0 Then
+            Try
+                Dim tabla As DataTable = New RolRepositorio().PermisosDeRol(idRol)
+                For Each fila As DataRow In tabla.Rows
+                    Dim codigo As String = Convert.ToString(fila("Codigo"))
+                    If Not String.IsNullOrWhiteSpace(codigo) Then permisosNuevos.Add(codigo.Trim())
+                Next
+            Catch ex As Exception
+                ' Sin permisos cargados el usuario queda sin acceso, salvo el
+                ' rol protegido, que conserva su acceso total de emergencia.
+                RegistroErrores.Escribir("Permisos - cargar", ex)
+            End Try
+        End If
 
-        Try
-            Dim tabla As DataTable = New RolRepositorio().PermisosDeRol(idRol)
-            For Each fila As DataRow In tabla.Rows
-                Dim codigo As String = Convert.ToString(fila("Codigo"))
-                If Not String.IsNullOrWhiteSpace(codigo) Then _activos.Add(codigo)
+        ' La carga puede ejecutarse desde acciones concurrentes; sustituir la
+        ' colección bajo un único bloqueo evita enumeraciones/modificaciones cruzadas.
+        SyncLock _sync
+            _activos.Clear()
+            For Each codigo As String In permisosNuevos
+                _activos.Add(codigo)
             Next
-        Catch ex As Exception
-            ' Sin permisos cargados el usuario queda sin acceso, pero la
-            ' aplicación no debe caerse al iniciar sesión.
-            RegistroErrores.Escribir("Permisos - cargar", ex)
-        End Try
+            _accesoTotal = esRolProtegido
+        End SyncLock
     End Sub
 
     Public Shared Sub Limpiar()
-        _activos.Clear()
-        _accesoTotal = False
+        SyncLock _sync
+            _activos.Clear()
+            _accesoTotal = False
+        End SyncLock
     End Sub
 
     ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
@@ -99,8 +115,10 @@ Public NotInheritable Class Permisos
     Public Shared Function Puede(codigo As String) As Boolean
         ' Un permiso sin código nunca debe conceder acceso (fail-closed).
         If String.IsNullOrWhiteSpace(codigo) Then Return False
-        If _accesoTotal Then Return True
-        Return _activos.Contains(codigo.Trim())
+        SyncLock _sync
+            If _accesoTotal Then Return True
+            Return _activos.Contains(codigo.Trim())
+        End SyncLock
     End Function
 
     ''' <summary>
