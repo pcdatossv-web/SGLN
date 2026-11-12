@@ -416,6 +416,30 @@ Module PruebaFuncional
                   excepcionDui = "" AndAlso rDuplicadoDui IsNot Nothing AndAlso Not rDuplicadoDui.Exito,
                   If(excepcionDui <> "", "EXCEPCIÓN SIN CONTROLAR: " & excepcionDui, rDuplicadoDui.Mensaje))
 
+        Dim iniciarDuiConcurrente As New ManualResetEvent(False)
+        Dim exitosDuiConcurrentes As Integer = 0
+        Dim tareaDuiA As New Thread(New ThreadStart(
+            Sub()
+                iniciarDuiConcurrente.WaitOne()
+                Dim resultado As Respuesta = clientes.Guardar(
+                    New Cliente With {.Nombres = "Concurrente A", .Apellidos = "DUI", .DUI = "11111111-1"}, Nothing)
+                If resultado.Exito Then Interlocked.Increment(exitosDuiConcurrentes)
+            End Sub))
+        Dim tareaDuiB As New Thread(New ThreadStart(
+            Sub()
+                iniciarDuiConcurrente.WaitOne()
+                Dim resultado As Respuesta = clientes.Guardar(
+                    New Cliente With {.Nombres = "Concurrente B", .Apellidos = "DUI", .DUI = "11111111-1"}, Nothing)
+                If resultado.Exito Then Interlocked.Increment(exitosDuiConcurrentes)
+            End Sub))
+        tareaDuiA.Start()
+        tareaDuiB.Start()
+        iniciarDuiConcurrente.Set()
+        tareaDuiA.Join()
+        tareaDuiB.Join()
+        Verificar("Dos altas concurrentes con el mismo DUI solo permiten una inserción",
+                  exitosDuiConcurrentes = 1 AndAlso clientes.Buscar("11111111-1").Rows.Count = 1)
+
         Dim falloRollbackCliente As Boolean = False
         Dim detalleRollbackCliente As String = ""
         Try
