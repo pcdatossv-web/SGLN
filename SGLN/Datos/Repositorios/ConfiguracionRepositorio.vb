@@ -106,9 +106,17 @@ Public Class ConfiguracionRepositorio
         Dim credenciales As String = Path.Combine(
             Path.GetTempPath(), "sgln_dump_" & Guid.NewGuid().ToString("N") & ".cnf")
 
-        If constructor.SslMode <> MySqlSslMode.VerifyCA Then
-            Throw New InvalidOperationException("El respaldo requiere TLS con validación de CA. Configure el certificado CA antes de continuar.")
-        End If
+        Dim modoSslDump As String = ""
+        Select Case constructor.SslMode.ToString()
+            Case "VerifyCA"
+                modoSslDump = "VERIFY_CA"
+            Case "VerifyFull"
+                ' mysqldump usa VERIFY_IDENTITY para validar CA y nombre DNS/IP.
+                modoSslDump = "VERIFY_IDENTITY"
+            Case Else
+                Throw New InvalidOperationException(
+                    "El respaldo requiere TLS con validación de CA y del servidor. Configure VerifyCA o VerifyFull.")
+        End Select
         Dim certificadoCa As String = Convert.ToString(constructor("SslCa"))
         If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
             Throw New InvalidOperationException("No se encontró el certificado CA configurado para validar TLS en el respaldo.")
@@ -132,7 +140,7 @@ Public Class ConfiguracionRepositorio
                 "user=""" & EscaparOpcionMySQL(usuarioBackup) & """" & Environment.NewLine &
                 "password=""" & EscaparOpcionMySQL(claveBackup) & """" & Environment.NewLine)
 
-            Dim sslArgumentos As String = "--ssl-mode=VERIFY_CA --ssl-ca=""" & certificadoCa & """ "
+            Dim sslArgumentos As String = "--ssl-mode=" & modoSslDump & " --ssl-ca=""" & certificadoCa & """ "
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
                 sslArgumentos &
