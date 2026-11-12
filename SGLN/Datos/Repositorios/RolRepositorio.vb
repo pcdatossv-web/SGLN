@@ -72,6 +72,7 @@ Public Class RolRepositorio
                         End Using
 
                         SincronizarPermisos(conexion, transaccion, nuevoId, codigos)
+                        AuditarEnTransaccion(conexion, transaccion, "CREAR", "Roles", nuevoId, "Rol " & nombre.Trim())
                         transaccion.Commit()
                     Catch
                         Revertir(transaccion)
@@ -79,8 +80,7 @@ Public Class RolRepositorio
                     End Try
                 End Using
             End Using
-
-            Auditar("CREAR", "Roles", nuevoId, "Rol " & nombre.Trim())
+ 
             Return Respuesta.Ok("Rol creado correctamente.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
@@ -118,6 +118,7 @@ Public Class RolRepositorio
                         End Using
 
                         SincronizarPermisos(conexion, transaccion, id, codigos)
+                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Roles", id, "Rol " & nombre.Trim())
                         transaccion.Commit()
                     Catch
                         Revertir(transaccion)
@@ -125,8 +126,7 @@ Public Class RolRepositorio
                     End Try
                 End Using
             End Using
-
-            Auditar("MODIFICAR", "Roles", id, "Rol " & nombre.Trim())
+ 
             Return Respuesta.Ok("Rol actualizado.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
@@ -139,15 +139,20 @@ Public Class RolRepositorio
 
     Public Function Eliminar(id As Integer) As Respuesta
         Try
-            Dim filas As Integer = Ejecutar(
-                "DELETE FROM Roles WHERE ID = @id",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@id", id)
-                End Sub)
+            Dim filas As Integer = EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim afectadas As Integer = Ejecutar(conexion, transaccion,
+                        "DELETE FROM Roles WHERE ID = @id",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", id)
+                        End Sub)
+                    If afectadas > 0 Then
+                        AuditarEnTransaccion(conexion, transaccion, "ELIMINAR", "Roles", id, "Rol eliminado")
+                    End If
+                    Return afectadas
+                End Function)
 
             If filas = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
-
-            Auditar("ELIMINAR", "Roles", id, "Rol eliminado")
             Return Respuesta.Ok("Rol eliminado.")
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
@@ -167,6 +172,8 @@ Public Class RolRepositorio
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
                         SincronizarPermisos(conexion, transaccion, idRol, codigos)
+                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR PERMISOS", "Roles", idRol,
+                            "Matriz de permisos actualizada")
                         transaccion.Commit()
                     Catch
                         Revertir(transaccion)
