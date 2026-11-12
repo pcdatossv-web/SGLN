@@ -9,9 +9,8 @@
     El script:
       1. Localiza mysql.exe / mysqldump.exe.
       2. Recrea sgln_sv_pruebas y aplica Esquema_MySQL.sql y Triggers_MySQL.sql
-         como root (el usuario de la aplicación no puede hacer DDL en la base
-         de trabajo, pero aquí se le concede para que el inicializador pueda
-         crear el esquema si hace falta).
+         como root. La cuenta temporal de la aplicación recibe solo permisos
+         DML sobre sgln_sv_pruebas; nunca recibe permisos DDL.
       3. Copia SGLN.exe y las DLL de lib, compila el arnés con vbc y lo ejecuta.
 
     La clave de root se toma de la variable de entorno MYSQL_ROOT_PASSWORD.
