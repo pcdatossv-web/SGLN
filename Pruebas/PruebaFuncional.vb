@@ -67,6 +67,23 @@ Module PruebaFuncional
             preferredPruebasAceptado = False
         End Try
         Verificar("TLS Preferred solo se admite para la base aislada de pruebas", preferredPruebasAceptado)
+
+        Dim verifyFullDisponible As Boolean = False
+        Dim caTemporal As String = Path.Combine(Path.GetTempPath(), "sgln-ca-" & Guid.NewGuid().ToString("N") & ".pem")
+        Try
+            File.WriteAllText(caTemporal, "CA de prueba para validar la configuración del constructor.")
+            Dim datosVerifyFull As New DatosConexion With {
+                .Servidor = "db.sglntest.local", .Puerto = 3306, .BaseDatos = "sgln_sv",
+                .Usuario = "sgln_app", .Password = "Prueba",
+                .ModoSsl = "VerifyFull", .CertificadoCa = caTemporal
+            }
+            verifyFullDisponible = datosVerifyFull.ConstruirCadena().Contains("VerifyFull")
+        Catch
+            verifyFullDisponible = False
+        Finally
+            If File.Exists(caTemporal) Then File.Delete(caTemporal)
+        End Try
+        Verificar("El conector permite configurar VerifyFull con CA y nombre DNS", verifyFullDisponible)
         IntentarSinExcepcion("El inicializador verifica el esquema y siembra catálogos y configuración",
             Sub()
                 InicializadorBD.AsegurarBaseDeDatos()
