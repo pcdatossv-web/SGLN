@@ -104,8 +104,19 @@ Public Class ConfiguracionRepositorio
                 "user=" & usuarioBackup & Environment.NewLine &
                 "password=" & claveBackup & Environment.NewLine)
 
+            Dim sslArgumentos As String = "--ssl-mode=PREFERRED "
+            If constructor.SslMode = MySqlSslMode.VerifyCA Then
+                Dim certificadoCa As String = Convert.ToString(constructor("SslCa"))
+                If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
+                    Throw New InvalidOperationException(
+                        "No se encontró el certificado CA configurado para validar TLS en el respaldo.")
+                End If
+                sslArgumentos = "--ssl-mode=VERIFY_CA --ssl-ca=""" & certificadoCa & """ "
+            End If
+
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
+                sslArgumentos &
                 "--host=" & constructor.Server & " --port=" & constructor.Port & " " &
                 "--single-transaction --skip-lock-tables --no-tablespaces --triggers " &
                 "--default-character-set=utf8mb4 " &
