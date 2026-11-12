@@ -146,6 +146,38 @@ Module PruebaFuncional
         Verificar("El permiso inventado no queda guardado",
                   roles.PermisosDeRol(idRolPrueba).Count = 1)
 
+        ' Las operaciones directas del repositorio deben revertir también la
+        ' fila de Roles si falla la inserción de cualquier permiso relacionado.
+        Dim repositorioRolesPrueba As New RolRepositorio()
+        Dim altaAtomica As Respuesta = repositorioRolesPrueba.Crear(
+            "Rol transaccional fallido", "No debe persistir",
+            New List(Of String) From {"permiso.inexistente"})
+        Verificar("Un permiso inválido hace fallar el alta transaccional", Not altaAtomica.Exito)
+
+        Dim existeRolParcial As Boolean = False
+        For Each fila As DataRow In roles.Listar().Rows
+            If UtileriasUI.Texto(fila, "Nombre") = "Rol transaccional fallido" Then
+                existeRolParcial = True
+                Exit For
+            End If
+        Next
+        Verificar("El alta fallida no deja un rol sin su matriz de permisos", Not existeRolParcial)
+
+        Dim edicionAtomica As Respuesta = repositorioRolesPrueba.Actualizar(
+            idRolPrueba, "Nombre no persistente", "Descripción no persistente", False,
+            New List(Of String) From {"permiso.inexistente"})
+        Verificar("Un permiso inválido hace fallar la edición transaccional", Not edicionAtomica.Exito)
+
+        Dim rolTrasFallo As DataTable = roles.Obtener(idRolPrueba)
+        Verificar("La edición fallida revierte nombre, descripción y estado",
+                  rolTrasFallo.Rows.Count = 1 AndAlso
+                  UtileriasUI.Texto(rolTrasFallo.Rows(0), "Nombre") = "Rol de prueba editado" AndAlso
+                  UtileriasUI.Texto(rolTrasFallo.Rows(0), "Descripcion") = "Descripción editada" AndAlso
+                  UtileriasUI.Booleano(rolTrasFallo.Rows(0), "Activo"))
+        Verificar("La edición fallida conserva los permisos anteriores",
+                  roles.PermisosDeRol(idRolPrueba).Count = 1 AndAlso
+                  roles.PermisosDeRol(idRolPrueba).Contains("casos.ver"))
+
         Verificar("El servicio impide eliminar el rol Administrador",
                   Not roles.Eliminar(idRolAdmin).Exito)
         Verificar("El servicio impide quitar config.roles al Administrador",

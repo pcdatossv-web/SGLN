@@ -7,6 +7,8 @@ Imports MySql.Data.MySqlClient
 ''' Acceso a datos de roles y su relación con el catálogo de permisos.
 ''' Los candados del Administrador también existen como triggers en la base:
 ''' aquí solo se adelantan para dar un mensaje claro al usuario.
+''' Las operaciones de rol y su matriz de permisos se confirman en una sola
+''' transacción para evitar estados parciales.
 ''' </summary>
 Public Class RolRepositorio
     Inherits RepositorioBase
@@ -51,44 +53,87 @@ Public Class RolRepositorio
 
     Public Function Crear(nombre As String, descripcion As String,
                           codigos As List(Of String)) As Respuesta
-        Try
-            Dim nuevoId As Integer = InsertarYObtenerId(
-                "INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) VALUES (@nombre, @descripcion, 1, 0)",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@nombre", nombre.Trim())
-                    Parametro(comando, "@descripcion", descripcion)
-                End Sub)
+        Dim nuevoId As Integer = 0
 
-            GuardarPermisos(nuevoId, codigos)
+        Try
+            Using conexion As MySqlConnection = CrearConexion()
+                Using transaccion As MySqlTransaction = conexion.BeginTransaction()
+                    Try
+                        Using comando As New MySqlCommand(
+                            "INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) " &
+                            "VALUES (@nombre, @descripcion, 1, 0)", conexion, transaccion)
+                            Parametro(comando, "@nombre", nombre.Trim())
+                            Parametro(comando, "@descripcion", descripcion)
+                            comando.ExecuteNonQuery()
+                        End Using
+
+                        Using comandoId As New MySqlCommand("SELECT LAST_INSERT_ID()", conexion, transaccion)
+                            nuevoId = Convert.ToInt32(comandoId.ExecuteScalar())
+                        End Using
+
+                        SincronizarPermisos(conexion, transaccion, nuevoId, codigos)
+                        transaccion.Commit()
+                    Catch
+                        Revertir(transaccion)
+                        Throw
+                    End Try
+                End Using
+            End Using
+
             Auditar("CREAR", "Roles", nuevoId, "Rol " & nombre.Trim())
             Return Respuesta.Ok("Rol creado correctamente.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
+        Catch ex As MySqlException When ex.Number = 1644
+            Return Respuesta.Fallo(ex.Message)
+        Catch ex As MySqlException When ex.Number = 1452
+            Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
         End Try
     End Function
 
     Public Function Actualizar(id As Integer, nombre As String, descripcion As String,
                                activo As Boolean, codigos As List(Of String)) As Respuesta
         Try
-            Dim filas As Integer = Ejecutar(
-                "UPDATE Roles SET Nombre = @nombre, Descripcion = @descripcion, Activo = @activo " &
-                "WHERE ID = @id",
-                Sub(comando As MySqlCommand)
-                    Parametro(comando, "@nombre", nombre.Trim())
-                    Parametro(comando, "@descripcion", descripcion)
-                    Parametro(comando, "@activo", activo)
-                    Parametro(comando, "@id", id)
-                End Sub)
+            Using conexion As MySqlConnection = CrearConexion()
+                Using transaccion As MySqlTransaction = conexion.BeginTransaction()
+                    Try
+                        ' Bloquea la fila y comprueba su existencia dentro de la
+                        ' misma transacción que actualizará los permisos.
+                        Using comandoExiste As New MySqlCommand(
+                            "SELECT ID FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            Parametro(comandoExiste, "@id", id)
+                            If comandoExiste.ExecuteScalar() Is Nothing Then
+                                Return Respuesta.Fallo("El rol ya no existe.")
+                            End If
+                        End Using
 
-            If filas = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
+                        Using comando As New MySqlCommand(
+                            "UPDATE Roles SET Nombre = @nombre, Descripcion = @descripcion, Activo = @activo " &
+                            "WHERE ID = @id", conexion, transaccion)
+                            Parametro(comando, "@nombre", nombre.Trim())
+                            Parametro(comando, "@descripcion", descripcion)
+                            Parametro(comando, "@activo", activo)
+                            Parametro(comando, "@id", id)
+                            comando.ExecuteNonQuery()
+                        End Using
 
-            GuardarPermisos(id, codigos)
+                        SincronizarPermisos(conexion, transaccion, id, codigos)
+                        transaccion.Commit()
+                    Catch
+                        Revertir(transaccion)
+                        Throw
+                    End Try
+                End Using
+            End Using
+
             Auditar("MODIFICAR", "Roles", id, "Rol " & nombre.Trim())
             Return Respuesta.Ok("Rol actualizado.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As MySqlException When ex.Number = 1452
+            Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
         End Try
     End Function
 
@@ -107,66 +152,24 @@ Public Class RolRepositorio
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1451
-            ' 1451 = no se puede borrar porque tiene usuarios asignados.
-            Return Respuesta.Fallo("No se puede eliminar el rol porque tiene usuarios asignados. " &
+            Return Respuesta.Fallo("No se puede borrar el rol porque tiene usuarios asignados. " &
                                    "Cámbieles el rol o desactívelos primero.")
         End Try
     End Function
 
     ''' <summary>
-    ''' Sincroniza la matriz de permisos del rol dentro de una transacción:
-    ''' o se guarda todo, o no se cambia nada. Solo borra los permisos que
-    ''' realmente se quitaron, para no chocar con el candado del Administrador.
+    ''' Sincroniza la matriz de permisos del rol en una transacción propia.
+    ''' Se conserva este método público para operaciones puntuales y pruebas.
     ''' </summary>
     Public Function GuardarPermisos(idRol As Integer, codigos As List(Of String)) As Respuesta
-        Dim nuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
-        If codigos IsNot Nothing Then
-            For Each codigo As String In codigos
-                If Not String.IsNullOrWhiteSpace(codigo) Then nuevos.Add(codigo)
-            Next
-        End If
-
         Try
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
-                        Dim actuales As New List(Of String)()
-                        Using comando As New MySqlCommand(
-                            "SELECT Codigo FROM Rol_Permiso WHERE ID_Rol = @rol", conexion, transaccion)
-                            Parametro(comando, "@rol", idRol)
-                            Using lector As MySqlDataReader = comando.ExecuteReader()
-                                While lector.Read()
-                                    actuales.Add(lector.GetString(0))
-                                End While
-                            End Using
-                        End Using
-
-                        ' Se borran únicamente los permisos retirados: el trigger
-                        ' del Administrador bloquea quitar los dos mínimos.
-                        For Each codigo As String In actuales
-                            If nuevos.Contains(codigo) Then Continue For
-                            Using comando As New MySqlCommand(
-                                "DELETE FROM Rol_Permiso WHERE ID_Rol = @rol AND Codigo = @codigo",
-                                conexion, transaccion)
-                                Parametro(comando, "@rol", idRol)
-                                Parametro(comando, "@codigo", codigo)
-                                comando.ExecuteNonQuery()
-                            End Using
-                        Next
-
-                        For Each codigo As String In nuevos
-                            Using comando As New MySqlCommand(
-                                "INSERT IGNORE INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, @codigo)",
-                                conexion, transaccion)
-                                Parametro(comando, "@rol", idRol)
-                                Parametro(comando, "@codigo", codigo)
-                                comando.ExecuteNonQuery()
-                            End Using
-                        Next
-
+                        SincronizarPermisos(conexion, transaccion, idRol, codigos)
                         transaccion.Commit()
                     Catch
-                        transaccion.Rollback()
+                        Revertir(transaccion)
                         Throw
                     End Try
                 End Using
@@ -179,5 +182,65 @@ Public Class RolRepositorio
             Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
         End Try
     End Function
+
+    ''' <summary>
+    ''' Sincroniza permisos usando la conexión y transacción del alta/edición.
+    ''' Solo elimina los códigos retirados, respetando los triggers del rol
+    ''' Administrador. Cualquier error revierte también el cambio del rol.
+    ''' </summary>
+    Private Sub SincronizarPermisos(conexion As MySqlConnection,
+                                    transaccion As MySqlTransaction,
+                                    idRol As Integer,
+                                    codigos As List(Of String))
+
+        Dim nuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        If codigos IsNot Nothing Then
+            For Each codigo As String In codigos
+                If Not String.IsNullOrWhiteSpace(codigo) Then nuevos.Add(codigo.Trim())
+            Next
+        End If
+
+        Dim actuales As New List(Of String)()
+        Using comando As New MySqlCommand(
+            "SELECT Codigo FROM Rol_Permiso WHERE ID_Rol = @rol", conexion, transaccion)
+            Parametro(comando, "@rol", idRol)
+            Using lector As MySqlDataReader = comando.ExecuteReader()
+                While lector.Read()
+                    actuales.Add(lector.GetString(0))
+                End While
+            End Using
+        End Using
+
+        For Each codigo As String In actuales
+            If nuevos.Contains(codigo) Then Continue For
+
+            Using comando As New MySqlCommand(
+                "DELETE FROM Rol_Permiso WHERE ID_Rol = @rol AND Codigo = @codigo",
+                conexion, transaccion)
+                Parametro(comando, "@rol", idRol)
+                Parametro(comando, "@codigo", codigo)
+                comando.ExecuteNonQuery()
+            End Using
+        Next
+
+        For Each codigo As String In nuevos
+            Using comando As New MySqlCommand(
+                "INSERT INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, @codigo)",
+                conexion, transaccion)
+                Parametro(comando, "@rol", idRol)
+                Parametro(comando, "@codigo", codigo)
+                comando.ExecuteNonQuery()
+            End Using
+        Next
+    End Sub
+
+    Private Shared Sub Revertir(transaccion As MySqlTransaction)
+        Try
+            transaccion.Rollback()
+        Catch
+            ' Se conserva la excepción original si MySQL ya revirtió o cerró
+            ' la transacción al producirse el error.
+        End Try
+    End Sub
 
 End Class
