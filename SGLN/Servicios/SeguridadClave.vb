@@ -70,15 +70,28 @@ Public Module SeguridadClave
     End Function
 
     Public Function Verificar(clave As String, hashBase64 As String, saltBase64 As String) As Boolean
+        Dim requiereActualizacion As Boolean = False
+        Return Verificar(clave, hashBase64, saltBase64, requiereActualizacion)
+    End Function
+
+    ''' <summary>
+    ''' Valida tanto el formato actual como el legado e informa si la cuenta
+    ''' necesita migrar su hash después de autenticar correctamente.
+    ''' </summary>
+    Public Function Verificar(clave As String, hashBase64 As String, saltBase64 As String,
+                              ByRef requiereActualizacion As Boolean) As Boolean
+        requiereActualizacion = False
         Try
             Dim esperado As Byte() = Convert.FromBase64String(hashBase64)
             Dim salt As Byte() = Convert.FromBase64String(saltBase64)
             If esperado.Length <> LongitudHash OrElse salt.Length < 16 Then Return False
 
-            ' Primero prueba el formato vigente. Después admite hashes antiguos
-            ' para que las cuentas existentes no queden bloqueadas tras actualizar.
             If CoincideHash(clave, salt, esperado, Iteraciones, HashAlgorithmName.SHA256) Then Return True
-            Return CoincideHash(clave, salt, esperado, IteracionesLegadas, HashAlgorithmName.SHA1)
+            If CoincideHash(clave, salt, esperado, IteracionesLegadas, HashAlgorithmName.SHA1) Then
+                requiereActualizacion = True
+                Return True
+            End If
+            Return False
         Catch
             Return False
         End Try
