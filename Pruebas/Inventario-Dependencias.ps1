@@ -32,3 +32,12 @@ $inventory = foreach ($relativePath in $dependencyPaths) {
 
 Write-Host "Inventario de dependencias incluidas en SGLN:"
 $inventory | Format-List
+
+$mysqlAssemblyPath = Join-Path $PSScriptRoot "..\lib\MySql.Data.dll"
+$mysqlAssembly = [System.Reflection.Assembly]::LoadFrom((Resolve-Path $mysqlAssemblyPath).Path)
+$sslModeType = $mysqlAssembly.GetType('MySql.Data.MySqlClient.MySqlSslMode', $true)
+$sslModes = [System.Enum]::GetNames($sslModeType)
+Write-Host ("MySqlSslMode disponibles: " + ($sslModes -join ', '))
+if ($sslModes -notcontains 'VerifyFull') {
+    throw "La versión incluida de MySql.Data no ofrece VerifyFull; no se puede validar el nombre del servidor."
+}
