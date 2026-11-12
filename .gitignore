@@ -17,3 +17,7 @@ packages/
 *.log
 # Credenciales locales
 *.local.config
+
+# Salidas de compilación y pruebas en cualquier subcarpeta
+**/bin/
+**/obj/
