@@ -84,6 +84,14 @@ Public Class ConfiguracionRepositorio
                 "en App.config (clave Respaldos_RutaMySQLDump).")
         End If
 
+        Dim usuarioBackup As String = UsuarioRespaldo()
+        Dim claveBackup As String = ClaveRespaldo()
+        If String.IsNullOrWhiteSpace(claveBackup) Then
+            Throw New InvalidOperationException(
+                "No se ha configurado la contraseña de la cuenta sgln_backup. " &
+                "Configure Respaldos_Clave en App.config para este equipo.")
+        End If
+
         Dim constructor As MySqlConnectionStringBuilder = ConexionBD.ConstructorConexion()
         Dim credenciales As String = Path.Combine(
             Path.GetTempPath(), "sgln_dump_" & Guid.NewGuid().ToString("N") & ".cnf")
@@ -93,13 +101,13 @@ Public Class ConfiguracionRepositorio
             ' temporal de credenciales que se borra al terminar.
             File.WriteAllText(credenciales,
                 "[client]" & Environment.NewLine &
-                "user=" & UsuarioRespaldo() & Environment.NewLine &
-                "password=" & ClaveRespaldo() & Environment.NewLine)
+                "user=" & usuarioBackup & Environment.NewLine &
+                "password=" & claveBackup & Environment.NewLine)
 
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
                 "--host=" & constructor.Server & " --port=" & constructor.Port & " " &
-                "--single-transaction --no-tablespaces --triggers " &
+                "--single-transaction --skip-lock-tables --no-tablespaces --triggers " &
                 "--default-character-set=utf8mb4 " &
                 "--databases " & constructor.Database
 
