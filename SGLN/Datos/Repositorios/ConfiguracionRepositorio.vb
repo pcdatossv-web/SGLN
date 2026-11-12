@@ -106,19 +106,34 @@ Public Class ConfiguracionRepositorio
         Dim credenciales As String = Path.Combine(
             Path.GetTempPath(), "sgln_dump_" & Guid.NewGuid().ToString("N") & ".cnf")
 
+        Dim modoConexion As String = constructor.SslMode.ToString()
+        Dim pruebaAislada As Boolean = String.Equals(
+            ConfigurationManager.AppSettings("Conexion_IgnorarRegistro"),
+            "True", StringComparison.OrdinalIgnoreCase)
         Dim modoSslDump As String = ""
-        Select Case constructor.SslMode.ToString()
+        Dim requiereCertificadoCa As Boolean = True
+
+        Select Case modoConexion
             Case "VerifyCA"
                 modoSslDump = "VERIFY_CA"
             Case "VerifyFull"
                 ' mysqldump usa VERIFY_IDENTITY para validar CA y nombre DNS/IP.
                 modoSslDump = "VERIFY_IDENTITY"
+            Case "Preferred"
+                If Not pruebaAislada Then
+                    Throw New InvalidOperationException(
+                        "El respaldo normal requiere VerifyCA o VerifyFull. Preferred solo se admite en la base aislada de pruebas.")
+                End If
+                ' La batería funcional usa una base desechable local sin exigir TLS.
+                modoSslDump = "PREFERRED"
+                requiereCertificadoCa = False
             Case Else
-                Throw New InvalidOperationException(
-                    "El respaldo requiere TLS con validación de CA y del servidor. Configure VerifyCA o VerifyFull.")
+                Throw New InvalidOperationException("El modo TLS configurado no está permitido para respaldos.")
         End Select
+
         Dim certificadoCa As String = Convert.ToString(constructor("SslCa"))
-        If String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa) Then
+        If requiereCertificadoCa AndAlso
+           (String.IsNullOrWhiteSpace(certificadoCa) OrElse Not File.Exists(certificadoCa)) Then
             Throw New InvalidOperationException("No se encontró el certificado CA configurado para validar TLS en el respaldo.")
         End If
 
@@ -162,10 +177,18 @@ Public Class ConfiguracionRepositorio
             Dim sslArgumentos As String
             If EsClienteMariaDB(ejecutable) Then
                 ' MariaDB usa --ssl-verify-server-cert; no reconoce --ssl-mode de MySQL.
-                ' Su verificación incluye la identidad del servidor y es más estricta que VerifyCA.
-                sslArgumentos = "--ssl --ssl-ca=""" & certificadoCa & """ --ssl-verify-server-cert "
+                If modoConexion = "Preferred" AndAlso pruebaAislada Then
+                    sslArgumentos = "--disable-ssl "
+                Else
+                    ' Verifica CA e identidad del servidor; es más estricto que VerifyCA.
+                    sslArgumentos = "--ssl --ssl-ca=""" & certificadoCa & """ --ssl-verify-server-cert "
+                End If
             Else
-                sslArgumentos = "--ssl-mode=" & modoSslDump & " --ssl-ca=""" & certificadoCa & """ "
+                sslArgumentos = "--ssl-mode=" & modoSslDump
+                If requiereCertificadoCa Then
+                    sslArgumentos &= " --ssl-ca=""" & certificadoCa & """"
+                End If
+                sslArgumentos &= " "
             End If
             Dim argumentos As String =
                 "--defaults-extra-file=""" & credenciales & """ " &
