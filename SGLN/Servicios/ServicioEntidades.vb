@@ -52,8 +52,13 @@ Public Class ServicioEntidades
 
     Public Function Desactivar(id As Integer) As Respuesta
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una entidad.")
-        _repositorio.Desactivar(id)
-        Return Respuesta.Ok("Entidad desactivada.")
+        Try
+            _repositorio.Desactivar(id)
+            Return Respuesta.Ok("Entidad desactivada.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Entidades - desactivar", ex)
+            Return Respuesta.Fallo("No se pudo desactivar la entidad: " & ex.Message)
+        End Try
     End Function
 
     Public Function Representantes(idEntidad As Integer) As DataTable
