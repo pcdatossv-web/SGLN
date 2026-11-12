@@ -121,7 +121,7 @@ Public NotInheritable Class Permisos
     ''' cerrar libro, reportar a la UIF, respaldar, etc.).
     ''' </summary>
     Public Shared Function ExigirAccion(codigo As String) As Boolean
-        If Puede(codigo) Then Return True
+        If TieneAcceso(codigo) Then Return True
 
         Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para realizar esta acción.")
         Return False
