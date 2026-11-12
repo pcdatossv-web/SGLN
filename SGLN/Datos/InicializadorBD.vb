@@ -10,7 +10,7 @@ Imports MySql.Data.MySqlClient
 ''' <summary>
 ''' Prepara la base MySQL al iniciar: verifica la conexión, instala el esquema
 ''' si la base está vacía (solo posible si el usuario tiene permisos DDL) y
-''' siembra los datos mínimos (administrador, feriados, catálogos, configuración).
+''' siembra catálogos y configuración. La primera cuenta administradora se registra mediante el asistente inicial.
 '''
 ''' En producción el usuario sgln_app solo tiene SELECT, INSERT, UPDATE y DELETE;
 ''' por eso la instalación normal la hace un administrador con
