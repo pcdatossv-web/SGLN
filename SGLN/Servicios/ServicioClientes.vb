@@ -41,8 +41,13 @@ Public Class ServicioClientes
 
     Public Function Desactivar(id As Integer) As Respuesta
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
-        _repositorio.Desactivar(id)
-        Return Respuesta.Ok("Cliente desactivado.")
+        Try
+            _repositorio.Desactivar(id)
+            Return Respuesta.Ok("Cliente desactivado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Clientes - desactivar", ex)
+            Return Respuesta.Fallo("No se pudo desactivar el cliente: " & ex.Message)
+        End Try
     End Function
 
     Private Function Validar(cliente As Cliente, perfil As PerfilLdaft) As String
