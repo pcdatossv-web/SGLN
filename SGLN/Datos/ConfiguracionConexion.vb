@@ -17,6 +17,8 @@ Public Class DatosConexion
     Public Property BaseDatos As String = "sgln_sv"
     Public Property Usuario As String = "sgln_app"
     Public Property Password As String = ""
+    Public Property UsuarioRespaldo As String = "sgln_backup"
+    Public Property PasswordRespaldo As String = ""
     ' De dónde se leyó: HKLM, HKCU, App.config o Defecto.
     Public Property Origen As String = ""
 
@@ -28,6 +30,8 @@ Public Class DatosConexion
             .BaseDatos = BaseDatos,
             .Usuario = Usuario,
             .Password = Password,
+            .UsuarioRespaldo = UsuarioRespaldo,
+            .PasswordRespaldo = PasswordRespaldo,
             .Origen = Origen
         }
     End Function
@@ -74,6 +78,8 @@ Public Class ConfiguracionConexion
     Private Const ValorBaseDatos As String = "BaseDatos"
     Private Const ValorUsuario As String = "Usuario"
     Private Const ValorPassword As String = "Password"
+    Private Const ValorUsuarioRespaldo As String = "RespaldosUsuario"
+    Private Const ValorPasswordRespaldo As String = "RespaldosPassword"
     Private Const ValorActualizado As String = "Actualizado"
 
     ' Entropía fija: evita que el blob cifrado se pueda descifrar en otro equipo.
@@ -242,6 +248,8 @@ Public Class ConfiguracionConexion
         datos.BaseDatos = Convert.ToString(clave.GetValue(ValorBaseDatos, "sgln_sv"))
         datos.Usuario = Convert.ToString(clave.GetValue(ValorUsuario, "sgln_app"))
         datos.Password = Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")))
+        datos.UsuarioRespaldo = Convert.ToString(clave.GetValue(ValorUsuarioRespaldo, "sgln_backup"))
+        datos.PasswordRespaldo = Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")))
         Return datos
     End Function
 
@@ -256,6 +264,8 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorBaseDatos, datos.BaseDatos.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorUsuario, datos.Usuario.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorPassword, Cifrar(datos.Password), RegistryValueKind.String)
+                    clave.SetValue(ValorUsuarioRespaldo, datos.UsuarioRespaldo.Trim(), RegistryValueKind.String)
+                    clave.SetValue(ValorPasswordRespaldo, Cifrar(datos.PasswordRespaldo), RegistryValueKind.String)
                     clave.SetValue(ValorActualizado, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), RegistryValueKind.String)
                     Return True
                 End Using
@@ -365,6 +375,9 @@ Public Class ConfiguracionConexion
             datos.BaseDatos = If(String.IsNullOrWhiteSpace(constructor.Database), "sgln_sv", constructor.Database)
             datos.Usuario = constructor.UserID
             datos.Password = constructor.Password
+            datos.UsuarioRespaldo = If(String.IsNullOrWhiteSpace(ConfigurationManager.AppSettings("Respaldos_Usuario")),
+                                       "sgln_backup", ConfigurationManager.AppSettings("Respaldos_Usuario"))
+            datos.PasswordRespaldo = If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
             Return datos
         Catch ex As Exception
             RegistroErrores.Escribir("ConfiguracionConexion.LeerAppConfig", ex)
