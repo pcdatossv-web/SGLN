@@ -48,7 +48,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
 /* ------------------------------------------------------------------
    Usuario exclusivo de respaldos. No puede modificar datos.
    Si el respaldo se ejecuta desde otro equipo, cree su cuenta con la IP
-   exacta de ese equipo y los mismos privilegios de solo lectura.
+   exacta de ese equipo, exija SSL y otorgue los mismos privilegios:
+     CREATE USER 'sgln_backup'@'192.168.1.25' IDENTIFIED BY RANDOM PASSWORD;
+     ALTER USER 'sgln_backup'@'192.168.1.25' REQUIRE SSL;
+     GRANT SELECT, SHOW VIEW, TRIGGER ON sgln_sv.* TO 'sgln_backup'@'192.168.1.25';
    ------------------------------------------------------------------ */
 
 CREATE USER IF NOT EXISTS 'sgln_backup'@'localhost';
