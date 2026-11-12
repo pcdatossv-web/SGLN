@@ -24,11 +24,19 @@ Public Class UsuarioRepositorio
         If tabla.Rows.Count = 0 Then Return Nothing
 
         Dim fila As DataRow = tabla.Rows(0)
+        Dim idUsuario As Integer = Convert.ToInt32(fila("ID"))
+        If EstaBloqueado(idUsuario) Then Return Nothing
+
         Dim hash As String = Convert.ToString(fila("Clave_Hash"))
         Dim salt As String = Convert.ToString(fila("Clave_Salt"))
 
         Dim requiereActualizacionHash As Boolean = False
-        If Not SeguridadClave.Verificar(clave, hash, salt, requiereActualizacionHash) Then Return Nothing
+        If Not SeguridadClave.Verificar(clave, hash, salt, requiereActualizacionHash) Then
+            RegistrarIntentoFallido(idUsuario, Convert.ToString(fila("Usuario")))
+            Return Nothing
+        End If
+
+        RestablecerIntentos(idUsuario, Convert.ToString(fila("Usuario")))
 
         If requiereActualizacionHash Then
             ' Migra silenciosamente hashes SHA1 antiguos al formato SHA256 actual.
@@ -59,6 +67,84 @@ Public Class UsuarioRepositorio
         Auditar(sesion.Usuario, "INGRESO", "Usuarios", sesion.ID, "Inicio de sesión")
         Return sesion
     End Function
+
+    Private Function EstaBloqueado(idUsuario As Integer) As Boolean
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Intentos_Acceso " &
+            "WHERE Usuario_ID = @id AND Bloqueado_Hasta > NOW()",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", idUsuario)
+            End Sub) > 0
+    End Function
+
+    ''' <summary>Registra intentos fallidos en una ventana de 15 minutos y bloquea al quinto.</summary>
+    Private Sub RegistrarIntentoFallido(idUsuario As Integer, usuario As String)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Using insertar As New MySqlCommand(
+                    "INSERT IGNORE INTO Intentos_Acceso " &
+                    "(Usuario_ID, Usuario, Intentos, Inicio_Ventana, Ultimo_Intento, Bloqueado_Hasta) " &
+                    "VALUES (@id, @usuario, 0, NULL, NULL, NULL)", conexion, transaccion)
+                    Parametro(insertar, "@id", idUsuario)
+                    Parametro(insertar, "@usuario", usuario)
+                    insertar.ExecuteNonQuery()
+                End Using
+
+                Dim intentos As Integer = 0
+                Dim inicioVentana As DateTime? = Nothing
+                Dim ahora As DateTime = DateTime.Now
+
+                Using consultar As New MySqlCommand(
+                    "SELECT Intentos, Inicio_Ventana, NOW() AS Ahora " &
+                    "FROM Intentos_Acceso WHERE Usuario_ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", idUsuario)
+                    Using lector As MySqlDataReader = consultar.ExecuteReader()
+                        If Not lector.Read() Then
+                            Throw New InvalidOperationException("No se pudo bloquear el registro de intentos de acceso.")
+                        End If
+                        intentos = Convert.ToInt32(lector("Intentos"))
+                        If Not lector.IsDBNull(1) Then inicioVentana = Convert.ToDateTime(lector("Inicio_Ventana"))
+                        ahora = Convert.ToDateTime(lector("Ahora"))
+                    End Using
+                End Using
+
+                If Not inicioVentana.HasValue OrElse inicioVentana.Value < ahora.AddMinutes(-15) Then
+                    intentos = 1
+                    inicioVentana = ahora
+                Else
+                    intentos += 1
+                End If
+
+                Dim bloqueo As Object = DBNull.Value
+                If intentos >= 5 Then bloqueo = ahora.AddMinutes(15)
+
+                Ejecutar(conexion, transaccion,
+                    "UPDATE Intentos_Acceso SET Usuario = @usuario, Intentos = @intentos, " &
+                    "Inicio_Ventana = @inicio, Ultimo_Intento = @ahora, Bloqueado_Hasta = @bloqueo " &
+                    "WHERE Usuario_ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@usuario", usuario)
+                        Parametro(comando, "@intentos", intentos)
+                        Parametro(comando, "@inicio", inicioVentana.Value)
+                        Parametro(comando, "@ahora", ahora)
+                        Parametro(comando, "@bloqueo", bloqueo)
+                        Parametro(comando, "@id", idUsuario)
+                    End Sub)
+                Return intentos
+            End Function)
+    End Sub
+
+    Private Sub RestablecerIntentos(idUsuario As Integer, usuario As String)
+        Ejecutar(
+            "UPDATE Intentos_Acceso SET Usuario = @usuario, Intentos = 0, " &
+            "Inicio_Ventana = NULL, Ultimo_Intento = NOW(), Bloqueado_Hasta = NULL " &
+            "WHERE Usuario_ID = @id",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@usuario", usuario)
+                Parametro(comando, "@id", idUsuario)
+            End Sub)
+    End Sub
 
     Public Function Listar() As DataTable
         Return Consultar(
@@ -314,7 +400,7 @@ Public Class UsuarioRepositorio
                     Dim columnasTexto As New List(Of String())()
                     Using cmd As New MySqlCommand(
                         "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " &
-                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME NOT IN ('Usuarios', 'Audit_Log') " &
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME NOT IN ('Usuarios', 'Audit_Log', 'Intentos_Acceso') " &
                         "AND DATA_TYPE IN ('char','varchar','tinytext','text','mediumtext','longtext') " &
                         "AND COLUMN_NAME REGEXP 'Usuario|Responsable|Creado|Modificado|Autor|Asignado|Propietario|Firmante|Confirma'",
                         conexion, transaccion)

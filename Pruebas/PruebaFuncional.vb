@@ -184,6 +184,23 @@ Module PruebaFuncional
         Verificar("La sesión del administrador tiene acceso total", Permisos.AccesoTotal)
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
 
+        If idRolAbogado > 0 Then
+            Dim usuarioBloqueo As String = "bloq" & Guid.NewGuid().ToString("N").Substring(0, 8)
+            Dim altaUsuarioBloqueo As Respuesta = servicioUsuarios.Crear(
+                usuarioBloqueo, "Usuario temporal de bloqueo", "BloqueoClave99!", idRolAbogado, True)
+            Verificar("Se crea una cuenta aislada para probar el bloqueo por intentos fallidos", altaUsuarioBloqueo.Exito)
+
+            If altaUsuarioBloqueo.Exito Then
+                For intento As Integer = 1 To 5
+                    If usuarios.Autenticar(usuarioBloqueo, "Incorrecta99!") IsNot Nothing Then
+                        Throw New Exception("Se aceptó una clave incorrecta durante la prueba de bloqueo.")
+                    End If
+                Next
+                Verificar("Cinco intentos fallidos bloquean incluso un ingreso con la clave correcta",
+                          usuarios.Autenticar(usuarioBloqueo, "BloqueoClave99!") Is Nothing)
+            End If
+        End If
+
         Permisos.Cargar(idRolAbogado, False)
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))

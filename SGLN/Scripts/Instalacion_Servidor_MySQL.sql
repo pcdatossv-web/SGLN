@@ -19,7 +19,8 @@
 
    Si sgln_sv YA existía antes de esta versión, ejecutar además UNA VEZ:
      mysql -u root -p sgln_sv < Migracion_Integridad_Clientes_LDAFT.sql
-   No ejecutar esa migración en bases nuevas: el esquema ya incluye la regla.
+     mysql -u root -p sgln_sv < Migracion_Seguridad_Acceso.sql
+   La migración de seguridad crea la tabla de control de intentos fallidos.
 
    Las cuentas se crean con contraseñas aleatorias que MySQL muestra en
    la salida de este script. Guarde esos valores en la configuración del

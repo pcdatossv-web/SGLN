@@ -137,6 +137,12 @@ Public Module InicializadorBD
                 "El catálogo de permisos está vacío. Ejecute Scripts\Esquema_MySQL.sql " &
                 "con un usuario administrador.")
         End If
+
+        If Not TablaExiste("Intentos_Acceso") Then
+            Throw New InvalidOperationException(
+                "Falta la tabla de protección contra intentos de acceso. " &
+                "Un administrador debe ejecutar Scripts\Migracion_Seguridad_Acceso.sql con permisos DDL.")
+        End If
     End Sub
 
     Private Sub SembrarDatosIniciales()
