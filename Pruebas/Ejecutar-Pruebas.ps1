@@ -70,17 +70,13 @@ if ($cadena -notmatch 'Database=sgln_sv_pruebas') {
 $servidor = 'localhost'
 $puerto = '3306'
 $usuarioApp = 'sgln_test_app'
-$claveApp = ''
 if ($cadena -match 'Server=([^;]+)') { $servidor = $Matches[1].Trim() }
 if ($cadena -match 'Port=([^;]+)') { $puerto = $Matches[1].Trim() }
 if ($cadena -match 'Uid=([^;]+)') { $usuarioApp = $Matches[1].Trim() }
-if ($cadena -match 'Pwd=([^;]+)') { $claveApp = $Matches[1] }
 
 $usuarioRespaldo = 'sgln_test_backup'
-$claveRespaldo = ''
 foreach ($ajuste in $xmlConfig.configuration.appSettings.add) {
     if ($ajuste.key -eq 'Respaldos_Usuario') { $usuarioRespaldo = $ajuste.value }
-    if ($ajuste.key -eq 'Respaldos_Clave') { $claveRespaldo = $ajuste.value }
 }
 
 # Credenciales aleatorias y exclusivas de esta base temporal. Nunca se reutilizan
