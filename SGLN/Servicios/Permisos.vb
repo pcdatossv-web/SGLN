@@ -69,7 +69,31 @@ Public NotInheritable Class Permisos
 
     ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
     Public Shared Function TieneAcceso(codigo As String) As Boolean
-        Return Sesion.UsuarioActual IsNot Nothing AndAlso Puede(codigo)
+        Dim sesion As UsuarioSesion = Sesion.UsuarioActual
+        If sesion Is Nothing OrElse sesion.ID <= 0 Then Return False
+
+        Try
+            ' Revalidar estado y rol en la base evita conservar permisos de una
+            ' cuenta desactivada o de un rol cuyos permisos fueron modificados.
+            Dim estado As UsuarioSesion = New UsuarioRepositorio().ObtenerEstadoSesion(sesion.ID)
+            If estado Is Nothing Then
+                Sesion.Limpiar()
+                Return False
+            End If
+
+            sesion.Usuario = estado.Usuario
+            sesion.NombreCompleto = estado.NombreCompleto
+            sesion.IDRol = estado.IDRol
+            sesion.Rol = estado.Rol
+            sesion.RolProtegido = estado.RolProtegido
+
+            Cargar(estado.IDRol, estado.RolProtegido)
+            Return Puede(codigo)
+        Catch ex As Exception
+            ' Si no se puede comprobar la sesión, se deniega la operación.
+            RegistroErrores.Escribir("Permisos - validar sesión", ex)
+            Return False
+        End Try
     End Function
 
     Public Shared Function Puede(codigo As String) As Boolean
@@ -84,7 +108,7 @@ Public NotInheritable Class Permisos
     ''' motivo: el formulario debe salir de su Load sin continuar.
     ''' </summary>
     Public Shared Function Exigir(codigo As String, formulario As Form) As Boolean
-        If Puede(codigo) Then Return True
+        If TieneAcceso(codigo) Then Return True
 
         Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para abrir esta opción." & Environment.NewLine &
                "Solicite el acceso al administrador del sistema.")

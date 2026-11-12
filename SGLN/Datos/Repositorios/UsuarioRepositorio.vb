@@ -76,6 +76,31 @@ Public Class UsuarioRepositorio
             End Sub)
     End Function
 
+    ''' <summary>Obtiene el estado vigente de una cuenta para revalidar una sesión.</summary>
+    Public Function ObtenerEstadoSesion(id As Integer) As UsuarioSesion
+        If id <= 0 Then Return Nothing
+
+        Dim tabla As DataTable = Consultar(
+            "SELECT u.ID, u.Usuario, u.Nombre_Completo, r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
+            "FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+            "WHERE u.ID = @id AND u.Activo = 1 AND r.Activo = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", id)
+            End Sub)
+
+        If tabla.Rows.Count = 0 Then Return Nothing
+
+        Dim fila As DataRow = tabla.Rows(0)
+        Return New UsuarioSesion With {
+            .ID = Convert.ToInt32(fila("ID")),
+            .Usuario = Convert.ToString(fila("Usuario")),
+            .NombreCompleto = Convert.ToString(fila("Nombre_Completo")),
+            .IDRol = Convert.ToInt32(fila("ID_Rol")),
+            .Rol = Convert.ToString(fila("Rol")),
+            .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1
+        }
+    End Function
+
     Public Function Crear(usuario As String, nombreCompleto As String, clave As String,
                           idRol As Integer, activo As Boolean) As Respuesta
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
@@ -204,8 +229,8 @@ Public Class UsuarioRepositorio
     ''' transacción serializable. Conserva el evento CREAR de la bitácora.
     ''' </summary>
     Public Function EliminarSiNoTieneHistorial(id As Integer) As Respuesta
-        If Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido OrElse
-           Not Permisos.AccesoTotal Then
+        If Not Permisos.TieneAcceso("config.usuarios") OrElse Sesion.UsuarioActual Is Nothing OrElse
+           Not Sesion.UsuarioActual.RolProtegido Then
             Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
         End If
 

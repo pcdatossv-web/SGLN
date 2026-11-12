@@ -110,8 +110,8 @@ Public Class ServicioUsuarios
 
     ''' <summary>Eliminación física excepcional reservada al administrador autenticado.</summary>
     Public Function EliminarDefinitivamente(id As Integer) As Respuesta
-        If Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido OrElse
-           Not Permisos.AccesoTotal Then
+        If Not Permisos.TieneAcceso("config.usuarios") OrElse Sesion.UsuarioActual Is Nothing OrElse
+           Not Sesion.UsuarioActual.RolProtegido Then
             Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
         End If
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")

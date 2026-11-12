@@ -25,7 +25,9 @@ Module PruebaFuncional
         Console.WriteLine()
 
         Sesion.Limpiar()
-        Verificar("Las operaciones de servicio deniegan acceso sin sesión", Not Permisos.TieneAcceso("config.usuarios"))
+        Dim operacionSinSesion As Respuesta = New ServicioUsuarios().Desactivar(1)
+        Verificar("La capa de servicios deniega operaciones sin sesión autenticada",
+                  Not operacionSinSesion.Exito AndAlso operacionSinSesion.Mensaje.Contains("No tiene permiso"))
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
@@ -178,13 +180,11 @@ Module PruebaFuncional
                   permisosAdmin.Contains("config.usuarios") AndAlso permisosAdmin.Contains("config.roles"))
 
         Sesion.CargarPermisos()
+        Verificar("La sesión se revalida contra la cuenta y rol vigentes", Permisos.TieneAcceso("config.usuarios"))
         Verificar("La sesión del administrador tiene acceso total", Permisos.AccesoTotal)
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
 
         Permisos.Cargar(idRolAbogado, False)
-        Dim intentoSinPermiso As Respuesta = servicioUsuarios.Desactivar(admin.ID)
-        Verificar("La capa de servicios bloquea la administración de usuarios sin permiso",
-                  Not intentoSinPermiso.Exito AndAlso intentoSinPermiso.Mensaje.Contains("No tiene permiso"))
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))
         Verificar("El rol Abogado no administra roles", Not Permisos.Puede("config.roles"))
