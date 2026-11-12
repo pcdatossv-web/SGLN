@@ -83,6 +83,10 @@ Module PruebaFuncional
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave inicial no puede reutilizarse como nueva",
                   SeguridadClave.ValidarClaveNuevaInicial("Admin123*") <> "")
+        Verificar("La política común rechaza claves de 8 a 11 caracteres",
+                  SeguridadClave.ValidarClaveNuevaInicial("Prueba123*") <> "")
+        Verificar("La política común rechaza claves sin símbolo",
+                  SeguridadClave.ValidarClaveNuevaInicial("PruebaSegura123") <> "")
 
         ' Compatibilidad de hashes PBKDF2-SHA1 creados por versiones anteriores.
         Dim saltLegado(15) As Byte
