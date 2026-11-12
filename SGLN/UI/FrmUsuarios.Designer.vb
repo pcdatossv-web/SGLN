@@ -36,6 +36,7 @@ Partial Class FrmUsuarios
         Me.btnRestablecer = New System.Windows.Forms.Button()
         Me.lblNotaClave = New System.Windows.Forms.Label()
         Me.btnDesactivar = New System.Windows.Forms.Button()
+        Me.btnEliminar = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         CType(Me.dgvUsuarios, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grpDatos.SuspendLayout()
@@ -229,6 +230,16 @@ Partial Class FrmUsuarios
         Me.btnDesactivar.Text = "Desactivar usuario"
         Me.btnDesactivar.UseVisualStyleBackColor = True
         '
+
+        ' btnEliminar
+        '
+        Me.btnEliminar.Location = New System.Drawing.Point(930, 485)
+        Me.btnEliminar.Name = "btnEliminar"
+        Me.btnEliminar.Size = New System.Drawing.Size(243, 32)
+        Me.btnEliminar.TabIndex = 5
+        Me.btnEliminar.Text = "Eliminar definitivamente"
+        Me.btnEliminar.UseVisualStyleBackColor = True
+        Me.btnEliminar.Enabled = False
         ' lblMensaje
         '
         Me.lblMensaje.Location = New System.Drawing.Point(715, 530)
@@ -242,6 +253,7 @@ Partial Class FrmUsuarios
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1185, 700)
         Me.Controls.Add(Me.lblMensaje)
+        Me.Controls.Add(Me.btnEliminar)
         Me.Controls.Add(Me.btnDesactivar)
         Me.Controls.Add(Me.grpClave)
         Me.Controls.Add(Me.grpDatos)
@@ -278,5 +290,6 @@ Partial Class FrmUsuarios
     Friend WithEvents btnRestablecer As System.Windows.Forms.Button
     Friend WithEvents lblNotaClave As System.Windows.Forms.Label
     Friend WithEvents btnDesactivar As System.Windows.Forms.Button
+    Friend WithEvents btnEliminar As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
 End Class
