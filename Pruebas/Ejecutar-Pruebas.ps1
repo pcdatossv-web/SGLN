@@ -194,6 +194,8 @@ try {
 
     Write-Host 'Ajustando usuarios y permisos sobre la base de pruebas...' -ForegroundColor Cyan
     Invoke-MySqlCommand (
+        "DROP USER IF EXISTS '$usuarioApp'@'%'; " +
+        "DROP USER IF EXISTS '$usuarioRespaldo'@'%'; " +
         "CREATE USER IF NOT EXISTS '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
         "ALTER USER '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
         "CREATE USER IF NOT EXISTS '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
