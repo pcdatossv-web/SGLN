@@ -20,8 +20,6 @@ Imports MySql.Data.MySqlClient
 Public Module InicializadorBD
 
     Private Const RecursoEsquema As String = "SGLN.Esquema_MySQL.sql"
-    Private Const ClaveAdminInicial As String = "Admin123*"
-
     Public Sub AsegurarBaseDeDatos()
         VerificarConexion()
         If Not TablaExiste("Roles") Then InstalarEsquema()
@@ -154,7 +152,7 @@ Public Module InicializadorBD
         If EscalarEntero("SELECT COUNT(*) FROM Usuarios") > 0 Then Return
 
         Dim idRol As Integer = EscalarEntero("SELECT ID FROM Roles WHERE Protegido = 1 LIMIT 1")
-        Dim credencial As SalHash = SeguridadClave.CrearHash(ClaveAdminInicial)
+        Dim credencial As SalHash = SeguridadClave.CrearHash(SeguridadClave.ClaveInicialAdministrador)
 
         Ejecutar(
             "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
