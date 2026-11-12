@@ -222,7 +222,7 @@ Module PruebaFuncional
                       New List(Of String) From {"config.roles"}).Exito)
 
         Dim rUsuarioPrueba As Respuesta = servicioUsuarios.Crear(
-            "pruebauser", "Usuario de Prueba", "Prueba123*", idRolPrueba, True)
+            "pruebauser", "Usuario de Prueba", "PruebaSegura123!", idRolPrueba, True)
         Verificar("Crear un usuario con el rol nuevo", rUsuarioPrueba.Exito, rUsuarioPrueba.Mensaje)
 
         Dim idUsuarioPrueba As Integer = 0
@@ -241,18 +241,18 @@ Module PruebaFuncional
         Verificar("Cambiar clave de un usuario inexistente se rechaza",
                   Not claveUsuarioInexistente.Exito)
 
-        Dim sesionPrueba As UsuarioSesion = usuarios.Autenticar("pruebauser", "Prueba123*")
+        Dim sesionPrueba As UsuarioSesion = usuarios.Autenticar("pruebauser", "PruebaSegura123!")
         Verificar("El usuario nuevo puede iniciar sesión", sesionPrueba IsNot Nothing)
         Verificar("La sesión del usuario nuevo trae su rol y no es protegido",
                   sesionPrueba IsNot Nothing AndAlso
                   sesionPrueba.IDRol = idRolPrueba AndAlso Not sesionPrueba.RolProtegido)
 
         Verificar("Un nombre de acceso demasiado corto se rechaza",
-                  Not servicioUsuarios.Crear("ab", "X", "Prueba123*", idRolPrueba, True).Exito)
-        Verificar("Una clave de menos de 8 caracteres se rechaza",
+                  Not servicioUsuarios.Crear("ab", "X", "PruebaSegura123!", idRolPrueba, True).Exito)
+        Verificar("Una clave que no cumple la política robusta se rechaza",
                   Not servicioUsuarios.Crear("otro.usuario", "X", "corta", idRolPrueba, True).Exito)
         Verificar("Un usuario duplicado se rechaza con mensaje",
-                  Not servicioUsuarios.Crear("pruebauser", "X", "Prueba123*", idRolPrueba, True).Exito)
+                  Not servicioUsuarios.Crear("pruebauser", "X", "PruebaSegura123!", idRolPrueba, True).Exito)
 
         Verificar("El rol con usuarios asignados no se puede desactivar",
                   Not roles.Actualizar(idRolPrueba, "Rol de prueba editado", "x", False,
