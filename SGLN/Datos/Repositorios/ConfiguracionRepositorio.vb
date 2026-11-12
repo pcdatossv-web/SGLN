@@ -89,7 +89,7 @@ Public Class ConfiguracionRepositorio
         If String.IsNullOrWhiteSpace(claveBackup) Then
             Throw New InvalidOperationException(
                 "No se ha configurado la contraseña de la cuenta sgln_backup. " &
-                "Configure Respaldos_Clave en App.config para este equipo.")
+                "Abra Configurar servidor de base de datos y registre la clave de la cuenta de respaldos.")
         End If
 
         Dim constructor As MySqlConnectionStringBuilder = ConexionBD.ConstructorConexion()
