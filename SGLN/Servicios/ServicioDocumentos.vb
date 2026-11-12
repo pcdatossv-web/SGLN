@@ -69,8 +69,10 @@ Public Class ServicioDocumentos
                 Guid.NewGuid().ToString("N").Substring(0, 8) & extension.ToLowerInvariant()
             rutaDestino = Path.Combine(carpeta, nombreDestino)
 
-            Dim hash As String = CalcularHashSha256(rutaOrigen)
+            ' Se calcula el hash sobre la copia final, no sobre el origen:
+            ' evita registrar un hash distinto si el archivo cambia durante la copia.
             File.Copy(rutaOrigen, rutaDestino)
+            Dim hash As String = CalcularHashSha256(rutaDestino)
 
             Dim documento As New Documento With {
                 .TipoDocumento = tipoDocumento.Trim(),
@@ -157,10 +159,25 @@ Public Class ServicioDocumentos
         Return carpeta
     End Function
 
+    ''' <summary>
+    ''' Resuelve una ruta almacenada y rechaza rutas relativas que intenten
+    ''' salir de la carpeta documental. Las rutas absolutas heredadas solo se
+    ''' aceptan si permanecen dentro de la carpeta documental configurada.
+    ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
         If String.IsNullOrWhiteSpace(rutaRegistrada) Then Return ""
-        If Path.IsPathRooted(rutaRegistrada) Then Return rutaRegistrada
-        Return Path.Combine(Application.StartupPath, rutaRegistrada)
+
+        Dim base As String = Path.GetFullPath(RutaBaseDocumentos()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        Dim destino As String = If(Path.IsPathRooted(rutaRegistrada),
+                                   Path.GetFullPath(rutaRegistrada),
+                                   Path.GetFullPath(Path.Combine(Application.StartupPath, rutaRegistrada)))
+        Dim prefijo As String = base & Path.DirectorySeparatorChar
+
+        If Not destino.StartsWith(prefijo, StringComparison.OrdinalIgnoreCase) AndAlso
+           Not String.Equals(destino, base, StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("La ruta del documento está fuera de la carpeta documental autorizada.")
+        End If
+        Return destino
     End Function
 
     Private Function RutaRelativa(rutaAbsoluta As String) As String
