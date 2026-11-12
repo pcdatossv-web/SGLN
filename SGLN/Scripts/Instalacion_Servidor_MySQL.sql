@@ -6,8 +6,7 @@
 
    Este script:
      1. Crea la base sgln_sv (utf8mb4).
-     2. Crea el usuario de la aplicacion sgln_app con permisos DML
-        (SELECT, INSERT, UPDATE, DELETE).
+     2. Crea el usuario sgln_app; los permisos se aplican por tabla después de crear el esquema.
      3. Crea el usuario de respaldos sgln_backup para mysqldump.
      4. Exige TLS para ambas cuentas; MySQL debe tener certificados activos.
       MySQL 8 genera ca.pem en el directorio de datos cuando TLS está disponible.
@@ -16,11 +15,14 @@
    Despues, en este orden y con el mismo root:
      mysql -u root -p sgln_sv < Esquema_MySQL.sql
      mysql -u root -p sgln_sv < Triggers_MySQL.sql
+     mysql -u root -p sgln_sv < Privilegios_Minimos.sql
 
    Si sgln_sv YA existía antes de esta versión, ejecutar además UNA VEZ:
      mysql -u root -p sgln_sv < Migracion_Integridad_Clientes_LDAFT.sql
      mysql -u root -p sgln_sv < Migracion_Seguridad_Acceso.sql
    La migración de seguridad crea la tabla de control de intentos fallidos.
+   Aplique también Privilegios_Minimos.sql para retirar permisos DELETE globales
+   de cuentas sgln_app anteriores.
 
    Las cuentas se crean con contraseñas aleatorias que MySQL muestra en
    la salida de este script. Guarde esos valores en la configuración del
@@ -39,8 +41,9 @@ CREATE DATABASE IF NOT EXISTS sgln_sv
    Para clientes remotos, cree una cuenta adicional usando la IP exacta:
      CREATE USER 'sgln_app'@'192.168.1.25' IDENTIFIED BY RANDOM PASSWORD;
      ALTER USER 'sgln_app'@'192.168.1.25' REQUIRE SSL;
-     GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'192.168.1.25';
-   Repita con cada IP autorizada. No utilice el host comodín.
+   Después de crear el esquema, copie Privilegios_Minimos.sql, sustituya
+   en ese archivo 'localhost' por la IP exacta (por ejemplo '192.168.1.25')
+   y ejecútelo como root. Repita para cada IP autorizada. No utilice '%'.
    Este instalador se ejecuta una sola vez; no vuelve a mostrar contraseñas
    de cuentas que ya existen.
    ------------------------------------------------------------------ */
@@ -52,7 +55,8 @@ CREATE USER IF NOT EXISTS 'sgln_app'@'localhost';
 ALTER USER 'sgln_app'@'localhost' IDENTIFIED BY RANDOM PASSWORD;
 ALTER USER 'sgln_app'@'localhost' REQUIRE SSL;
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'sgln_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON sgln_sv.* TO 'sgln_app'@'localhost';
+/* Los permisos de tabla se aplican después de crear el esquema mediante
+   Scripts/Privilegios_Minimos.sql. No otorgar DELETE global ni DDL. */
 
 /* ------------------------------------------------------------------
    Usuario exclusivo de respaldos. No puede modificar datos.

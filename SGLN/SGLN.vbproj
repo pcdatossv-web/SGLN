@@ -210,6 +210,7 @@
     <None Include="Scripts\Instalacion_Servidor_MySQL.sql" />
     <None Include="Scripts\Migracion_Integridad_Clientes_LDAFT.sql" />
     <None Include="Scripts\Migracion_Seguridad_Acceso.sql" />
+    <None Include="Scripts\Privilegios_Minimos.sql" />
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
