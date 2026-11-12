@@ -41,9 +41,9 @@ Public Class DatosConexion
     End Function
 
     ''' <summary>
-    ''' Arma la cadena de conexión. En producción exige TLS y valida la cadena
-    ''' del certificado contra el CA PEM configurado. Preferred queda reservado
-    ''' al ejecutor de pruebas aislado.
+    ''' Arma la cadena de conexión. VerifyCA valida la cadena contra el CA PEM;
+    ''' VerifyFull añade la validación del nombre del servidor. Preferred queda
+    ''' reservado al ejecutor de pruebas aislado.
     ''' </summary>
     Public Function ConstruirCadena() As String
         Dim constructor As New MySqlConnectionStringBuilder()
@@ -56,6 +56,7 @@ Public Class DatosConexion
         constructor.DefaultCommandTimeout = 30
         Dim modo As String = If(String.IsNullOrWhiteSpace(ModoSsl), "VerifyCA", ModoSsl.Trim())
         If Not String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) AndAlso
+           Not String.Equals(modo, "VerifyFull", StringComparison.OrdinalIgnoreCase) AndAlso
            Not String.Equals(modo, "Preferred", StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("El modo TLS configurado no está permitido.")
         End If
@@ -63,7 +64,8 @@ Public Class DatosConexion
            Not constructor.Database.EndsWith("_pruebas", StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("Las conexiones normales requieren TLS con validación de CA. Preferred solo se permite en pruebas aisladas.")
         End If
-        If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) Then
+        If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) OrElse
+           String.Equals(modo, "VerifyFull", StringComparison.OrdinalIgnoreCase) Then
             If String.IsNullOrWhiteSpace(CertificadoCa) OrElse Not System.IO.File.Exists(CertificadoCa.Trim()) Then
                 Throw New InvalidOperationException(
                     "Debe seleccionar el certificado CA PEM de MySQL para validar la conexión TLS.")

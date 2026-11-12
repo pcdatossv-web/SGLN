@@ -11,6 +11,8 @@
      4. Exige TLS para ambas cuentas; MySQL debe tener certificados activos.
       MySQL 8 genera ca.pem en el directorio de datos cuando TLS está disponible.
       Copie ca.pem a cada cliente y selecciónelo en la configuración de SGLN.
+      VerifyFull también valida el nombre DNS/IP: el certificado del servidor
+      debe incluir en SAN el mismo nombre o IP usado en el campo Servidor.
 
    Despues, en este orden y con el mismo root:
      mysql -u root -p sgln_sv < Esquema_MySQL.sql

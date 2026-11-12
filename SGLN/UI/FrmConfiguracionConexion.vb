@@ -85,7 +85,7 @@ Public Class FrmConfiguracionConexion
             .Password = txtPassword.Text,
             .UsuarioRespaldo = txtUsuarioRespaldo.Text.Trim(),
             .PasswordRespaldo = txtPasswordRespaldo.Text,
-            .ModoSsl = ConfiguracionConexion.Actual.ModoSsl,
+            .ModoSsl = Convert.ToString(cmbModoSsl.SelectedItem),
             .CertificadoCa = txtCertificadoCa.Text.Trim()
         }
     End Function
