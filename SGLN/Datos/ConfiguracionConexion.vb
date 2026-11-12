@@ -41,9 +41,9 @@ Public Class DatosConexion
     End Function
 
     ''' <summary>
-    ''' Arma la cadena que usa MySqlConnection. AllowPublicKeyRetrieval evita el
-    ''' fallo de caching_sha2_password sin SSL cuando el equipo cliente está en
-    ''' otra máquina.
+    ''' Arma la cadena de conexión. En producción exige TLS y valida la cadena
+    ''' del certificado contra el CA PEM configurado. Preferred queda reservado
+    ''' al ejecutor de pruebas aislado.
     ''' </summary>
     Public Function ConstruirCadena() As String
         Dim constructor As New MySqlConnectionStringBuilder()
