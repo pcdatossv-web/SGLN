@@ -42,37 +42,47 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function Insertar(documento As Documento) As Integer
-        Dim nuevoId As Integer = InsertarYObtenerId(
-            "INSERT INTO Documentos (Tipo_Documento, Ruta_Archivo, Hash, Estado_Procesamiento_IA, " &
-            "       ID_Caso, ID_Instrumento, Usuario) " &
-            "VALUES (@tipo, @ruta, @hash, @estado, @caso, @instrumento, @usuario)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@tipo", documento.TipoDocumento)
-                Parametro(comando, "@ruta", documento.RutaArchivo)
-                Parametro(comando, "@hash", documento.Hash)
-                Parametro(comando, "@estado", documento.EstadoProcesamientoIA)
-                Parametro(comando, "@caso", If(documento.IDCaso.HasValue, CObj(documento.IDCaso.Value), DBNull.Value))
-                Parametro(comando, "@instrumento", If(documento.IDInstrumento.HasValue, CObj(documento.IDInstrumento.Value), DBNull.Value))
-                Parametro(comando, "@usuario", Sesion.NombreUsuario)
-            End Sub)
+        Return EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
+                    "INSERT INTO Documentos (Tipo_Documento, Ruta_Archivo, Hash, Estado_Procesamiento_IA, " &
+                    "       ID_Caso, ID_Instrumento, Usuario) " &
+                    "VALUES (@tipo, @ruta, @hash, @estado, @caso, @instrumento, @usuario)",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@tipo", documento.TipoDocumento)
+                        Parametro(comando, "@ruta", documento.RutaArchivo)
+                        Parametro(comando, "@hash", documento.Hash)
+                        Parametro(comando, "@estado", documento.EstadoProcesamientoIA)
+                        Parametro(comando, "@caso", If(documento.IDCaso.HasValue, CObj(documento.IDCaso.Value), DBNull.Value))
+                        Parametro(comando, "@instrumento", If(documento.IDInstrumento.HasValue, CObj(documento.IDInstrumento.Value), DBNull.Value))
+                        Parametro(comando, "@usuario", Sesion.NombreUsuario)
+                    End Sub)
 
-        Auditar("IMPORTAR DOCUMENTO", "Documentos", nuevoId,
-                documento.TipoDocumento & " | SHA-256 " & documento.Hash)
-        Return nuevoId
+                AuditarEnTransaccion(conexion, transaccion, "IMPORTAR DOCUMENTO", "Documentos", nuevoId,
+                    documento.TipoDocumento & " | SHA-256 " & documento.Hash)
+                Return nuevoId
+            End Function)
     End Function
 
     Public Sub ActualizarMetadatos(documento As Documento)
-        Dim filas As Integer = Ejecutar(
-            "UPDATE Documentos SET Tipo_Documento = @tipo, ID_Caso = @caso, ID_Instrumento = @instrumento " &
-            "WHERE ID = @id",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@tipo", documento.TipoDocumento)
-                Parametro(comando, "@caso", If(documento.IDCaso.HasValue, CObj(documento.IDCaso.Value), DBNull.Value))
-                Parametro(comando, "@instrumento", If(documento.IDInstrumento.HasValue, CObj(documento.IDInstrumento.Value), DBNull.Value))
-                Parametro(comando, "@id", documento.ID)
-            End Sub)
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                    "UPDATE Documentos SET Tipo_Documento = @tipo, ID_Caso = @caso, ID_Instrumento = @instrumento " &
+                    "WHERE ID = @id",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@tipo", documento.TipoDocumento)
+                        Parametro(comando, "@caso", If(documento.IDCaso.HasValue, CObj(documento.IDCaso.Value), DBNull.Value))
+                        Parametro(comando, "@instrumento", If(documento.IDInstrumento.HasValue, CObj(documento.IDInstrumento.Value), DBNull.Value))
+                        Parametro(comando, "@id", documento.ID)
+                    End Sub)
 
-        If filas > 0 Then Auditar("MODIFICAR", "Documentos", documento.ID, "Metadatos del documento actualizados")
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Documentos", documento.ID,
+                        "Metadatos del documento actualizados")
+                End If
+                Return filas
+            End Function)
     End Sub
 
     Public Function CasosCombo() As DataTable
