@@ -52,7 +52,7 @@ BEGIN
     SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1;
 
     IF OLD.ID_Rol = v_rol_protegido
-       AND (NEW.ID_Rol <> OLD.ID_Rol OR NEW.Activo = 0) THEN
+       AND (NOT (NEW.ID_Rol <=> OLD.ID_Rol) OR NEW.Activo = 0) THEN
         SELECT COUNT(*) INTO v_otros
         FROM Usuarios
         WHERE ID_Rol = v_rol_protegido AND Activo = 1 AND ID <> OLD.ID;
