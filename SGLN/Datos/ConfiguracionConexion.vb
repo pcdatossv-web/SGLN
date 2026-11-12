@@ -250,7 +250,7 @@ Public Class ConfiguracionConexion
         Dim claves As List(Of RegistryKey) = AbrirClavesLectura(hive)
         Try
             For Each clave As RegistryKey In claves
-                Dim datos As DatosConexion = LeerValores(clave)
+                Dim datos As DatosConexion = LeerValores(clave, hive)
                 If datos IsNot Nothing Then Return datos
             Next
         Finally
@@ -261,7 +261,7 @@ Public Class ConfiguracionConexion
         Return Nothing
     End Function
 
-    Private Shared Function LeerValores(clave As RegistryKey) As DatosConexion
+    Private Shared Function LeerValores(clave As RegistryKey, hive As RegistryHive) As DatosConexion
         Dim servidor As String = Convert.ToString(clave.GetValue(ValorServidor, ""))
         If String.IsNullOrWhiteSpace(servidor) Then Return Nothing
 
@@ -270,9 +270,9 @@ Public Class ConfiguracionConexion
         datos.Puerto = Convert.ToInt32(clave.GetValue(ValorPuerto, 3306))
         datos.BaseDatos = Convert.ToString(clave.GetValue(ValorBaseDatos, "sgln_sv"))
         datos.Usuario = Convert.ToString(clave.GetValue(ValorUsuario, "sgln_app"))
-        datos.Password = Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")))
+        datos.Password = Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")), hive)
         datos.UsuarioRespaldo = Convert.ToString(clave.GetValue(ValorUsuarioRespaldo, "sgln_backup"))
-        datos.PasswordRespaldo = Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")))
+        datos.PasswordRespaldo = Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")), hive)
         datos.ModoSsl = Convert.ToString(clave.GetValue(ValorModoSsl, "VerifyCA"))
         datos.CertificadoCa = Convert.ToString(clave.GetValue(ValorCertificadoCa, ""))
         Return datos
@@ -288,9 +288,9 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorPuerto, datos.Puerto, RegistryValueKind.DWord)
                     clave.SetValue(ValorBaseDatos, datos.BaseDatos.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorUsuario, datos.Usuario.Trim(), RegistryValueKind.String)
-                    clave.SetValue(ValorPassword, Cifrar(datos.Password), RegistryValueKind.String)
+                    clave.SetValue(ValorPassword, Cifrar(datos.Password, hive), RegistryValueKind.String)
                     clave.SetValue(ValorUsuarioRespaldo, datos.UsuarioRespaldo.Trim(), RegistryValueKind.String)
-                    clave.SetValue(ValorPasswordRespaldo, Cifrar(datos.PasswordRespaldo), RegistryValueKind.String)
+                    clave.SetValue(ValorPasswordRespaldo, Cifrar(datos.PasswordRespaldo, hive), RegistryValueKind.String)
                     clave.SetValue(ValorModoSsl, datos.ModoSsl, RegistryValueKind.String)
                     clave.SetValue(ValorCertificadoCa, datos.CertificadoCa, RegistryValueKind.String)
                     clave.SetValue(ValorActualizado, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), RegistryValueKind.String)
@@ -435,26 +435,60 @@ Public Class ConfiguracionConexion
     ' ---------------- Cifrado de la contraseña ----------------
 
     ''' <summary>
-    ''' Cifra con DPAPI de máquina. Así la contraseña no se lee a simple vista
-    ''' ni se puede reutilizar si alguien copia la clave a otro equipo.
+    ''' Cifra con DPAPI según el ámbito del registro: CurrentUser para HKCU
+    ''' y LocalMachine para HKLM. Las claves antiguas se leen con compatibilidad.
     ''' </summary>
-    Private Shared Function Cifrar(texto As String) As String
+    Private Shared Function Cifrar(texto As String, hive As RegistryHive) As String
         If String.IsNullOrEmpty(texto) Then Return ""
+
+        Dim alcance As DataProtectionScope =
+            If(hive = RegistryHive.CurrentUser,
+               DataProtectionScope.CurrentUser,
+               DataProtectionScope.LocalMachine)
+        Dim etiqueta As String = If(hive = RegistryHive.CurrentUser, "CU:", "LM:")
         Dim plano As Byte() = Encoding.UTF8.GetBytes(texto)
-        Dim cifrado As Byte() = ProtectedData.Protect(plano, Entropia, DataProtectionScope.LocalMachine)
-        Return Convert.ToBase64String(cifrado)
+        Dim cifrado As Byte() = ProtectedData.Protect(plano, Entropia, alcance)
+        Return "DPAPI2:" & etiqueta & Convert.ToBase64String(cifrado)
     End Function
 
-    Private Shared Function Descifrar(valor As String) As String
+    Private Shared Function Descifrar(valor As String, hive As RegistryHive) As String
         If String.IsNullOrEmpty(valor) Then Return ""
+
+        If valor.StartsWith("DPAPI2:CU:", StringComparison.Ordinal) Then
+            Return DescifrarProtegido(valor.Substring("DPAPI2:CU:".Length), DataProtectionScope.CurrentUser)
+        End If
+        If valor.StartsWith("DPAPI2:LM:", StringComparison.Ordinal) Then
+            Return DescifrarProtegido(valor.Substring("DPAPI2:LM:".Length), DataProtectionScope.LocalMachine)
+        End If
+
+        ' Las versiones anteriores siempre usaban LocalMachine, incluso para HKCU.
         Try
-            Dim cifrado As Byte() = Convert.FromBase64String(valor)
-            Dim plano As Byte() = ProtectedData.Unprotect(cifrado, Entropia, DataProtectionScope.LocalMachine)
-            Return Encoding.UTF8.GetString(plano)
-        Catch
-            ' Compatibilidad: si alguien escribió la clave en texto plano en el
-            ' registro, se usa tal cual. Al volver a guardar queda cifrada.
+            Return DescifrarProtegido(valor, DataProtectionScope.LocalMachine)
+        Catch ex As Exception
+            ' Compatibilidad limitada con contraseñas antiguas en texto plano.
+            ' Si el valor parece un blob Base64 pero no se puede descifrar, se
+            ' considera corrupto/manipulado y no se reutiliza como contraseña.
+            If EsBase64(valor) Then
+                Throw New CryptographicException(
+                    "La credencial cifrada del registro está dañada o pertenece a otro equipo. " &
+                    "Vuelva a configurar la conexión y guarde las credenciales nuevamente.", ex)
+            End If
             Return valor
+        End Try
+    End Function
+
+    Private Shared Function DescifrarProtegido(valor As String, alcance As DataProtectionScope) As String
+        Dim cifrado As Byte() = Convert.FromBase64String(valor)
+        Dim plano As Byte() = ProtectedData.Unprotect(cifrado, Entropia, alcance)
+        Return Encoding.UTF8.GetString(plano)
+    End Function
+
+    Private Shared Function EsBase64(valor As String) As Boolean
+        Try
+            Convert.FromBase64String(valor)
+            Return True
+        Catch
+            Return False
         End Try
     End Function
 
