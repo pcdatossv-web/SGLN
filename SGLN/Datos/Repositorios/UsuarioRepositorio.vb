@@ -35,7 +35,8 @@ Public Class UsuarioRepositorio
             .NombreCompleto = Convert.ToString(fila("Nombre_Completo")),
             .IDRol = Convert.ToInt32(fila("ID_Rol")),
             .Rol = Convert.ToString(fila("Rol")),
-            .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1
+            .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1,
+            .DebeCambiarClave = SeguridadClave.EsClaveInicial(hash, salt)
         }
 
         Auditar(sesion.Usuario, "INGRESO", "Usuarios", sesion.ID, "Inicio de sesión")
