@@ -97,7 +97,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'No se pueden reasignar ni cambiar los permisos esenciales del Administrador.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_rol_permiso_admin_bd BEFORE DELETE ON Rol_Permiso
 FOR EACH ROW
@@ -110,7 +110,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'El Administrador no puede perder los permisos de Usuarios ni de Roles.';
     END IF;
-END$
+END$$
 
 /* La bitácora es append-only: la aplicación solo puede consultar e insertar.
    UPDATE y DELETE se bloquean incluso si la cuenta conserva permisos DML generales. */
@@ -119,13 +119,13 @@ FOR EACH ROW
 BEGIN
     SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Audit_Log es inmutable: no se permite modificar registros.';
-END$
+END$$
 
 CREATE TRIGGER trg_audit_log_no_delete BEFORE DELETE ON Audit_Log
 FOR EACH ROW
 BEGIN
     SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Audit_Log es inmutable: no se permite eliminar registros.';
-END$
+END$$
 
 DELIMITER ;
