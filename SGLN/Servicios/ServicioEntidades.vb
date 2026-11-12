@@ -1,5 +1,6 @@
 Imports System
 Imports System.Data
+Imports MySql.Data.MySqlClient
 
 ''' <summary>
 ''' Reglas de negocio de entidades legales y sus representantes.
@@ -34,22 +35,19 @@ Public Class ServicioEntidades
             entidad.NIT = ValidadorIdentidad.FormatearNit(entidad.NIT)
         End If
 
-        If entidad.ID = 0 Then
-            entidad.ID = _repositorio.Insertar(entidad)
-        Else
-            _repositorio.Actualizar(entidad)
-        End If
-
-        If perfil IsNot Nothing Then
-            perfil.IDEntidad = entidad.ID
-            _repositorio.GuardarPerfil(perfil)
-        End If
-
-        Return New Respuesta With {
-            .Exito = True,
-            .Mensaje = "Entidad guardada correctamente.",
-            .ID = entidad.ID
-        }
+        Try
+            entidad.ID = _repositorio.GuardarCompleto(entidad, perfil)
+            Return New Respuesta With {
+                .Exito = True,
+                .Mensaje = "Entidad y perfil guardados correctamente.",
+                .ID = entidad.ID
+            }
+        Catch ex As MySqlException When ex.Number = 1062
+            Return Respuesta.Fallo("La entidad o su perfil LDA/FT ya está registrado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Entidades - guardar", ex)
+            Return Respuesta.Fallo("No se pudo guardar la entidad y su perfil: " & ex.Message)
+        End Try
     End Function
 
     Public Function Desactivar(id As Integer) As Respuesta
