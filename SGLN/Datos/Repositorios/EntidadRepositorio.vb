@@ -165,6 +165,8 @@ Public Class EntidadRepositorio
             Return Respuesta.Ok("Representante agregado.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ese cliente ya está registrado como representante de la entidad.")
+        Catch ex As MySqlException When ex.Number = 1452
+            Return Respuesta.Fallo("La entidad o el cliente ya no existe; actualice la lista e inténtelo de nuevo.")
         End Try
     End Function
 
