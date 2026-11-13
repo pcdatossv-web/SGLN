@@ -4,6 +4,9 @@ Imports System.Data
 Imports System.Diagnostics
 Imports System.IO
 Imports System.Linq
+Imports System.Security.AccessControl
+Imports System.Security.Principal
+Imports System.Text
 Imports System.Threading.Tasks
 Imports MySql.Data.MySqlClient
 
@@ -169,10 +172,7 @@ Public Class ConfiguracionRepositorio
                claveBackup.Contains(Convert.ToChar(13).ToString()) OrElse claveBackup.Contains(Convert.ToChar(10).ToString()) Then
                 Throw New InvalidOperationException("Las credenciales de respaldo contienen caracteres de control no permitidos.")
             End If
-            File.WriteAllText(credenciales,
-                "[client]" & Environment.NewLine &
-                "user=""" & EscaparOpcionMySQL(usuarioBackup) & """" & Environment.NewLine &
-                "password=""" & EscaparOpcionMySQL(claveBackup) & """" & Environment.NewLine)
+            EscribirCredencialesProtegidas(credenciales, usuarioBackup, claveBackup)
 
             Dim sslArgumentos As String
             If EsClienteMariaDB(ejecutable) Then
@@ -218,6 +218,38 @@ Public Class ConfiguracionRepositorio
         End Try
 
         Auditar("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+    End Sub
+
+    ''' <summary>
+    ''' Crea el archivo de opciones de mysqldump con una ACL explícita:
+    ''' solo el usuario actual, SYSTEM y Administradores pueden leerlo.
+    ''' Si no se puede aplicar la protección, el respaldo se cancela.
+    ''' </summary>
+    Private Shared Sub EscribirCredencialesProtegidas(ruta As String, usuario As String, clave As String)
+        Dim identidad As WindowsIdentity = WindowsIdentity.GetCurrent()
+        If identidad Is Nothing OrElse identidad.User Is Nothing Then
+            Throw New InvalidOperationException("No se pudo determinar la identidad de Windows para proteger las credenciales del respaldo.")
+        End If
+
+        Dim seguridad As New FileSecurity()
+        seguridad.SetAccessRuleProtection(True, False)
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            identidad.User, FileSystemRights.FullControl, AccessControlType.Allow))
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            New SecurityIdentifier(WellKnownSidType.LocalSystemSid, Nothing),
+            FileSystemRights.FullControl, AccessControlType.Allow))
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            New SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, Nothing),
+            FileSystemRights.FullControl, AccessControlType.Allow))
+
+        Using flujo As New FileStream(ruta, FileMode.CreateNew, FileSystemRights.FullControl,
+                                      FileShare.None, 4096, FileOptions.None, seguridad)
+            Using escritor As New StreamWriter(flujo, New UTF8Encoding(False))
+                escritor.WriteLine("[client]")
+                escritor.WriteLine("user=""" & EscaparOpcionMySQL(usuario) & """")
+                escritor.WriteLine("password=""" & EscaparOpcionMySQL(clave) & """")
+            End Using
+        End Using
     End Sub
 
     Private Shared Function EscaparOpcionMySQL(valor As String) As String
