@@ -209,11 +209,18 @@ Public Class ConfiguracionRepositorio
                 File.Move(temporalSalida, destinoFinal)
             End If
         Finally
+            ' Cada archivo se limpia por separado: un fallo al borrar uno no
+            ' debe impedir intentar eliminar el otro ni ocultar el error original.
             Try
                 If File.Exists(credenciales) Then File.Delete(credenciales)
+            Catch exLimpieza As Exception
+                RegistroErrores.Escribir("Respaldos - no se pudo eliminar el archivo temporal de credenciales", exLimpieza)
+            End Try
+
+            Try
                 If File.Exists(temporalSalida) Then File.Delete(temporalSalida)
-            Catch
-                ' La limpieza temporal no debe ocultar el error original.
+            Catch exLimpieza As Exception
+                RegistroErrores.Escribir("Respaldos - no se pudo eliminar el archivo temporal de salida", exLimpieza)
             End Try
         End Try
 
