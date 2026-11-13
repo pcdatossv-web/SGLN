@@ -72,7 +72,7 @@ Public Class FrmPrimerAdministrador
         Catch ex As Exception
             Cursor = Cursors.Default
             RegistroErrores.Escribir("Creación del primer administrador", ex)
-            lblEstado.Text = ex.Message
+            lblEstado.Text = "No se pudo completar la creación del primer administrador. Revise los datos y el registro local de errores."
         End Try
     End Sub
 End Class

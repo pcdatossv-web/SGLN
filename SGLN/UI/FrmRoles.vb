@@ -56,7 +56,7 @@ Public Class FrmRoles
             clbPermisos.CheckOnClick = True
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - catálogo de permisos", ex)
-            Mostrar("No se pudo cargar el catálogo de permisos: " & ex.Message, False)
+            Mostrar("No se pudo cargar el catálogo de permisos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -72,7 +72,7 @@ Public Class FrmRoles
             If dgvRoles.Columns.Contains("Permisos") Then dgvRoles.Columns("Permisos").FillWeight = 45
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - listar", ex)
-            Mostrar("No se pudieron cargar los roles: " & ex.Message, False)
+            Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
         Finally
             _cargando = False
         End Try

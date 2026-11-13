@@ -37,7 +37,7 @@ Public Class ServicioClientes
             Return Respuesta.Fallo("El DUI ya está registrado o existe un perfil LDA/FT duplicado.")
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - guardar", ex)
-            Return Respuesta.Fallo("No se pudo guardar el cliente y su perfil: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo guardar el cliente y su perfil. Verifique los datos y la conexión con la base de datos.")
         End Try
     End Function
 
@@ -50,7 +50,7 @@ Public Class ServicioClientes
             Return Respuesta.Ok("Cliente desactivado.")
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - desactivar", ex)
-            Return Respuesta.Fallo("No se pudo desactivar el cliente: " & ex.Message)
+            Return Respuesta.Fallo("No se pudo desactivar el cliente. Verifique la conexión con la base de datos.")
         End Try
     End Function
 
