@@ -59,7 +59,7 @@ Public Class FrmCumplimiento
             UtileriasUI.CargarCombo(cboClienteArco, _servicio.ClientesCombo(), "Nombre", "ID")
         Catch ex As Exception
             RegistroErrores.Escribir("Cumplimiento - combos", ex)
-            MostrarMensaje("No se pudieron cargar los catálogos: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -91,7 +91,7 @@ Public Class FrmCumplimiento
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Cumplimiento - operaciones", ex)
-            MostrarMensaje("No se pudieron cargar las operaciones: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar las operaciones de cumplimiento. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -172,7 +172,7 @@ Public Class FrmCumplimiento
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Cumplimiento - guardar operación", ex)
-            MostrarMensaje("No se pudo guardar la operación: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar la operación de cumplimiento. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -257,7 +257,7 @@ Public Class FrmCumplimiento
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Cumplimiento - ARCO", ex)
-            MostrarMensaje("No se pudieron cargar las solicitudes ARCO: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar las solicitudes ARCO. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -348,7 +348,7 @@ Public Class FrmCumplimiento
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Cumplimiento - guardar ARCO", ex)
-            MostrarMensaje("No se pudo guardar la solicitud: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar la solicitud ARCO. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 

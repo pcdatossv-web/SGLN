@@ -47,7 +47,7 @@ Public Class FrmDocumentos
             UtileriasUI.CargarCombo(cboInstrumento, ConOpcionNinguno(_servicio.InstrumentosCombo()), "Nombre", "ID")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - combos", ex)
-            MostrarMensaje("No se pudieron cargar los catálogos: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -78,7 +78,7 @@ Public Class FrmDocumentos
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Documentos - cargar", ex)
-            MostrarMensaje("No se pudo cargar la lista: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -185,7 +185,7 @@ Public Class FrmDocumentos
             Process.Start(New ProcessStartInfo(ruta) With {.UseShellExecute = True})
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - abrir", ex)
-            MostrarMensaje("No se pudo abrir el archivo: " & ex.Message, False)
+            MostrarMensaje("No se pudo abrir el archivo. Verifique que exista una aplicación compatible y que tenga permisos de acceso.", False)
         End Try
     End Sub
 

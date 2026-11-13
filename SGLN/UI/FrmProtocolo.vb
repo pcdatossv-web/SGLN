@@ -81,7 +81,7 @@ Public Class FrmProtocolo
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Protocolo - libros", ex)
-            MostrarMensaje("No se pudieron cargar los libros: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los libros. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -148,7 +148,7 @@ Public Class FrmProtocolo
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - editor de libro", ex)
-            MostrarMensaje("No se pudo cargar el libro: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar el libro seleccionado. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -194,7 +194,7 @@ Public Class FrmProtocolo
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - guardar libro", ex)
-            MostrarMensaje("No se pudo guardar el libro: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar el libro. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -268,7 +268,7 @@ Public Class FrmProtocolo
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Protocolo - instrumentos", ex)
-            MostrarMensaje("No se pudieron cargar los instrumentos: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los instrumentos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -298,7 +298,7 @@ Public Class FrmProtocolo
             MostrarMensaje("", True)
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - detalle de instrumento", ex)
-            MostrarMensaje("No se pudo cargar el instrumento: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar el instrumento seleccionado. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -368,7 +368,7 @@ Public Class FrmProtocolo
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - guardar instrumento", ex)
-            MostrarMensaje("No se pudo guardar el instrumento: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar el instrumento. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -581,7 +581,7 @@ Public Class FrmProtocolo
                 MostrarMensaje("Índice exportado en " & dialogo.FileName, True)
             Catch ex As Exception
                 RegistroErrores.Escribir("Protocolo - exportar índice", ex)
-                MostrarMensaje("No se pudo exportar el índice: " & ex.Message, False)
+                MostrarMensaje("No se pudo exportar el índice. Verifique la ruta y los permisos de escritura.", False)
             End Try
         End Using
     End Sub

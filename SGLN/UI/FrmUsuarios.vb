@@ -28,7 +28,7 @@ Public Class FrmUsuarios
             UtileriasUI.CargarCombo(cboRol, _servicio.RolesDisponibles(), "Nombre", "ID")
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - roles", ex)
-            Mostrar("No se pudieron cargar los roles: " & ex.Message, False)
+            Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -46,7 +46,7 @@ Public Class FrmUsuarios
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - listar", ex)
-            Mostrar("No se pudieron cargar los usuarios: " & ex.Message, False)
+            Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
         Finally
             _cargando = False
         End Try

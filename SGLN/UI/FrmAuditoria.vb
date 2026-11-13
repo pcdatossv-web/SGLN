@@ -29,7 +29,7 @@ Public Class FrmAuditoria
             UtileriasUI.CargarCombo(cboAccion, ConTodos(_servicio.Acciones(), "Accion"), "Nombre", "Valor")
         Catch ex As Exception
             RegistroErrores.Escribir("Auditoría - filtros", ex)
-            MostrarMensaje("No se pudieron cargar los filtros: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los filtros de auditoría. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -73,7 +73,7 @@ Public Class FrmAuditoria
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Auditoría - buscar", ex)
-            MostrarMensaje("No se pudo consultar la auditoría: " & ex.Message, False)
+            MostrarMensaje("No se pudo consultar la bitácora de auditoría. Verifique los filtros y la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -100,7 +100,7 @@ Public Class FrmAuditoria
                 MostrarMensaje("Auditoría exportada en " & dialogo.FileName, True)
             Catch ex As Exception
                 RegistroErrores.Escribir("Auditoría - exportar", ex)
-                MostrarMensaje("No se pudo exportar: " & ex.Message, False)
+                MostrarMensaje("No se pudo exportar la bitácora. Verifique la ruta y los permisos de escritura.", False)
             End Try
         End Using
     End Sub
