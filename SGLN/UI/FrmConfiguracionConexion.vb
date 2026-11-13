@@ -163,7 +163,7 @@ Public Class FrmConfiguracionConexion
         Catch ex As Exception
             Cursor = Cursors.Default
             RegistroErrores.Escribir("FrmConfiguracionConexion.btnGuardar", ex)
-            MessageBox.Show("No se pudo guardar la configuración:" & Environment.NewLine & ex.Message,
+            MessageBox.Show("No se pudo guardar la configuración de conexión. Verifique los datos y los permisos del registro de Windows.",
                             "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

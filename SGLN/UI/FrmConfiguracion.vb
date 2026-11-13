@@ -227,7 +227,7 @@ Public Class FrmConfiguracion
             Process.Start(New ProcessStartInfo(carpeta) With {.UseShellExecute = True})
         Catch ex As Exception
             RegistroErrores.Escribir("Configuración - abrir respaldos", ex)
-            MostrarMensaje("No se pudo abrir la carpeta: " & ex.Message, False)
+            MostrarMensaje("No se pudo abrir la carpeta de respaldos. Verifique la ruta y los permisos de acceso.", False)
         End Try
     End Sub
 
