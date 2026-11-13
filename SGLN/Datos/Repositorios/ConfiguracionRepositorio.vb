@@ -168,8 +168,8 @@ Public Class ConfiguracionRepositorio
         Try
             ' La clave no se pasa por argumentos del proceso. Se escribe en un
             ' archivo temporal privado y se elimina al finalizar.
-            If usuarioBackup.Contains(Convert.ToChar(13).ToString()) OrElse usuarioBackup.Contains(Convert.ToChar(10).ToString()) OrElse
-               claveBackup.Contains(Convert.ToChar(13).ToString()) OrElse claveBackup.Contains(Convert.ToChar(10).ToString()) Then
+            If usuarioBackup.Any(Function(caracter As Char) Char.IsControl(caracter)) OrElse
+               claveBackup.Any(Function(caracter As Char) Char.IsControl(caracter)) Then
                 Throw New InvalidOperationException("Las credenciales de respaldo contienen caracteres de control no permitidos.")
             End If
             EscribirCredencialesProtegidas(credenciales, usuarioBackup, claveBackup)
