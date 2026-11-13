@@ -36,7 +36,7 @@ Public Class FrmClientes
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Clientes - cargar", ex)
-            MostrarMensaje("No se pudo cargar la lista: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar la lista de clientes. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -79,7 +79,7 @@ Public Class FrmClientes
             MostrarMensaje("", True)
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - detalle", ex)
-            MostrarMensaje("No se pudo cargar el cliente: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar el detalle del cliente. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -173,7 +173,7 @@ Public Class FrmClientes
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - guardar", ex)
-            MostrarMensaje("No se pudo guardar: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar el cliente. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 

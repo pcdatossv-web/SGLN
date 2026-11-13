@@ -50,7 +50,7 @@ Public Class FrmCasos
             AplicarPlazoDelTipo()
         Catch ex As Exception
             RegistroErrores.Escribir("Casos - combos", ex)
-            MostrarMensaje("No se pudieron cargar los catálogos: " & ex.Message, False)
+            MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -63,7 +63,7 @@ Public Class FrmCasos
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Casos - cargar", ex)
-            MostrarMensaje("No se pudo cargar la lista de casos: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -96,7 +96,7 @@ Public Class FrmCasos
             MostrarMensaje("", True)
         Catch ex As Exception
             RegistroErrores.Escribir("Casos - detalle", ex)
-            MostrarMensaje("No se pudo cargar el caso: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar el detalle del caso. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -183,7 +183,7 @@ Public Class FrmCasos
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Casos - guardar", ex)
-            MostrarMensaje("No se pudo guardar el caso: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar el caso. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -203,7 +203,8 @@ Public Class FrmCasos
             lblPropuesta.ForeColor = Color.DarkOrange
         Catch ex As Exception
             _fechaPropuesta = Nothing
-            lblPropuesta.Text = "No se pudo calcular el plazo: " & ex.Message
+            RegistroErrores.Escribir("Casos - calcular plazo", ex)
+            lblPropuesta.Text = "No se pudo calcular el plazo propuesto. Verifique la fecha y el tipo de actuación."
             lblPropuesta.ForeColor = Color.Firebrick
         End Try
     End Sub

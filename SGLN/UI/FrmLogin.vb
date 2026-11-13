@@ -103,7 +103,7 @@ Public Class FrmLogin
             Me.Close()
         Catch ex As Exception
             RegistroErrores.Escribir("Inicio de sesión", ex)
-            lblError.Text = "No se pudo iniciar sesión: " & ex.Message
+            lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
         End Try
     End Sub
 

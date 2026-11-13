@@ -74,7 +74,7 @@ Public Class FrmPrincipal
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Panel principal", ex)
-            lblResumen.Text = "No se pudieron cargar las alertas: " & ex.Message
+            lblResumen.Text = "No se pudieron cargar las alertas. Verifique la conexión con la base de datos."
         End Try
     End Sub
 
@@ -91,7 +91,7 @@ Public Class FrmPrincipal
             CargarPanel()
         Catch ex As Exception
             RegistroErrores.Escribir("Abrir módulo", ex)
-            UtileriasUI.MostrarError("No se pudo abrir el módulo: " & ex.Message)
+            UtileriasUI.MostrarError("No se pudo abrir el módulo. Verifique los permisos y la conexión con la base de datos.")
         End Try
     End Sub
 

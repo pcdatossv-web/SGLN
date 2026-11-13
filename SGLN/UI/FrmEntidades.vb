@@ -40,7 +40,7 @@ Public Class FrmEntidades
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Entidades - cargar", ex)
-            MostrarMensaje("No se pudo cargar la lista: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar la lista de entidades. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -85,7 +85,7 @@ Public Class FrmEntidades
             MostrarMensaje("", True)
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - detalle", ex)
-            MostrarMensaje("No se pudo cargar la entidad: " & ex.Message, False)
+            MostrarMensaje("No se pudo cargar el detalle de la entidad. Verifique la conexión con la base de datos.", False)
         End Try
     End Sub
 
@@ -160,7 +160,7 @@ Public Class FrmEntidades
             MostrarMensaje(respuesta.Mensaje, True)
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - guardar", ex)
-            MostrarMensaje("No se pudo guardar: " & ex.Message, False)
+            MostrarMensaje("No se pudo guardar la entidad. Verifique los datos y la conexión con la base de datos.", False)
         End Try
     End Sub
 
