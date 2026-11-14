@@ -250,7 +250,7 @@ Public Class ConfiguracionRepositorio
             End Try
         End Try
 
-        Auditar("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+        AuditarObligatorio("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
     End Sub
 
     ''' <summary>
