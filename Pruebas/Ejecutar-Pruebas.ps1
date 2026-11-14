@@ -179,22 +179,26 @@ if ($null -eq $identidadWindows -or $null -eq $identidadWindows.User) {
 }
 $seguridadArchivo = New-Object Security.AccessControl.FileSecurity
 $seguridadArchivo.SetAccessRuleProtection($true, $false)
-$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
     $identidadWindows.User,
     [Security.AccessControl.FileSystemRights]::FullControl,
-    [Security.AccessControl.AccessControlType]::Allow)))
-$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
-    (New-Object Security.Principal.SecurityIdentifier([Security.Principal.WellKnownSidType]::LocalSystemSid, $null)),
+    [Security.AccessControl.AccessControlType]::Allow))
+$sidSystem = [Security.Principal.SecurityIdentifier]::new(
+    [Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+    $sidSystem,
     [Security.AccessControl.FileSystemRights]::FullControl,
-    [Security.AccessControl.AccessControlType]::Allow)))
-$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
-    (New-Object Security.Principal.SecurityIdentifier([Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)),
+    [Security.AccessControl.AccessControlType]::Allow))
+$sidAdministradores = [Security.Principal.SecurityIdentifier]::new(
+    [Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+    $sidAdministradores,
     [Security.AccessControl.FileSystemRights]::FullControl,
-    [Security.AccessControl.AccessControlType]::Allow)))
+    [Security.AccessControl.AccessControlType]::Allow))
 
 $contenidoCredenciales = "[client]`r`nuser=root`r`npassword=`"" +
     (Escape-MySqlOption $claveRoot) + "`"`r`n"
-$flujoCredenciales = New-Object IO.FileStream(
+$flujoCredenciales = [IO.FileStream]::new(
     $archivoCredenciales,
     [IO.FileMode]::CreateNew,
     [Security.AccessControl.FileSystemRights]::FullControl,
