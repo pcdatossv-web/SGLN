@@ -325,15 +325,6 @@ Public Module InicializadorBD
         Return New Date(anio, mes, dia)
     End Function
 
-    Private Sub SembrarFeriado(fecha As Date, descripcion As String)
-        Ejecutar(
-            "INSERT IGNORE INTO Feriados (Fecha, Descripcion) VALUES (@fecha, @descripcion)",
-            Sub(comando As MySqlCommand)
-                Parametro(comando, "@fecha", fecha.Date)
-                Parametro(comando, "@descripcion", descripcion)
-            End Sub)
-    End Sub
-
     Private Sub SembrarJuzgados()
         If EscalarEntero("SELECT COUNT(*) FROM Juzgados") > 0 Then Return
 
