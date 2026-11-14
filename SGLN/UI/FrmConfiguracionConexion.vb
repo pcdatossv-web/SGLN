@@ -27,7 +27,7 @@ Public Class FrmConfiguracionConexion
         End If
 
         ' Si solo existe configuración compartida, se conserva esa elección.
-        chkEquipo.Checked = (datos.Origen = "HKLM")
+        chkEquipo.Checked = (datos.Origen = "HKLM" OrElse datos.Origen = "HKCU+HKLM")
 
         lblRuta.Text = "Origen actual: " & DescripcionOrigen(datos.Origen)
         lblEstado.ForeColor = System.Drawing.Color.DimGray
@@ -40,6 +40,8 @@ Public Class FrmConfiguracionConexion
                 Return "parámetros compartidos del equipo; faltan las credenciales de este usuario Windows"
             Case "HKCU"
                 Return "solo el usuario de Windows actual (HKCU\SOFTWARE\SGLN\Conexion)"
+            Case "HKCU+HKLM"
+                Return "parámetros compartidos y credenciales privadas de este usuario Windows"
             Case "App.config"
                 Return "App.config; se copiará al registro al guardar"
             Case Else
