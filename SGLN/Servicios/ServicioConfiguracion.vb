@@ -155,7 +155,17 @@ Public Class ServicioConfiguracion
         If Not Path.IsPathRooted(carpeta) Then
             carpeta = Path.Combine(Application.StartupPath, carpeta)
         End If
-        Return carpeta
+
+        Dim rutaCompleta As String = Path.GetFullPath(carpeta)
+        Dim raiz As String = Path.GetPathRoot(rutaCompleta)
+        If String.Equals(
+            rutaCompleta.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            raiz.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException(
+                "La carpeta de respaldos debe ser una carpeta dedicada; no se permite usar la raíz de una unidad o recurso compartido.")
+        End If
+        Return rutaCompleta
     End Function
 
     Public Function EsClaveReservada(clave As String) As Boolean
