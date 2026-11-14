@@ -186,9 +186,9 @@ Public Class ConfiguracionConexion
     End Function
 
     ''' <summary>
-    ''' Guarda en HKLM si hay permisos; si no, en HKCU para que el sistema siga
-    ''' funcionando sin obligar a ejecutar como administrador.
-    ''' Devuelve el ámbito donde quedó guardado.
+    ''' Comparte parámetros no secretos en HKLM cuando se solicita y hay permisos.
+    ''' Las credenciales siempre se cifran por usuario Windows en HKCU.
+    ''' Sin permisos de equipo, toda la configuración queda en HKCU.
     ''' </summary>
     Public Shared Function Guardar(datos As DatosConexion, usarEquipo As Boolean) As String
         If IgnorarRegistro() Then
