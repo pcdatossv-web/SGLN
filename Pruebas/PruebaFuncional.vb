@@ -1293,12 +1293,15 @@ Module PruebaFuncional
 
         Verificar("Feriado duplicado (01/01/2027) se rechaza",
                   Not seguridad.AgregarFeriado(New Date(2027, 1, 1), "Duplicado").Exito)
-        Verificar("Semana Santa 2029 se calcula y se siembra automáticamente",
-                  seguridad.Feriados().AsEnumerable().Any(
-                      Function(fila As DataRow)
-                          Return Convert.ToDateTime(fila("Fecha")).Date = New Date(2029, 3, 29) AndAlso
-                                 Convert.ToString(fila("Descripcion")) = "Jueves Santo"
-                      End Function))
+        Dim semanaSanta2029 As Boolean = False
+        For Each filaFeriado As DataRow In seguridad.Feriados().Rows
+            If Convert.ToDateTime(filaFeriado("Fecha")).Date = New Date(2029, 3, 29) AndAlso
+               Convert.ToString(filaFeriado("Descripcion")) = "Jueves Santo" Then
+                semanaSanta2029 = True
+                Exit For
+            End If
+        Next
+        Verificar("Semana Santa 2029 se calcula y se siembra automáticamente", semanaSanta2029)
         Dim rNuevoFeriado As Respuesta = seguridad.AgregarFeriado(New Date(2026, 12, 31), "Feriado de prueba")
         Verificar("Agregar feriado nuevo", rNuevoFeriado.Exito, rNuevoFeriado.Mensaje)
 
