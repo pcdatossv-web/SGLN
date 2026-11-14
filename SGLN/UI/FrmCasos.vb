@@ -231,6 +231,7 @@ Public Class FrmCasos
             "¿Confirma el vencimiento propuesto del " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") & "?" & Environment.NewLine &
             "Confirme que verificó el plazo legal aplicable, la fecha de notificación y los feriados del tribunal." & Environment.NewLine &
             "El sistema realiza el cómputo de días hábiles; no determina por sí mismo el plazo legal." & Environment.NewLine &
+            "Esta función solo admite plazos expresados en días; no la use para plazos fijados en meses o años." & Environment.NewLine &
             "La confirmación quedará registrada a su nombre en la auditoría.") Then
             Return
         End If
