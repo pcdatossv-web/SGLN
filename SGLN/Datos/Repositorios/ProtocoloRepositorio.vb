@@ -266,7 +266,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     ''' <summary>
-    ''' Devuelve los folios ya ocupados del libro para validar traslapes.
+    ''' Devuelve todos los folios ocupados, incluidos los de escrituras anuladas:
+    ''' una anulación conserva el asiento y nunca libera sus folios para reutilización.
     ''' </summary>
     Public Function FoliosOcupados(idLibro As Integer, idExcluir As Integer) As DataTable
         Return Consultar(
