@@ -1146,6 +1146,8 @@ Module PruebaFuncional
         Verificar("Registrar entrega del libro cerrado", rEntrega.Exito, rEntrega.Mensaje)
         Verificar("No se puede anular una escritura después de entregar el libro",
                   Not protocolo.AnularInstrumento(idInstrumento2).Exito)
+        Verificar("No se pueden expedir testimonios después de entregar el libro",
+                  Not protocolo.ExpedirTestimonio(idInstrumento2, "Primer", Date.Today, "Destinatario posterior").Exito)
 
         Dim rIndice As Respuesta = protocolo.GenerarIndice(idLibro)
         Verificar("Generar índice del libro", rIndice.Exito, rIndice.Mensaje)
