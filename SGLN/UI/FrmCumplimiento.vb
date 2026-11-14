@@ -36,7 +36,7 @@ Public Class FrmCumplimiento
         cboTipoDerecho.SelectedIndex = 0
 
         cboEstadoArco.Items.Clear()
-        cboEstadoArco.Items.AddRange(New Object() {"Pendiente", "En trámite", "Respondida", "Rechazada"})
+        cboEstadoArco.Items.AddRange(New Object() {"Pendiente", "Vencida", "Respondida"})
         cboEstadoArco.SelectedIndex = 0
         ' El estado ARCO se controla desde las acciones del servicio, no desde el formulario.
         cboEstadoArco.Enabled = False
