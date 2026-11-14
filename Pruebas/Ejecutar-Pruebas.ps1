@@ -157,8 +157,13 @@ $claveRoot = $env:MYSQL_ROOT_PASSWORD
 if ([string]::IsNullOrEmpty($claveRoot)) {
     Write-Host 'No se definió MYSQL_ROOT_PASSWORD. Se pedirá la clave de root.' -ForegroundColor Yellow
     $segura = Read-Host 'Clave de root de MySQL' -AsSecureString
-    $claveRoot = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-        [Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura))
+    $punteroClave = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura)
+    try {
+        $claveRoot = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($punteroClave)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($punteroClave)
+    }
 }
 
 $archivoCredenciales = Join-Path $env:TEMP ("sgln_root_" + [Guid]::NewGuid().ToString('N') + '.cnf')
