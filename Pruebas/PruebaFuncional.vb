@@ -750,6 +750,16 @@ Module PruebaFuncional
                   Not rRepDup.Exito AndAlso rRepDup.Mensaje.Length > 0, rRepDup.Mensaje)
         Verificar("El listado de representantes muestra al agregado",
                   entidades.Representantes(idEntidad).Rows.Count = 1)
+        Verificar("No se altera la identidad de una entidad con representantes históricos",
+                  Not entidades.Guardar(New EntidadLegal With {
+                      .ID = idEntidad, .RazonSocial = "Razón Social Modificada",
+                      .NIT = entidad.NIT, .NRC = entidad.NRC,
+                      .Domicilio = entidad.Domicilio, .Activo = True}, Nothing).Exito)
+        Verificar("Se permite actualizar el domicilio sin cambiar la identidad legal",
+                  entidades.Guardar(New EntidadLegal With {
+                      .ID = idEntidad, .RazonSocial = entidad.RazonSocial,
+                      .NIT = entidad.NIT, .NRC = entidad.NRC,
+                      .Domicilio = "Domicilio actualizado de prueba", .Activo = True}, Nothing).Exito)
         Verificar("La búsqueda de entidades sin filtro lista resultados",
                   entidades.Buscar("").Rows.Count >= 1)
 
