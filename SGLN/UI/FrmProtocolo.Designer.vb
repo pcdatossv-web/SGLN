@@ -323,7 +323,7 @@ Partial Class FrmProtocolo
         Me.lblFechaEntrega.Name = "lblFechaEntrega"
         Me.lblFechaEntrega.Size = New System.Drawing.Size(90, 15)
         Me.lblFechaEntrega.TabIndex = 12
-        Me.lblFechaEntrega.Text = "Fecha entrega:"
+        Me.lblFechaEntrega.Text = "Fecha presentación:"
         '
         ' dtpFechaEntrega
         '
@@ -393,7 +393,7 @@ Partial Class FrmProtocolo
         Me.btnEntregarLibro.Name = "btnEntregarLibro"
         Me.btnEntregarLibro.Size = New System.Drawing.Size(185, 30)
         Me.btnEntregarLibro.TabIndex = 11
-        Me.btnEntregarLibro.Text = "Registrar entrega al Notariado"
+        Me.btnEntregarLibro.Text = "Registrar presentación"
         Me.btnEntregarLibro.UseVisualStyleBackColor = True
         '
         ' tabInstrumentos
