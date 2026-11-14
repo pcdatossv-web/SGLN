@@ -340,13 +340,12 @@ Public Class ConfiguracionRepositorio
             .CreateNoWindow = True
         }
 
-        Using proceso As Process = Process.Start(informacion)
-            ' El respaldo contiene expedientes y datos personales. Se crea
-            ' desde el inicio con ACL privada, sin heredar permisos amplios
-            ' de la carpeta de destino.
-            Using salida As New FileStream(rutaDestino, FileMode.CreateNew,
-                                           FileSystemRights.FullControl, FileShare.None,
-                                           81920, FileOptions.None, CrearSeguridadArchivoPrivado())
+        ' El archivo se crea con ACL privada antes de iniciar mysqldump:
+        ' si falla la protección, no queda un proceso externo bloqueado.
+        Using salida As New FileStream(rutaDestino, FileMode.CreateNew,
+                                       FileSystemRights.FullControl, FileShare.None,
+                                       81920, FileOptions.None, CrearSeguridadArchivoPrivado())
+            Using proceso As Process = Process.Start(informacion)
                 ' Ambas tuberías se consumen en paralelo para evitar bloqueos
                 ' por buffers llenos. El respaldo admite archivos grandes, pero
                 ' no deja el formulario esperando indefinidamente.
