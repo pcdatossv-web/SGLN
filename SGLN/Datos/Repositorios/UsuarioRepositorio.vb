@@ -324,11 +324,12 @@ Public Class UsuarioRepositorio
             Using transaccion As MySqlTransaction = conexion.BeginTransaction(IsolationLevel.Serializable)
                 Try
                     Dim usuario As String = ""
+                    Dim nombreCompleto As String = ""
                     Dim esAdmin As Boolean = False
                     Dim existeUsuario As Boolean = False
 
                     Using cmd As New MySqlCommand(
-                        "SELECT u.Usuario, IFNULL(r.Protegido, 0) AS Protegido " &
+                        "SELECT u.Usuario, u.Nombre_Completo, IFNULL(r.Protegido, 0) AS Protegido " &
                         "FROM Usuarios u LEFT JOIN Roles r ON r.ID = u.ID_Rol " &
                         "WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
                         Parametro(cmd, "@id", id)
@@ -336,6 +337,7 @@ Public Class UsuarioRepositorio
                             If lector.Read() Then
                                 existeUsuario = True
                                 usuario = Convert.ToString(lector("Usuario"))
+                                nombreCompleto = Convert.ToString(lector("Nombre_Completo"))
                                 esAdmin = Convert.ToInt32(lector("Protegido")) = 1
                             End If
                         End Using
@@ -379,10 +381,11 @@ Public Class UsuarioRepositorio
                     End If
 
                     Using cmd As New MySqlCommand(
-                        "SELECT COUNT(*) FROM Audit_Log WHERE Usuario = @usuario " &
+                        "SELECT COUNT(*) FROM Audit_Log WHERE (Usuario = @usuario OR Usuario = @nombre) " &
                         "AND NOT (Tabla_Afectada = 'Usuarios' AND Accion = 'CREAR' AND ID_Registro = @id)",
                         conexion, transaccion)
                         Parametro(cmd, "@usuario", usuario)
+                        Parametro(cmd, "@nombre", nombreCompleto)
                         Parametro(cmd, "@id", id)
                         If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
                             transaccion.Rollback()
@@ -431,11 +434,21 @@ Public Class UsuarioRepositorio
                     End Using
 
                     For Each referencia As String() In columnasTexto
+                        Dim columnaSegura As String = IdentificadorSeguro(referencia(1))
+                        Dim condicionReferencia As String =
+                            "CAST(" & columnaSegura & " AS CHAR) = @usuario"
+                        If Not String.IsNullOrWhiteSpace(nombreCompleto) Then
+                            condicionReferencia &= " OR CAST(" & columnaSegura & " AS CHAR) = @nombre"
+                        End If
+
                         Using cmd As New MySqlCommand(
                             "SELECT COUNT(*) FROM " & IdentificadorSeguro(referencia(0)) &
-                            " WHERE CAST(" & IdentificadorSeguro(referencia(1)) & " AS CHAR) = @usuario",
+                            " WHERE (" & condicionReferencia & ")",
                             conexion, transaccion)
                             Parametro(cmd, "@usuario", usuario)
+                            If Not String.IsNullOrWhiteSpace(nombreCompleto) Then
+                                Parametro(cmd, "@nombre", nombreCompleto)
+                            End If
                             If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
                                 transaccion.Rollback()
                                 Return Respuesta.Fallo("No se puede eliminar: existen referencias históricas al usuario en " & referencia(0) & ".")
