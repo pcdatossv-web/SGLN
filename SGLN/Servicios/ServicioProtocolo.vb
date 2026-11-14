@@ -55,6 +55,11 @@ Public Class ServicioProtocolo
             End If
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un libro con ese número para el mismo año.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - guardar libro", ex)
+            Return Respuesta.Fallo("No se pudo guardar el libro. Verifique los datos y la conexión.")
         End Try
 
         Return New Respuesta With {
