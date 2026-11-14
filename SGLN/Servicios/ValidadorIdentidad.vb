@@ -79,10 +79,13 @@ Public Module ValidadorIdentidad
             Return compacto.All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
         End If
 
-        Return compacto.Length = 17 AndAlso
-               compacto(4) = "-"c AndAlso compacto(11) = "-"c AndAlso compacto(15) = "-"c AndAlso
-               compacto.Remove(15, 1).Remove(11, 1).Remove(4, 1).
-                   All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
+        If compacto.Length <> 17 OrElse
+           compacto(4) <> "-"c OrElse compacto(11) <> "-"c OrElse compacto(15) <> "-"c Then
+            Return False
+        End If
+
+        Dim digitos As String = compacto.Remove(15, 1).Remove(11, 1).Remove(4, 1)
+        Return digitos.All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
     End Function
 
     Public Function FormatearNit(nit As String) As String
