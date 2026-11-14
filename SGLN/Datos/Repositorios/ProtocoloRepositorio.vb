@@ -346,6 +346,11 @@ Public Class ProtocoloRepositorio
                             transaccion.Rollback()
                             Return False
                         End If
+                        If TieneTestimonios(conexion, transaccion, instrumento.ID) Then
+                            motivo = "No se puede modificar una escritura después de expedir testimonios; el historial debe conservarse."
+                            transaccion.Rollback()
+                            Return False
+                        End If
                     End If
 
                     If String.Equals(instrumento.Estado, "Vigente", StringComparison.OrdinalIgnoreCase) Then
@@ -447,6 +452,10 @@ Public Class ProtocoloRepositorio
                 If Not BloquearInstrumentoVigente(conexion, transaccion, idInstrumento, motivo) Then
                     Throw New InvalidOperationException(motivo)
                 End If
+                If TieneTestimonios(conexion, transaccion, idInstrumento) Then
+                    Throw New InvalidOperationException(
+                        "No se pueden agregar comparecientes después de expedir testimonios.")
+                End If
 
                 Ejecutar(conexion, transaccion,
                     "INSERT INTO Comparecientes_Instrumento (ID_Instrumento, ID_Cliente, Calidad) VALUES (@instrumento, @cliente, @calidad)",
@@ -477,6 +486,10 @@ Public Class ProtocoloRepositorio
                 Dim motivo As String = ""
                 If Not BloquearInstrumentoVigente(conexion, transaccion, idInstrumento, motivo) Then
                     Throw New InvalidOperationException(motivo)
+                End If
+                If TieneTestimonios(conexion, transaccion, idInstrumento) Then
+                    Throw New InvalidOperationException(
+                        "No se pueden quitar comparecientes después de expedir testimonios.")
                 End If
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -592,6 +605,17 @@ Public Class ProtocoloRepositorio
     ''' Bloquea primero el libro y después la escritura para impedir cambios
     ''' concurrentes de comparecientes mientras se cierra el protocolo.
     ''' </summary>
+    Private Function TieneTestimonios(conexion As MySqlConnection,
+                                         transaccion As MySqlTransaction,
+                                         idInstrumento As Integer) As Boolean
+        Using comando As New MySqlCommand(
+            "SELECT COUNT(*) FROM Testimonios_Expedidos WHERE ID_Instrumento = @id",
+            conexion, transaccion)
+            Parametro(comando, "@id", idInstrumento)
+            Return Convert.ToInt32(comando.ExecuteScalar()) > 0
+        End Using
+    End Function
+
     Private Function BloquearInstrumentoVigente(conexion As MySqlConnection,
                                                 transaccion As MySqlTransaction,
                                                 idInstrumento As Integer,
