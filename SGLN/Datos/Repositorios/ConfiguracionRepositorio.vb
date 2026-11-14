@@ -89,7 +89,32 @@ Public Class ConfiguracionRepositorio
     ''' el archivo lo escribe este equipo (el cliente), así que funciona igual
     ''' en local y en red, sin permisos especiales en el servidor.
     ''' </summary>
+    Private Shared Sub ValidarMotoresRespaldo()
+        Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexion.Open()
+            Using comando As New MySqlCommand(
+                "SELECT COUNT(*) FROM information_schema.tables " &
+                "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' " &
+                "AND (ENGINE IS NULL OR ENGINE <> 'InnoDB')", conexion)
+                Dim noTransaccionales As Integer = Convert.ToInt32(comando.ExecuteScalar())
+                If noTransaccionales > 0 Then
+                    Throw New InvalidOperationException(
+                        "No se puede garantizar un respaldo consistente: la base contiene tablas que no usan InnoDB. " &
+                        "Convierta esas tablas a InnoDB y vuelva a intentar.")
+                End If
+            End Using
+            Using comando As New MySqlCommand(
+                "SELECT COUNT(*) FROM information_schema.tables " &
+                "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'", conexion)
+                If Convert.ToInt32(comando.ExecuteScalar()) = 0 Then
+                    Throw New InvalidOperationException("La base de datos no contiene tablas para respaldar.")
+                End If
+            End Using
+        End Using
+    End Sub
+
     Public Sub RespaldarBaseDatos(rutaDestino As String)
+        ValidarMotoresRespaldo()
         Dim ejecutable As String = RutaMySqlDump()
         If String.IsNullOrWhiteSpace(ejecutable) Then
             Throw New InvalidOperationException(
