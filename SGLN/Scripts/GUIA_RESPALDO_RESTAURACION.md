@@ -39,15 +39,31 @@ Realice ensayos periódicos en **otro servidor o instancia MySQL aislada**, sin 
    $ca = 'C:\RutaProtegida\ca.pem'
    $respaldo = 'D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql'
 
-   $proceso = Start-Process -FilePath $mysql -ArgumentList @(
-       "--defaults-extra-file=$credenciales",
-       '--ssl-mode=VERIFY_CA',
-       "--ssl-ca=$ca",
-       '--default-character-set=utf8mb4'
-   ) -RedirectStandardInput $respaldo -NoNewWindow -Wait -PassThru
+   $info = New-Object System.Diagnostics.ProcessStartInfo
+   $info.FileName = $mysql
+   $info.Arguments = '--defaults-extra-file="' + $credenciales +
+       '" --ssl-mode=VERIFY_CA --ssl-ca="' + $ca +
+       '" --default-character-set=utf8mb4'
+   $info.UseShellExecute = $false
+   $info.CreateNoWindow = $false
 
-   if ($proceso.ExitCode -ne 0) {
-       throw "La restauración de ensayo falló. Código: $($proceso.ExitCode)"
+   $proceso = [System.Diagnostics.Process]::Start($info)
+   try {
+       $entrada = [System.IO.File]::OpenRead($respaldo)
+       try {
+           $entrada.CopyTo($proceso.StandardInput.BaseStream)
+           $proceso.StandardInput.Close()
+           $proceso.WaitForExit()
+           if ($proceso.ExitCode -ne 0) {
+               throw "La restauración de ensayo falló. Código: $($proceso.ExitCode)"
+           }
+       }
+       finally {
+           $entrada.Dispose()
+       }
+   }
+   finally {
+       $proceso.Dispose()
    }
    ```
 
