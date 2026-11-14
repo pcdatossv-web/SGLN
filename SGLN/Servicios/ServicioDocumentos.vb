@@ -2,6 +2,7 @@ Imports System
 Imports System.Collections.Generic
 Imports System.Data
 Imports System.IO
+Imports System.IO.Compression
 Imports System.Security.Cryptography
 Imports System.Windows.Forms
 
@@ -74,6 +75,10 @@ Public Class ServicioDocumentos
             ' Se calcula el hash sobre la copia final, no sobre el origen:
             ' evita registrar un hash distinto si el archivo cambia durante la copia.
             File.Copy(rutaOrigen, rutaDestino)
+            If Not ValidarContenidoArchivo(rutaDestino, extension) Then
+                Throw New InvalidDataException(
+                    "El contenido del archivo no corresponde a su extensión o el documento está dañado.")
+            End If
             Dim hash As String = CalcularHashSha256(rutaDestino)
 
             Dim documento As New Documento With {
@@ -192,6 +197,67 @@ Public Class ServicioDocumentos
             Throw New InvalidOperationException("La ruta del documento está fuera de la carpeta documental autorizada.")
         End If
         Return destino
+    End Function
+
+    ''' <summary>
+    ''' Verifica firmas básicas del formato real después de copiar el archivo.
+    ''' La extensión por sí sola no demuestra que el contenido sea un documento.
+    ''' </summary>
+    Private Shared Function ValidarContenidoArchivo(ruta As String, extension As String) As Boolean
+        Select Case If(extension, "").ToLowerInvariant()
+            Case ".pdf"
+                Using flujo As FileStream = File.OpenRead(ruta)
+                    Dim buffer(1023) As Byte
+                    Dim leidos As Integer = flujo.Read(buffer, 0, buffer.Length)
+                    Dim inicio As String = System.Text.Encoding.ASCII.GetString(buffer, 0, leidos)
+                    Return inicio.IndexOf("%PDF-", StringComparison.Ordinal) >= 0
+                End Using
+
+            Case ".jpg", ".jpeg"
+                Using lector As New BinaryReader(File.OpenRead(ruta))
+                    Dim firma As Byte() = lector.ReadBytes(3)
+                    Return firma.Length = 3 AndAlso firma(0) = &HFF AndAlso
+                           firma(1) = &HD8 AndAlso firma(2) = &HFF
+                End Using
+
+            Case ".png"
+                Using lector As New BinaryReader(File.OpenRead(ruta))
+                    Dim firma As Byte() = lector.ReadBytes(8)
+                    Dim esperada As Byte() = {&H89, &H50, &H4E, &H47, &HD, &HA, &H1A, &HA}
+                    Return firma.SequenceEqual(esperada)
+                End Using
+
+            Case ".tif", ".tiff"
+                Using lector As New BinaryReader(File.OpenRead(ruta))
+                    Dim firma As Byte() = lector.ReadBytes(4)
+                    If firma.Length <> 4 Then Return False
+                    Return (firma(0) = &H49 AndAlso firma(1) = &H49 AndAlso
+                            (firma(2) = &H2A OrElse firma(2) = &H2B) AndAlso
+                            (firma(3) = &H0 OrElse firma(3) = &H0)) OrElse
+                           (firma(0) = &H4D AndAlso firma(1) = &H4D AndAlso
+                            firma(2) = &H0 AndAlso (firma(3) = &H2A OrElse firma(3) = &H2B))
+                End Using
+
+            Case ".doc"
+                Using lector As New BinaryReader(File.OpenRead(ruta))
+                    Dim firma As Byte() = lector.ReadBytes(8)
+                    Dim esperada As Byte() = {&HD0, &HCF, &H11, &HE0, &HA1, &HB1, &H1A, &HE1}
+                    Return firma.SequenceEqual(esperada)
+                End Using
+
+            Case ".docx"
+                Try
+                    Using archivoZip As ZipArchive = ZipFile.OpenRead(ruta)
+                        Return archivoZip.GetEntry("[Content_Types].xml") IsNot Nothing AndAlso
+                               archivoZip.GetEntry("word/document.xml") IsNot Nothing AndAlso
+                               archivoZip.GetEntry("word/vbaProject.bin") Is Nothing
+                    End Using
+                Catch ex As InvalidDataException
+                    Return False
+                End Try
+        End Select
+
+        Return False
     End Function
 
     Private Function RutaRelativa(rutaAbsoluta As String) As String
