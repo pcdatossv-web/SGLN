@@ -143,8 +143,8 @@ Public Class ConfiguracionConexion
         If IgnorarRegistro() OrElse EsBaseDePruebas(datos) Then
             datos.Origen = "App.config (aislado)"
         ElseIf datos.Origen = "App.config" OrElse datos.Origen = "Defecto" Then
-            ' Migración automática: la cadena de respaldo pasa al registro para
-            ' poder cambiarla desde el formulario sin editar el App.config.
+            ' Migración automática: los parámetros compartibles pasan a HKLM
+            ' y las credenciales del usuario actual se guardan cifradas en HKCU.
             Try
                 datos.Origen = Guardar(datos, True)
             Catch ex As Exception
