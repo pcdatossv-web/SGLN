@@ -268,7 +268,10 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarFeriados()
-        For anio As Integer = 2025 To 2028
+        ' El calendario legal fijo se mantiene y Semana Santa se calcula
+        ' mediante el algoritmo gregoriano para no dejar el sistema sin
+        ' feriados móviles al superar el año 2028.
+        For anio As Integer = 2025 To 2100
             SembrarFeriado(New Date(anio, 1, 1), "Año Nuevo")
             SembrarFeriado(New Date(anio, 5, 1), "Día del Trabajo")
             SembrarFeriado(New Date(anio, 8, 6), "Día del Divino Salvador del Mundo")
@@ -276,26 +279,34 @@ Public Module InicializadorBD
             SembrarFeriado(New Date(anio, 11, 2), "Día de los Difuntos")
             SembrarFeriado(New Date(anio, 12, 25), "Navidad")
 
-            Select Case anio
-                Case 2025
-                    SembrarFeriado(New Date(2025, 4, 17), "Jueves Santo")
-                    SembrarFeriado(New Date(2025, 4, 18), "Viernes Santo")
-                    SembrarFeriado(New Date(2025, 4, 19), "Sábado Santo")
-                Case 2026
-                    SembrarFeriado(New Date(2026, 4, 2), "Jueves Santo")
-                    SembrarFeriado(New Date(2026, 4, 3), "Viernes Santo")
-                    SembrarFeriado(New Date(2026, 4, 4), "Sábado Santo")
-                Case 2027
-                    SembrarFeriado(New Date(2027, 3, 25), "Jueves Santo")
-                    SembrarFeriado(New Date(2027, 3, 26), "Viernes Santo")
-                    SembrarFeriado(New Date(2027, 3, 27), "Sábado Santo")
-                Case 2028
-                    SembrarFeriado(New Date(2028, 4, 13), "Jueves Santo")
-                    SembrarFeriado(New Date(2028, 4, 14), "Viernes Santo")
-                    SembrarFeriado(New Date(2028, 4, 15), "Sábado Santo")
-            End Select
+            Dim domingoPascua As Date = CalcularDomingoPascua(anio)
+            SembrarFeriado(domingoPascua.AddDays(-3), "Jueves Santo")
+            SembrarFeriado(domingoPascua.AddDays(-2), "Viernes Santo")
+            SembrarFeriado(domingoPascua.AddDays(-1), "Sábado Santo")
         Next
     End Sub
+
+    ''' <summary>
+    ''' Calcula el Domingo de Pascua en el calendario gregoriano
+    ''' (algoritmo de Meeus/Jones/Butcher).
+    ''' </summary>
+    Private Shared Function CalcularDomingoPascua(anio As Integer) As Date
+        Dim a As Integer = anio Mod 19
+        Dim b As Integer = anio \ 100
+        Dim c As Integer = anio Mod 100
+        Dim d As Integer = b \ 4
+        Dim e As Integer = b Mod 4
+        Dim f As Integer = (b + 8) \ 25
+        Dim g As Integer = (b - f + 1) \ 3
+        Dim h As Integer = (19 * a + b - d - g + 15) Mod 30
+        Dim i As Integer = c \ 4
+        Dim k As Integer = c Mod 4
+        Dim l As Integer = (32 + 2 * e + 2 * i - h - k) Mod 7
+        Dim m As Integer = (a + 11 * h + 22 * l) \ 451
+        Dim mes As Integer = (h + l - 7 * m + 114) \ 31
+        Dim dia As Integer = ((h + l - 7 * m + 114) Mod 31) + 1
+        Return New Date(anio, mes, dia)
+    End Function
 
     Private Sub SembrarFeriado(fecha As Date, descripcion As String)
         Ejecutar(
