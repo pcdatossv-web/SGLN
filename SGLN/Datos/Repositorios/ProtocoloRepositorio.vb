@@ -46,6 +46,51 @@ Public Class ProtocoloRepositorio
     Public Sub ActualizarLibro(libro As LibroProtocolo)
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim numeroActual As Integer
+                Dim anioActual As Integer
+                Dim autorizacionActual As Date
+                Dim vencimientoActual As Date
+                Dim estadoActual As String = Nothing
+
+                ' Bloquear primero el libro: los registros de instrumentos
+                ' adquieren este mismo bloqueo antes de validar y reservar folios.
+                Using comandoLibro As New MySqlCommand(
+                    "SELECT Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, Fecha_Vencimiento, Estado " &
+                    "FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(comandoLibro, "@id", libro.ID)
+                    Using lector As MySqlDataReader = comandoLibro.ExecuteReader()
+                        If lector.Read() Then
+                            numeroActual = Convert.ToInt32(lector("Numero_Libro"))
+                            anioActual = Convert.ToInt32(lector("Anio_Vigencia"))
+                            autorizacionActual = Convert.ToDateTime(lector("Fecha_Autorizacion")).Date
+                            vencimientoActual = Convert.ToDateTime(lector("Fecha_Vencimiento")).Date
+                            estadoActual = Convert.ToString(lector("Estado"))
+                        End If
+                    End Using
+                End Using
+
+                If estadoActual <> "Vigente" Then
+                    Throw New InvalidOperationException("El libro ya no existe o dejó de estar vigente.")
+                End If
+
+                Dim instrumentos As Integer
+                Using comandoConteo As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Instrumentos WHERE ID_Libro = @id",
+                    conexion, transaccion)
+                    Parametro(comandoConteo, "@id", libro.ID)
+                    instrumentos = Convert.ToInt32(comandoConteo.ExecuteScalar())
+                End Using
+
+                If instrumentos > 0 AndAlso
+                   (libro.NumeroLibro <> numeroActual OrElse
+                    libro.AnioVigencia <> anioActual OrElse
+                    libro.FechaAutorizacion.Date <> autorizacionActual OrElse
+                    libro.FechaVencimiento.Date <> vencimientoActual) Then
+                    Throw New InvalidOperationException(
+                        "No se puede cambiar el número, año ni vigencia de un libro que ya contiene escrituras, incluso si alguna fue anulada.")
+                End If
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Numero_Libro = @numero, Anio_Vigencia = @anio, " &
                     "Fecha_Autorizacion = @autorizacion, Fecha_Vencimiento = @vencimiento, Estado = @estado WHERE ID = @id",
