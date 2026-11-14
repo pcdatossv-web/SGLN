@@ -47,6 +47,8 @@ Public Class ServicioEntidades
             }
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("La entidad o su perfil LDA/FT ya está registrado.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - guardar", ex)
             Return Respuesta.Fallo("No se pudo guardar la entidad y su perfil. Verifique los datos y la conexión con la base de datos.")
