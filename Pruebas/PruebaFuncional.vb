@@ -612,7 +612,7 @@ Module PruebaFuncional
                   }, Nothing).Exito)
         Verificar("NIT con letras intercaladas se rechaza en el servicio",
                   Not clientes.Guardar(New Cliente With {
-                      .Nombres = "X", .Apellidos = "Y", .NIT = "ABCD-010808-100-1"
+                      .Nombres = "X", .Apellidos = "Y", .NIT = "ABCD06140108081001"
                   }, Nothing).Exito)
         Verificar("Email sin arroba se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .Email = "correo"}, Nothing).Exito)
