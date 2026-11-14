@@ -1478,6 +1478,10 @@ Module PruebaFuncional
         Dim rRespaldo As Respuesta = seguridad.Respaldar()
         Verificar("El respaldo de la base se crea y se reporta su ruta",
                   rRespaldo.Exito, rRespaldo.Mensaje)
+        Verificar("El respaldo exitoso queda registrado en la bitácora",
+                  rRespaldo.Exito AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Accion = 'RESPALDO' " &
+                                   "AND Tabla_Afectada = 'BaseDatos'") > 0)
 
         ' ---------- 12. IA/OCR sigue deshabilitado ----------
         Console.WriteLine()
