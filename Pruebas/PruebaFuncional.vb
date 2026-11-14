@@ -807,7 +807,7 @@ Module PruebaFuncional
         ' La referencia histórica en Casos.Responsable puede guardar el nombre
         ' completo y no el login; la eliminación debe detectar ambos formatos.
         Dim altaReferenciaNombre As Respuesta = servicioUsuarios.Crear(
-            "refhist", "Abg. Ana María Pérez", "RefHist123*", idRolPrueba, True)
+            "refhist", "Abg. Ana María Pérez", "RefHist123*X", idRolPrueba, True)
         Dim idReferenciaNombre As Integer = 0
         For Each fila As DataRow In servicioUsuarios.Listar().Rows
             If UtileriasUI.Texto(fila, "Usuario") = "refhist" Then
