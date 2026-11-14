@@ -25,7 +25,7 @@ jobs:
         shell: pwsh
         run: ./Pruebas/Inventario-Dependencias.ps1
 
-      - name: Validate PowerShell test runner syntax and isolation config
+      - name: Validate PowerShell scripts and test isolation config
         shell: pwsh
         run: |
           $tokens = $null
