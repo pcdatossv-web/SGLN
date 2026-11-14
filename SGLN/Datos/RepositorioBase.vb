@@ -118,6 +118,13 @@ Public MustInherit Class RepositorioBase
     ''' Se usa, entre otros casos, para no permitir un inicio de sesión sin
     ''' conservar su evento en Audit_Log.
     ''' </summary>
+    Protected Sub AuditarObligatorio(accion As String,
+                                     tabla As String,
+                                     idRegistro As Integer?,
+                                     detalle As String)
+        AuditarObligatorio(Sesion.NombreUsuario, accion, tabla, idRegistro, detalle)
+    End Sub
+
     Protected Sub AuditarObligatorio(usuario As String,
                                      accion As String,
                                      tabla As String,
