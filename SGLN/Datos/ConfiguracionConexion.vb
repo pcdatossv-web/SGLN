@@ -294,6 +294,11 @@ Public Class ConfiguracionConexion
 
     Private Shared Function EscribirRegistro(hive As RegistryHive, datos As DatosConexion,
                                                 incluirCredenciales As Boolean) As Boolean
+        If incluirCredenciales AndAlso hive <> RegistryHive.CurrentUser Then
+            Throw New InvalidOperationException(
+                "Las credenciales de conexión solo pueden guardarse en el perfil del usuario Windows actual.")
+        End If
+
         Try
             Using claveBase As RegistryKey = AbrirBase(hive, True)
                 Using clave As RegistryKey = claveBase.CreateSubKey(RutaClave)
