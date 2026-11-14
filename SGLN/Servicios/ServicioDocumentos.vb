@@ -158,7 +158,19 @@ Public Class ServicioDocumentos
     Public Function RutaDelDocumento(id As Integer) As String
         Dim tabla As DataTable = _repositorio.Obtener(id)
         If tabla.Rows.Count = 0 Then Return ""
-        Return RutaCompleta(Convert.ToString(tabla.Rows(0)("Ruta_Archivo")))
+
+        Dim fila As DataRow = tabla.Rows(0)
+        Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
+        If Not File.Exists(ruta) Then Return ""
+
+        Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
+        Dim hashActual As String = CalcularHashSha256(ruta)
+        If Not String.Equals(hashRegistrado, hashActual, StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidDataException(
+                "El hash SHA-256 no coincide. Por seguridad, el documento no se abrirá.")
+        End If
+
+        Return ruta
     End Function
 
     Public Function RutaBaseDocumentos() As String
