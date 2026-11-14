@@ -93,7 +93,11 @@ Public Class ClienteRepositorio
 
                     Dim comparecenciasExistentes As Integer
                     Using comandoReferencias As New MySqlCommand(
-                        "SELECT COUNT(*) FROM Comparecientes_Instrumento WHERE ID_Cliente = @id",
+                        "SELECT " &
+                        " (SELECT COUNT(*) FROM Comparecientes_Instrumento WHERE ID_Cliente = @id) + " &
+                        " (SELECT COUNT(*) FROM Representantes_Legales WHERE ID_Cliente = @id) + " &
+                        " (SELECT COUNT(*) FROM Casos WHERE ID_Cliente = @id) + " &
+                        " (SELECT COUNT(*) FROM Solicitudes_ARCO WHERE ID_Cliente = @id)",
                         conexion, transaccion)
                         Parametro(comandoReferencias, "@id", idCliente)
                         comparecenciasExistentes = Convert.ToInt32(comandoReferencias.ExecuteScalar())
@@ -113,7 +117,7 @@ Public Class ClienteRepositorio
 
                     If comparecenciasExistentes > 0 AndAlso identidadModificada Then
                         Throw New InvalidOperationException(
-                            "No se puede cambiar la identidad de un cliente que ya figura en instrumentos del protocolo. Actualice solo sus datos de contacto o registre la rectificación mediante el procedimiento autorizado.")
+                            "No se puede cambiar la identidad de un cliente con historial en casos, protocolo, representaciones legales o solicitudes ARCO. Actualice solo sus datos de contacto o use el procedimiento autorizado de rectificación.")
                     End If
 
                     Ejecutar(conexion, transaccion,
