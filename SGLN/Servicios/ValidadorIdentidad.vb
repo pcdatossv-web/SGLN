@@ -49,6 +49,7 @@ Public Module ValidadorIdentidad
     End Function
 
     Public Function EsDigitoDuiValido(dui As String) As Boolean
+        If Not EsFormatoDuiValido(dui) Then Return False
         Dim digitos As String = LimpiarDocumento(dui)
         If digitos.Length <> 9 Then Return False
 
