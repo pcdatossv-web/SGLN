@@ -23,8 +23,8 @@
     de una corrida anterior.
 
 .EXAMPLE
-    $env:MYSQL_ROOT_PASSWORD = 'locoprosv'
     .\Ejecutar-Pruebas.ps1
+    # Si no se definió MYSQL_ROOT_PASSWORD, el script la solicita de forma segura.
 #>
 [CmdletBinding()]
 param(
