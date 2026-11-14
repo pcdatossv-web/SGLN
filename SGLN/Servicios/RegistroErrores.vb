@@ -2,8 +2,8 @@ Imports System
 Imports System.IO
 
 ''' <summary>
-''' Registro de errores en archivo. Se escribe en la carpeta Logs junto al
-''' ejecutable para facilitar el diagnóstico en equipos del bufete.
+''' Registro de errores por usuario Windows. Se escribe en LocalAppData para
+''' que funcione sin permisos de administrador y no exponga datos a otros perfiles.
 ''' </summary>
 Public Module RegistroErrores
 
@@ -21,7 +21,11 @@ Public Module RegistroErrores
 
     Private Sub Agregar(contexto As String, detalle As String)
         Try
-            Dim carpeta As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs")
+            Dim datosLocales As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+            If String.IsNullOrWhiteSpace(datosLocales) Then
+                Throw New InvalidOperationException("Windows no proporcionó la carpeta LocalAppData del usuario.")
+            End If
+            Dim carpeta As String = Path.Combine(datosLocales, "SGLN", "Logs")
             Directory.CreateDirectory(carpeta)
             Dim archivo As String = Path.Combine(carpeta, "errores_" & Date.Today.ToString("yyyyMMdd") & ".log")
             Dim texto As String = String.Format(
