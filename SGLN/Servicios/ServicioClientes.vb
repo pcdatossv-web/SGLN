@@ -35,6 +35,8 @@ Public Class ServicioClientes
         Catch ex As MySqlException When ex.Number = 1062
             ' La restricción única del DUI y la del perfil se aplican en el servidor.
             Return Respuesta.Fallo("El DUI ya está registrado o existe un perfil LDA/FT duplicado.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - guardar", ex)
             Return Respuesta.Fallo("No se pudo guardar el cliente y su perfil. Verifique los datos y la conexión con la base de datos.")
