@@ -88,8 +88,8 @@ End Class
 
 ''' <summary>
 ''' Configuración de conexión guardada en el registro de Windows.
-''' Orden de lectura: HKCU (solo el usuario de Windows) -> HKLM (todo el equipo)
-''' -> App.config -> valores por defecto.
+''' HKCU conserva los parámetros y secretos del usuario actual; HKLM solo
+''' conserva parámetros no secretos compartidos. Orden: HKCU -> HKLM -> App.config.
 ''' El App.config queda solo como respaldo del primer arranque: la primera vez
 ''' se copia al registro para que el técnico no tenga que editar XML.
 ''' </summary>
