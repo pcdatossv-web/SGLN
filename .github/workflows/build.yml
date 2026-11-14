@@ -25,6 +25,22 @@ jobs:
         shell: pwsh
         run: ./Pruebas/Inventario-Dependencias.ps1
 
+      - name: Validate PowerShell test runner syntax and isolation config
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'Pruebas\\Ejecutar-Pruebas.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | Format-List
+            throw 'El ejecutor de pruebas contiene errores de sintaxis PowerShell.'
+          }
+          [xml]$config = Get-Content 'Pruebas\\PruebaFuncional.exe.config'
+          $connection = $config.configuration.connectionStrings.add.connectionString
+          if ($connection -notmatch '(?i)Database=sgln_sv_pruebas' -or $connection -notmatch '(?i)SslMode=Preferred') {
+            throw 'La configuración del arnés no apunta a sgln_sv_pruebas con TLS de pruebas esperado.'
+          }
+
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
         run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
