@@ -1045,6 +1045,24 @@ Module PruebaFuncional
 
         Dim rComp1 As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
         Verificar("Agregar compareciente otorgante a la escritura 1", rComp1.Exito, rComp1.Mensaje)
+
+        Dim clienteIdentidadAlterada As New Cliente With {
+            .ID = idCliente, .Nombres = "Ana María Modificada", .Apellidos = cliente.Apellidos,
+            .DUI = cliente.DUI, .NIT = cliente.NIT, .Nacionalidad = cliente.Nacionalidad,
+            .Profesion = cliente.Profesion, .FechaNacimiento = cliente.FechaNacimiento,
+            .Direccion = cliente.Direccion, .Telefono = cliente.Telefono,
+            .Email = cliente.Email, .Activo = True}
+        Verificar("No se altera la identidad de un cliente que ya figura en el protocolo",
+                  Not clientes.Guardar(clienteIdentidadAlterada, Nothing).Exito)
+        Dim clienteContactoActualizado As New Cliente With {
+            .ID = idCliente, .Nombres = cliente.Nombres, .Apellidos = cliente.Apellidos,
+            .DUI = cliente.DUI, .NIT = cliente.NIT, .Nacionalidad = cliente.Nacionalidad,
+            .Profesion = cliente.Profesion, .FechaNacimiento = cliente.FechaNacimiento,
+            .Direccion = cliente.Direccion, .Telefono = "2222-1111",
+            .Email = "ana.perez.actualizado@ejemplo.com", .Activo = True}
+        Verificar("Los datos de contacto sí pueden actualizarse sin alterar la identidad histórica",
+                  clientes.Guardar(clienteContactoActualizado, Nothing).Exito)
+
         Dim rCompDup As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
         Verificar("Compareciente duplicado se rechaza con mensaje", Not rCompDup.Exito, rCompDup.Mensaje)
         Verificar("Calidad fuera de catálogo se rechaza",
