@@ -124,8 +124,13 @@ Public Class ServicioDocumentos
             .IDInstrumento = idInstrumento
         }
 
-        _repositorio.ActualizarMetadatos(documento)
-        Return Respuesta.Ok("Metadatos del documento actualizados.")
+        Try
+            _repositorio.ActualizarMetadatos(documento)
+            Return Respuesta.Ok("Metadatos del documento actualizados.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - actualizar metadatos", ex)
+            Return Respuesta.Fallo("No se pudieron actualizar los metadatos. Verifique la conexión y los datos.")
+        End Try
     End Function
 
     ''' <summary>
@@ -133,26 +138,30 @@ Public Class ServicioDocumentos
     ''' </summary>
     Public Function VerificarIntegridad(id As Integer) As Respuesta
         If Not Permisos.TieneAcceso("documentos.verificar") Then Return Respuesta.Fallo("No tiene permiso para verificar documentos.")
-
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
 
-        Dim tabla As DataTable = _repositorio.Obtener(id)
-        If tabla.Rows.Count = 0 Then Return Respuesta.Fallo("El documento no existe.")
+        Try
+            Dim tabla As DataTable = _repositorio.Obtener(id)
+            If tabla.Rows.Count = 0 Then Return Respuesta.Fallo("El documento no existe.")
 
-        Dim fila As DataRow = tabla.Rows(0)
-        Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
-        If Not File.Exists(ruta) Then
-            Return Respuesta.Fallo("El archivo no se encuentra en la ruta registrada.")
-        End If
+            Dim fila As DataRow = tabla.Rows(0)
+            Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
+            If Not File.Exists(ruta) Then
+                Return Respuesta.Fallo("El archivo no se encuentra en la ruta registrada.")
+            End If
 
-        Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
-        Dim hashActual As String = CalcularHashSha256(ruta)
+            Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
+            Dim hashActual As String = CalcularHashSha256(ruta)
 
-        If String.Equals(hashRegistrado, hashActual, StringComparison.OrdinalIgnoreCase) Then
-            Return Respuesta.Ok("Integridad verificada: el archivo coincide con el hash registrado.")
-        End If
+            If String.Equals(hashRegistrado, hashActual, StringComparison.OrdinalIgnoreCase) Then
+                Return Respuesta.Ok("Integridad verificada: el archivo coincide con el hash registrado.")
+            End If
 
-        Return Respuesta.Fallo("ALERTA: el hash no coincide. El archivo pudo ser alterado.")
+            Return Respuesta.Fallo("ALERTA: el hash no coincide. El archivo pudo ser alterado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - verificar integridad", ex)
+            Return Respuesta.Fallo("No se pudo verificar el documento. Revise la ruta, los permisos y la conexión.")
+        End Try
     End Function
 
     Public Function RutaDelDocumento(id As Integer) As String
