@@ -269,21 +269,38 @@ Public Module InicializadorBD
 
     Private Sub SembrarFeriados()
         ' El calendario legal fijo se mantiene y Semana Santa se calcula
-        ' mediante el algoritmo gregoriano para no dejar el sistema sin
-        ' feriados móviles al superar el año 2028.
+        ' mediante el algoritmo gregoriano. Todos los años se insertan en
+        ' una sola sentencia para evitar cientos de conexiones al iniciar.
+        Dim feriados As New List(Of KeyValuePair(Of Date, String))()
+
         For anio As Integer = 2025 To 2100
-            SembrarFeriado(New Date(anio, 1, 1), "Año Nuevo")
-            SembrarFeriado(New Date(anio, 5, 1), "Día del Trabajo")
-            SembrarFeriado(New Date(anio, 8, 6), "Día del Divino Salvador del Mundo")
-            SembrarFeriado(New Date(anio, 9, 15), "Día de la Independencia")
-            SembrarFeriado(New Date(anio, 11, 2), "Día de los Difuntos")
-            SembrarFeriado(New Date(anio, 12, 25), "Navidad")
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 1, 1), "Año Nuevo"))
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 5, 1), "Día del Trabajo"))
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 8, 6), "Día del Divino Salvador del Mundo"))
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 9, 15), "Día de la Independencia"))
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 11, 2), "Día de los Difuntos"))
+            feriados.Add(New KeyValuePair(Of Date, String)(New Date(anio, 12, 25), "Navidad"))
 
             Dim domingoPascua As Date = CalcularDomingoPascua(anio)
-            SembrarFeriado(domingoPascua.AddDays(-3), "Jueves Santo")
-            SembrarFeriado(domingoPascua.AddDays(-2), "Viernes Santo")
-            SembrarFeriado(domingoPascua.AddDays(-1), "Sábado Santo")
+            feriados.Add(New KeyValuePair(Of Date, String)(domingoPascua.AddDays(-3), "Jueves Santo"))
+            feriados.Add(New KeyValuePair(Of Date, String)(domingoPascua.AddDays(-2), "Viernes Santo"))
+            feriados.Add(New KeyValuePair(Of Date, String)(domingoPascua.AddDays(-1), "Sábado Santo"))
         Next
+
+        Dim consulta As New StringBuilder(
+            "INSERT IGNORE INTO Feriados (Fecha, Descripcion) VALUES ")
+        For indice As Integer = 0 To feriados.Count - 1
+            If indice > 0 Then consulta.Append(",")
+            consulta.Append("(@fecha").Append(indice).Append(",@descripcion").Append(indice).Append(")")
+        Next
+
+        Ejecutar(consulta.ToString(),
+            Sub(comando As MySqlCommand)
+                For indice As Integer = 0 To feriados.Count - 1
+                    Parametro(comando, "@fecha" & indice.ToString(), feriados(indice).Key)
+                    Parametro(comando, "@descripcion" & indice.ToString(), feriados(indice).Value)
+                Next
+            End Sub)
     End Sub
 
     ''' <summary>
