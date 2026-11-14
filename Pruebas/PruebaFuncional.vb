@@ -1107,10 +1107,8 @@ Module PruebaFuncional
         Verificar("Testimonio con fecha futura se rechaza",
                   Not protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today.AddDays(1), "X").Exito)
 
-        Dim rAnular As Respuesta = protocolo.AnularInstrumento(idInstrumento2)
-        Verificar("Anular escritura 2 conserva el registro", rAnular.Exito, rAnular.Mensaje)
         Verificar("No se expiden testimonios de escritura anulada",
-                  Not protocolo.ExpedirTestimonio(idInstrumento2, "Ulterior", Date.Today, "X").Exito)
+                  Not protocolo.ExpedirTestimonio(idConcurrente, "Ulterior", Date.Today, "X").Exito)
 
         Dim rEntregaAnterior As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today.AddDays(-1))
         Verificar("La fecha de entrega no puede ser anterior al cierre", Not rEntregaAnterior.Exito)
@@ -1118,14 +1116,17 @@ Module PruebaFuncional
         Verificar("Entrega al Notariado con fecha futura se rechaza", Not rEntregaFutura.Exito)
         Dim rEntrega As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today)
         Verificar("Registrar entrega del libro cerrado", rEntrega.Exito, rEntrega.Mensaje)
+        Verificar("No se puede anular una escritura después de entregar el libro",
+                  Not protocolo.AnularInstrumento(idInstrumento2).Exito)
 
         Dim rIndice As Respuesta = protocolo.GenerarIndice(idLibro)
         Verificar("Generar índice del libro", rIndice.Exito, rIndice.Mensaje)
         Dim indice As DataTable = protocolo.IndiceLibro(idLibro)
-        Verificar("El índice contiene las 2 escrituras", indice.Rows.Count = 2)
+        Verificar("El índice conserva las 3 escrituras, incluida la anulada", indice.Rows.Count = 3)
         Dim escrituraAnuladaEnIndice As Boolean = False
         For Each filaIndice As DataRow In indice.Rows
-            If UtileriasUI.Entero(filaIndice, "Numero_Escritura") = 2 AndAlso
+            If (UtileriasUI.Entero(filaIndice, "Numero_Escritura") = 20 OrElse
+                UtileriasUI.Entero(filaIndice, "Numero_Escritura") = 21) AndAlso
                UtileriasUI.Texto(filaIndice, "Estado") = "Anulado" Then
                 escrituraAnuladaEnIndice = True
                 Exit For
