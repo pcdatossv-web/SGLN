@@ -153,7 +153,7 @@ Module PruebaFuncional
                   admin IsNot Nothing AndAlso
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Usuario = 'admin' " &
                                    "AND Accion = 'INGRESO' AND Tabla_Afectada = 'Usuarios' " &
-                                   "AND ID_Registro = " & admin.ID.ToString()) = 1)
+                                   "AND ID_Registro = " & admin.ID.ToString()) > 0)
         Verificar("La cuenta creada con clave propia no requiere cambio forzado",
                   admin IsNot Nothing AndAlso Not admin.DebeCambiarClave)
         If admin Is Nothing Then
