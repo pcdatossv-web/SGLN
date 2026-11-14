@@ -1357,6 +1357,19 @@ Module PruebaFuncional
                   UtileriasUI.Fecha(cumplimiento.ObtenerSolicitud(arco.ID).Rows(0), "Fecha_Vencimiento") =
                   calculadoraFeriados.CalcularVencimiento(Date.Today, 10))
 
+        Dim arcoVencida As New SolicitudArco With {
+            .IDCliente = idCliente, .TipoDerecho = "Acceso",
+            .FechaSolicitud = Date.Today.AddDays(-30),
+            .Detalle = "Solicitud para validar vencimiento automático"}
+        Dim rArcoVencida As Respuesta = cumplimiento.GuardarSolicitud(arcoVencida)
+        Dim tablaArcoVencida As DataTable = cumplimiento.ObtenerSolicitud(arcoVencida.ID)
+        Verificar("Una solicitud ARCO cuyo plazo efectivo ya venció se muestra como Vencida",
+                  rArcoVencida.Exito AndAlso tablaArcoVencida.Rows.Count = 1 AndAlso
+                  Convert.ToString(tablaArcoVencida.Rows(0)("Estado")) = "Vencida")
+        Verificar("La lista ARCO también refleja el estado Vencida",
+                  cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString()).Length = 1 AndAlso
+                  Convert.ToString(cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString())(0)("Estado")) = "Vencida")
+
         Dim arcoProrroga As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Rectificación",
             .FechaSolicitud = Date.Today, .ProrrogaAplicada = True,
