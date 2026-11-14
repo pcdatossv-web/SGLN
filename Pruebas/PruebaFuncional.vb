@@ -1370,6 +1370,17 @@ Module PruebaFuncional
                   cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString()).Length = 1 AndAlso
                   Convert.ToString(cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString())(0)("Estado")) = "Vencida")
 
+        Dim arcoConProrrogaVigente As New SolicitudArco With {
+            .IDCliente = idCliente, .TipoDerecho = "Acceso",
+            .FechaSolicitud = Date.Today.AddDays(-15), .ProrrogaAplicada = True,
+            .Detalle = "La prórroga mantiene vigente el plazo"}
+        Dim rArcoConProrroga As Respuesta = cumplimiento.GuardarSolicitud(arcoConProrrogaVigente)
+        Dim tablaArcoConProrroga As DataTable = cumplimiento.ObtenerSolicitud(arcoConProrrogaVigente.ID)
+        Verificar("La fecha de prórroga vigente evita marcar prematuramente la solicitud como Vencida",
+                  rArcoConProrroga.Exito AndAlso tablaArcoConProrroga.Rows.Count = 1 AndAlso
+                  UtileriasUI.Fecha(tablaArcoConProrroga.Rows(0), "Fecha_Vencimiento_Prorroga").GetValueOrDefault(Date.MinValue) >= Date.Today AndAlso
+                  Convert.ToString(tablaArcoConProrroga.Rows(0)("Estado")) <> "Vencida")
+
         Dim arcoProrroga As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Rectificación",
             .FechaSolicitud = Date.Today, .ProrrogaAplicada = True,
