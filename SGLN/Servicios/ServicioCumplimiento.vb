@@ -186,6 +186,18 @@ Public Class ServicioCumplimiento
         If Not solicitudNueva Then
             Dim actual As DataTable = _repositorio.ObtenerSolicitud(solicitud.ID)
             If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La solicitud ya no existe.")
+
+            ' La persona titular y el derecho ejercido forman parte del hecho
+            ' histórico de recepción: no se pueden sustituir al editar detalles.
+            Dim clienteOriginal As Integer = Convert.ToInt32(actual.Rows(0)("ID_Cliente"))
+            Dim derechoOriginal As String = Convert.ToString(actual.Rows(0)("Tipo_Derecho"))
+            If solicitud.IDCliente <> clienteOriginal Then
+                Return Respuesta.Fallo("No se puede cambiar el cliente titular de una solicitud ARCO ya registrada.")
+            End If
+            If Not String.Equals(solicitud.TipoDerecho, derechoOriginal, StringComparison.Ordinal) Then
+                Return Respuesta.Fallo("No se puede cambiar el derecho ejercido de una solicitud ARCO ya registrada.")
+            End If
+
             If Not actual.Rows(0).IsNull("Fecha_Respuesta") OrElse
                Convert.ToString(actual.Rows(0)("Estado")) = "Respondida" Then
                 Return Respuesta.Fallo("Una solicitud ARCO respondida no se puede modificar.")
