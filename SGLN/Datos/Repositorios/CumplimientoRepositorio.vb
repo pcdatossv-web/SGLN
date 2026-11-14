@@ -118,7 +118,10 @@ Public Class CumplimientoRepositorio
         Return Consultar(
             "SELECT a.ID, a.ID_Cliente, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente, " &
             "       a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
-            "       a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, a.Estado, " &
+            "       a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
+            "       CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "         AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "         THEN 'Vencida' ELSE a.Estado END AS Estado, " &
             "       a.Fecha_Respuesta, a.Detalle " &
             "FROM Solicitudes_ARCO a " &
             "INNER JOIN Clientes cl ON cl.ID = a.ID_Cliente " &
@@ -133,7 +136,13 @@ Public Class CumplimientoRepositorio
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
         Return Consultar(
-            "SELECT * FROM Solicitudes_ARCO WHERE ID = @id",
+            "SELECT a.ID, a.ID_Cliente, a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
+            "a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
+            "CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "  THEN 'Vencida' ELSE a.Estado END AS Estado, " &
+            "a.Fecha_Respuesta, a.Detalle " &
+            "FROM Solicitudes_ARCO a WHERE a.ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
             End Sub)
