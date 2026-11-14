@@ -1123,6 +1123,15 @@ Module PruebaFuncional
         Verificar("Generar índice del libro", rIndice.Exito, rIndice.Mensaje)
         Dim indice As DataTable = protocolo.IndiceLibro(idLibro)
         Verificar("El índice contiene las 2 escrituras", indice.Rows.Count = 2)
+        Dim escrituraAnuladaEnIndice As Boolean = False
+        For Each filaIndice As DataRow In indice.Rows
+            If UtileriasUI.Entero(filaIndice, "Numero_Escritura") = 2 AndAlso
+               UtileriasUI.Texto(filaIndice, "Estado") = "Anulado" Then
+                escrituraAnuladaEnIndice = True
+                Exit For
+            End If
+        Next
+        Verificar("El índice conserva la escritura anulada con su estado", escrituraAnuladaEnIndice)
         Dim conOtorgantes As Boolean = False
         For Each fila As DataRow In indice.Rows
             If UtileriasUI.Texto(fila, "Otorgantes").Contains("Pérez") Then conOtorgantes = True
