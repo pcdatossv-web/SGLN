@@ -149,6 +149,9 @@ Public Class ServicioDocumentos
             If Not File.Exists(ruta) Then
                 Return Respuesta.Fallo("El archivo no se encuentra en la ruta registrada.")
             End If
+            If Not ValidarContenidoArchivo(ruta, Path.GetExtension(ruta)) Then
+                Return Respuesta.Fallo("El contenido del archivo no corresponde al formato registrado.")
+            End If
 
             Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
             Dim hashActual As String = CalcularHashSha256(ruta)
@@ -175,6 +178,10 @@ Public Class ServicioDocumentos
         Dim fila As DataRow = tabla.Rows(0)
         Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
         If Not File.Exists(ruta) Then Return ""
+        If Not ValidarContenidoArchivo(ruta, Path.GetExtension(ruta)) Then
+            Throw New InvalidDataException(
+                "El contenido del archivo no corresponde a un formato documental permitido.")
+        End If
 
         Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
         Dim hashActual As String = CalcularHashSha256(ruta)
