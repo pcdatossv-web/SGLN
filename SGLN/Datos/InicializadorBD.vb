@@ -33,12 +33,10 @@ Public Module InicializadorBD
                 conexion.Open()
             End Using
         Catch ex As Exception
+            RegistroErrores.Escribir("InicializadorBD.VerificarConexion", ex)
             Throw New InvalidOperationException(
-                "No se pudo conectar al servidor MySQL '" & ConexionBD.ConstructorConexion().Server &
-                "' con la base '" & ConexionBD.NombreBaseDatos() & "'. " &
-                "Verifique que el servicio MySQL esté iniciado, que la base exista y que " &
-                "la configuración de conexión (registro de Windows) o App.config tengan " &
-                "el servidor y el usuario correctos.", ex)
+                "No se pudo conectar a la base de datos. Verifique que el servicio MySQL esté iniciado, " &
+                "que la base exista y que la configuración de conexión y TLS sea correcta.", ex)
         End Try
     End Sub
 
@@ -66,14 +64,11 @@ Public Module InicializadorBD
                 Ejecutar(sentencia, 180)
             Next
         Catch ex As MySqlException
+            RegistroErrores.Escribir("InicializadorBD.InstalarEsquema", ex)
             Throw New InvalidOperationException(
-                "La base '" & ConexionBD.NombreBaseDatos() & "' no tiene el esquema instalado y el " &
-                "usuario de la aplicación no puede crearlo (permisos DDL)." & Environment.NewLine &
-                "Un administrador debe ejecutar, una sola vez y con el usuario root:" & Environment.NewLine &
-                "  Scripts\Instalacion_Servidor_MySQL.sql" & Environment.NewLine &
-                "  Scripts\Esquema_MySQL.sql" & Environment.NewLine &
-                "  Scripts\Triggers_MySQL.sql" & Environment.NewLine & Environment.NewLine &
-                "Detalle de MySQL: " & ex.Message, ex)
+                "La base de datos no tiene el esquema instalado o la cuenta de aplicación carece de permisos. " &
+                "Un administrador debe ejecutar, una sola vez, los scripts " &
+                "Instalacion_Servidor_MySQL.sql, Esquema_MySQL.sql y Triggers_MySQL.sql.", ex)
         End Try
     End Sub
 

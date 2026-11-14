@@ -241,7 +241,8 @@ Public Class ConfiguracionConexion
                 Return True
             End Using
         Catch ex As Exception
-            mensaje = ex.Message
+            RegistroErrores.Escribir("ConfiguracionConexion.Probar", ex)
+            mensaje = "No se pudo establecer o validar la conexión. Revise el servidor, la base de datos, las credenciales y la configuración TLS."
             Return False
         End Try
     End Function
