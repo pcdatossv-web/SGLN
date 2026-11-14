@@ -258,11 +258,6 @@ Public Class ConfiguracionRepositorio
     ''' Si no se puede aplicar la protección, el respaldo se cancela.
     ''' </summary>
     Private Shared Sub EscribirCredencialesProtegidas(ruta As String, usuario As String, clave As String)
-        Dim identidad As WindowsIdentity = WindowsIdentity.GetCurrent()
-        If identidad Is Nothing OrElse identidad.User Is Nothing Then
-            Throw New InvalidOperationException("No se pudo determinar la identidad de Windows para proteger las credenciales del respaldo.")
-        End If
-
         Dim seguridad As FileSecurity = CrearSeguridadArchivoPrivado()
 
         Using flujo As New FileStream(ruta, FileMode.CreateNew, FileSystemRights.FullControl,
