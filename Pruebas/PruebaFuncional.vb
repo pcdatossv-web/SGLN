@@ -606,6 +606,14 @@ Module PruebaFuncional
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .DUI = "123"}, Nothing).Exito)
         Verificar("NIT con menos de 14 dígitos se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .NIT = "123"}, Nothing).Exito)
+        Verificar("DUI con letras intercaladas se rechaza en el servicio",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "X", .Apellidos = "Y", .DUI = "ABC000000-0"
+                  }, Nothing).Exito)
+        Verificar("NIT con letras intercaladas se rechaza en el servicio",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "X", .Apellidos = "Y", .NIT = "ABCD-010808-100-1"
+                  }, Nothing).Exito)
         Verificar("Email sin arroba se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .Email = "correo"}, Nothing).Exito)
         Verificar("Nombres vacíos se rechazan",
