@@ -1,7 +1,8 @@
 ''' <summary>
 ''' Formulario para configurar la conexión al servidor MySQL.
-''' Escribe en el registro de Windows (HKLM si hay permisos, si no HKCU),
-''' de modo que cada PC cliente no dependa de editar el App.config.
+''' Guarda los parámetros compartidos sin secretos en HKLM y las credenciales
+''' cifradas con DPAPI CurrentUser en HKCU. Si no hay permisos de equipo,
+''' guarda toda la configuración en el perfil Windows actual.
 ''' </summary>
 Public Class FrmConfiguracionConexion
 
@@ -25,8 +26,8 @@ Public Class FrmConfiguracionConexion
             cmbModoSsl.SelectedItem = "VerifyCA"
         End If
 
-        ' Si está guardada por equipo, se mantiene esa elección al volver a guardar.
-        chkEquipo.Checked = (datos.Origen <> "HKCU")
+        ' Si solo existe configuración compartida, se conserva esa elección.
+        chkEquipo.Checked = (datos.Origen = "HKLM")
 
         lblRuta.Text = "Origen actual: " & DescripcionOrigen(datos.Origen)
         lblEstado.ForeColor = System.Drawing.Color.DimGray
@@ -36,7 +37,7 @@ Public Class FrmConfiguracionConexion
     Private Function DescripcionOrigen(origen As String) As String
         Select Case origen
             Case "HKLM"
-                Return "todos los usuarios del equipo (HKLM\SOFTWARE\SGLN\Conexion)"
+                Return "parámetros compartidos del equipo; faltan las credenciales de este usuario Windows"
             Case "HKCU"
                 Return "solo el usuario de Windows actual (HKCU\SOFTWARE\SGLN\Conexion)"
             Case "App.config"
@@ -144,13 +145,13 @@ Public Class FrmConfiguracionConexion
             Cursor = Cursors.Default
 
             Dim mensaje As String
-            If ambito = "HKLM" Then
-                mensaje = "Configuración guardada para todos los usuarios de este equipo."
+            If ambito = "HKLM+HKCU" Then
+                mensaje = "Parámetros del servidor guardados para todos los usuarios. Las contraseñas quedaron cifradas solo para el usuario Windows actual; cada usuario debe guardar sus propias credenciales."
             Else
                 mensaje = "Configuración guardada solo para el usuario de Windows actual."
                 If chkEquipo.Checked Then
                     mensaje &= Environment.NewLine & Environment.NewLine &
-                               "No se pudo escribir para todo el equipo porque la sesión no es de administrador."
+                               "No se pudo guardar la configuración compartida porque la sesión no tiene permisos de administrador."
                 End If
             End If
 
