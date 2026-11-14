@@ -388,10 +388,21 @@ Public Class ConfiguracionRepositorio
             If File.Exists(ruta) Then Return ruta
         Next
 
+        ' Las instalaciones de MySQL se organizan por versión: revisar solo
+        ' el nivel inmediato evita recorrer todo Program Files y fallar por
+        ' carpetas protegidas o inaccesibles durante la operación de respaldo.
         Dim raiz As String = "C:\Program Files\MySQL"
         If Directory.Exists(raiz) Then
-            Dim encontrada As String = Directory.GetFiles(raiz, NombreEjecutable, SearchOption.AllDirectories).FirstOrDefault()
-            If encontrada IsNot Nothing Then Return encontrada
+            Try
+                For Each carpetaVersion As String In Directory.EnumerateDirectories(raiz)
+                    Dim candidata As String = Path.Combine(carpetaVersion, "bin", NombreEjecutable)
+                    If File.Exists(candidata) Then Return candidata
+                Next
+            Catch ex As UnauthorizedAccessException
+                RegistroErrores.Escribir("Respaldos - búsqueda de mysqldump sin acceso a una carpeta", ex)
+            Catch ex As IOException
+                RegistroErrores.Escribir("Respaldos - error al buscar mysqldump", ex)
+            End Try
         End If
 
         Return ""
