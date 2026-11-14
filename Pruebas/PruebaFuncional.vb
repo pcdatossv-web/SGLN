@@ -77,6 +77,20 @@ Module PruebaFuncional
         End Try
         Verificar("TLS Preferred se rechaza en la base de producción", preferredProduccionRechazado)
 
+        Dim baseAjenaRechazada As Boolean = False
+        Try
+            Dim datosBaseAjena As New DatosConexion With {
+                .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "otra_base",
+                .Usuario = "sgln_app", .Password = "Prueba",
+                .ModoSsl = "Preferred"
+            }
+            datosBaseAjena.ConstruirCadena()
+        Catch ex As InvalidOperationException
+            baseAjenaRechazada = ex.Message.Contains("sgln_sv")
+        End Try
+        Verificar("La aplicación rechaza bases distintas de sgln_sv y sgln_sv_pruebas aislada",
+                  baseAjenaRechazada)
+
         Dim preferredPruebasAceptado As Boolean = False
         Try
             Dim datosPreferidos As New DatosConexion With {
