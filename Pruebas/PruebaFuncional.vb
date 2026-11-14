@@ -1085,6 +1085,23 @@ Module PruebaFuncional
                   Not protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today, "Destinatario duplicado").Exito)
         Verificar("Se permite expedir un ulterior después del primero",
                   protocolo.ExpedirTestimonio(idInstrumento1, "Ulterior", Date.Today, "Destinatario ulterior").Exito)
+
+        Dim instrumentoConTestimonios As DataRow = protocolo.ObtenerInstrumento(idInstrumento1).Rows(0)
+        Dim rEditarConTestimonios As Respuesta = protocolo.GuardarInstrumento(New Instrumento With {
+            .ID = idInstrumento1, .IDLibro = idLibro,
+            .NumeroEscritura = UtileriasUI.Entero(instrumentoConTestimonios, "Numero_Escritura"),
+            .FechaHoraOtorgamiento = Convert.ToDateTime(instrumentoConTestimonios("Fecha_Hora_Otorgamiento")),
+            .FolioInicio = UtileriasUI.Entero(instrumentoConTestimonios, "Folio_Inicio"),
+            .FolioFin = UtileriasUI.Entero(instrumentoConTestimonios, "Folio_Fin"),
+            .ObjetoActo = UtileriasUI.Texto(instrumentoConTestimonios, "Objeto_Acto") & " - cambio"})
+        Verificar("No se puede modificar una escritura después de expedir testimonios",
+                  Not rEditarConTestimonios.Exito, rEditarConTestimonios.Mensaje)
+
+        Dim comparecientesConTestimonio As DataTable = protocolo.Comparecientes(idInstrumento1)
+        Dim idComparecienteProtegido As Integer = UtileriasUI.Entero(comparecientesConTestimonio.Rows(0), "ID")
+        Verificar("No se puede quitar un compareciente después de expedir testimonios",
+                  Not protocolo.QuitarCompareciente(idComparecienteProtegido).Exito)
+
         Verificar("No se puede anular una escritura con testimonios expedidos",
                   Not protocolo.AnularInstrumento(idInstrumento1).Exito)
         Verificar("Testimonio con fecha futura se rechaza",
