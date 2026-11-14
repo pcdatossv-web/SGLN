@@ -619,6 +619,8 @@ Module PruebaFuncional
                   Not clientes.Guardar(New Cliente With {
                       .Nombres = "X", .Apellidos = "Y", .NIT = "ABCD06140108081001"
                   }, Nothing).Exito)
+        Verificar("El dígito verificador DUI rechaza una distribución incorrecta del guion",
+                  Not ValidadorIdentidad.EsDigitoDuiValido("0-00000000"))
         Verificar("Email sin arroba se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .Email = "correo"}, Nothing).Exito)
         Verificar("Nombres vacíos se rechazan",
