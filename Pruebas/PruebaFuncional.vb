@@ -1090,7 +1090,11 @@ Module PruebaFuncional
         Dim carpetaTrabajo As String = Path.Combine(Path.GetTempPath(), "sgln_pruebas_archivos")
         Directory.CreateDirectory(carpetaTrabajo)
         Dim rutaPdf As String = Path.Combine(carpetaTrabajo, "contrato_prueba.pdf")
-        File.WriteAllText(rutaPdf, "Contenido simulado de un PDF de prueba.")
+        File.WriteAllText(rutaPdf, "%PDF-1.4" & Environment.NewLine & "Contenido simulado de un PDF de prueba.")
+        Dim rutaPdfFalso As String = Path.Combine(carpetaTrabajo, "archivo_falso.pdf")
+        File.WriteAllText(rutaPdfFalso, "Este contenido no es un PDF.")
+        Verificar("Un archivo con extensión PDF pero firma incorrecta se rechaza",
+                  Not documentos.Importar(rutaPdfFalso, "Contrato", Nothing, Nothing).Exito)
 
         Dim rImportar As Respuesta = documentos.Importar(rutaPdf, "Contrato", idCaso, Nothing)
         Verificar("Importar documento PDF vinculado al caso", rImportar.Exito, rImportar.Mensaje)
