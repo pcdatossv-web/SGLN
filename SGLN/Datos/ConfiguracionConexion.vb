@@ -50,6 +50,33 @@ Public Class DatosConexion
         constructor.Server = If(String.IsNullOrWhiteSpace(Servidor), "localhost", Servidor.Trim())
         constructor.Port = CUInt(If(Puerto <= 0, 3306, Puerto))
         constructor.Database = If(String.IsNullOrWhiteSpace(BaseDatos), "sgln_sv", BaseDatos.Trim())
+
+        ' La aplicación de producción siempre trabaja sobre sgln_sv. La única
+        ' excepción es el arnés PruebaFuncional.exe, aislado por configuración,
+        ' que utiliza exclusivamente sgln_sv_pruebas.
+        Dim procesoPruebas As Boolean =
+            String.Equals(Process.GetCurrentProcess().ProcessName, "PruebaFuncional",
+                          StringComparison.OrdinalIgnoreCase)
+        Dim aislamientoPruebas As Boolean = False
+        Try
+            aislamientoPruebas = String.Equals(
+                ConfigurationManager.AppSettings("Conexion_IgnorarRegistro"), "True",
+                StringComparison.OrdinalIgnoreCase)
+        Catch
+            aislamientoPruebas = False
+        End Try
+
+        Dim baseProduccion As Boolean =
+            String.Equals(constructor.Database, "sgln_sv", StringComparison.OrdinalIgnoreCase)
+        Dim basePruebas As Boolean =
+            procesoPruebas AndAlso aislamientoPruebas AndAlso
+            String.Equals(constructor.Database, "sgln_sv_pruebas", StringComparison.OrdinalIgnoreCase)
+
+        If Not baseProduccion AndAlso Not basePruebas Then
+            Throw New InvalidOperationException(
+                "SGLN solo puede conectarse a sgln_sv. sgln_sv_pruebas está reservada al ejecutor aislado de pruebas.")
+        End If
+
         constructor.UserID = Usuario
         constructor.Password = Password
         constructor.ConnectionTimeout = 15
