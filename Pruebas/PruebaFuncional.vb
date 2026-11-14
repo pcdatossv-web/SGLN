@@ -790,6 +790,24 @@ Module PruebaFuncional
         Dim idCaso As Integer = 0
         If rCaso.ID.HasValue Then idCaso = rCaso.ID.Value
 
+        ' La referencia histórica en Casos.Responsable puede guardar el nombre
+        ' completo y no el login; la eliminación debe detectar ambos formatos.
+        Dim altaReferenciaNombre As Respuesta = servicioUsuarios.Crear(
+            "refhist", "Abg. Ana María Pérez", "RefHist123*", idRolPrueba, True)
+        Dim idReferenciaNombre As Integer = 0
+        For Each fila As DataRow In servicioUsuarios.Listar().Rows
+            If UtileriasUI.Texto(fila, "Usuario") = "refhist" Then
+                idReferenciaNombre = UtileriasUI.Entero(fila, "ID")
+                Exit For
+            End If
+        Next
+        Dim eliminacionReferenciaNombre As Respuesta =
+            servicioUsuarios.EliminarDefinitivamente(idReferenciaNombre)
+        Verificar("No se elimina una cuenta cuyo nombre completo figura como responsable histórico",
+                  altaReferenciaNombre.Exito AndAlso idReferenciaNombre > 0 AndAlso
+                  Not eliminacionReferenciaNombre.Exito,
+                  eliminacionReferenciaNombre.Mensaje)
+
         Dim excepcionExp As String = ""
         Dim rDuplicadoExp As Respuesta = Nothing
         Try
