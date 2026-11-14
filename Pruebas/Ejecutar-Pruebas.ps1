@@ -162,10 +162,56 @@ if ([string]::IsNullOrEmpty($claveRoot)) {
 }
 
 $archivoCredenciales = Join-Path $env:TEMP ("sgln_root_" + [Guid]::NewGuid().ToString('N') + '.cnf')
-[IO.File]::WriteAllText(
+
+function Escape-MySqlOption([string]$valor) {
+    if ($null -eq $valor) { return '' }
+    return $valor.Replace([string][char]92, ([string][char]92) + ([string][char]92)).
+        Replace('"', ([string][char]92) + '"').
+        Replace("`r", ([string][char]92) + 'r').
+        Replace("`n", ([string][char]92) + 'n')
+}
+
+# El archivo contiene la clave de root: ACL protegida, sin herencia y
+# acceso exclusivo al usuario actual, SYSTEM y Administradores.
+$identidadWindows = [Security.Principal.WindowsIdentity]::GetCurrent()
+if ($null -eq $identidadWindows -or $null -eq $identidadWindows.User) {
+    throw 'No se pudo determinar la identidad de Windows para proteger las credenciales temporales de MySQL.'
+}
+$seguridadArchivo = New-Object Security.AccessControl.FileSecurity
+$seguridadArchivo.SetAccessRuleProtection($true, $false)
+$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+    $identidadWindows.User,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow)))
+$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+    (New-Object Security.Principal.SecurityIdentifier([Security.Principal.WellKnownSidType]::LocalSystemSid, $null)),
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow)))
+$seguridadArchivo.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule(
+    (New-Object Security.Principal.SecurityIdentifier([Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)),
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow)))
+
+$contenidoCredenciales = "[client]`r`nuser=root`r`npassword=`"" +
+    (Escape-MySqlOption $claveRoot) + "`"`r`n"
+$flujoCredenciales = New-Object IO.FileStream(
     $archivoCredenciales,
-    "[client]`r`nuser=root`r`npassword=$claveRoot`r`n",
-    (New-Object Text.UTF8Encoding($false)))
+    [IO.FileMode]::CreateNew,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [IO.FileShare]::None,
+    4096,
+    [IO.FileOptions]::None,
+    $seguridadArchivo)
+try {
+    $codificador = New-Object Text.UTF8Encoding($false)
+    $bytesCredenciales = $codificador.GetBytes($contenidoCredenciales)
+    $flujoCredenciales.Write($bytesCredenciales, 0, $bytesCredenciales.Length)
+    [Array]::Clear($bytesCredenciales, 0, $bytesCredenciales.Length)
+}
+finally {
+    $flujoCredenciales.Dispose()
+    $contenidoCredenciales = $null
+}
 
 function Invoke-MySqlCommand([string]$sql) {
     & $mysqlExe "--defaults-extra-file=$archivoCredenciales" `
@@ -292,4 +338,6 @@ finally {
     if (Test-Path $archivoCredenciales) {
         Remove-Item $archivoCredenciales -Force -ErrorAction SilentlyContinue
     }
+    $claveRoot = $null
+    $segura = $null
 }
