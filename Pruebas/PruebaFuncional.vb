@@ -137,6 +137,13 @@ Module PruebaFuncional
         Verificar("Login acepta la cuenta creada por el asistente inicial", admin IsNot Nothing)
         Verificar("La cuenta creada con clave propia no requiere cambio forzado",
                   admin IsNot Nothing AndAlso Not admin.DebeCambiarClave)
+        If admin Is Nothing Then
+            Console.WriteLine("Pruebas detenidas: no se pudo autenticar el administrador inicial; se omiten pruebas dependientes de sesión.")
+            Console.WriteLine("Pruebas ejecutadas: " & _pruebas.ToString())
+            Console.WriteLine("Fallas: " & _fallos.ToString())
+            Environment.ExitCode = 1
+            Return
+        End If
 
         Dim segundoAdminRechazado As Boolean = False
         Try
