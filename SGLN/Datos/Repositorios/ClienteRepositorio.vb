@@ -60,13 +60,61 @@ Public Class ClienteRepositorio
                     AuditarEnTransaccion(conexion, transaccion, "CREAR", "Clientes",
                                          idCliente, cliente.Nombres & " " & cliente.Apellidos)
                 Else
+                    Dim nombresActuales As String = ""
+                    Dim apellidosActuales As String = ""
+                    Dim duiActual As String = ""
+                    Dim nitActual As String = ""
+                    Dim nacionalidadActual As String = ""
+                    Dim profesionActual As String = ""
+                    Dim direccionActual As String = ""
+                    Dim fechaNacimientoActual As Date? = Nothing
+
                     Using comandoExiste As New MySqlCommand(
-                            "SELECT ID FROM Clientes WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            "SELECT Nombres, Apellidos, DUI, NIT, Nacionalidad, Profesion, " &
+                            "Fecha_Nacimiento, Direccion FROM Clientes WHERE ID = @id FOR UPDATE",
+                            conexion, transaccion)
                         Parametro(comandoExiste, "@id", idCliente)
-                        If comandoExiste.ExecuteScalar() Is Nothing Then
-                            Throw New InvalidOperationException("El cliente que intenta modificar ya no existe.")
-                        End If
+                        Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                            If Not lector.Read() Then
+                                Throw New InvalidOperationException("El cliente que intenta modificar ya no existe.")
+                            End If
+                            nombresActuales = Convert.ToString(lector("Nombres"))
+                            apellidosActuales = Convert.ToString(lector("Apellidos"))
+                            duiActual = Convert.ToString(lector("DUI"))
+                            nitActual = Convert.ToString(lector("NIT"))
+                            nacionalidadActual = Convert.ToString(lector("Nacionalidad"))
+                            profesionActual = Convert.ToString(lector("Profesion"))
+                            direccionActual = Convert.ToString(lector("Direccion"))
+                            If Not lector.IsDBNull(lector.GetOrdinal("Fecha_Nacimiento")) Then
+                                fechaNacimientoActual = Convert.ToDateTime(lector("Fecha_Nacimiento")).Date
+                            End If
+                        End Using
                     End Using
+
+                    Dim comparecenciasExistentes As Integer
+                    Using comandoReferencias As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Comparecientes_Instrumento WHERE ID_Cliente = @id",
+                        conexion, transaccion)
+                        Parametro(comandoReferencias, "@id", idCliente)
+                        comparecenciasExistentes = Convert.ToInt32(comandoReferencias.ExecuteScalar())
+                    End Using
+
+                    Dim identidadModificada As Boolean =
+                        Not TextoIgual(cliente.Nombres, nombresActuales) OrElse
+                        Not TextoIgual(cliente.Apellidos, apellidosActuales) OrElse
+                        Not TextoIgual(cliente.DUI, duiActual) OrElse
+                        Not TextoIgual(cliente.NIT, nitActual) OrElse
+                        Not TextoIgual(cliente.Nacionalidad, nacionalidadActual) OrElse
+                        Not TextoIgual(cliente.Profesion, profesionActual) OrElse
+                        Not TextoIgual(cliente.Direccion, direccionActual) OrElse
+                        (cliente.FechaNacimiento.HasValue <> fechaNacimientoActual.HasValue) OrElse
+                        (cliente.FechaNacimiento.HasValue AndAlso fechaNacimientoActual.HasValue AndAlso
+                         cliente.FechaNacimiento.Value.Date <> fechaNacimientoActual.Value.Date)
+
+                    If comparecenciasExistentes > 0 AndAlso identidadModificada Then
+                        Throw New InvalidOperationException(
+                            "No se puede cambiar la identidad de un cliente que ya figura en instrumentos del protocolo. Actualice solo sus datos de contacto o registre la rectificación mediante el procedimiento autorizado.")
+                    End If
 
                     Ejecutar(conexion, transaccion,
                         "UPDATE Clientes SET Nombres = @nombres, Apellidos = @apellidos, DUI = @dui, " &
@@ -131,6 +179,11 @@ Public Class ClienteRepositorio
                 Return filas
             End Function)
     End Sub
+
+    Private Shared Function TextoIgual(valorNuevo As String, valorActual As String) As Boolean
+        Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
+                             StringComparison.Ordinal)
+    End Function
 
     Private Sub AgregarParametros(comando As MySqlCommand, cliente As Cliente)
         Parametro(comando, "@nombres", cliente.Nombres)
