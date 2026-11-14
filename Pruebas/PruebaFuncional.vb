@@ -24,6 +24,27 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Console.WriteLine()
 
+        ' Verificar primero la configuración efectiva del proceso de pruebas.
+        ' No se permite continuar si por cualquier motivo no se cargó el App.config
+        ' aislado: evita que una prueba toque sgln_sv o use TLS de producción.
+        Dim configEfectiva As DatosConexion = ConfiguracionConexion.Cargar()
+        Console.WriteLine("Configuración efectiva: Base=" & configEfectiva.BaseDatos &
+                          "; TLS=" & configEfectiva.ModoSsl &
+                          "; Origen=" & configEfectiva.Origen)
+        Dim baseAisladaCorrecta As Boolean =
+            String.Equals(configEfectiva.BaseDatos, "sgln_sv_pruebas", StringComparison.OrdinalIgnoreCase)
+        Dim tlsPruebasCorrecto As Boolean =
+            String.Equals(configEfectiva.ModoSsl, "Preferred", StringComparison.OrdinalIgnoreCase)
+        Verificar("El arnés carga exclusivamente sgln_sv_pruebas", baseAisladaCorrecta)
+        Verificar("El arnés carga TLS Preferred únicamente para la base aislada", tlsPruebasCorrecto)
+        If Not baseAisladaCorrecta OrElse Not tlsPruebasCorrecto Then
+            Console.WriteLine("Ejecución detenida por seguridad: revise PruebaFuncional.exe.config y su copia en Pruebas\\bin.")
+            Environment.ExitCode = 1
+            Return
+        End If
+
+        ConfiguracionConexion.Inicializar(True)
+
         Sesion.Limpiar()
         Dim operacionSinSesion As Respuesta = New ServicioUsuarios().Desactivar(1)
         Verificar("La capa de servicios deniega operaciones sin sesión autenticada",
@@ -84,10 +105,24 @@ Module PruebaFuncional
             If File.Exists(caTemporal) Then File.Delete(caTemporal)
         End Try
         Verificar("El conector permite configurar VerifyFull con CA y nombre DNS", verifyFullDisponible)
-        IntentarSinExcepcion("El inicializador verifica el esquema y siembra catálogos y configuración",
-            Sub()
-                InicializadorBD.AsegurarBaseDeDatos()
-            End Sub)
+        Dim inicializacionCorrecta As Boolean = False
+        Try
+            InicializadorBD.AsegurarBaseDeDatos()
+            inicializacionCorrecta = True
+            Verificar("El inicializador verifica el esquema y siembra catálogos y configuración", True)
+        Catch ex As Exception
+            Verificar("El inicializador verifica el esquema y siembra catálogos y configuración",
+                      False, ex.Message)
+        End Try
+
+        If Not inicializacionCorrecta Then
+            Console.WriteLine()
+            Console.WriteLine("Pruebas detenidas: no se completó la inicialización de la base aislada.")
+            Console.WriteLine("Pruebas ejecutadas: " & _pruebas.ToString())
+            Console.WriteLine("Fallas: " & _fallos.ToString())
+            Environment.ExitCode = 1
+            Return
+        End If
 
         ' ---------- 2. Autenticación y seguridad ----------
         Console.WriteLine()
