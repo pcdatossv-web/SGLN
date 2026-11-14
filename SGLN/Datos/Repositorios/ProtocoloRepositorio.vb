@@ -226,7 +226,7 @@ Public Class ProtocoloRepositorio
     Public Function FoliosOcupados(idLibro As Integer, idExcluir As Integer) As DataTable
         Return Consultar(
             "SELECT Numero_Escritura, Folio_Inicio, Folio_Fin FROM Instrumentos " &
-            "WHERE ID_Libro = @libro AND ID <> @excluir AND Estado = 'Vigente'",
+            "WHERE ID_Libro = @libro AND ID <> @excluir",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@libro", idLibro)
                 Parametro(comando, "@excluir", idExcluir)
@@ -306,7 +306,7 @@ Public Class ProtocoloRepositorio
                         Dim traslapes As Integer
                         Using comandoTraslape As New MySqlCommand(
                             "SELECT COUNT(*) FROM Instrumentos " &
-                            "WHERE ID_Libro = @libro AND ID <> @excluir AND Estado = 'Vigente' " &
+                            "WHERE ID_Libro = @libro AND ID <> @excluir " &
                             "AND Folio_Inicio <= @fin AND Folio_Fin >= @inicio",
                             conexion, transaccion)
                             Parametro(comandoTraslape, "@libro", instrumento.IDLibro)
