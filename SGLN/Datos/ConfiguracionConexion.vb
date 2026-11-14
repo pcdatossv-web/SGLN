@@ -173,7 +173,10 @@ Public Class ConfiguracionConexion
             Return datos
         End If
 
-        datos = LeerRegistro(RegistryHive.LocalMachine)
+        ' HKLM solo aporta parámetros no secretos. Las contraseñas se
+        ' guardan por usuario con DPAPI CurrentUser y nunca se descifran desde
+        ' el almacén compartido del equipo.
+        datos = LeerRegistro(RegistryHive.LocalMachine, False)
         If datos IsNot Nothing Then
             datos.Origen = "HKLM"
             Return datos
@@ -194,14 +197,18 @@ Public Class ConfiguracionConexion
         End If
 
         If usarEquipo Then
-            If EscribirRegistro(RegistryHive.LocalMachine, datos) Then
-                ' Se limpia HKCU para que no quede una configuración vieja que confunda.
-                BorrarRegistro(RegistryHive.CurrentUser)
-                Return "HKLM"
+            If EscribirRegistro(RegistryHive.LocalMachine, datos, False) Then
+                ' Los parámetros no secretos se comparten en HKLM, pero las
+                ' contraseñas quedan cifradas para el usuario Windows actual.
+                If EscribirRegistro(RegistryHive.CurrentUser, datos, True) Then
+                    Return "HKLM+HKCU"
+                End If
+                Throw New InvalidOperationException(
+                    "Se guardaron los parámetros compartidos, pero no las credenciales del usuario actual. Vuelva a guardar la configuración.")
             End If
         End If
 
-        If EscribirRegistro(RegistryHive.CurrentUser, datos) Then
+        If EscribirRegistro(RegistryHive.CurrentUser, datos, True) Then
             Return "HKCU"
         End If
 
@@ -249,11 +256,12 @@ Public Class ConfiguracionConexion
 
     ' ---------------- Registro ----------------
 
-    Private Shared Function LeerRegistro(hive As RegistryHive) As DatosConexion
+    Private Shared Function LeerRegistro(hive As RegistryHive,
+                                          Optional incluirCredenciales As Boolean = True) As DatosConexion
         Dim claves As List(Of RegistryKey) = AbrirClavesLectura(hive)
         Try
             For Each clave As RegistryKey In claves
-                Dim datos As DatosConexion = LeerValores(clave, hive)
+                Dim datos As DatosConexion = LeerValores(clave, hive, incluirCredenciales)
                 If datos IsNot Nothing Then Return datos
             Next
         Finally
@@ -264,7 +272,8 @@ Public Class ConfiguracionConexion
         Return Nothing
     End Function
 
-    Private Shared Function LeerValores(clave As RegistryKey, hive As RegistryHive) As DatosConexion
+    Private Shared Function LeerValores(clave As RegistryKey, hive As RegistryHive,
+                                        incluirCredenciales As Boolean) As DatosConexion
         Dim servidor As String = Convert.ToString(clave.GetValue(ValorServidor, ""))
         If String.IsNullOrWhiteSpace(servidor) Then Return Nothing
 
@@ -273,15 +282,18 @@ Public Class ConfiguracionConexion
         datos.Puerto = Convert.ToInt32(clave.GetValue(ValorPuerto, 3306))
         datos.BaseDatos = Convert.ToString(clave.GetValue(ValorBaseDatos, "sgln_sv"))
         datos.Usuario = Convert.ToString(clave.GetValue(ValorUsuario, "sgln_app"))
-        datos.Password = Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")), hive)
+        datos.Password = If(incluirCredenciales,
+                             Descifrar(Convert.ToString(clave.GetValue(ValorPassword, "")), hive), "")
         datos.UsuarioRespaldo = Convert.ToString(clave.GetValue(ValorUsuarioRespaldo, "sgln_backup"))
-        datos.PasswordRespaldo = Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")), hive)
+        datos.PasswordRespaldo = If(incluirCredenciales,
+                                    Descifrar(Convert.ToString(clave.GetValue(ValorPasswordRespaldo, "")), hive), "")
         datos.ModoSsl = Convert.ToString(clave.GetValue(ValorModoSsl, "VerifyCA"))
         datos.CertificadoCa = Convert.ToString(clave.GetValue(ValorCertificadoCa, ""))
         Return datos
     End Function
 
-    Private Shared Function EscribirRegistro(hive As RegistryHive, datos As DatosConexion) As Boolean
+    Private Shared Function EscribirRegistro(hive As RegistryHive, datos As DatosConexion,
+                                                incluirCredenciales As Boolean) As Boolean
         Try
             Using claveBase As RegistryKey = AbrirBase(hive, True)
                 Using clave As RegistryKey = claveBase.CreateSubKey(RutaClave)
@@ -291,9 +303,13 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorPuerto, datos.Puerto, RegistryValueKind.DWord)
                     clave.SetValue(ValorBaseDatos, datos.BaseDatos.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorUsuario, datos.Usuario.Trim(), RegistryValueKind.String)
-                    clave.SetValue(ValorPassword, Cifrar(datos.Password, hive), RegistryValueKind.String)
+                    clave.SetValue(ValorPassword,
+                                   If(incluirCredenciales, Cifrar(datos.Password, hive), ""),
+                                   RegistryValueKind.String)
                     clave.SetValue(ValorUsuarioRespaldo, datos.UsuarioRespaldo.Trim(), RegistryValueKind.String)
-                    clave.SetValue(ValorPasswordRespaldo, Cifrar(datos.PasswordRespaldo, hive), RegistryValueKind.String)
+                    clave.SetValue(ValorPasswordRespaldo,
+                                   If(incluirCredenciales, Cifrar(datos.PasswordRespaldo, hive), ""),
+                                   RegistryValueKind.String)
                     clave.SetValue(ValorModoSsl, datos.ModoSsl, RegistryValueKind.String)
                     clave.SetValue(ValorCertificadoCa, datos.CertificadoCa, RegistryValueKind.String)
                     clave.SetValue(ValorActualizado, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), RegistryValueKind.String)
