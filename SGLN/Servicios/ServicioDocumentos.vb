@@ -156,6 +156,10 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaDelDocumento(id As Integer) As String
+        If Not Permisos.TieneAcceso("documentos.ver") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para consultar documentos.")
+        End If
+
         Dim tabla As DataTable = _repositorio.Obtener(id)
         If tabla.Rows.Count = 0 Then Return ""
 
