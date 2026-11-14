@@ -275,6 +275,12 @@ Public Class FrmCumplimiento
     Private Sub CargarSolicitud(fila As DataRow)
         _idSolicitud = UtileriasUI.Entero(fila, "ID")
 
+        ' La identidad del titular, el derecho y la fecha de recepción son
+        ' datos históricos inmutables una vez registrada la solicitud.
+        cboClienteArco.Enabled = False
+        cboTipoDerecho.Enabled = False
+        dtpFechaSolicitud.Enabled = False
+
         UtileriasUI.SeleccionarValor(cboClienteArco, fila("ID_Cliente"))
         SeleccionarTexto(cboTipoDerecho, UtileriasUI.Texto(fila, "Tipo_Derecho"))
         dtpFechaSolicitud.Value = UtileriasUI.Fecha(fila, "Fecha_Solicitud").GetValueOrDefault(Date.Today)
@@ -297,6 +303,9 @@ Public Class FrmCumplimiento
 
     Private Sub LimpiarSolicitud()
         _idSolicitud = 0
+        cboClienteArco.Enabled = True
+        cboTipoDerecho.Enabled = True
+        dtpFechaSolicitud.Enabled = True
         If cboClienteArco.Items.Count > 0 Then cboClienteArco.SelectedIndex = 0
         cboTipoDerecho.SelectedIndex = 0
         dtpFechaSolicitud.Value = Date.Today
