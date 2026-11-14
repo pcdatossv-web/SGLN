@@ -35,6 +35,12 @@ jobs:
             $errors | Format-List
             throw 'El ejecutor de pruebas contiene errores de sintaxis PowerShell.'
           }
+          $migrationPath = Join-Path $PWD 'SGLN\\Scripts\\Migrar-CredencialesCompartidas.ps1'
+          [System.Management.Automation.Language.Parser]::ParseFile($migrationPath, [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | Format-List
+            throw 'El script de migración de credenciales contiene errores de sintaxis PowerShell.'
+          }
           [xml]$config = Get-Content 'Pruebas\\PruebaFuncional.exe.config'
           $connection = $config.configuration.connectionStrings.add.connectionString
           if ($connection -notmatch '(?i)Database=sgln_sv_pruebas' -or $connection -notmatch '(?i)SslMode=Preferred') {
