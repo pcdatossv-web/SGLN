@@ -263,16 +263,7 @@ Public Class ConfiguracionRepositorio
             Throw New InvalidOperationException("No se pudo determinar la identidad de Windows para proteger las credenciales del respaldo.")
         End If
 
-        Dim seguridad As New FileSecurity()
-        seguridad.SetAccessRuleProtection(True, False)
-        seguridad.AddAccessRule(New FileSystemAccessRule(
-            identidad.User, FileSystemRights.FullControl, AccessControlType.Allow))
-        seguridad.AddAccessRule(New FileSystemAccessRule(
-            New SecurityIdentifier(WellKnownSidType.LocalSystemSid, Nothing),
-            FileSystemRights.FullControl, AccessControlType.Allow))
-        seguridad.AddAccessRule(New FileSystemAccessRule(
-            New SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, Nothing),
-            FileSystemRights.FullControl, AccessControlType.Allow))
+        Dim seguridad As FileSecurity = CrearSeguridadArchivoPrivado()
 
         Using flujo As New FileStream(ruta, FileMode.CreateNew, FileSystemRights.FullControl,
                                       FileShare.None, 4096, FileOptions.None, seguridad)
@@ -283,6 +274,29 @@ Public Class ConfiguracionRepositorio
             End Using
         End Using
     End Sub
+
+    ''' <summary>
+    ''' ACL privada para archivos que contienen datos sensibles: usuario actual,
+    ''' SYSTEM y Administradores. No hereda permisos amplios de la carpeta.
+    ''' </summary>
+    Private Shared Function CrearSeguridadArchivoPrivado() As FileSecurity
+        Dim identidad As WindowsIdentity = WindowsIdentity.GetCurrent()
+        If identidad Is Nothing OrElse identidad.User Is Nothing Then
+            Throw New InvalidOperationException("No se pudo determinar la identidad de Windows para proteger el archivo de respaldo.")
+        End If
+
+        Dim seguridad As New FileSecurity()
+        seguridad.SetAccessRuleProtection(True, False)
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            identidad.User, FileSystemRights.FullControl, AccessControlType.Allow))
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            New SecurityIdentifier(WellKnownSidType.LocalSystemSid, Nothing),
+            FileSystemRights.FullControl, AccessControlType.Allow))
+        seguridad.AddAccessRule(New FileSystemAccessRule(
+            New SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, Nothing),
+            FileSystemRights.FullControl, AccessControlType.Allow))
+        Return seguridad
+    End Function
 
     Private Shared Function EscaparOpcionMySQL(valor As String) As String
         Dim barra As String = Convert.ToChar(92).ToString()
@@ -332,7 +346,12 @@ Public Class ConfiguracionRepositorio
         }
 
         Using proceso As Process = Process.Start(informacion)
-            Using salida As FileStream = File.Create(rutaDestino)
+            ' El respaldo contiene expedientes y datos personales. Se crea
+            ' desde el inicio con ACL privada, sin heredar permisos amplios
+            ' de la carpeta de destino.
+            Using salida As New FileStream(rutaDestino, FileMode.CreateNew,
+                                           FileSystemRights.FullControl, FileShare.None,
+                                           81920, FileOptions.None, CrearSeguridadArchivoPrivado())
                 ' Ambas tuberías se consumen en paralelo para evitar bloqueos
                 ' por buffers llenos. El respaldo admite archivos grandes, pero
                 ' no deja el formulario esperando indefinidamente.
