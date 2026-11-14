@@ -175,14 +175,17 @@ Public Class FrmDocumentos
             Return
         End If
 
-        Dim ruta As String = _servicio.RutaDelDocumento(_idDocumento)
-        If Not System.IO.File.Exists(ruta) Then
-            MostrarMensaje("El archivo no se encuentra en la ruta registrada.", False)
-            Return
-        End If
-
         Try
+            Dim ruta As String = _servicio.RutaDelDocumento(_idDocumento)
+            If Not System.IO.File.Exists(ruta) Then
+                MostrarMensaje("El archivo no se encuentra en la ruta registrada.", False)
+                Return
+            End If
+
             Process.Start(New ProcessStartInfo(ruta) With {.UseShellExecute = True})
+        Catch ex As System.IO.InvalidDataException
+            RegistroErrores.Escribir("Documentos - integridad antes de abrir", ex)
+            MostrarMensaje("ALERTA: el documento fue alterado y no se abrirá.", False)
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - abrir", ex)
             MostrarMensaje("No se pudo abrir el archivo. Verifique que exista una aplicación compatible y que tenga permisos de acceso.", False)
