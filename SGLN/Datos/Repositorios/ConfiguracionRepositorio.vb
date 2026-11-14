@@ -224,9 +224,7 @@ Public Class ConfiguracionRepositorio
                 "--databases """ & baseDatos & """"
 
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
-            If Not File.Exists(temporalSalida) OrElse New FileInfo(temporalSalida).Length = 0 Then
-                Throw New InvalidOperationException("mysqldump no generó un archivo de respaldo válido.")
-            End If
+            ValidarArchivoRespaldo(temporalSalida, baseDatos)
             If File.Exists(destinoFinal) Then
                 ' Reemplazo atómico: si falla, el respaldo anterior permanece intacto.
                 File.Replace(temporalSalida, destinoFinal, Nothing)
@@ -250,6 +248,37 @@ Public Class ConfiguracionRepositorio
         End Try
 
         Auditar("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+    End Sub
+
+    ''' <summary>
+    ''' Comprueba que la salida no sea solo un archivo no vacío: debe tener
+    ''' cabecera reconocible y las instrucciones de creación/selección de la
+    ''' base solicitada. No sustituye una restauración de prueba.
+    ''' </summary>
+    Private Shared Sub ValidarArchivoRespaldo(ruta As String, baseDatos As String)
+        If Not File.Exists(ruta) OrElse New FileInfo(ruta).Length = 0 Then
+            Throw New InvalidOperationException("mysqldump no generó un archivo de respaldo.")
+        End If
+
+        Dim buffer(65535) As Char
+        Dim leidos As Integer
+        Using lector As New StreamReader(ruta, Encoding.UTF8, True)
+            leidos = lector.ReadBlock(buffer, 0, buffer.Length)
+        End Using
+
+        Dim cabecera As String = New String(buffer, 0, leidos)
+        Dim formatoReconocido As Boolean =
+            cabecera.IndexOf("-- MySQL dump", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+            cabecera.IndexOf("-- MariaDB dump", StringComparison.OrdinalIgnoreCase) >= 0
+        Dim creaBase As Boolean =
+            cabecera.IndexOf("CREATE DATABASE", StringComparison.OrdinalIgnoreCase) >= 0
+        Dim seleccionaBase As Boolean =
+            cabecera.IndexOf("USE `" & baseDatos & "`", StringComparison.OrdinalIgnoreCase) >= 0
+
+        If Not formatoReconocido OrElse Not creaBase OrElse Not seleccionaBase Then
+            Throw New InvalidOperationException(
+                "El archivo generado no contiene la estructura inicial esperada de un respaldo MySQL/MariaDB.")
+        End If
     End Sub
 
     ''' <summary>
