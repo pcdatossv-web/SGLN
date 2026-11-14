@@ -932,6 +932,12 @@ Module PruebaFuncional
         Verificar("Guardar escritura 2 (folios 16-30)", rInst2.Exito, rInst2.Mensaje)
         Dim idInstrumento2 As Integer = instrumento2.ID
 
+        Verificar("No se puede reducir la vigencia de un libro que ya contiene escrituras",
+                  Not protocolo.GuardarLibro(New LibroProtocolo With {
+                      .ID = idLibro, .NumeroLibro = 1, .AnioVigencia = 2026,
+                      .FechaAutorizacion = New Date(2026, 1, 5),
+                      .FechaVencimiento = New Date(2026, 2, 28)}).Exito)
+
         Verificar("Traslape de folios se rechaza",
                   Not protocolo.GuardarInstrumento(New Instrumento With {
                       .IDLibro = idLibro, .NumeroEscritura = 3,
