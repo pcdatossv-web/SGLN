@@ -551,12 +551,46 @@ Public Class ProtocoloRepositorio
     Public Sub InsertarTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String)
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim idLibro As Integer = 0
+                Using consultarLibroId As New MySqlCommand(
+                    "SELECT ID_Libro FROM Instrumentos WHERE ID = @id",
+                    conexion, transaccion)
+                    Parametro(consultarLibroId, "@id", idInstrumento)
+                    Dim valor As Object = consultarLibroId.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then
+                        idLibro = Convert.ToInt32(valor)
+                    End If
+                End Using
+                If idLibro <= 0 Then Throw New InvalidOperationException("La escritura no existe.")
+
+                ' El libro se bloquea antes que la escritura para serializar la
+                ' expedición con el registro de entrega al Notariado.
+                Dim estadoLibro As String = Nothing
+                Dim fechaEntregaRegistrada As Boolean = False
+                Using consultarLibro As New MySqlCommand(
+                    "SELECT Estado, Fecha_Entrega_Notariado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultarLibro, "@id", idLibro)
+                    Using lector As MySqlDataReader = consultarLibro.ExecuteReader()
+                        If lector.Read() Then
+                            estadoLibro = Convert.ToString(lector("Estado"))
+                            fechaEntregaRegistrada = Not lector.IsDBNull(lector.GetOrdinal("Fecha_Entrega_Notariado"))
+                        End If
+                    End Using
+                End Using
+                If (estadoLibro <> "Vigente" AndAlso estadoLibro <> "Cerrado") OrElse fechaEntregaRegistrada Then
+                    Throw New InvalidOperationException(
+                        "No se pueden expedir testimonios después de registrar la entrega del libro al Notariado.")
+                End If
+
                 Dim fechaOtorgamiento As Date
                 Dim estadoInstrumento As String = Nothing
                 Using consultar As New MySqlCommand(
-                    "SELECT Estado, Fecha_Hora_Otorgamiento FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                    "SELECT Estado, Fecha_Hora_Otorgamiento FROM Instrumentos " &
+                    "WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
                     conexion, transaccion)
                     Parametro(consultar, "@id", idInstrumento)
+                    Parametro(consultar, "@libro", idLibro)
                     Using lector As MySqlDataReader = consultar.ExecuteReader()
                         If Not lector.Read() Then Throw New InvalidOperationException("La escritura no existe.")
                         estadoInstrumento = Convert.ToString(lector("Estado"))
