@@ -94,12 +94,15 @@ Public Class ClienteRepositorio
                     Dim comparecenciasExistentes As Integer
                     Using comandoReferencias As New MySqlCommand(
                         "SELECT " &
-                        " (SELECT COUNT(*) FROM Comparecientes_Instrumento WHERE ID_Cliente = @id) + " &
-                        " (SELECT COUNT(*) FROM Representantes_Legales WHERE ID_Cliente = @id) + " &
-                        " (SELECT COUNT(*) FROM Casos WHERE ID_Cliente = @id) + " &
-                        " (SELECT COUNT(*) FROM Solicitudes_ARCO WHERE ID_Cliente = @id)",
+                        " (SELECT COUNT(*) FROM Comparecientes_Instrumento WHERE ID_Cliente = @idCompareciente) + " &
+                        " (SELECT COUNT(*) FROM Representantes_Legales WHERE ID_Cliente = @idRepresentante) + " &
+                        " (SELECT COUNT(*) FROM Casos WHERE ID_Cliente = @idCaso) + " &
+                        " (SELECT COUNT(*) FROM Solicitudes_ARCO WHERE ID_Cliente = @idArco)",
                         conexion, transaccion)
-                        Parametro(comandoReferencias, "@id", idCliente)
+                        Parametro(comandoReferencias, "@idCompareciente", idCliente)
+                        Parametro(comandoReferencias, "@idRepresentante", idCliente)
+                        Parametro(comandoReferencias, "@idCaso", idCliente)
+                        Parametro(comandoReferencias, "@idArco", idCliente)
                         comparecenciasExistentes = Convert.ToInt32(comandoReferencias.ExecuteScalar())
                     End Using
 
