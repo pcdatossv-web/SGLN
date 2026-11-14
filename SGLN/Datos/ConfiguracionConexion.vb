@@ -106,6 +106,7 @@ Public Class ConfiguracionConexion
     Private Const ValorModoSsl As String = "ModoSsl"
     Private Const ValorCertificadoCa As String = "CertificadoCa"
     Private Const ValorActualizado As String = "Actualizado"
+    Private Const ValorCompartirServidor As String = "CompartirServidor"
 
     ' Entropía fija: evita que el blob cifrado se pueda descifrar en otro equipo.
     Private Shared ReadOnly Entropia As Byte() = Encoding.UTF8.GetBytes("SGLN.Conexion.v1")
@@ -170,7 +171,8 @@ Public Class ConfiguracionConexion
         Dim datos As DatosConexion = LeerRegistro(RegistryHive.CurrentUser)
         If datos IsNot Nothing Then
             Dim compartida As DatosConexion = LeerRegistro(RegistryHive.LocalMachine, False)
-            datos.Origen = If(compartida Is Nothing, "HKCU", "HKCU+HKLM")
+            datos.Origen = If(LeerPreferenciaCompartida() AndAlso compartida IsNot Nothing,
+                              "HKCU+HKLM", "HKCU")
             Return datos
         End If
 
@@ -201,7 +203,7 @@ Public Class ConfiguracionConexion
             If EscribirRegistro(RegistryHive.LocalMachine, datos, False) Then
                 ' Los parámetros no secretos se comparten en HKLM, pero las
                 ' contraseñas quedan cifradas para el usuario Windows actual.
-                If EscribirRegistro(RegistryHive.CurrentUser, datos, True) Then
+                If EscribirRegistro(RegistryHive.CurrentUser, datos, True, True) Then
                     Return "HKLM+HKCU"
                 End If
                 Throw New InvalidOperationException(
@@ -209,7 +211,7 @@ Public Class ConfiguracionConexion
             End If
         End If
 
-        If EscribirRegistro(RegistryHive.CurrentUser, datos, True) Then
+        If EscribirRegistro(RegistryHive.CurrentUser, datos, True, False) Then
             Return "HKCU"
         End If
 
@@ -294,7 +296,8 @@ Public Class ConfiguracionConexion
     End Function
 
     Private Shared Function EscribirRegistro(hive As RegistryHive, datos As DatosConexion,
-                                                incluirCredenciales As Boolean) As Boolean
+                                                incluirCredenciales As Boolean,
+                                                Optional compartirServidor As Boolean = False) As Boolean
         If incluirCredenciales AndAlso hive <> RegistryHive.CurrentUser Then
             Throw New InvalidOperationException(
                 "Las credenciales de conexión solo pueden guardarse en el perfil del usuario Windows actual.")
@@ -319,6 +322,9 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorModoSsl, datos.ModoSsl, RegistryValueKind.String)
                     clave.SetValue(ValorCertificadoCa, datos.CertificadoCa, RegistryValueKind.String)
                     clave.SetValue(ValorActualizado, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), RegistryValueKind.String)
+                    If hive = RegistryHive.CurrentUser Then
+                        clave.SetValue(ValorCompartirServidor, If(compartirServidor, 1, 0), RegistryValueKind.DWord)
+                    End If
                     Return True
                 End Using
             End Using
@@ -330,6 +336,20 @@ Public Class ConfiguracionConexion
             RegistroErrores.Escribir("ConfiguracionConexion.EscribirRegistro", ex)
             Return False
         End Try
+    End Function
+
+    Private Shared Function LeerPreferenciaCompartida() As Boolean
+        Dim claves As List(Of RegistryKey) = AbrirClavesLectura(RegistryHive.CurrentUser)
+        Try
+            For Each clave As RegistryKey In claves
+                Return Convert.ToInt32(clave.GetValue(ValorCompartirServidor, 0)) = 1
+            Next
+        Finally
+            For Each clave As RegistryKey In claves
+                clave.Dispose()
+            Next
+        End Try
+        Return False
     End Function
 
     Private Shared Function AbrirClavesLectura(hive As RegistryHive) As List(Of RegistryKey)
