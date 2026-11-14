@@ -99,6 +99,16 @@ Public Class FrmConfiguracionConexion
             Return Nothing
         End If
 
+        Dim modoSsl As String = If(cmbModoSsl.SelectedItem Is Nothing,
+                                   "VerifyCA", Convert.ToString(cmbModoSsl.SelectedItem))
+        If Not String.Equals(modoSsl, "VerifyCA", StringComparison.OrdinalIgnoreCase) AndAlso
+           Not String.Equals(modoSsl, "VerifyFull", StringComparison.OrdinalIgnoreCase) Then
+            MessageBox.Show("La configuración de producción debe utilizar VerifyCA o VerifyFull. Preferred solo se admite en pruebas aisladas.",
+                            "Validación TLS", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            cmbModoSsl.Focus()
+            Return Nothing
+        End If
+
         Return New DatosConexion With {
             .Servidor = txtServidor.Text.Trim(),
             .Puerto = puerto,
@@ -107,7 +117,7 @@ Public Class FrmConfiguracionConexion
             .Password = txtPassword.Text,
             .UsuarioRespaldo = txtUsuarioRespaldo.Text.Trim(),
             .PasswordRespaldo = txtPasswordRespaldo.Text,
-            .ModoSsl = If(cmbModoSsl.SelectedItem Is Nothing, "VerifyCA", Convert.ToString(cmbModoSsl.SelectedItem)),
+            .ModoSsl = modoSsl,
             .CertificadoCa = txtCertificadoCa.Text.Trim()
         }
     End Function
