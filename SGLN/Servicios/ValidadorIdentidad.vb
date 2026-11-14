@@ -1,5 +1,6 @@
 Imports System
 Imports System.Linq
+Imports System.Text
 
 ''' <summary>
 ''' Validación de documentos de identidad salvadoreños.
@@ -8,13 +9,43 @@ Imports System.Linq
 ''' </summary>
 Public Module ValidadorIdentidad
 
+    ''' <summary>
+    ''' Quita únicamente separadores permitidos. Letras y dígitos Unicode no
+    ''' ASCII se rechazan para evitar aceptar entradas que solo contienen
+    ''' nueve/catorce dígitos después de descartar caracteres ajenos.
+    ''' </summary>
+    Private Function CompactarDocumento(valor As String) As String
+        If String.IsNullOrWhiteSpace(valor) Then Return Nothing
+
+        Dim resultado As New StringBuilder()
+        For Each caracter As Char In valor.Trim()
+            If caracter >= "0"c AndAlso caracter <= "9"c Then
+                resultado.Append(caracter)
+            ElseIf caracter = "-"c OrElse Char.IsWhiteSpace(caracter) Then
+                If caracter = "-"c Then resultado.Append(caracter)
+            Else
+                Return Nothing
+            End If
+        Next
+        Return resultado.ToString()
+    End Function
+
     Public Function LimpiarDocumento(valor As String) As String
-        If String.IsNullOrWhiteSpace(valor) Then Return ""
-        Return New String(valor.Where(Function(caracter As Char) Char.IsDigit(caracter)).ToArray())
+        Dim compacto As String = CompactarDocumento(valor)
+        If compacto Is Nothing Then Return ""
+        Return compacto.Replace("-", "")
     End Function
 
     Public Function EsFormatoDuiValido(dui As String) As Boolean
-        Return LimpiarDocumento(dui).Length = 9
+        Dim compacto As String = CompactarDocumento(dui)
+        If compacto Is Nothing Then Return False
+
+        If compacto.Length = 9 Then
+            Return compacto.All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
+        End If
+
+        Return compacto.Length = 10 AndAlso compacto(8) = "-"c AndAlso
+               compacto.Remove(8, 1).All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
     End Function
 
     Public Function EsDigitoDuiValido(dui As String) As Boolean
@@ -40,7 +71,17 @@ Public Module ValidadorIdentidad
     End Function
 
     Public Function EsFormatoNitValido(nit As String) As Boolean
-        Return LimpiarDocumento(nit).Length = 14
+        Dim compacto As String = CompactarDocumento(nit)
+        If compacto Is Nothing Then Return False
+
+        If compacto.Length = 14 Then
+            Return compacto.All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
+        End If
+
+        Return compacto.Length = 17 AndAlso
+               compacto(4) = "-"c AndAlso compacto(11) = "-"c AndAlso compacto(15) = "-"c AndAlso
+               compacto.Remove(15, 1).Remove(11, 1).Remove(4, 1).
+                   All(Function(c As Char) c >= "0"c AndAlso c <= "9"c)
     End Function
 
     Public Function FormatearNit(nit As String) As String
