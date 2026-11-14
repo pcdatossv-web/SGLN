@@ -120,7 +120,7 @@ Public Class CumplimientoRepositorio
             "       a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "       a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
             "       CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
-            "         AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "         AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < @hoy " &
             "         THEN 'Vencida' ELSE a.Estado END AS Estado, " &
             "       a.Fecha_Respuesta, a.Detalle " &
             "FROM Solicitudes_ARCO a " &
@@ -131,6 +131,7 @@ Public Class CumplimientoRepositorio
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@filtro", texto)
                 Parametro(comando, "@like", "%" & texto & "%")
+                Parametro(comando, "@hoy", Date.Today)
             End Sub)
     End Function
 
@@ -139,12 +140,13 @@ Public Class CumplimientoRepositorio
             "SELECT a.ID, a.ID_Cliente, a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
             "CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
-            "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < @hoy " &
             "  THEN 'Vencida' ELSE a.Estado END AS Estado, " &
             "a.Fecha_Respuesta, a.Detalle " &
             "FROM Solicitudes_ARCO a WHERE a.ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
+                Parametro(comando, "@hoy", Date.Today)
             End Sub)
     End Function
 
