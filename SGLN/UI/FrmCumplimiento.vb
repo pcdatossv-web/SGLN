@@ -24,6 +24,8 @@ Public Class FrmCumplimiento
         cboEstadoOperacion.Items.Clear()
         cboEstadoOperacion.Items.AddRange(New Object() {"Registrada", "En análisis", "Reportada", "Descartada"})
         cboEstadoOperacion.SelectedIndex = 0
+        ' El estado cambia únicamente mediante acciones controladas (reportar/descartar).
+        cboEstadoOperacion.Enabled = False
 
         cboMoneda.Items.Clear()
         cboMoneda.Items.AddRange(New Object() {"USD"})
@@ -36,6 +38,8 @@ Public Class FrmCumplimiento
         cboEstadoArco.Items.Clear()
         cboEstadoArco.Items.AddRange(New Object() {"Pendiente", "En trámite", "Respondida", "Rechazada"})
         cboEstadoArco.SelectedIndex = 0
+        ' El estado ARCO se controla desde las acciones del servicio, no desde el formulario.
+        cboEstadoArco.Enabled = False
 
         _cargando = True
         CargarCombos()
