@@ -143,8 +143,9 @@ Public Class FrmProtocolo
             lblLimiteEntrega.Text = ""
             If cierre.HasValue Then
                 Dim limite As Date = _servicio.FechaLimiteEntrega(cierre.Value)
-                lblLimiteEntrega.Text = "Fecha límite referencial de entrega al Notariado: " &
-                    limite.ToString("dd/MM/yyyy") & " (" & _servicio.DiasEntregaConfigurados() & " días hábiles)."
+                lblLimiteEntrega.Text = "Estimación interna (días hábiles configurados): " &
+                    limite.ToString("dd/MM/yyyy") & ". Verifique el cómputo legal aplicable. " &
+                    "SGLN no genera ni firma el paquete electrónico; registre la presentación ya realizada."
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - editor de libro", ex)
@@ -234,8 +235,8 @@ Public Class FrmProtocolo
             Return
         End If
 
-        If Not UtileriasUI.Confirmar("¿Registrar la entrega del libro al Notariado el " &
-                                     dtpFechaEntrega.Value.ToString("dd/MM/yyyy") & "?") Then Return
+        If Not UtileriasUI.Confirmar("¿Registrar que el libro electrónico firmado y sus anexos ya fueron presentados al Notariado el " &
+                                     dtpFechaEntrega.Value.ToString("dd/MM/yyyy") & "? SGLN solo registra la fecha; no genera ni firma el paquete.") Then Return
 
         Dim respuesta As Respuesta = _servicio.RegistrarEntrega(_idLibro, dtpFechaEntrega.Value.Date)
         If Not respuesta.Exito Then
