@@ -234,31 +234,58 @@ Public Class ProtocoloRepositorio
     Public Function AnularInstrumento(id As Integer) As Integer
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                ' La misma fila de Instrumentos se bloquea al expedir testimonios;
-                ' así se serializa la anulación frente a una expedición concurrente.
-                Dim estado As String = Nothing
-                Using consultar As New MySqlCommand(
-                    "SELECT Estado FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                Dim idLibro As Integer = 0
+                Using consultarLibroId As New MySqlCommand(
+                    "SELECT ID_Libro FROM Instrumentos WHERE ID = @id",
                     conexion, transaccion)
-                    Parametro(consultar, "@id", id)
-                    Dim valor As Object = consultar.ExecuteScalar()
-                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estado = Convert.ToString(valor)
+                    Parametro(consultarLibroId, "@id", id)
+                    Dim valor As Object = consultarLibroId.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then
+                        idLibro = Convert.ToInt32(valor)
+                    End If
                 End Using
-                If estado <> "Vigente" Then Return 0
+                If idLibro <= 0 Then Return 0
 
-                Dim testimonios As Integer
-                Using consultarTestimonios As New MySqlCommand(
-                    "SELECT COUNT(*) FROM Testimonios_Expedidos WHERE ID_Instrumento = @id",
+                ' Mantener el orden de bloqueo libro -> instrumento. Se permite
+                ' anular mientras el libro está vigente o cerrado, pero nunca
+                ' después de registrar su entrega al Notariado.
+                Dim estadoLibro As String = Nothing
+                Dim fechaEntregaRegistrada As Boolean = False
+                Using consultarLibro As New MySqlCommand(
+                    "SELECT Estado, Fecha_Entrega_Notariado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
-                    Parametro(consultarTestimonios, "@id", id)
-                    testimonios = Convert.ToInt32(consultarTestimonios.ExecuteScalar())
+                    Parametro(consultarLibro, "@id", idLibro)
+                    Using lector As MySqlDataReader = consultarLibro.ExecuteReader()
+                        If lector.Read() Then
+                            estadoLibro = Convert.ToString(lector("Estado"))
+                            fechaEntregaRegistrada = Not lector.IsDBNull(lector.GetOrdinal("Fecha_Entrega_Notariado"))
+                        End If
+                    End Using
                 End Using
-                If testimonios > 0 Then Return 0
+                If (estadoLibro <> "Vigente" AndAlso estadoLibro <> "Cerrado") OrElse fechaEntregaRegistrada Then
+                    Return 0
+                End If
+
+                Dim estadoInstrumento As String = Nothing
+                Using consultarInstrumento As New MySqlCommand(
+                    "SELECT Estado FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultarInstrumento, "@id", id)
+                    Parametro(consultarInstrumento, "@libro", idLibro)
+                    Dim valor As Object = consultarInstrumento.ExecuteScalar()
+                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then
+                        estadoInstrumento = Convert.ToString(valor)
+                    End If
+                End Using
+                If estadoInstrumento <> "Vigente" Then Return 0
+
+                If TieneTestimonios(conexion, transaccion, id) Then Return 0
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id AND Estado = 'Vigente'",
+                    "UPDATE Instrumentos SET Estado = 'Anulado' WHERE ID = @id AND ID_Libro = @libro AND Estado = 'Vigente'",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
+                        Parametro(comando, "@libro", idLibro)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ANULAR", "Instrumentos", id, "Instrumento anulado")
                 Return filas
