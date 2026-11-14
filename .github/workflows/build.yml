@@ -53,11 +53,11 @@ jobs:
             throw 'No se pudo localizar el bloque de cifrado de credenciales.'
           }
           $bloqueCifrar = $conexionSource.Substring($inicioCifrar, $finCifrar - $inicioCifrar)
-          if ($bloqueCifrar -notmatch 'DataProtectionScope\\.CurrentUser' -or
-              $bloqueCifrar -match 'DataProtectionScope\\.LocalMachine') {
+          if ($bloqueCifrar -notmatch 'DataProtectionScope\.CurrentUser' -or
+              $bloqueCifrar -match 'DataProtectionScope\.LocalMachine') {
             throw 'Las nuevas credenciales deben cifrarse exclusivamente con DPAPI CurrentUser.'
           }
-          if ($conexionSource -notmatch 'LeerRegistro\\(RegistryHive\\.LocalMachine, False\\)') {
+          if ($conexionSource -notmatch 'LeerRegistro\(RegistryHive\.LocalMachine, False\)') {
             throw 'La configuración compartida HKLM no debe descifrar credenciales.'
           }
 
