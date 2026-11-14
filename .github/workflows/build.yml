@@ -46,6 +46,20 @@ jobs:
           if ($connection -notmatch '(?i)Database=sgln_sv_pruebas' -or $connection -notmatch '(?i)SslMode=Preferred') {
             throw 'La configuración del arnés no apunta a sgln_sv_pruebas con TLS de pruebas esperado.'
           }
+          $conexionSource = Get-Content 'SGLN\\Datos\\ConfiguracionConexion.vb' -Raw
+          $inicioCifrar = $conexionSource.IndexOf('Private Shared Function Cifrar(')
+          $finCifrar = $conexionSource.IndexOf('Private Shared Function Descifrar(', $inicioCifrar)
+          if ($inicioCifrar -lt 0 -or $finCifrar -le $inicioCifrar) {
+            throw 'No se pudo localizar el bloque de cifrado de credenciales.'
+          }
+          $bloqueCifrar = $conexionSource.Substring($inicioCifrar, $finCifrar - $inicioCifrar)
+          if ($bloqueCifrar -notmatch 'DataProtectionScope\\.CurrentUser' -or
+              $bloqueCifrar -match 'DataProtectionScope\\.LocalMachine') {
+            throw 'Las nuevas credenciales deben cifrarse exclusivamente con DPAPI CurrentUser.'
+          }
+          if ($conexionSource -notmatch 'LeerRegistro\\(RegistryHive\\.LocalMachine, False\\)') {
+            throw 'La configuración compartida HKLM no debe descifrar credenciales.'
+          }
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
