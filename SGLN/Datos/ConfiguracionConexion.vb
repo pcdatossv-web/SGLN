@@ -449,8 +449,9 @@ Public Class ConfiguracionConexion
     ' ---------------- Cifrado de la contraseña ----------------
 
     ''' <summary>
-    ''' Cifra con DPAPI según el ámbito del registro: CurrentUser para HKCU
-    ''' y LocalMachine para HKLM. Las claves antiguas se leen con compatibilidad.
+    ''' Cifra las nuevas credenciales con DPAPI CurrentUser. Los blobs
+    ''' antiguos de HKCU se leen temporalmente por compatibilidad; nunca se
+    ''' generan nuevas credenciales con alcance LocalMachine.
     ''' </summary>
     Private Shared Function Cifrar(texto As String) As String
         If String.IsNullOrEmpty(texto) Then Return ""
