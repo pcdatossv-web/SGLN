@@ -1006,6 +1006,37 @@ Module PruebaFuncional
                   exitosConcurrentes = 1,
                   "Guardadas: " & exitosConcurrentes.ToString() & ". " & erroresConcurrentes)
 
+        ' Una escritura anulada conserva sus folios: nunca deben asignarse a otra.
+        Dim idConcurrente As Integer = 0
+        Dim folioInicioAnulado As Integer = 0
+        Dim folioFinAnulado As Integer = 0
+        For Each filaInstrumento As DataRow In protocolo.Instrumentos(idLibro).Rows
+            Dim numero As Integer = UtileriasUI.Entero(filaInstrumento, "Numero_Escritura")
+            If numero = 20 OrElse numero = 21 Then
+                idConcurrente = UtileriasUI.Entero(filaInstrumento, "ID")
+                folioInicioAnulado = UtileriasUI.Entero(filaInstrumento, "Folio_Inicio")
+                folioFinAnulado = UtileriasUI.Entero(filaInstrumento, "Folio_Fin")
+                Exit For
+            End If
+        Next
+        If idConcurrente > 0 Then
+            Dim rAnularConcurrente As Respuesta = protocolo.AnularInstrumento(idConcurrente)
+            Verificar("Anular escritura de prueba sin liberar sus folios",
+                      rAnularConcurrente.Exito, rAnularConcurrente.Mensaje)
+            Dim rReutilizarFolios As Respuesta = protocolo.GuardarInstrumento(New Instrumento With {
+                .IDLibro = idLibro, .NumeroEscritura = 22,
+                .FechaHoraOtorgamiento = New Date(2026, 4, 1, 10, 0, 0),
+                .FolioInicio = folioInicioAnulado, .FolioFin = folioFinAnulado,
+                .ObjetoActo = "Intento de reutilizar folios anulados"})
+            Verificar("Los folios de una escritura anulada no se pueden reutilizar",
+                      Not rReutilizarFolios.Exito, rReutilizarFolios.Mensaje)
+        Else
+            Verificar("Anular escritura de prueba sin liberar sus folios", False,
+                      "No se encontró la escritura concurrente guardada.")
+            Verificar("Los folios de una escritura anulada no se pueden reutilizar", False,
+                      "No se encontró la escritura concurrente guardada.")
+        End If
+
         Dim rComp1 As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
         Verificar("Agregar compareciente otorgante a la escritura 1", rComp1.Exito, rComp1.Mensaje)
         Dim rCompDup As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
