@@ -64,7 +64,14 @@ Public Class UsuarioRepositorio
             .DebeCambiarClave = SeguridadClave.EsClaveInicial(hash, salt)
         }
 
-        Auditar(sesion.Usuario, "INGRESO", "Usuarios", sesion.ID, "Inicio de sesión")
+        Try
+            AuditarObligatorio(sesion.Usuario, "INGRESO", "Usuarios", sesion.ID, "Inicio de sesión")
+        Catch ex As Exception
+            ' Si no se puede conservar el evento de acceso, se deniega el login.
+            RegistroErrores.Escribir("Usuarios - auditoría obligatoria de ingreso", ex)
+            Return Nothing
+        End Try
+
         Return sesion
     End Function
 
