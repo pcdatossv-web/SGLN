@@ -125,12 +125,16 @@ Public Class ServicioConfiguracion
     Public Function Respaldar() As Respuesta
         If Not Permisos.TieneAcceso("config.respaldos") Then Return Respuesta.Fallo("No tiene permiso para crear respaldos.")
 
+        Dim ruta As String = ""
         Try
             Dim carpeta As String = CarpetaRespaldos()
             Directory.CreateDirectory(carpeta)
 
-            Dim nombre As String = "SGLN_" & DateTime.Now.ToString("yyyyMMdd_HHmmss") & ".sql"
-            Dim ruta As String = Path.Combine(carpeta, nombre)
+            ' Milisegundos más sufijo aleatorio: dos respaldos en el mismo
+            ' segundo nunca deben reemplazarse entre sí.
+            Dim nombre As String = "SGLN_" & DateTime.Now.ToString("yyyyMMdd_HHmmss_fff") & "_" &
+                Guid.NewGuid().ToString("N").Substring(0, 8) & ".sql"
+            ruta = Path.Combine(carpeta, nombre)
 
             _repositorio.RespaldarBaseDatos(ruta)
 
@@ -145,6 +149,12 @@ Public Class ServicioConfiguracion
                 "Respaldo creado: " & ruta & " (" & (informacion.Length \ 1024).ToString("N0") & " KB)")
         Catch ex As Exception
             RegistroErrores.Escribir("Configuración - respaldo", ex)
+            If Not String.IsNullOrWhiteSpace(ruta) AndAlso File.Exists(ruta) Then
+                Return Respuesta.Fallo(
+                    "El archivo de respaldo se generó y se conserva en: " & ruta &
+                    ". Sin embargo, no se pudo completar la confirmación/auditoría de la operación. " &
+                    "Informe al administrador antes de repetir el respaldo.")
+            End If
             Return Respuesta.Fallo("No se pudo crear el respaldo. Revise la configuración, los permisos de la carpeta y el registro local de errores.")
         End Try
     End Function
