@@ -198,6 +198,9 @@ Module PruebaFuncional
 
         Sesion.CargarPermisos()
         Verificar("La sesión se revalida contra la cuenta y rol vigentes", Permisos.TieneAcceso("config.usuarios"))
+        Dim eliminacionPropiaDirecta As Respuesta = New UsuarioRepositorio().EliminarSiNoTieneHistorial(admin.ID)
+        Verificar("El repositorio impide la autoeliminación incluso si se invoca directamente",
+                  Not eliminacionPropiaDirecta.Exito)
         Verificar("La sesión del administrador tiene acceso total", Permisos.AccesoTotal)
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
         Verificar("El Administrador puede modificar configuración", Permisos.Puede("config.editar"))
@@ -216,6 +219,17 @@ Module PruebaFuncional
                 Next
                 Verificar("Cinco intentos fallidos bloquean incluso un ingreso con la clave correcta",
                           usuarios.Autenticar(usuarioBloqueo, "BloqueoClave99!") Is Nothing)
+
+                Dim idUsuarioBloqueo As Integer = 0
+                For Each fila As DataRow In servicioUsuarios.Listar().Rows
+                    If UtileriasUI.Texto(fila, "Usuario") = usuarioBloqueo Then
+                        idUsuarioBloqueo = UtileriasUI.Entero(fila, "ID")
+                        Exit For
+                    End If
+                Next
+                Verificar("No se elimina una cuenta que conserva historial de intentos de acceso",
+                          idUsuarioBloqueo > 0 AndAlso
+                          Not servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo).Exito)
             End If
         End If
 

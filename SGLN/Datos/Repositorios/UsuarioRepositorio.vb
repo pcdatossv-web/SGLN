@@ -346,6 +346,25 @@ Public Class UsuarioRepositorio
                         Return Respuesta.Fallo("El usuario ya no existe.")
                     End If
 
+                    ' Defensa en profundidad: el repositorio también bloquea
+                    ' la autoeliminación aunque se invoque sin pasar por el servicio.
+                    If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id Then
+                        transaccion.Rollback()
+                        Return Respuesta.Fallo("No puede eliminar la cuenta con la que inició sesión.")
+                    End If
+
+                    ' Intentos_Acceso no tiene FK intencionalmente para conservar
+                    ' el bloqueo; no se debe dejar una fila huérfana ni borrar ese historial.
+                    Using cmd As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Intentos_Acceso WHERE Usuario_ID = @id",
+                        conexion, transaccion)
+                        Parametro(cmd, "@id", id)
+                        If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
+                            transaccion.Rollback()
+                            Return Respuesta.Fallo("No se puede eliminar: la cuenta tiene historial de intentos de acceso.")
+                        End If
+                    End Using
+
                     If esAdmin Then
                         Using cmd As New MySqlCommand(
                             "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
