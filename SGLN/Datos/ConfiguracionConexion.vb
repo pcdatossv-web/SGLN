@@ -326,16 +326,6 @@ Public Class ConfiguracionConexion
         End Try
     End Function
 
-    Private Shared Sub BorrarRegistro(hive As RegistryHive)
-        Try
-            Using claveBase As RegistryKey = AbrirBase(hive, True)
-                claveBase.DeleteSubKeyTree(RutaClave, False)
-            End Using
-        Catch
-            ' Que no exista la clave no es un error.
-        End Try
-    End Sub
-
     Private Shared Function AbrirClavesLectura(hive As RegistryHive) As List(Of RegistryKey)
         Dim claves As New List(Of RegistryKey)()
         For Each vista As RegistryView In VistasPosibles()
