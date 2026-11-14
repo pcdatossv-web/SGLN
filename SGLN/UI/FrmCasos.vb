@@ -151,7 +151,12 @@ Public Class FrmCasos
         If vista.Row.IsNull("Plazo_Dias_Default") Then Return
 
         Dim dias As Integer = Convert.ToInt32(vista.Row("Plazo_Dias_Default"))
-        If dias > 0 Then nudPlazoDias.Value = Math.Min(dias, nudPlazoDias.Maximum)
+        If dias > 0 Then
+            nudPlazoDias.Value = Math.Min(dias, nudPlazoDias.Maximum)
+            lblPropuesta.Text = "Plazo referencial del catálogo: " & dias.ToString() &
+                " días. Verifique el plazo legal aplicable antes de calcular."
+            lblPropuesta.ForeColor = Color.DarkOrange
+        End If
     End Sub
 
     Private Sub GuardarCaso()
@@ -198,8 +203,8 @@ Public Class FrmCasos
             Dim dias As Integer = Convert.ToInt32(nudPlazoDias.Value)
             _fechaPropuesta = _plazos.CalcularVencimiento(dtpFechaNotificacion.Value.Date, dias)
 
-            lblPropuesta.Text = "Propuesta del sistema: " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") &
-                " (" & dias & " días hábiles). Revise y confirme."
+            lblPropuesta.Text = "Cálculo referencial: " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") &
+                " (" & dias & " días hábiles). Verifique el plazo legal, la notificación y los feriados aplicables antes de confirmar."
             lblPropuesta.ForeColor = Color.DarkOrange
         Catch ex As Exception
             _fechaPropuesta = Nothing
@@ -223,8 +228,10 @@ Public Class FrmCasos
         End If
 
         If Not UtileriasUI.Confirmar(
-            "¿Confirma el vencimiento del " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") & "?" & Environment.NewLine &
-            "Esta confirmación queda registrada a su nombre en la auditoría.") Then
+            "¿Confirma el vencimiento propuesto del " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") & "?" & Environment.NewLine &
+            "Confirme que verificó el plazo legal aplicable, la fecha de notificación y los feriados del tribunal." & Environment.NewLine &
+            "El sistema realiza el cómputo de días hábiles; no determina por sí mismo el plazo legal." & Environment.NewLine &
+            "La confirmación quedará registrada a su nombre en la auditoría.") Then
             Return
         End If
 
@@ -336,10 +343,10 @@ Public Class FrmCasos
 
     Private Sub cboTipoActuacion_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboTipoActuacion.SelectedIndexChanged
         If _cargando Then Return
-        AplicarPlazoDelTipo()
         _fechaPropuesta = Nothing
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
+        AplicarPlazoDelTipo()
     End Sub
 
     Private Sub dtpFechaNotificacion_ValueChanged(sender As Object, e As EventArgs) Handles dtpFechaNotificacion.ValueChanged
