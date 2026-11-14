@@ -233,7 +233,7 @@ Public Class ServicioDocumentos
                     If firma.Length <> 4 Then Return False
                     Return (firma(0) = &H49 AndAlso firma(1) = &H49 AndAlso
                             (firma(2) = &H2A OrElse firma(2) = &H2B) AndAlso
-                            (firma(3) = &H0 OrElse firma(3) = &H0)) OrElse
+                            firma(3) = &H0) OrElse
                            (firma(0) = &H4D AndAlso firma(1) = &H4D AndAlso
                             firma(2) = &H0 AndAlso (firma(3) = &H2A OrElse firma(3) = &H2B))
                 End Using
