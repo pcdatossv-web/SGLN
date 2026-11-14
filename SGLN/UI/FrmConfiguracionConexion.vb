@@ -77,6 +77,13 @@ Public Class FrmConfiguracionConexion
             Return Nothing
         End If
 
+        If Not String.Equals(txtBaseDatos.Text.Trim(), "sgln_sv", StringComparison.OrdinalIgnoreCase) Then
+            MessageBox.Show("La instalación de producción debe utilizar la base de datos sgln_sv.",
+                            "Base de datos no permitida", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtBaseDatos.Focus()
+            Return Nothing
+        End If
+
         If String.IsNullOrWhiteSpace(txtUsuario.Text) Then
             MessageBox.Show("Ingrese el usuario de MySQL.", "Validación",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
