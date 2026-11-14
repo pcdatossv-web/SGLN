@@ -175,7 +175,7 @@ Partial Class FrmConfiguracionConexion
         Me.chkEquipo.Name = "chkEquipo"
         Me.chkEquipo.Size = New System.Drawing.Size(451, 19)
         Me.chkEquipo.TabIndex = 10
-        Me.chkEquipo.Text = "Compartir parámetros del servidor; las contraseñas se guardan por usuario Windows (requiere administrador)"
+        Me.chkEquipo.Text = "Compartir servidor; cada usuario guarda sus contraseñas (requiere administrador)"
         Me.chkEquipo.UseVisualStyleBackColor = True
         '
         ' txtPassword
