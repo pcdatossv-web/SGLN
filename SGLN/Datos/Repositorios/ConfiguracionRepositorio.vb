@@ -226,6 +226,9 @@ Public Class ConfiguracionRepositorio
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
             ValidarArchivoRespaldo(temporalSalida, baseDatos)
             If File.Exists(destinoFinal) Then
+                ' También se protege el destino existente antes del reemplazo:
+                ' File.Replace puede conservar atributos/ACL del archivo anterior.
+                File.SetAccessControl(destinoFinal, CrearSeguridadArchivoPrivado())
                 ' Reemplazo atómico: si falla, el respaldo anterior permanece intacto.
                 File.Replace(temporalSalida, destinoFinal, Nothing)
             Else
