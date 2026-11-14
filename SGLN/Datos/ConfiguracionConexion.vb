@@ -460,9 +460,13 @@ Public Class ConfiguracionConexion
         ' Nunca usar LocalMachine: cualquier usuario local con acceso al blob
         ' podría descifrarlo. Las nuevas credenciales son exclusivas del perfil.
         Dim plano As Byte() = Encoding.UTF8.GetBytes(texto)
-        Dim cifrado As Byte() = ProtectedData.Protect(
-            plano, Entropia, DataProtectionScope.CurrentUser)
-        Return "DPAPI2:CU:" & Convert.ToBase64String(cifrado)
+        Try
+            Dim cifrado As Byte() = ProtectedData.Protect(
+                plano, Entropia, DataProtectionScope.CurrentUser)
+            Return "DPAPI2:CU:" & Convert.ToBase64String(cifrado)
+        Finally
+            Array.Clear(plano, 0, plano.Length)
+        End Try
     End Function
 
     Private Shared Function Descifrar(valor As String, hive As RegistryHive) As String
@@ -494,7 +498,11 @@ Public Class ConfiguracionConexion
     Private Shared Function DescifrarProtegido(valor As String, alcance As DataProtectionScope) As String
         Dim cifrado As Byte() = Convert.FromBase64String(valor)
         Dim plano As Byte() = ProtectedData.Unprotect(cifrado, Entropia, alcance)
-        Return Encoding.UTF8.GetString(plano)
+        Try
+            Return Encoding.UTF8.GetString(plano)
+        Finally
+            Array.Clear(plano, 0, plano.Length)
+        End Try
     End Function
 
     Private Shared Function EsBase64(valor As String) As Boolean
