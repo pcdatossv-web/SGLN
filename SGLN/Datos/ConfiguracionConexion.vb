@@ -169,7 +169,8 @@ Public Class ConfiguracionConexion
         ' HKCU primero: una configuración por usuario prevalece sobre la del equipo.
         Dim datos As DatosConexion = LeerRegistro(RegistryHive.CurrentUser)
         If datos IsNot Nothing Then
-            datos.Origen = "HKCU"
+            Dim compartida As DatosConexion = LeerRegistro(RegistryHive.LocalMachine, False)
+            datos.Origen = If(compartida Is Nothing, "HKCU", "HKCU+HKLM")
             Return datos
         End If
 
