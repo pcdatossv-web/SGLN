@@ -231,7 +231,7 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("La escritura ya está anulada.")
         End If
         If _repositorio.AnularInstrumento(id) = 0 Then
-            Return Respuesta.Fallo("No se puede anular: la escritura ya cambió de estado o tiene testimonios expedidos.")
+            Return Respuesta.Fallo("No se puede anular: el libro ya fue entregado, la escritura cambió de estado o tiene testimonios expedidos.")
         End If
         Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
     End Function
