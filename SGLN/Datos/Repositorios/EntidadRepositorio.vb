@@ -57,13 +57,38 @@ Public Class EntidadRepositorio
                     AuditarEnTransaccion(conexion, transaccion, "CREAR", "Entidades_Legales",
                                          idEntidad, entidad.RazonSocial)
                 Else
+                    Dim razonActual As String = Nothing
+                    Dim nitActual As String = Nothing
+                    Dim nrcActual As String = Nothing
                     Using comandoExiste As New MySqlCommand(
-                            "SELECT ID FROM Entidades_Legales WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            "SELECT Razon_Social, NIT, NRC FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
+                            conexion, transaccion)
                         Parametro(comandoExiste, "@id", idEntidad)
-                        If comandoExiste.ExecuteScalar() Is Nothing Then
-                            Throw New InvalidOperationException("La entidad que intenta modificar ya no existe.")
-                        End If
+                        Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                            If Not lector.Read() Then
+                                Throw New InvalidOperationException("La entidad que intenta modificar ya no existe.")
+                            End If
+                            razonActual = Convert.ToString(lector("Razon_Social"))
+                            nitActual = Convert.ToString(lector("NIT"))
+                            nrcActual = Convert.ToString(lector("NRC"))
+                        End Using
                     End Using
+
+                    Dim representantesExistentes As Integer
+                    Using comandoReferencias As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Representantes_Legales WHERE ID_Entidad = @id",
+                        conexion, transaccion)
+                        Parametro(comandoReferencias, "@id", idEntidad)
+                        representantesExistentes = Convert.ToInt32(comandoReferencias.ExecuteScalar())
+                    End Using
+
+                    If representantesExistentes > 0 AndAlso
+                       (Not TextoIgual(entidad.RazonSocial, razonActual) OrElse
+                        Not TextoIgual(entidad.NIT, nitActual) OrElse
+                        Not TextoIgual(entidad.NRC, nrcActual)) Then
+                        Throw New InvalidOperationException(
+                            "No se puede cambiar la razón social, NIT o NRC de una entidad que ya tiene representantes registrados. Use el procedimiento autorizado de rectificación.")
+                    End If
 
                     Ejecutar(conexion, transaccion,
                         "UPDATE Entidades_Legales SET Razon_Social = @razon, NIT = @nit, NRC = @nrc, " &
@@ -186,6 +211,11 @@ Public Class EntidadRepositorio
                 Return filas
             End Function)
     End Sub
+
+    Private Shared Function TextoIgual(valorNuevo As String, valorActual As String) As Boolean
+        Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
+                             StringComparison.Ordinal)
+    End Function
 
     Private Sub AgregarParametros(comando As MySqlCommand, entidad As EntidadLegal)
         Parametro(comando, "@razon", entidad.RazonSocial)
