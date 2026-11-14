@@ -114,6 +114,28 @@ Public MustInherit Class RepositorioBase
     End Sub
 
     ''' <summary>
+    ''' Registra una acción que no debe continuar si no queda auditada.
+    ''' Se usa, entre otros casos, para no permitir un inicio de sesión sin
+    ''' conservar su evento en Audit_Log.
+    ''' </summary>
+    Protected Sub AuditarObligatorio(usuario As String,
+                                     accion As String,
+                                     tabla As String,
+                                     idRegistro As Integer?,
+                                     detalle As String)
+        Ejecutar(
+            "INSERT INTO Audit_Log (Usuario, Fecha_Hora, Accion, Tabla_Afectada, ID_Registro, Detalle) " &
+            "VALUES (@usuario, NOW(), @accion, @tabla, @id, @detalle)",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@usuario", Recortar(usuario, 50))
+                Parametro(comando, "@accion", Recortar(accion, 40))
+                Parametro(comando, "@tabla", Recortar(tabla, 80))
+                Parametro(comando, "@id", If(idRegistro.HasValue, CObj(idRegistro.Value), DBNull.Value))
+                Parametro(comando, "@detalle", Recortar(detalle, 1000))
+            End Sub)
+    End Sub
+
+    ''' <summary>
     ''' Inserta una fila y devuelve su ID. MySQL no tiene "OUTPUT INSERTED":
     ''' el INSERT y LAST_INSERT_ID() deben ejecutarse en la MISMA conexión.
     ''' </summary>
