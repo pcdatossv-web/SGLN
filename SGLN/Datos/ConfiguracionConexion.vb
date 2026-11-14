@@ -309,11 +309,11 @@ Public Class ConfiguracionConexion
                     clave.SetValue(ValorBaseDatos, datos.BaseDatos.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorUsuario, datos.Usuario.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorPassword,
-                                   If(incluirCredenciales, Cifrar(datos.Password, hive), ""),
+                                   If(incluirCredenciales, Cifrar(datos.Password), ""),
                                    RegistryValueKind.String)
                     clave.SetValue(ValorUsuarioRespaldo, datos.UsuarioRespaldo.Trim(), RegistryValueKind.String)
                     clave.SetValue(ValorPasswordRespaldo,
-                                   If(incluirCredenciales, Cifrar(datos.PasswordRespaldo, hive), ""),
+                                   If(incluirCredenciales, Cifrar(datos.PasswordRespaldo), ""),
                                    RegistryValueKind.String)
                     clave.SetValue(ValorModoSsl, datos.ModoSsl, RegistryValueKind.String)
                     clave.SetValue(ValorCertificadoCa, datos.CertificadoCa, RegistryValueKind.String)
@@ -452,17 +452,15 @@ Public Class ConfiguracionConexion
     ''' Cifra con DPAPI según el ámbito del registro: CurrentUser para HKCU
     ''' y LocalMachine para HKLM. Las claves antiguas se leen con compatibilidad.
     ''' </summary>
-    Private Shared Function Cifrar(texto As String, hive As RegistryHive) As String
+    Private Shared Function Cifrar(texto As String) As String
         If String.IsNullOrEmpty(texto) Then Return ""
 
-        Dim alcance As DataProtectionScope =
-            If(hive = RegistryHive.CurrentUser,
-               DataProtectionScope.CurrentUser,
-               DataProtectionScope.LocalMachine)
-        Dim etiqueta As String = If(hive = RegistryHive.CurrentUser, "CU:", "LM:")
+        ' Nunca usar LocalMachine: cualquier usuario local con acceso al blob
+        ' podría descifrarlo. Las nuevas credenciales son exclusivas del perfil.
         Dim plano As Byte() = Encoding.UTF8.GetBytes(texto)
-        Dim cifrado As Byte() = ProtectedData.Protect(plano, Entropia, alcance)
-        Return "DPAPI2:" & etiqueta & Convert.ToBase64String(cifrado)
+        Dim cifrado As Byte() = ProtectedData.Protect(
+            plano, Entropia, DataProtectionScope.CurrentUser)
+        Return "DPAPI2:CU:" & Convert.ToBase64String(cifrado)
     End Function
 
     Private Shared Function Descifrar(valor As String, hive As RegistryHive) As String
