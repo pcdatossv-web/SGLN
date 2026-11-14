@@ -31,7 +31,11 @@ Public Class FrmConfiguracionConexion
 
         lblRuta.Text = "Origen actual: " & DescripcionOrigen(datos.Origen)
         lblEstado.ForeColor = System.Drawing.Color.DimGray
-        lblEstado.Text = "Presione ""Probar conexión"" para verificar los datos."
+        If datos.Origen = "HKLM" Then
+            lblEstado.Text = "Por seguridad, las contraseñas antiguas compartidas no se cargan. Ingrese las credenciales para este usuario Windows."
+        Else
+            lblEstado.Text = "Presione ""Probar conexión"" para verificar los datos."
+        End If
     End Sub
 
     Private Function DescripcionOrigen(origen As String) As String
