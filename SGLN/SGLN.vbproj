@@ -211,6 +211,7 @@
     <None Include="Scripts\Migracion_Integridad_Clientes_LDAFT.sql" />
     <None Include="Scripts\Migracion_Seguridad_Acceso.sql" />
     <None Include="Scripts\Privilegios_Minimos.sql" />
+    <None Include="Scripts\Migrar-CredencialesCompartidas.ps1" />
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
