@@ -1361,6 +1361,16 @@ Module PruebaFuncional
             .Detalle = "Solicitud con prórroga"}
         Dim rProrroga As Respuesta = cumplimiento.GuardarSolicitud(arcoProrroga)
         Verificar("Guardar solicitud ARCO con prórroga", rProrroga.Exito, rProrroga.Mensaje)
+        Verificar("Una solicitud ARCO no permite sustituir al cliente titular",
+                  Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
+                      .ID = arcoProrroga.ID, .IDCliente = idCliente + 999,
+                      .TipoDerecho = "Rectificación", .FechaSolicitud = Date.Today,
+                      .Detalle = "Intento de cambiar titular"}).Exito)
+        Verificar("Una solicitud ARCO no permite cambiar el derecho ejercido",
+                  Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
+                      .ID = arcoProrroga.ID, .IDCliente = idCliente,
+                      .TipoDerecho = "Acceso", .FechaSolicitud = Date.Today,
+                      .Detalle = "Intento de cambiar derecho"}).Exito)
         Dim tablaProrroga As DataTable = cumplimiento.ObtenerSolicitud(arcoProrroga.ID)
         Verificar("La prórroga agrega 5 días hábiles al vencimiento",
                   UtileriasUI.Fecha(tablaProrroga.Rows(0), "Fecha_Vencimiento_Prorroga") =
