@@ -61,7 +61,7 @@ Public Class DatosConexion
             Throw New InvalidOperationException("El modo TLS configurado no está permitido.")
         End If
         If String.Equals(modo, "Preferred", StringComparison.OrdinalIgnoreCase) AndAlso
-           Not constructor.Database.EndsWith("_pruebas", StringComparison.OrdinalIgnoreCase) Then
+           Not String.Equals(constructor.Database, "sgln_sv_pruebas", StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("Las conexiones normales requieren TLS con validación de CA. Preferred solo se permite en pruebas aisladas.")
         End If
         If String.Equals(modo, "VerifyCA", StringComparison.OrdinalIgnoreCase) OrElse
