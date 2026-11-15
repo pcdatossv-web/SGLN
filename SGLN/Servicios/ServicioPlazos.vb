@@ -37,6 +37,7 @@ Public Class ServicioPlazos
             ' dependa de lo que muestre o modifique la interfaz.
             actuacion.FechaVencimiento = CalcularVencimiento(actuacion.FechaNotificacion, actuacion.PlazoLegalDias)
             actuacion.ID = _repositorio.GuardarActuacion(actuacion)
+            If actuacion.ID <= 0 Then Return Respuesta.Fallo("La actuación que intenta modificar ya no existe.")
 
             Return Respuesta.Ok(
                 "Vencimiento confirmado para el " & actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy") &
