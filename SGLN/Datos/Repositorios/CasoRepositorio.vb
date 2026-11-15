@@ -95,6 +95,15 @@ Public Class CasoRepositorio
                     Return nuevoId
                 End If
 
+                ' Bloquear y comprobar la existencia antes de actualizar. Sin esta
+                ' comprobación, un ID inexistente podía devolverse como exitoso.
+                Using comandoExiste As New MySqlCommand(
+                    "SELECT ID FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(comandoExiste, "@id", actuacion.ID)
+                    If comandoExiste.ExecuteScalar() Is Nothing Then Return 0
+                End Using
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &
                     "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, Estado = @estado, " &
