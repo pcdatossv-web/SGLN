@@ -14,10 +14,12 @@ Public Class ServicioUsuarios
     Private Shared ReadOnly PatronUsuario As New Regex("^[a-zA-Z0-9._-]{3,50}$")
 
     Public Function Listar() As DataTable
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return New DataTable()
         Return _repositorio.Listar()
     End Function
 
     Public Function RolesDisponibles() As DataTable
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return New DataTable()
         Return _roles.RolesActivos()
     End Function
 
