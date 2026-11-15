@@ -10,6 +10,11 @@ Imports MySql.Data.MySqlClient
 Public Class UsuarioRepositorio
     Inherits RepositorioBase
 
+    ' Credencial ficticia válida en formato Base64 para igualar el coste PBKDF2
+    ' cuando el nombre no existe. No corresponde a ninguna cuenta real.
+    Private Const HashTiempoConstante As String = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    Private Const SaltTiempoConstante As String = "AAAAAAAAAAAAAAAAAAAAAA=="
+
     Public Function Autenticar(usuario As String, clave As String) As UsuarioSesion
         Dim tabla As DataTable = Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, u.Clave_Hash, u.Clave_Salt, " &
@@ -20,14 +25,22 @@ Public Class UsuarioRepositorio
                 Parametro(comando, "@usuario", usuario)
             End Sub)
 
-        If tabla.Rows.Count = 0 Then Return Nothing
+        If tabla.Rows.Count = 0 Then
+            ' Evita que una respuesta inmediata permita inferir si el usuario existe.
+            SeguridadClave.Verificar(clave, HashTiempoConstante, SaltTiempoConstante)
+            Return Nothing
+        End If
 
         Dim fila As DataRow = tabla.Rows(0)
         Dim idUsuario As Integer = Convert.ToInt32(fila("ID"))
-        If EstaBloqueado(idUsuario) Then Return Nothing
-
         Dim hash As String = Convert.ToString(fila("Clave_Hash"))
         Dim salt As String = Convert.ToString(fila("Clave_Salt"))
+
+        If EstaBloqueado(idUsuario) Then
+            ' El bloqueo no debe convertirse en un canal de enumeración por tiempo.
+            SeguridadClave.Verificar(clave, hash, salt)
+            Return Nothing
+        End If
 
         Dim requiereActualizacionHash As Boolean = False
         If Not SeguridadClave.Verificar(clave, hash, salt, requiereActualizacionHash) Then
