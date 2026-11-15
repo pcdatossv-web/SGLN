@@ -861,6 +861,11 @@ Module PruebaFuncional
                   casos.Buscar("123-2026").Rows.Count >= 1)
         Verificar("La búsqueda de casos sin filtro lista resultados",
                   casos.Buscar("").Rows.Count >= 1)
+        Verificar("Actualizar un caso inexistente se rechaza",
+                  Not casos.Guardar(New Caso With {
+                      .ID = Integer.MaxValue, .IDCliente = idCliente,
+                      .NumeroExpediente = "NO-EXISTE", .Materia = "Civil"
+                  }).Exito)
 
         ' ---------- 6. Plazos (Art. 145 CPCM) ----------
         Console.WriteLine()
@@ -945,6 +950,10 @@ Module PruebaFuncional
         Next
         Verificar("Marcar cumplida cambia el estado a Cumplido",
                   filaCumplida IsNot Nothing AndAlso UtileriasUI.Texto(filaCumplida, "Estado") = "Cumplido")
+        Verificar("Una actuación ya cumplida no se vuelve a modificar",
+                  Not plazos.MarcarCumplida(idActuacion).Exito)
+        Verificar("Marcar como cumplida una actuación inexistente se rechaza",
+                  Not plazos.MarcarCumplida(Integer.MaxValue).Exito)
 
         ' ---------- 7. Protocolo notarial ----------
         Console.WriteLine()
