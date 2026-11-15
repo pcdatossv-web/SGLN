@@ -1280,6 +1280,8 @@ Module PruebaFuncional
         Dim tablaDoc2 As DataTable = documentos.Obtener(idDocumento)
         Verificar("El documento queda vinculado a la escritura 1",
                   UtileriasUI.Entero(tablaDoc2.Rows(0), "ID_Instrumento") = idInstrumento1)
+        Verificar("Actualizar metadatos de un documento inexistente se rechaza",
+                  Not documentos.ActualizarMetadatos(Integer.MaxValue, "Contrato", Nothing, Nothing).Exito)
 
         Verificar("Importar un archivo inexistente se rechaza",
                   Not documentos.Importar(Path.Combine(carpetaTrabajo, "no_existe.pdf"), "Contrato", Nothing, Nothing).Exito)
