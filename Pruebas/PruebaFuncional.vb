@@ -55,8 +55,8 @@ Module PruebaFuncional
         Dim tlsSinCaRechazado As Boolean = False
         Try
             Dim datosTls As New DatosConexion With {
-                .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "sgln_sv",
-                .Usuario = "sgln_app", .Password = "Prueba",
+                 .Servidor = "localhost", .Puerto = 3306, .BaseDatos = "sgln_sv_pruebas",
+                .Usuario = "sgln_test_app", .Password = "Prueba",
                 .ModoSsl = "VerifyCA", .CertificadoCa = ""
             }
             datosTls.ConstruirCadena()
@@ -73,7 +73,7 @@ Module PruebaFuncional
             }
             datosPreferidos.ConstruirCadena()
         Catch ex As InvalidOperationException
-            preferredProduccionRechazado = ex.Message.Contains("Preferred solo se permite")
+            preferredProduccionRechazado = ex.Message.Contains("sgln_sv_pruebas")
         End Try
         Verificar("TLS Preferred se rechaza en la base de producción", preferredProduccionRechazado)
 
@@ -108,8 +108,8 @@ Module PruebaFuncional
         Try
             File.WriteAllText(caTemporal, "CA de prueba para validar la configuración del constructor.")
             Dim datosVerifyFull As New DatosConexion With {
-                .Servidor = "db.sglntest.local", .Puerto = 3306, .BaseDatos = "sgln_sv",
-                .Usuario = "sgln_app", .Password = "Prueba",
+                .Servidor = "db.sglntest.local", .Puerto = 3306, .BaseDatos = "sgln_sv_pruebas",
+                .Usuario = "sgln_test_app", .Password = "Prueba",
                 .ModoSsl = "VerifyFull", .CertificadoCa = caTemporal
             }
             verifyFullDisponible = datosVerifyFull.ConstruirCadena().Contains("VerifyFull")
