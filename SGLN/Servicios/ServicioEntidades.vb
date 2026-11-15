@@ -77,7 +77,7 @@ Public Class ServicioEntidades
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return New DataTable()
+        If Not (Permisos.TieneAcceso("entidades.ver") OrElse Permisos.TieneAcceso("entidades.gestionar")) Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 

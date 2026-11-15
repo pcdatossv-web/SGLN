@@ -310,12 +310,12 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return New DataTable()
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
     Public Function InstrumentosCombo() As DataTable
-        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return New DataTable()
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
         Return _repositorio.InstrumentosCombo()
     End Function
 
