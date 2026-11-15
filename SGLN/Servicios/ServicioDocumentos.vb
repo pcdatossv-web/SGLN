@@ -137,7 +137,9 @@ Public Class ServicioDocumentos
 
         Try
             Dim filas As Integer = _repositorio.ActualizarMetadatos(documento)
-            If filas = 0 Then Return Respuesta.Fallo("El documento ya no existe o fue eliminado.")
+            If filas = 0 AndAlso _repositorio.Obtener(id).Rows.Count = 0 Then
+                Return Respuesta.Fallo("El documento ya no existe o fue eliminado.")
+            End If
             Return Respuesta.Ok("Metadatos del documento actualizados.")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - actualizar metadatos", ex)
