@@ -238,24 +238,74 @@ function Invoke-MySqlCommand([string]$sql) {
 function Invoke-MySqlFile([string]$rutaArchivo, [string]$baseDatos) {
     $salida = [IO.Path]::GetTempFileName()
     $errores = [IO.Path]::GetTempFileName()
+    $proceso = $null
+    $flujoSalida = $null
+    $flujoErrores = $null
     try {
+        # Start-Process no ofrece RedirectStandardInput en todas las versiones
+        # de Windows PowerShell y puede perder comillas en rutas con espacios.
+        # ProcessStartInfo mantiene compatibilidad con Windows PowerShell 5.1.
         $argumentos = @(
             "--defaults-extra-file=$archivoCredenciales",
             '--default-character-set=utf8mb4',
             "--database=$baseDatos"
         )
-        $proceso = Start-Process -FilePath $mysqlExe -ArgumentList $argumentos `
-            -RedirectStandardInput $rutaArchivo `
-            -RedirectStandardOutput $salida `
-            -RedirectStandardError $errores `
-            -NoNewWindow -Wait -PassThru
+        $argumentosSeguros = @()
+        foreach ($argumento in $argumentos) {
+            $argumentosSeguros += '"' + $argumento.Replace('"', '\"') + '"'
+        }
 
+        $informacion = New-Object System.Diagnostics.ProcessStartInfo
+        $informacion.FileName = $mysqlExe
+        $informacion.Arguments = $argumentosSeguros -join ' '
+        $informacion.UseShellExecute = $false
+        $informacion.CreateNoWindow = $true
+        $informacion.RedirectStandardInput = $true
+        $informacion.RedirectStandardOutput = $true
+        $informacion.RedirectStandardError = $true
+
+        $proceso = New-Object System.Diagnostics.Process
+        $proceso.StartInfo = $informacion
+        if (-not $proceso.Start()) {
+            throw "No se pudo iniciar el cliente MySQL para aplicar $rutaArchivo."
+        }
+
+        # Consumir ambas salidas en paralelo evita que los buffers llenos
+        # bloqueen al cliente mientras recibe el esquema por stdin.
+        $flujoSalida = [IO.File]::Create($salida)
+        $flujoErrores = [IO.File]::Create($errores)
+        $tareaSalida = $proceso.StandardOutput.BaseStream.CopyToAsync($flujoSalida)
+        $tareaErrores = $proceso.StandardError.BaseStream.CopyToAsync($flujoErrores)
+
+        $entrada = [IO.File]::OpenRead($rutaArchivo)
+        try {
+            $entrada.CopyTo($proceso.StandardInput.BaseStream)
+        }
+        finally {
+            $entrada.Dispose()
+            $proceso.StandardInput.Close()
+        }
+
+        if (-not $proceso.WaitForExit([int][TimeSpan]::FromHours(2).TotalMilliseconds)) {
+            try { $proceso.Kill() } catch {}
+            $proceso.WaitForExit()
+            [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($tareaSalida, $tareaErrores))
+            throw "La aplicación del esquema superó el límite de dos horas: $rutaArchivo"
+        }
+
+        [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($tareaSalida, $tareaErrores))
         if ($proceso.ExitCode -ne 0) {
             $detalle = Get-Content $errores -Raw
             throw "Falló $rutaArchivo (código $($proceso.ExitCode)): $detalle"
         }
     }
     finally {
+        if ($null -ne $proceso -and -not $proceso.HasExited) {
+            try { $proceso.Kill() } catch {}
+        }
+        if ($null -ne $flujoSalida) { $flujoSalida.Dispose() }
+        if ($null -ne $flujoErrores) { $flujoErrores.Dispose() }
+        if ($null -ne $proceso) { $proceso.Dispose() }
         Remove-Item $salida, $errores -Force -ErrorAction SilentlyContinue
     }
 }
