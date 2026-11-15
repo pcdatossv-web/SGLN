@@ -72,9 +72,16 @@ Public Class DatosConexion
             procesoPruebas AndAlso aislamientoPruebas AndAlso
             String.Equals(constructor.Database, "sgln_sv_pruebas", StringComparison.OrdinalIgnoreCase)
 
-        If Not baseProduccion AndAlso Not basePruebas Then
+        If procesoPruebas Then
+            ' El arnés jamás debe poder conectarse a producción, incluso si su
+            ' App.config se modifica por error y apunta a sgln_sv.
+            If Not basePruebas Then
+                Throw New InvalidOperationException(
+                    "El ejecutor de pruebas solo puede conectarse a sgln_sv_pruebas con el aislamiento habilitado.")
+            End If
+        ElseIf Not baseProduccion Then
             Throw New InvalidOperationException(
-                "SGLN solo puede conectarse a sgln_sv. sgln_sv_pruebas está reservada al ejecutor aislado de pruebas.")
+                "La aplicación SGLN solo puede conectarse a la base de producción sgln_sv.")
         End If
 
         constructor.UserID = Usuario
