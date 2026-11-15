@@ -64,8 +64,8 @@ Public Class DocumentoRepositorio
             End Function)
     End Function
 
-    Public Sub ActualizarMetadatos(documento As Documento)
-        EnTransaccion(
+    Public Function ActualizarMetadatos(documento As Documento) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Documentos SET Tipo_Documento = @tipo, ID_Caso = @caso, ID_Instrumento = @instrumento " &
@@ -83,7 +83,7 @@ Public Class DocumentoRepositorio
                 End If
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function CasosCombo() As DataTable
         Return Consultar(
