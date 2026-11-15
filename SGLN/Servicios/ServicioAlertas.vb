@@ -58,19 +58,34 @@ Public Class ServicioAlertas
             "WHERE l.Estado = 'Vigente' AND l.Fecha_Vencimiento " &
             "      BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) " &
             "UNION ALL " &
-            "SELECT 'UIF', " &
+            "SELECT 'UIF vencido', " &
+            "       CONCAT('Reporte UIF vencido desde ', DATE_FORMAT(o.Fecha_Vencimiento_Reporte, '%d/%m/%Y')), " &
+            "       o.Fecha_Vencimiento_Reporte, 'Alta' " &
+            "FROM Operaciones_LDAFT o " &
+            "WHERE o.Reportado_UIF = 0 AND o.Estado IN ('Registrada', 'En análisis') " &
+            "  AND o.Fecha_Vencimiento_Reporte IS NOT NULL " &
+            "  AND o.Fecha_Vencimiento_Reporte < CURDATE() " &
+            "UNION ALL " &
+            "SELECT 'UIF por vencer', " &
             "       CONCAT('Reporte UIF pendiente (vence ', DATE_FORMAT(o.Fecha_Vencimiento_Reporte, '%d/%m/%Y'), ')'), " &
             "       o.Fecha_Vencimiento_Reporte, 'Alta' " &
             "FROM Operaciones_LDAFT o " &
-            "WHERE o.Reportado_UIF = 0 AND o.Fecha_Vencimiento_Reporte IS NOT NULL " &
-            "  AND o.Fecha_Vencimiento_Reporte <= DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
+            "WHERE o.Reportado_UIF = 0 AND o.Estado IN ('Registrada', 'En análisis') " &
+            "  AND o.Fecha_Vencimiento_Reporte BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
             "UNION ALL " &
-            "SELECT 'ARCO', " &
+            "SELECT 'ARCO vencida', " &
+            "       CONCAT('Solicitud ARCO vencida: ', a.Tipo_Derecho), " &
+            "       COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
+            "FROM Solicitudes_ARCO a " &
+            "WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "  AND COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "UNION ALL " &
+            "SELECT 'ARCO por vencer', " &
             "       CONCAT('Solicitud ARCO por vencer: ', a.Tipo_Derecho), " &
             "       COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
             "FROM Solicitudes_ARCO a " &
-            "WHERE a.Estado = 'Pendiente' " &
-            "  AND COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) <= DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
+            "WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "  AND COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
             "UNION ALL " &
             "SELECT 'Protocolo', " &
             "       CONCAT('Entrega al Notariado pendiente: libro ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)), " &
