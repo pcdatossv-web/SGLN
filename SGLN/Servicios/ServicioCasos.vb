@@ -32,7 +32,9 @@ Public Class ServicioCasos
                 caso.ID = _repositorio.Insertar(caso)
             Else
                 Dim filas As Integer = _repositorio.Actualizar(caso)
-                If filas = 0 Then Return Respuesta.Fallo("El caso ya no existe o no hubo cambios que guardar.")
+                If filas = 0 AndAlso _repositorio.Obtener(caso.ID).Rows.Count = 0 Then
+                    Return Respuesta.Fallo("El caso ya no existe.")
+                End If
             End If
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un caso con ese número de expediente en el mismo juzgado.")
