@@ -49,6 +49,12 @@ Module PruebaFuncional
         Dim operacionSinSesion As Respuesta = New ServicioUsuarios().Desactivar(1)
         Verificar("La capa de servicios deniega operaciones sin sesión autenticada",
                   Not operacionSinSesion.Exito AndAlso operacionSinSesion.Mensaje.Contains("No tiene permiso"))
+        Verificar("La consulta de usuarios no expone datos sin sesión",
+                  New ServicioUsuarios().Listar().Rows.Count = 0)
+        Verificar("La consulta de roles de usuario no expone datos sin sesión",
+                  New ServicioUsuarios().RolesDisponibles().Rows.Count = 0)
+        Verificar("La bitácora no se puede consultar sin permiso",
+                  New ServicioAuditoria().Buscar("", "", "", Date.Today.AddDays(-1), Date.Today).Rows.Count = 0)
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
