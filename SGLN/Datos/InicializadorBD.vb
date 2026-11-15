@@ -307,7 +307,7 @@ Public Module InicializadorBD
     ''' Calcula el Domingo de Pascua en el calendario gregoriano
     ''' (algoritmo de Meeus/Jones/Butcher).
     ''' </summary>
-    Private Shared Function CalcularDomingoPascua(anio As Integer) As Date
+    Private Function CalcularDomingoPascua(anio As Integer) As Date
         Dim a As Integer = anio Mod 19
         Dim b As Integer = anio \ 100
         Dim c As Integer = anio Mod 100
