@@ -67,6 +67,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function Actuaciones(idCaso As Integer) As DataTable
+        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return _repositorio.ActuacionesPorCaso(idCaso)
     End Function
 

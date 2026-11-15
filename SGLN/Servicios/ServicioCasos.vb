@@ -11,10 +11,12 @@ Public Class ServicioCasos
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
     Public Function Buscar(filtro As String) As DataTable
+        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 

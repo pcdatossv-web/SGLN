@@ -22,10 +22,12 @@ Public Class ServicioDocumentos
     Private Const TamanoMaximoMb As Integer = 50
 
     Public Function Buscar(filtro As String, tipo As String) As DataTable
+        If Not Permisos.TieneAcceso("documentos.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro, tipo)
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("documentos.ver") Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 

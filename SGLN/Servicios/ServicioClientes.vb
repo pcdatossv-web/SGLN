@@ -10,10 +10,12 @@ Public Class ServicioClientes
     Private ReadOnly _repositorio As New ClienteRepositorio()
 
     Public Function Buscar(filtro As String) As DataTable
+        If Not Permisos.TieneAcceso("clientes.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("clientes.ver") Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 
