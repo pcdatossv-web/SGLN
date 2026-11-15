@@ -71,6 +71,10 @@ Module PruebaFuncional
                   New ServicioRoles().Listar().Rows.Count = 0)
         Verificar("La configuración no se consulta sin permiso",
                   New ServicioConfiguracion().Listar().Rows.Count = 0)
+        Verificar("El panel de alertas no expone datos sin sesión",
+                  New ServicioAlertas().ObtenerAlertas().Rows.Count = 0)
+        Verificar("El resumen no expone conteos sin sesión",
+                  New ServicioAlertas().ObtenerResumen() = "")
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
