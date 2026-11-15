@@ -295,14 +295,16 @@ function Invoke-MySqlFile([string]$rutaArchivo, [string]$baseDatos) {
             $proceso.StandardInput.Close()
         }
 
-        if (-not $proceso.WaitForExit([int][TimeSpan]::FromHours(2).TotalMilliseconds)) {
+        if (-not $proceso.WaitForExit(7200000)) {
             try { $proceso.Kill() } catch {}
             $proceso.WaitForExit()
-            [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($tareaSalida, $tareaErrores))
+            $tareaSalida.Wait()
+            $tareaErrores.Wait()
             throw "La aplicación del esquema superó el límite de dos horas: $rutaArchivo"
         }
 
-        [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($tareaSalida, $tareaErrores))
+        $tareaSalida.Wait()
+        $tareaErrores.Wait()
         if ($proceso.ExitCode -ne 0) {
             $detalle = Get-Content $errores -Raw
             throw "Falló $rutaArchivo (código $($proceso.ExitCode)): $detalle"
