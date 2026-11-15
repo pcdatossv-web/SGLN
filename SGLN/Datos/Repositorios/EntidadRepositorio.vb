@@ -134,8 +134,8 @@ Public Class EntidadRepositorio
             End Function)
     End Function
 
-    Public Sub Desactivar(id As Integer)
-        EnTransaccion(
+    Public Function Desactivar(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Entidades_Legales SET Activo = 0 WHERE ID = @id",
@@ -149,7 +149,7 @@ Public Class EntidadRepositorio
                 End If
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function Representantes(idEntidad As Integer) As DataTable
         Return Consultar(
@@ -195,8 +195,8 @@ Public Class EntidadRepositorio
         End Try
     End Function
 
-    Public Sub QuitarRepresentante(id As Integer)
-        EnTransaccion(
+    Public Function QuitarRepresentante(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "DELETE FROM Representantes_Legales WHERE ID = @id",
@@ -210,7 +210,7 @@ Public Class EntidadRepositorio
                 End If
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Private Shared Function TextoIgual(valorNuevo As String, valorActual As String) As Boolean
         Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
