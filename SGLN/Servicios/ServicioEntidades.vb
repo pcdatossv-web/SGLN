@@ -60,7 +60,8 @@ Public Class ServicioEntidades
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una entidad.")
         Try
-            _repositorio.Desactivar(id)
+            Dim filas As Integer = _repositorio.Desactivar(id)
+            If filas = 0 Then Return Respuesta.Fallo("La entidad no existe o ya estaba desactivada.")
             Return Respuesta.Ok("Entidad desactivada.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - desactivar", ex)
@@ -94,7 +95,8 @@ Public Class ServicioEntidades
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un representante.")
         Try
-            _repositorio.QuitarRepresentante(id)
+            Dim filas As Integer = _repositorio.QuitarRepresentante(id)
+            If filas = 0 Then Return Respuesta.Fallo("El representante ya no existe.")
             Return Respuesta.Ok("Representante removido.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - quitar representante", ex)
