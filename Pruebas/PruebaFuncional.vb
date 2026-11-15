@@ -55,6 +55,22 @@ Module PruebaFuncional
                   New ServicioUsuarios().RolesDisponibles().Rows.Count = 0)
         Verificar("La bitácora no se puede consultar sin permiso",
                   New ServicioAuditoria().Buscar("", "", "", Date.Today.AddDays(-1), Date.Today).Rows.Count = 0)
+        Verificar("Los clientes no se consultan sin permiso",
+                  New ServicioClientes().Buscar("").Rows.Count = 0)
+        Verificar("Las entidades no se consultan sin permiso",
+                  New ServicioEntidades().Buscar("").Rows.Count = 0)
+        Verificar("Los casos no se consultan sin permiso",
+                  New ServicioCasos().Buscar("").Rows.Count = 0)
+        Verificar("Los documentos no se consultan sin permiso",
+                  New ServicioDocumentos().Buscar("", "").Rows.Count = 0)
+        Verificar("El protocolo no se consulta sin permiso",
+                  New ServicioProtocolo().Libros().Rows.Count = 0)
+        Verificar("Cumplimiento no se consulta sin permiso",
+                  New ServicioCumplimiento().Operaciones("").Rows.Count = 0)
+        Verificar("Los roles no se consultan sin permiso",
+                  New ServicioRoles().Listar().Rows.Count = 0)
+        Verificar("La configuración no se consulta sin permiso",
+                  New ServicioConfiguracion().Listar().Rows.Count = 0)
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
