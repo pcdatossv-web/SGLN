@@ -975,6 +975,8 @@ Module PruebaFuncional
         Next
         Verificar("La actuación de enero quedó en estado Vencido",
                   filaVencida IsNot Nothing AndAlso UtileriasUI.Texto(filaVencida, "Estado") = "Vencido")
+        Verificar("El panel sigue mostrando las actuaciones ya marcadas como vencidas",
+                  New ServicioAlertas().ObtenerAlertas().Select("Tipo = 'Plazo vencido'").Length >= 1)
 
         plazos.MarcarCumplida(idActuacion)
         Dim filaCumplida As DataRow = Nothing

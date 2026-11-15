@@ -22,7 +22,7 @@ Public Class ServicioAlertas
                 "FROM Actuaciones_Procesales a " &
                 "INNER JOIN Casos c ON c.ID = a.ID_Caso " &
                 "INNER JOIN Tipos_Actuacion t ON t.ID = a.ID_Tipo_Actuacion " &
-                "WHERE a.Estado = 'Pendiente' AND a.Fecha_Vencimiento_Calculada IS NOT NULL " &
+                "WHERE a.Estado IN ('Pendiente', 'Vencido') AND a.Fecha_Vencimiento_Calculada IS NOT NULL " &
                 "AND a.Fecha_Vencimiento_Calculada < CURDATE()")
             consultas.Add(
                 "SELECT 'Plazo por vencer' AS Tipo, " &
