@@ -606,6 +606,8 @@ Module PruebaFuncional
                   clientes.Buscar("Pérez").Rows.Count >= 1)
         Verificar("La búsqueda sin filtro lista los clientes (grid inicial)",
                   clientes.Buscar("").Rows.Count >= 1)
+        Verificar("Desactivar un cliente inexistente no se reporta como éxito",
+                  Not clientes.Desactivar(Integer.MaxValue).Exito)
 
         Verificar("DUI con menos de 9 dígitos se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .DUI = "123"}, Nothing).Exito)
@@ -791,6 +793,10 @@ Module PruebaFuncional
                       .Domicilio = "Domicilio actualizado de prueba", .Activo = True}, Nothing).Exito)
         Verificar("La búsqueda de entidades sin filtro lista resultados",
                   entidades.Buscar("").Rows.Count >= 1)
+        Verificar("Desactivar una entidad inexistente no se reporta como éxito",
+                  Not entidades.Desactivar(Integer.MaxValue).Exito)
+        Verificar("Quitar un representante inexistente no se reporta como éxito",
+                  Not entidades.QuitarRepresentante(Integer.MaxValue).Exito)
 
         ' ---------- 5. Casos ----------
         Console.WriteLine()
