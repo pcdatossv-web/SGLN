@@ -912,6 +912,13 @@ Module PruebaFuncional
             If UtileriasUI.Entero(fila, "ID") = idActuacion Then guardada = fila
         Next
         Verificar("La actuación confirmada queda en el expediente", guardada IsNot Nothing)
+        Verificar("Actualizar una actuación inexistente se rechaza",
+                  Not plazos.Confirmar(New ActuacionProcesal With {
+                      .ID = Integer.MaxValue, .IDCaso = idCaso,
+                      .IDTipoActuacion = actuacion.IDTipoActuacion,
+                      .FechaNotificacion = New Date(2026, 11, 6),
+                      .PlazoLegalDias = 5
+                  }).Exito)
         If guardada IsNot Nothing Then
             Verificar("El vencimiento calculado es 27/11/2026",
                       UtileriasUI.Fecha(guardada, "Fecha_Vencimiento_Calculada") = New Date(2026, 11, 27))
