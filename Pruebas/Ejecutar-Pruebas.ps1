@@ -104,6 +104,267 @@ foreach ($ajuste in $xmlConfig.configuration.appSettings.add) {
     if ($ajuste.key -eq 'Respaldos_Usuario') { $usuarioRespaldo = $ajuste.value }
 }
 
+# El ejecutor es deliberadamente local y usa identidades fijas. No interpolar
+# valores arbitrarios del XML en comandos SQL que se ejecutan como root.
+if ($servidor -notin @('localhost', '127.0.0.1', '::1')) {
+    throw "Las pruebas solo pueden ejecutarse contra MySQL local (localhost/loopback). Servidor configurado: $servidor"
+}
+if ($puerto -notmatch '^\d{1,5}
+# las cuentas de la instalación real ni se guardan en los archivos del repositorio.
+$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $bytesApp = New-Object byte[] 32
+    $rng.GetBytes($bytesApp)
+    $claveApp = ([BitConverter]::ToString($bytesApp) -replace '-', '') + 'aA1!'
+    $bytesBackup = New-Object byte[] 32
+    $rng.GetBytes($bytesBackup)
+    $claveRespaldo = ([BitConverter]::ToString($bytesBackup) -replace '-', '') + 'bB2!'
+}
+finally {
+    $rng.Dispose()
+}
+
+function Buscar-MySqlExe([string]$nombre) {
+    $comando = Get-Command $nombre -ErrorAction SilentlyContinue
+    if ($comando) { return $comando.Source }
+
+    $candidatos = @(
+        "C:\Program Files\MySQL\MySQL Server 8.0\bin\$nombre",
+        "C:\Program Files\MySQL\MySQL Server 8.4\bin\$nombre",
+        "C:\Program Files\MariaDB 11.4\bin\$nombre",
+        "C:\xampp\mysql\bin\$nombre"
+    )
+    if ($env:MYSQL_HOME) {
+        $candidatos = @((Join-Path $env:MYSQL_HOME "bin\$nombre")) + $candidatos
+    }
+
+    foreach ($ruta in $candidatos) {
+        if (Test-Path $ruta) { return $ruta }
+    }
+    throw "No se encontró $nombre. Instale MySQL 8.0 o agregue su carpeta bin al PATH."
+}
+
+$mysqlExe = Buscar-MySqlExe 'mysql.exe'
+$mysqldumpExe = Buscar-MySqlExe 'mysqldump.exe'
+Write-Host "MySQL: $mysqlExe" -ForegroundColor DarkGray
+Write-Host "mysqldump: $mysqldumpExe" -ForegroundColor DarkGray
+
+$vbc = Join-Path $env:windir 'Microsoft.NET\Framework64\v4.0.30319\vbc.exe'
+if (-not (Test-Path $vbc)) {
+    throw "No se encontró el compilador de VB.NET en $vbc."
+}
+
+# ------------------------------------------------------------------
+# 2. Credenciales de root en un archivo temporal
+# ------------------------------------------------------------------
+
+$claveRoot = $env:MYSQL_ROOT_PASSWORD
+if ([string]::IsNullOrEmpty($claveRoot)) {
+    Write-Host 'No se definió MYSQL_ROOT_PASSWORD. Se pedirá la clave de root.' -ForegroundColor Yellow
+    $segura = Read-Host 'Clave de root de MySQL' -AsSecureString
+    $punteroClave = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura)
+    try {
+        $claveRoot = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($punteroClave)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($punteroClave)
+    }
+}
+
+$archivoCredenciales = Join-Path $env:TEMP ("sgln_root_" + [Guid]::NewGuid().ToString('N') + '.cnf')
+
+function Escape-MySqlOption([string]$valor) {
+    if ($null -eq $valor) { return '' }
+    return $valor.Replace([string][char]92, ([string][char]92) + ([string][char]92)).
+        Replace('"', ([string][char]92) + '"').
+        Replace("`r", ([string][char]92) + 'r').
+        Replace("`n", ([string][char]92) + 'n')
+}
+
+# El archivo contiene la clave de root: ACL protegida, sin herencia y
+# acceso exclusivo al usuario actual, SYSTEM y Administradores.
+$identidadWindows = [Security.Principal.WindowsIdentity]::GetCurrent()
+if ($null -eq $identidadWindows -or $null -eq $identidadWindows.User) {
+    throw 'No se pudo determinar la identidad de Windows para proteger las credenciales temporales de MySQL.'
+}
+$seguridadArchivo = New-Object Security.AccessControl.FileSecurity
+$seguridadArchivo.SetAccessRuleProtection($true, $false)
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+    $identidadWindows.User,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow))
+$sidSystem = [Security.Principal.SecurityIdentifier]::new(
+    [Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+    $sidSystem,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow))
+$sidAdministradores = [Security.Principal.SecurityIdentifier]::new(
+    [Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
+$seguridadArchivo.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+    $sidAdministradores,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [Security.AccessControl.AccessControlType]::Allow))
+
+$contenidoCredenciales = "[client]`r`nuser=root`r`npassword=`"" +
+    (Escape-MySqlOption $claveRoot) + "`"`r`n"
+$flujoCredenciales = [IO.FileStream]::new(
+    $archivoCredenciales,
+    [IO.FileMode]::CreateNew,
+    [Security.AccessControl.FileSystemRights]::FullControl,
+    [IO.FileShare]::None,
+    4096,
+    [IO.FileOptions]::None,
+    $seguridadArchivo)
+try {
+    $codificador = New-Object Text.UTF8Encoding($false)
+    $bytesCredenciales = $codificador.GetBytes($contenidoCredenciales)
+    $flujoCredenciales.Write($bytesCredenciales, 0, $bytesCredenciales.Length)
+    [Array]::Clear($bytesCredenciales, 0, $bytesCredenciales.Length)
+}
+finally {
+    $flujoCredenciales.Dispose()
+    $contenidoCredenciales = $null
+}
+
+function Invoke-MySqlCommand([string]$sql) {
+    & $mysqlExe "--defaults-extra-file=$archivoCredenciales" `
+        --default-character-set=utf8mb4 -e $sql
+    if ($LASTEXITCODE -ne 0) {
+        throw "MySQL devolvió el código $LASTEXITCODE al ejecutar: $sql"
+    }
+}
+
+function Invoke-MySqlFile([string]$rutaArchivo, [string]$baseDatos) {
+    $salida = [IO.Path]::GetTempFileName()
+    $errores = [IO.Path]::GetTempFileName()
+    try {
+        $argumentos = @(
+            "--defaults-extra-file=$archivoCredenciales",
+            '--default-character-set=utf8mb4',
+            "--database=$baseDatos"
+        )
+        $proceso = Start-Process -FilePath $mysqlExe -ArgumentList $argumentos `
+            -RedirectStandardInput $rutaArchivo `
+            -RedirectStandardOutput $salida `
+            -RedirectStandardError $errores `
+            -NoNewWindow -Wait -PassThru
+
+        if ($proceso.ExitCode -ne 0) {
+            $detalle = Get-Content $errores -Raw
+            throw "Falló $rutaArchivo (código $($proceso.ExitCode)): $detalle"
+        }
+    }
+    finally {
+        Remove-Item $salida, $errores -Force -ErrorAction SilentlyContinue
+    }
+}
+
+try {
+    # ------------------------------------------------------------------
+    # 3. Base de pruebas limpia y permisos
+    # ------------------------------------------------------------------
+
+    if (-not $ConservarBase) {
+        Write-Host "Recreando la base de pruebas $basePruebas..." -ForegroundColor Cyan
+        Invoke-MySqlCommand (
+            "DROP DATABASE IF EXISTS ``$basePruebas``; " +
+            "CREATE DATABASE ``$basePruebas`` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;")
+    }
+
+    Write-Host 'Ajustando usuarios y permisos sobre la base de pruebas...' -ForegroundColor Cyan
+    Invoke-MySqlCommand (
+        "DROP USER IF EXISTS '$usuarioApp'@'%'; " +
+        "DROP USER IF EXISTS '$usuarioRespaldo'@'%'; " +
+        "CREATE USER IF NOT EXISTS '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
+        "ALTER USER '$usuarioApp'@'localhost' IDENTIFIED BY '$claveApp'; " +
+        "CREATE USER IF NOT EXISTS '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
+        "ALTER USER '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
+        "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioApp'@'localhost'; " +
+        "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioRespaldo'@'localhost'; " +
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.* TO '$usuarioApp'@'localhost'; " +
+        "GRANT SELECT, SHOW VIEW, TRIGGER ON ``$basePruebas``.* TO '$usuarioRespaldo'@'localhost'; " +
+        "FLUSH PRIVILEGES;")
+
+    Write-Host 'Aplicando esquema y triggers...' -ForegroundColor Cyan
+    Invoke-MySqlFile (Join-Path $carpetaScripts 'Esquema_MySQL.sql') $basePruebas
+    Invoke-MySqlFile (Join-Path $carpetaScripts 'Triggers_MySQL.sql') $basePruebas
+
+    # ------------------------------------------------------------------
+    # 4. Compilación del arnés
+    # ------------------------------------------------------------------
+
+    New-Item -ItemType Directory -Path $carpetaBin -Force | Out-Null
+    Copy-Item $ejecutableSgln -Destination $carpetaBin -Force
+    Get-ChildItem $carpetaLib -Filter '*.dll' | Copy-Item -Destination $carpetaBin -Force
+    Copy-Item $configPruebas -Destination (Join-Path $carpetaBin 'PruebaFuncional.exe.config') -Force
+
+    # El arnés usa mysqldump para la prueba de respaldo: se apunta a la ruta
+    # detectada, que puede no estar en PATH en el equipo de pruebas.
+    $configBin = Join-Path $carpetaBin 'PruebaFuncional.exe.config'
+    [xml]$xmlBin = Get-Content $configBin
+    foreach ($conexionConfig in $xmlBin.configuration.connectionStrings.add) {
+        if ($conexionConfig.name -eq 'SGLN') {
+            $conexionConfig.connectionString = $conexionConfig.connectionString -replace '(?i)(Pwd=)[^;]*', "Pwd=$claveApp"
+        }
+    }
+    foreach ($ajuste in $xmlBin.configuration.appSettings.add) {
+        if ($ajuste.key -eq 'Respaldos_Usuario') { $ajuste.value = $usuarioRespaldo }
+        if ($ajuste.key -eq 'Respaldos_Clave') { $ajuste.value = $claveRespaldo }
+        if ($ajuste.key -eq 'Respaldos_RutaMySQLDump') { $ajuste.value = $mysqldumpExe }
+    }
+    $xmlBin.Save($configBin)
+
+    Write-Host 'Compilando el arnés de pruebas...' -ForegroundColor Cyan
+    & $vbc /nologo /quiet /codepage:65001 /target:exe `
+        /out:"$carpetaBin\PruebaFuncional.exe" `
+        /r:"$carpetaBin\SGLN.exe" `
+        /r:"$carpetaBin\MySql.Data.dll" `
+        /r:System.dll /r:System.Core.dll /r:System.Data.dll `
+        /r:System.Windows.Forms.dll /r:System.Drawing.dll `
+        /r:System.Configuration.dll /r:System.Xml.dll `
+        "$carpeta\PruebaFuncional.vb"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Falló la compilación del arnés de pruebas.'
+    }
+
+    # ------------------------------------------------------------------
+    # 5. Ejecución
+    # ------------------------------------------------------------------
+
+    Write-Host 'Ejecutando la batería funcional...' -ForegroundColor Cyan
+    Write-Host ''
+    & "$carpetaBin\PruebaFuncional.exe"
+    $codigo = $LASTEXITCODE
+
+    Write-Host ''
+    if ($codigo -eq 0) {
+        Write-Host 'Resultado: todas las pruebas pasaron.' -ForegroundColor Green
+    }
+    else {
+        Write-Host "Resultado: $codigo prueba(s) fallaron." -ForegroundColor Red
+    }
+
+    exit $codigo
+}
+finally {
+    if (Test-Path $archivoCredenciales) {
+        Remove-Item $archivoCredenciales -Force -ErrorAction SilentlyContinue
+    }
+    $claveRoot = $null
+    $segura = $null
+}
+ -or [int]$puerto -lt 1 -or [int]$puerto -gt 65535) {
+    throw "El puerto de MySQL para pruebas no es válido: $puerto"
+}
+if ($usuarioApp -ne 'sgln_test_app') {
+    throw "El usuario de pruebas debe ser exactamente sgln_test_app; no se ejecutarán comandos administrativos con otro usuario."
+}
+if ($usuarioRespaldo -ne 'sgln_test_backup') {
+    throw "El usuario de respaldo de pruebas debe ser exactamente sgln_test_backup."
+}
+
 # Credenciales aleatorias y exclusivas de esta base temporal. Nunca se reutilizan
 # las cuentas de la instalación real ni se guardan en los archivos del repositorio.
 $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
