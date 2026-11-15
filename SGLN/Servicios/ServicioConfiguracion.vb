@@ -16,10 +16,12 @@ Public Class ServicioConfiguracion
     Private Const ClavesReservadas As String = "Carpeta_Documentos,Carpeta_Respaldos"
 
     Public Function Listar() As DataTable
+        If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
         Return _repositorio.Listar()
     End Function
 
     Public Function Obtener(clave As String) As String
+        If Not Permisos.TieneAcceso("config.ver") Then Return ""
         Return _repositorio.Obtener(clave)
     End Function
 
@@ -44,6 +46,7 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function Feriados() As DataTable
+        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
         Return _repositorio.Feriados()
     End Function
 
@@ -101,6 +104,7 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function Usuarios() As DataTable
+        If Not Permisos.TieneAcceso("config.seguridad") Then Return New DataTable()
         Return _repositorio.Usuarios()
     End Function
 

@@ -16,10 +16,16 @@ Public Class ServicioCumplimiento
     ' ------------------------------------------------------------------
 
     Public Function Operaciones(filtro As String) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
+                Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
         Return _repositorio.Operaciones(filtro)
     End Function
 
     Public Function ObtenerOperacion(id As Integer) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
+                Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
         Return _repositorio.ObtenerOperacion(id)
     End Function
 
@@ -165,10 +171,14 @@ Public Class ServicioCumplimiento
     ' ------------------------------------------------------------------
 
     Public Function SolicitudesArco(filtro As String) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
         Return _repositorio.SolicitudesArco(filtro)
     End Function
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
         Return _repositorio.ObtenerSolicitud(id)
     End Function
 

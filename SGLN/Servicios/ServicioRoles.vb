@@ -17,18 +17,22 @@ Public Class ServicioRoles
     Private Shared ReadOnly PermisosObligatorios As String() = {"config.usuarios", "config.roles"}
 
     Public Function Listar() As DataTable
+        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
         Return _repositorio.Listar()
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 
     Public Function CatalogoPermisos() As DataTable
+        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
         Return _repositorio.CatalogoPermisos()
     End Function
 
     Public Function PermisosDeRol(idRol As Integer) As List(Of String)
+        If Not Permisos.TieneAcceso("config.roles") Then Return New List(Of String)()
         Dim lista As New List(Of String)()
         For Each fila As DataRow In _repositorio.PermisosDeRol(idRol).Rows
             lista.Add(Convert.ToString(fila("Codigo")))

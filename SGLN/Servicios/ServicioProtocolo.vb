@@ -16,10 +16,12 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Libros() As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.Libros()
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.ObtenerLibro(id)
     End Function
 
@@ -155,10 +157,12 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Instrumentos(idLibro As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.Instrumentos(idLibro)
     End Function
 
     Public Function ObtenerInstrumento(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.ObtenerInstrumento(id)
     End Function
 
@@ -299,6 +303,7 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Testimonios(idLibro As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.Testimonios(idLibro)
     End Function
 
@@ -336,6 +341,7 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return _repositorio.IndiceLibro(idLibro)
     End Function
 
