@@ -49,8 +49,8 @@ Public Class CasoRepositorio
             End Function)
     End Function
 
-    Public Sub Actualizar(caso As Caso)
-        EnTransaccion(
+    Public Function Actualizar(caso As Caso) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Casos SET ID_Cliente = @cliente, Numero_Expediente = @expediente, Materia = @materia, " &
@@ -63,7 +63,7 @@ Public Class CasoRepositorio
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function ActuacionesPorCaso(idCaso As Integer) As DataTable
         Return Consultar(
@@ -122,11 +122,11 @@ Public Class CasoRepositorio
             End Function)
     End Function
 
-    Public Sub MarcarCumplida(id As Integer)
-        EnTransaccion(
+    Public Function MarcarCumplida(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id",
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
@@ -134,7 +134,7 @@ Public Class CasoRepositorio
                     id, "Actuación marcada como cumplida")
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function ClientesCombo() As DataTable
         Return Consultar(
