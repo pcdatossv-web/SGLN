@@ -75,6 +75,17 @@ Public Class ServicioDocumentos
             ' Se calcula el hash sobre la copia final, no sobre el origen:
             ' evita registrar un hash distinto si el archivo cambia durante la copia.
             File.Copy(rutaOrigen, rutaDestino)
+
+            ' Revalidar el tamaño de la copia final: el archivo de origen puede
+            ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite debe
+            ' aplicarse al contenido que realmente se almacenará.
+            Dim informacionCopia As New FileInfo(rutaDestino)
+            If informacionCopia.Length <= 0 OrElse
+               informacionCopia.Length > TamanoMaximoMb * 1024L * 1024L Then
+                Throw New InvalidDataException(
+                    "El archivo copiado está vacío o supera el límite de " & TamanoMaximoMb & " MB.")
+            End If
+
             If Not ValidarContenidoArchivo(rutaDestino, extension) Then
                 Throw New InvalidDataException(
                     "El contenido del archivo no corresponde a su extensión o el documento está dañado.")
