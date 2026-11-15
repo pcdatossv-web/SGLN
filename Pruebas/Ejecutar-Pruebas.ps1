@@ -109,7 +109,16 @@ foreach ($ajuste in $xmlConfig.configuration.appSettings.add) {
 if ($servidor -notin @('localhost', '127.0.0.1', '::1')) {
     throw "Las pruebas solo pueden ejecutarse contra MySQL local (localhost/loopback). Servidor configurado: $servidor"
 }
-if ($puerto -notmatch '^\d{1,5}
+if ($puerto -notmatch '^[0-9]{1,5}$' -or [int]$puerto -lt 1 -or [int]$puerto -gt 65535) {
+    throw "El puerto de MySQL para pruebas no es válido: $puerto"
+}
+if ($usuarioApp -ne 'sgln_test_app') {
+    throw "El usuario de pruebas debe ser exactamente sgln_test_app; no se ejecutarán comandos administrativos con otro usuario."
+}
+if ($usuarioRespaldo -ne 'sgln_test_backup') {
+    throw "El usuario de respaldo de pruebas debe ser exactamente sgln_test_backup."
+}
+
 # las cuentas de la instalación real ni se guardan en los archivos del repositorio.
 $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
 try {
