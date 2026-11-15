@@ -75,17 +75,17 @@ Public Class ServicioAlertas
             "UNION ALL " &
             "SELECT 'ARCO vencida', " &
             "       CONCAT('Solicitud ARCO vencida: ', a.Tipo_Derecho), " &
-            "       COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
+            "       IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
             "FROM Solicitudes_ARCO a " &
             "WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
-            "  AND COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
+            "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE() " &
             "UNION ALL " &
             "SELECT 'ARCO por vencer', " &
             "       CONCAT('Solicitud ARCO por vencer: ', a.Tipo_Derecho), " &
-            "       COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
+            "       IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento), 'Alta' " &
             "FROM Solicitudes_ARCO a " &
             "WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
-            "  AND COALESCE(a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
+            "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) " &
             "UNION ALL " &
             "SELECT 'Protocolo', " &
             "       CONCAT('Entrega al Notariado pendiente: libro ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)), " &
