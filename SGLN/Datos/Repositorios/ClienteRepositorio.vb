@@ -170,8 +170,8 @@ Public Class ClienteRepositorio
             End Function)
     End Function
 
-    Public Sub Desactivar(id As Integer)
-        EnTransaccion(
+    Public Function Desactivar(id As Integer) As Integer
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Clientes SET Activo = 0 WHERE ID = @id",
@@ -185,7 +185,7 @@ Public Class ClienteRepositorio
                 End If
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Private Shared Function TextoIgual(valorNuevo As String, valorActual As String) As Boolean
         Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
