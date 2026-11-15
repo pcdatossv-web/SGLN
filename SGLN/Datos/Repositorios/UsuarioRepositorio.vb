@@ -13,10 +13,9 @@ Public Class UsuarioRepositorio
     Public Function Autenticar(usuario As String, clave As String) As UsuarioSesion
         Dim tabla As DataTable = Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, u.Clave_Hash, u.Clave_Salt, " &
-            "       IFNULL(u.ID_Rol, 0) AS ID_Rol, IFNULL(r.Nombre, '') AS Rol, " &
-            "       IFNULL(r.Protegido, 0) AS Rol_Protegido " &
-            "FROM Usuarios u LEFT JOIN Roles r ON r.ID = u.ID_Rol " &
-            "WHERE u.Usuario = @usuario AND u.Activo = 1 AND IFNULL(r.Activo, 1) = 1",
+            "       r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
+            "FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+            "WHERE u.Usuario = @usuario AND u.Activo = 1 AND r.Activo = 1",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@usuario", usuario)
             End Sub)
