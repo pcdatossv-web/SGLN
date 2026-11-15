@@ -1237,6 +1237,16 @@ Module PruebaFuncional
         Verificar("Un archivo con extensión PDF pero firma incorrecta se rechaza",
                   Not documentos.Importar(rutaPdfFalso, "Contrato", Nothing, Nothing).Exito)
 
+        ' Archivo disperso para comprobar el límite de 50 MB sin escribir 50 MB
+        ' de datos reales en disco durante la batería automatizada.
+        Dim rutaPdfGrande As String = Path.Combine(carpetaTrabajo, "archivo_grande.pdf")
+        Using flujoGrande As New FileStream(rutaPdfGrande, FileMode.Create, FileAccess.Write, FileShare.None)
+            flujoGrande.SetLength(50L * 1024L * 1024L + 1L)
+        End Using
+        Verificar("Un documento superior a 50 MB se rechaza antes de importarse",
+                  Not documentos.Importar(rutaPdfGrande, "Contrato", Nothing, Nothing).Exito)
+        File.Delete(rutaPdfGrande)
+
         Dim rImportar As Respuesta = documentos.Importar(rutaPdf, "Contrato", idCaso, Nothing)
         Verificar("Importar documento PDF vinculado al caso", rImportar.Exito, rImportar.Mensaje)
         Dim idDocumento As Integer = 0
