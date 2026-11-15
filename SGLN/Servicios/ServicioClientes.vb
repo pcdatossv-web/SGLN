@@ -48,7 +48,8 @@ Public Class ServicioClientes
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
         Try
-            _repositorio.Desactivar(id)
+            Dim filas As Integer = _repositorio.Desactivar(id)
+            If filas = 0 Then Return Respuesta.Fallo("El cliente no existe o ya estaba desactivado.")
             Return Respuesta.Ok("Cliente desactivado.")
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - desactivar", ex)
