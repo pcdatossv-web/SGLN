@@ -49,6 +49,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function ActualizarVencidas() As Integer
+        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Return 0
         Return _repositorio.MarcarVencidas()
     End Function
 

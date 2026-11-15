@@ -72,10 +72,12 @@ Public Class ServicioEntidades
     End Function
 
     Public Function Representantes(idEntidad As Integer) As DataTable
+        If Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Return _repositorio.Representantes(idEntidad)
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 

@@ -32,10 +32,12 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function CasosCombo() As DataTable
+        If Not (Permisos.TieneAcceso("documentos.importar") OrElse Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
     Public Function InstrumentosCombo() As DataTable
+        If Not (Permisos.TieneAcceso("documentos.importar") OrElse Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
         Return _repositorio.InstrumentosCombo()
     End Function
 

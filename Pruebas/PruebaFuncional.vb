@@ -75,6 +75,18 @@ Module PruebaFuncional
                   New ServicioAlertas().ObtenerAlertas().Rows.Count = 0)
         Verificar("El resumen no expone conteos sin sesión",
                   New ServicioAlertas().ObtenerResumen() = "")
+        Verificar("Los representantes no se consultan sin permiso",
+                  New ServicioEntidades().Representantes(1).Rows.Count = 0)
+        Verificar("Los combos de casos no exponen clientes sin permiso",
+                  New ServicioCasos().ClientesCombo().Rows.Count = 0)
+        Verificar("Los combos de protocolo no exponen clientes sin permiso",
+                  New ServicioProtocolo().ClientesCombo().Rows.Count = 0)
+        Verificar("Los combos documentales no exponen expedientes sin permiso",
+                  New ServicioDocumentos().CasosCombo().Rows.Count = 0)
+        Verificar("Los combos de cumplimiento no exponen clientes sin permiso",
+                  New ServicioCumplimiento().ClientesCombo().Rows.Count = 0)
+        Verificar("La actualización masiva de vencimientos se deniega sin permiso",
+                  New ServicioPlazos().ActualizarVencidas() = 0)
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")

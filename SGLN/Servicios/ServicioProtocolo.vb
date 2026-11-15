@@ -295,6 +295,7 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 

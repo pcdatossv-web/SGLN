@@ -54,14 +54,17 @@ Public Class ServicioCasos
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not Permisos.TieneAcceso("casos.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
     Public Function JuzgadosCombo() As DataTable
+        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
         Return _catalogo.Juzgados()
     End Function
 
     Public Function TiposActuacionCombo() As DataTable
+        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
         Return _catalogo.TiposActuacion()
     End Function
 
