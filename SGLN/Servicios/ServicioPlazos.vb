@@ -56,7 +56,8 @@ Public Class ServicioPlazos
 
         If idActuacion <= 0 Then Return Respuesta.Fallo("Seleccione una actuación.")
         Try
-            _repositorio.MarcarCumplida(idActuacion)
+            Dim filas As Integer = _repositorio.MarcarCumplida(idActuacion)
+            If filas = 0 Then Return Respuesta.Fallo("La actuación no existe, ya fue atendida o no está en un estado que permita marcarla como cumplida.")
             Return Respuesta.Ok("Actuación marcada como cumplida.")
         Catch ex As Exception
             RegistroErrores.Escribir("Marcar actuación cumplida", ex)
