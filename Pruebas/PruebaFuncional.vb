@@ -1403,6 +1403,9 @@ Module PruebaFuncional
         Verificar("La lista ARCO también refleja el estado Vencida",
                   cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString()).Length = 1 AndAlso
                   Convert.ToString(cumplimiento.SolicitudesArco("").Select("ID = " & arcoVencida.ID.ToString())(0)("Estado")) = "Vencida")
+        Dim alertasArco As DataTable = New ServicioAlertas().ObtenerAlertas()
+        Verificar("Las solicitudes ARCO vencidas generan una alerta de vencimiento, no de próximo vencimiento",
+                  alertasArco.Select("Tipo = 'ARCO vencida'").Length >= 1)
 
         Dim arcoConProrrogaVigente As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Acceso",
