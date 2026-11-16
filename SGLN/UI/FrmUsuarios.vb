@@ -94,30 +94,30 @@ Public Class FrmUsuarios
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
-        Dim respuesta As Respuesta
+            Dim respuesta As Respuesta
 
-        If _idSeleccionado = 0 Then
-            If txtClaveNueva.Text <> txtClaveConfirmar.Text Then
-                Mostrar("Las claves no coinciden.", False)
-                Return
+            If _idSeleccionado = 0 Then
+                If txtClaveNueva.Text <> txtClaveConfirmar.Text Then
+                    Mostrar("Las claves no coinciden.", False)
+                    Return
+                End If
+
+                respuesta = _servicio.Crear(
+                    txtUsuario.Text, txtNombre.Text, txtClaveNueva.Text,
+                    UtileriasUI.ValorCombo(cboRol), chkActivo.Checked)
+            Else
+                respuesta = _servicio.Actualizar(
+                    _idSeleccionado, txtNombre.Text,
+                    UtileriasUI.ValorCombo(cboRol), chkActivo.Checked)
             End If
 
-            respuesta = _servicio.Crear(
-                txtUsuario.Text, txtNombre.Text, txtClaveNueva.Text,
-                UtileriasUI.ValorCombo(cboRol), chkActivo.Checked)
-        Else
-            respuesta = _servicio.Actualizar(
-                _idSeleccionado, txtNombre.Text,
-                UtileriasUI.ValorCombo(cboRol), chkActivo.Checked)
-        End If
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
 
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
-
-        If respuesta.Exito Then
-            CargarUsuarios()
-            Nuevo()
-        End If
-            Catch ex As Exception
+            If respuesta.Exito Then
+                CargarUsuarios()
+                Nuevo()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - btnguardar", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
@@ -127,26 +127,26 @@ Public Class FrmUsuarios
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
-        If _idSeleccionado = 0 Then
-            Mostrar("Seleccione el usuario al que desea restablecer la clave.", False)
-            Return
-        End If
+            If _idSeleccionado = 0 Then
+                Mostrar("Seleccione el usuario al que desea restablecer la clave.", False)
+                Return
+            End If
 
-        If txtClaveNueva.Text <> txtClaveConfirmar.Text Then
-            Mostrar("Las claves no coinciden.", False)
-            Return
-        End If
+            If txtClaveNueva.Text <> txtClaveConfirmar.Text Then
+                Mostrar("Las claves no coinciden.", False)
+                Return
+            End If
 
-        If Not UtileriasUI.Confirmar("¿Restablecer la clave del usuario '" & txtUsuario.Text & "'?") Then Return
+            If Not UtileriasUI.Confirmar("¿Restablecer la clave del usuario '" & txtUsuario.Text & "'?") Then Return
 
-        Dim respuesta As Respuesta = _servicio.RestablecerClave(_idSeleccionado, txtClaveNueva.Text)
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
+            Dim respuesta As Respuesta = _servicio.RestablecerClave(_idSeleccionado, txtClaveNueva.Text)
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
 
-        If respuesta.Exito Then
-            txtClaveNueva.Clear()
-            txtClaveConfirmar.Clear()
-        End If
-            Catch ex As Exception
+            If respuesta.Exito Then
+                txtClaveNueva.Clear()
+                txtClaveConfirmar.Clear()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - btnrestablecer", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
@@ -156,21 +156,21 @@ Public Class FrmUsuarios
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
-        If _idSeleccionado = 0 Then
-            Mostrar("Seleccione el usuario que desea desactivar.", False)
-            Return
-        End If
+            If _idSeleccionado = 0 Then
+                Mostrar("Seleccione el usuario que desea desactivar.", False)
+                Return
+            End If
 
-        If Not UtileriasUI.Confirmar("¿Desactivar el usuario '" & txtUsuario.Text & "'?") Then Return
+            If Not UtileriasUI.Confirmar("¿Desactivar el usuario '" & txtUsuario.Text & "'?") Then Return
 
-        Dim respuesta As Respuesta = _servicio.Desactivar(_idSeleccionado)
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
+            Dim respuesta As Respuesta = _servicio.Desactivar(_idSeleccionado)
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
 
-        If respuesta.Exito Then
-            CargarUsuarios()
-            Nuevo()
-        End If
-            Catch ex As Exception
+            If respuesta.Exito Then
+                CargarUsuarios()
+                Nuevo()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - btndesactivar", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
@@ -180,35 +180,35 @@ Public Class FrmUsuarios
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
-        If Not EsAdministradorActual() Then
-            Mostrar("Solo un administrador puede eliminar definitivamente usuarios.", False)
-            Return
-        End If
-        If _idSeleccionado <= 0 Then
-            Mostrar("Seleccione el usuario que desea eliminar.", False)
-            Return
-        End If
-        If _idSeleccionado = Sesion.UsuarioActual.ID Then
-            Mostrar("No puede eliminar la cuenta con la que inició sesión.", False)
-            Return
-        End If
+            If Not EsAdministradorActual() Then
+                Mostrar("Solo un administrador puede eliminar definitivamente usuarios.", False)
+                Return
+            End If
+            If _idSeleccionado <= 0 Then
+                Mostrar("Seleccione el usuario que desea eliminar.", False)
+                Return
+            End If
+            If _idSeleccionado = Sesion.UsuarioActual.ID Then
+                Mostrar("No puede eliminar la cuenta con la que inició sesión.", False)
+                Return
+            End If
 
-        Dim aviso As String =
-            "Esta acción es irreversible." & Environment.NewLine & Environment.NewLine &
-            "Solo se permitirá si el usuario no tiene registros operativos, referencias históricas ni actividad propia." &
-            Environment.NewLine & "La bitácora de creación y eliminación se conservará." &
-            Environment.NewLine & Environment.NewLine &
-            "¿Desea intentar eliminar definitivamente a '" & txtUsuario.Text & "'?"
+            Dim aviso As String =
+                "Esta acción es irreversible." & Environment.NewLine & Environment.NewLine &
+                "Solo se permitirá si el usuario no tiene registros operativos, referencias históricas ni actividad propia." &
+                Environment.NewLine & "La bitácora de creación y eliminación se conservará." &
+                Environment.NewLine & Environment.NewLine &
+                "¿Desea intentar eliminar definitivamente a '" & txtUsuario.Text & "'?"
 
-        If Not UtileriasUI.Confirmar(aviso) Then Return
+            If Not UtileriasUI.Confirmar(aviso) Then Return
 
-        Dim respuesta As Respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado)
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
-        If respuesta.Exito Then
-            CargarUsuarios()
-            Nuevo()
-        End If
-            Catch ex As Exception
+            Dim respuesta As Respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado)
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
+            If respuesta.Exito Then
+                CargarUsuarios()
+                Nuevo()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - btneliminar", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
