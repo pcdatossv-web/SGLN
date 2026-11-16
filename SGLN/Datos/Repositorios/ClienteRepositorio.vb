@@ -10,6 +10,7 @@ Public Class ClienteRepositorio
     Inherits RepositorioBase
 
     Public Function Buscar(filtro As String) As DataTable
+        If Not Permisos.TieneAcceso("clientes.ver") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Return Consultar(
             "SELECT c.ID, CONCAT(c.Nombres, ' ', c.Apellidos) AS Nombre, c.DUI, c.NIT, " &
@@ -26,6 +27,7 @@ Public Class ClienteRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If id <= 0 OrElse Not Permisos.TieneAcceso("clientes.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT c.*, p.ID AS ID_Perfil, p.Nivel_Riesgo, p.Origen_Fondos_Verificado, " &
             "       p.Detalle_Origen_Fondos, p.Fecha_Verificacion_Listas, p.Observaciones AS Observaciones_LDAFT " &
@@ -42,6 +44,8 @@ Public Class ClienteRepositorio
     ''' Si falla el perfil o la auditoría, el cliente también se revierte.
     ''' </summary>
     Public Function GuardarCompleto(cliente As Cliente, perfil As PerfilLdaft) As Integer
+        If Not Permisos.TieneAcceso("clientes.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar clientes.")
+        If cliente Is Nothing Then Throw New ArgumentNullException(NameOf(cliente))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idCliente As Integer = cliente.ID
@@ -171,6 +175,8 @@ Public Class ClienteRepositorio
     End Function
 
     Public Function Desactivar(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("clientes.desactivar") Then Throw New UnauthorizedAccessException("No tiene permiso para desactivar clientes.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
