@@ -25,7 +25,7 @@ Public Class ServicioCumplimiento
     Public Function ObtenerOperacion(id As Integer) As DataTable
         If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
                 Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
-                Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
+                Permisos.TieneAcceso("cumplimiento.reportar_uif")) OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerOperacion(id)
     End Function
 
@@ -49,6 +49,7 @@ Public Class ServicioCumplimiento
         Next
         If If(operacion.Descripcion, "").Length > 1000 Then Return Respuesta.Fallo("La descripción no puede superar 1000 caracteres.")
         If If(operacion.Observaciones, "").Length > 500 Then Return Respuesta.Fallo("Las observaciones no pueden superar 500 caracteres.")
+        If operacion.FechaOperacion = Date.MinValue Then Return Respuesta.Fallo("La fecha de la operación no es válida.")
         If operacion.FechaOperacion.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de la operación no puede ser futura.")
         End If
@@ -181,7 +182,7 @@ Public Class ServicioCumplimiento
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
         If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse
-                Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
+                Permisos.TieneAcceso("cumplimiento.arco")) OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerSolicitud(id)
     End Function
 
@@ -191,6 +192,8 @@ Public Class ServicioCumplimiento
         If If(solicitud.Detalle, "").Length > 1000 Then Return Respuesta.Fallo("El detalle no puede superar 1000 caracteres.")
 
         If solicitud.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente.")
+        If solicitud.FechaSolicitud = Date.MinValue Then Return Respuesta.Fallo("La fecha de solicitud no es válida.")
+        If solicitud.FechaSolicitud.Date > Date.Today Then Return Respuesta.Fallo("La fecha de solicitud no puede ser futura.")
         If Not TipoDerechoValido(solicitud.TipoDerecho) Then
             Return Respuesta.Fallo("El tipo de derecho ARCO no es válido.")
         End If
@@ -234,10 +237,6 @@ Public Class ServicioCumplimiento
             solicitud.FechaRespuesta = Nothing
             solicitud.FechaVencimiento = NuevaCalculadora().CalcularVencimiento(
                 solicitud.FechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
-        End If
-
-        If solicitud.FechaSolicitud.Date > Date.Today Then
-            Return Respuesta.Fallo("La fecha de solicitud no puede ser futura.")
         End If
 
         If solicitud.ProrrogaAplicada Then
