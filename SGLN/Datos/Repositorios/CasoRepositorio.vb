@@ -53,6 +53,8 @@ Public Class CasoRepositorio
     Public Function Insertar(caso As Caso) As Integer
         If Not Permisos.TieneAcceso("casos.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar casos.")
         If caso Is Nothing Then Throw New ArgumentNullException(NameOf(caso))
+        If caso.ID <> 0 Then Throw New ArgumentException("Para insertar un caso nuevo, el identificador debe ser cero.", NameOf(caso))
+        ValidarDatosCaso(caso)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -69,6 +71,7 @@ Public Class CasoRepositorio
     Public Function Actualizar(caso As Caso) As Integer
         If Not Permisos.TieneAcceso("casos.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar casos.")
         If caso Is Nothing OrElse caso.ID <= 0 Then Throw New ArgumentException("El caso seleccionado no es válido.", NameOf(caso))
+        ValidarDatosCaso(caso)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim clienteActual As Integer = 0
@@ -212,6 +215,28 @@ Public Class CasoRepositorio
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
+
+    Private Sub ValidarDatosCaso(caso As Caso)
+        If caso.IDCliente <= 0 Then Throw New ArgumentException("Seleccione un cliente válido para el caso.", NameOf(caso))
+        If String.IsNullOrWhiteSpace(caso.NumeroExpediente) OrElse caso.NumeroExpediente.Trim().Length > 80 Then
+            Throw New ArgumentException("El número de expediente debe contener entre 1 y 80 caracteres.", NameOf(caso))
+        End If
+        If String.IsNullOrWhiteSpace(caso.Materia) OrElse caso.Materia.Trim().Length > 40 Then
+            Throw New ArgumentException("La materia debe contener entre 1 y 40 caracteres.", NameOf(caso))
+        End If
+        If If(caso.Descripcion, "").Length > 1000 Then Throw New ArgumentException("La descripción no puede superar 1000 caracteres.", NameOf(caso))
+        If If(caso.Responsable, "").Length > 120 Then Throw New ArgumentException("El responsable no puede superar 120 caracteres.", NameOf(caso))
+        If Array.IndexOf(New String() {"Activo", "Suspendido", "Cerrado", "Archivado"}, If(caso.Estado, "")) < 0 Then
+            Throw New ArgumentException("El estado del caso no es válido.", NameOf(caso))
+        End If
+        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de apertura no puede estar vacía ni ser futura.", NameOf(caso))
+        End If
+        caso.NumeroExpediente = caso.NumeroExpediente.Trim()
+        caso.Materia = caso.Materia.Trim()
+        caso.Descripcion = If(caso.Descripcion, "").Trim()
+        caso.Responsable = If(caso.Responsable, "").Trim()
+    End Sub
 
     Private Sub AgregarParametros(comando As MySqlCommand, caso As Caso)
         Parametro(comando, "@cliente", caso.IDCliente)
