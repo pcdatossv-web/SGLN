@@ -62,6 +62,12 @@ Public Class RolRepositorio
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
         End If
+        If String.IsNullOrWhiteSpace(nombre) OrElse nombre.Trim().Length > 50 Then
+            Return Respuesta.Fallo("El nombre del rol debe contener entre 1 y 50 caracteres.")
+        End If
+        If String.IsNullOrWhiteSpace(descripcion) OrElse descripcion.Trim().Length > 200 Then
+            Return Respuesta.Fallo("La descripción del rol debe contener entre 1 y 200 caracteres.")
+        End If
 
         Dim nuevoId As Integer = 0
 
@@ -105,6 +111,13 @@ Public Class RolRepositorio
                                activo As Boolean, codigos As List(Of String)) As Respuesta
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
+        End If
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un rol válido.")
+        If String.IsNullOrWhiteSpace(nombre) OrElse nombre.Trim().Length > 50 Then
+            Return Respuesta.Fallo("El nombre del rol debe contener entre 1 y 50 caracteres.")
+        End If
+        If String.IsNullOrWhiteSpace(descripcion) OrElse descripcion.Trim().Length > 200 Then
+            Return Respuesta.Fallo("La descripción del rol debe contener entre 1 y 200 caracteres.")
         End If
 
         Try
@@ -188,6 +201,7 @@ Public Class RolRepositorio
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede modificar los permisos de roles.")
         End If
+        If idRol <= 0 Then Return Respuesta.Fallo("Seleccione un rol válido.")
 
         Try
             Using conexion As MySqlConnection = CrearConexion()
