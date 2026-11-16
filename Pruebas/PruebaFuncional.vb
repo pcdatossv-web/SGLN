@@ -2601,6 +2601,17 @@ Module PruebaFuncional
         Dim bitacoraTodo As DataTable = auditoria.Buscar("", "", "", Date.Today.AddDays(-1), Date.Today)
         Verificar("La bitácora acumula todas las operaciones de la prueba",
                   bitacoraTodo.Rows.Count >= 20, "Registros: " & bitacoraTodo.Rows.Count.ToString())
+        Dim consultaAuditoriaLimiteMaximo As Boolean = False
+        Try
+            auditoria.Buscar("", "", "", Date.MaxValue.Date, Date.MaxValue.Date)
+            consultaAuditoriaLimiteMaximo = True
+        Catch ex As Exception
+            consultaAuditoriaLimiteMaximo = False
+        End Try
+        Verificar("La consulta de auditoría admite el último día representable sin desbordamiento",
+                  consultaAuditoriaLimiteMaximo)
+        Verificar("La consulta de auditoría rechaza rangos invertidos sin consultar datos",
+                  auditoria.Buscar("", "", "", Date.Today, Date.Today.AddDays(-1)).Rows.Count = 0)
 
         If bitacoraTodo.Rows.Count > 0 Then
             Dim idAuditInmutable As Integer = Convert.ToInt32(bitacoraTodo.Rows(0)("ID"))
