@@ -60,6 +60,20 @@ jobs:
           if ($conexionSource -notmatch 'LeerRegistro\(RegistryHive\.LocalMachine, False\)') {
             throw 'La configuración compartida HKLM no debe descifrar credenciales.'
           }
+          $triggersSql = Get-Content 'SGLN\\Scripts\\Triggers_MySQL.sql' -Raw
+          $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
+          $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
+          if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
+              $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi') {
+            throw 'Faltan los candados SQL de permisos administrativos o eliminación segura.'
+          }
+          if ($privilegiosSql -match '(?i)GRANT\\s+DELETE\\s+ON\\s+sgln_sv\\.Usuarios' -or
+              $privilegiosSql -notmatch '(?i)GRANT EXECUTE ON PROCEDURE sgln_sv\\.sp_EliminarUsuarioSeguro') {
+            throw 'La cuenta sgln_app debe usar el procedimiento para eliminar usuarios y no tener DELETE directo.'
+          }
+          if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
+            throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
+          }
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
