@@ -19,6 +19,7 @@ Partial Class FrmPrincipal
     Private Sub InitializeComponent()
         Me.mnuPrincipal = New System.Windows.Forms.MenuStrip()
         Me.mnuArchivo = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnuCambiarClave = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnuCerrarSesion = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnuSalir = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnuModulos = New System.Windows.Forms.ToolStripMenuItem()
@@ -61,10 +62,16 @@ Partial Class FrmPrincipal
         '
         ' mnuArchivo
         '
-        Me.mnuArchivo.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnuCerrarSesion, Me.mnuSalir})
+        Me.mnuArchivo.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnuCambiarClave, Me.mnuCerrarSesion, Me.mnuSalir})
         Me.mnuArchivo.Name = "mnuArchivo"
         Me.mnuArchivo.Size = New System.Drawing.Size(60, 20)
         Me.mnuArchivo.Text = "&Archivo"
+        '
+        ' mnuCambiarClave
+        '
+        Me.mnuCambiarClave.Name = "mnuCambiarClave"
+        Me.mnuCambiarClave.Size = New System.Drawing.Size(180, 22)
+        Me.mnuCambiarClave.Text = "Cambiar mi clave"
         '
         ' mnuCerrarSesion
         '
@@ -292,6 +299,7 @@ Partial Class FrmPrincipal
 
     Friend WithEvents mnuPrincipal As System.Windows.Forms.MenuStrip
     Friend WithEvents mnuArchivo As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnuCambiarClave As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnuCerrarSesion As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnuSalir As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnuModulos As System.Windows.Forms.ToolStripMenuItem
