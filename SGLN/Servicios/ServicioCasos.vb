@@ -34,7 +34,7 @@ Public Class ServicioCasos
                              If(caso.Estado, "")) < 0 Then
             Return Respuesta.Fallo("El estado del caso no es válido.")
         End If
-        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date > Date.Today Then
+        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date.Year < 1000 OrElse caso.FechaApertura.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de apertura no es válida.")
         End If
 
