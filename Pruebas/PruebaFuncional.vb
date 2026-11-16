@@ -64,6 +64,8 @@ Module PruebaFuncional
                   New ServicioEntidades().Buscar("").Rows.Count = 0)
         Verificar("Los casos no se consultan sin permiso",
                   New ServicioCasos().Buscar("").Rows.Count = 0)
+        Verificar("Las actuaciones procesales no se consultan sin permiso",
+                  New ServicioCasos().Actuaciones(1).Rows.Count = 0)
         Verificar("Los documentos no se consultan sin permiso",
                   New ServicioDocumentos().Buscar("", "").Rows.Count = 0)
         Verificar("El protocolo no se consulta sin permiso",
@@ -72,6 +74,8 @@ Module PruebaFuncional
                   New ServicioProtocolo().Comparecientes(1).Rows.Count = 0)
         Verificar("Cumplimiento no se consulta sin permiso",
                   New ServicioCumplimiento().Operaciones("").Rows.Count = 0)
+        Verificar("El umbral de cumplimiento no revela configuración sin permiso",
+                  New ServicioCumplimiento().UmbralEfectivo() = 10000D)
         Verificar("Los roles no se consultan sin permiso",
                   New ServicioRoles().Listar().Rows.Count = 0)
         Verificar("La configuración no se consulta sin permiso",
