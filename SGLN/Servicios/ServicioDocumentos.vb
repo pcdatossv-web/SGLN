@@ -77,6 +77,13 @@ Public Class ServicioDocumentos
             Dim carpeta As String = RutaBaseDocumentos()
             Directory.CreateDirectory(carpeta)
 
+            ' Validar también antes de escribir: comprobar los enlaces únicamente
+            ' al abrir el documento deja una ventana en la que una carpeta
+            ' documental sustituida por un junction/symlink recibe archivos.
+            ' RutaCompleta verifica la raíz y cada segmento existente.
+            Dim rutaDestinoValidada As String = RutaCompleta(
+                Path.Combine(carpeta, "validacion_" & Guid.NewGuid().ToString("N") & ".tmp"))
+
             Dim nombreDestino As String = DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" &
                 Guid.NewGuid().ToString("N").Substring(0, 8) & extension.ToLowerInvariant()
             rutaDestino = Path.Combine(carpeta, nombreDestino)
