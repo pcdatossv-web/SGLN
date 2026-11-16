@@ -19,6 +19,11 @@
      mysql -u root -p sgln_sv < Triggers_MySQL.sql
      mysql -u root -p sgln_sv < Privilegios_Minimos.sql
 
+   Triggers_MySQL.sql instala también sp_EliminarUsuarioSeguro. La cuenta
+   sgln_app no recibe DELETE sobre Usuarios; la eliminación definitiva se
+   realiza exclusivamente mediante ese procedimiento, que valida historial,
+   referencias y conservación del último administrador.
+
    Si sgln_sv YA existía antes de esta versión, ejecutar además UNA VEZ:
      mysql -u root -p sgln_sv < Migracion_Integridad_Clientes_LDAFT.sql
      mysql -u root -p sgln_sv < Migracion_Seguridad_Acceso.sql
