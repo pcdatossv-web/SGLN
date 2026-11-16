@@ -303,6 +303,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function CalcularVencimientoArco(fechaSolicitud As Date) As Date
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
         Return NuevaCalculadora().CalcularVencimiento(
             fechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
     End Function
