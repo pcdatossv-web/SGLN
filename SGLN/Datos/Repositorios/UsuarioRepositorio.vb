@@ -404,8 +404,8 @@ Public Class UsuarioRepositorio
     ''' transacción serializable. Conserva el evento CREAR de la bitácora.
     ''' </summary>
     Public Function EliminarSiNoTieneHistorial(id As Integer) As Respuesta
-        If Not Permisos.TieneAcceso("config.usuarios") OrElse Sesion.UsuarioActual Is Nothing OrElse
-           Not Sesion.UsuarioActual.RolProtegido Then
+        If Not Permisos.TieneAcceso("config.usuarios") OrElse Not Permisos.AccesoTotal OrElse
+           Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido Then
             Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
         End If
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
