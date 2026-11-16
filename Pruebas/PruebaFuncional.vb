@@ -1659,6 +1659,22 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio impide ediciones directas que traslapen folios",
                   edicionDirectaTraslapeRechazada)
+        Dim cambioEstadoEscrituraBloqueado As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).ActualizarInstrumento(New Instrumento With {
+                .ID = idInstrumento1, .IDLibro = idLibro, .NumeroEscritura = 1,
+                .FechaHoraOtorgamiento = New Date(2026, 2, 10, 10, 30, 0),
+                .FolioInicio = 1, .FolioFin = 15,
+                .ObjetoActo = "Intento de anulación directa", .Estado = "Anulado"})
+        Catch ex As InvalidOperationException
+            cambioEstadoEscrituraBloqueado = True
+        End Try
+        Dim escrituraTrasCambioEstado As DataTable =
+            (New ProtocoloRepositorio()).ObtenerInstrumento(idInstrumento1)
+        Verificar("El guardado ordinario no permite alterar el estado de una escritura",
+                  cambioEstadoEscrituraBloqueado AndAlso escrituraTrasCambioEstado.Rows.Count = 1 AndAlso
+                  Convert.ToString(escrituraTrasCambioEstado.Rows(0)("Estado")) = "Vigente")
+
         Verificar("Escritura duplicada en el libro se rechaza con mensaje",
                   Not protocolo.GuardarInstrumento(New Instrumento With {
                       .IDLibro = idLibro, .NumeroEscritura = 1,
