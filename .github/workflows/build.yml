@@ -73,6 +73,7 @@ jobs:
           $servicioProtocolo = Get-Content 'SGLN\\Servicios\\ServicioProtocolo.vb' -Raw
           $protocoloRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           $servicioAlertas = Get-Content 'SGLN\\Servicios\\ServicioAlertas.vb' -Raw
+          $programa = Get-Content 'SGLN\\Program.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -142,6 +143,11 @@ jobs:
           if ($servicioAlertas -notmatch 'FechaLimiteEntrega' -or
               $servicioAlertas -match 'INTERVAL 15 DAY') {
             throw 'Las alertas de entrega al Notariado deben usar el plazo hábil configurado, no días naturales fijos.'
+          }
+          if ($programa -notmatch 'Application.ThreadException' -or
+              $programa -notmatch 'AppDomain.CurrentDomain.UnhandledException' -or
+              $programa -notmatch 'RegistroExcepcionGlobal') {
+            throw 'La aplicación debe registrar excepciones globales de interfaz y proceso.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
