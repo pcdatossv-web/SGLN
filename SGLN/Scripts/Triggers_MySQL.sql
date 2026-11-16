@@ -249,7 +249,11 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede eliminar la cuenta administradora en uso.';
     END IF;
 
-    SELECT Usuario INTO v_actor FROM Usuarios WHERE ID = p_actor_id;
+    SELECT u.Usuario INTO v_actor
+    FROM Usuarios u
+    INNER JOIN Roles r ON r.ID = u.ID_Rol
+    WHERE u.ID = p_actor_id AND u.Activo = 1 AND r.Protegido = 1
+    FOR UPDATE;
 
     SELECT COUNT(*) INTO v_total
     FROM Intentos_Acceso WHERE Usuario_ID = p_id;
