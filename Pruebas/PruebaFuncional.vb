@@ -616,24 +616,26 @@ Module PruebaFuncional
                   casosDirectos.Obtener(1).Rows.Count = 0 AndAlso
                   casosDirectos.ActuacionesPorCaso(1).Rows.Count = 0 AndAlso
                   casosDirectos.ClientesCombo().Rows.Count = 0)
-        Dim escriturasMaestrasBloqueadas As Boolean = False
+        Dim escrituraClienteBloqueada As Boolean = False
+        Dim escrituraEntidadBloqueada As Boolean = False
+        Dim escrituraCasoBloqueada As Boolean = False
         Try
             clientesDirectos.GuardarCompleto(Nothing, Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasMaestrasBloqueadas = True
+            escrituraClienteBloqueada = True
         End Try
         Try
             entidadesDirectas.GuardarCompleto(Nothing, Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasMaestrasBloqueadas = escriturasMaestrasBloqueadas AndAlso True
+            escrituraEntidadBloqueada = True
         End Try
         Try
             casosDirectos.Insertar(Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasMaestrasBloqueadas = escriturasMaestrasBloqueadas AndAlso True
+            escrituraCasoBloqueada = True
         End Try
         Verificar("Los repositorios bloquean escrituras directas de clientes, entidades y casos sin permiso",
-                  escriturasMaestrasBloqueadas)
+                  escrituraClienteBloqueada AndAlso escrituraEntidadBloqueada AndAlso escrituraCasoBloqueada)
         Dim confirmacionPlazoDirectaBloqueada As Boolean = False
         Try
             casosDirectos.GuardarActuacion(Nothing)
