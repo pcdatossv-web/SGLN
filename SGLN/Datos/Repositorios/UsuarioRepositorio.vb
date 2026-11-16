@@ -208,11 +208,10 @@ Public Class UsuarioRepositorio
 
     Public Function Crear(usuario As String, nombreCompleto As String, clave As String,
                           idRol As Integer, activo As Boolean) As Respuesta
-        If EsRolProtegido(idRol) AndAlso
-           (Not Permisos.TieneAcceso("config.usuarios") OrElse
-            Sesion.UsuarioActual Is Nothing OrElse
-            Not Sesion.UsuarioActual.RolProtegido OrElse
-            Not Permisos.AccesoTotal) Then
+        If Not Permisos.TieneAcceso("config.usuarios") Then
+            Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        End If
+        If EsRolProtegido(idRol) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
@@ -248,11 +247,13 @@ Public Class UsuarioRepositorio
 
     Public Function Actualizar(id As Integer, nombreCompleto As String, idRol As Integer,
                                activo As Boolean) As Respuesta
-        If EsRolProtegido(idRol) AndAlso
-           (Not Permisos.TieneAcceso("config.usuarios") OrElse
-            Sesion.UsuarioActual Is Nothing OrElse
-            Not Sesion.UsuarioActual.RolProtegido OrElse
-            Not Permisos.AccesoTotal) Then
+        If Not Permisos.TieneAcceso("config.usuarios") Then
+            Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        End If
+        If EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede modificar otra cuenta Administrador.")
+        End If
+        If EsRolProtegido(idRol) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
@@ -393,6 +394,12 @@ Public Class UsuarioRepositorio
     Private Shared Function IdentificadorSeguro(nombre As String) As String
         Dim delimitador As String = Convert.ToChar(96).ToString()
         Return delimitador & nombre.Replace(delimitador, delimitador & delimitador) & delimitador
+    End Function
+
+    Private Function EsAdministradorAutenticado() As Boolean
+        Return Sesion.UsuarioActual IsNot Nothing AndAlso
+               Sesion.UsuarioActual.RolProtegido AndAlso
+               Permisos.TieneAcceso("config.usuarios") AndAlso Permisos.AccesoTotal
     End Function
 
     Private Function EsRolProtegido(idRol As Integer) As Boolean
