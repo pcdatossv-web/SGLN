@@ -500,6 +500,14 @@ Module PruebaFuncional
         ' Las operaciones directas del repositorio deben revertir también la
         ' fila de Roles si falla la inserción de cualquier permiso relacionado.
         Dim repositorioRolesPrueba As New RolRepositorio()
+        Verificar("El repositorio rechaza directamente nombres de rol vacíos o excesivos",
+                  Not repositorioRolesPrueba.Crear("", "Descripción válida", New List(Of String)()).Exito AndAlso
+                  Not repositorioRolesPrueba.Crear(New String("R"c, 51), "Descripción válida",
+                      New List(Of String)()).Exito)
+        Verificar("El repositorio rechaza directamente descripciones de rol vacías o excesivas",
+                  Not repositorioRolesPrueba.Crear("Rol inválido", "", New List(Of String)()).Exito AndAlso
+                  Not repositorioRolesPrueba.Crear("Rol inválido", New String("D"c, 201),
+                      New List(Of String)()).Exito)
         Dim altaAtomica As Respuesta = repositorioRolesPrueba.Crear(
             "Rol transaccional fallido", "No debe persistir",
             New List(Of String) From {"permiso.inexistente"})
