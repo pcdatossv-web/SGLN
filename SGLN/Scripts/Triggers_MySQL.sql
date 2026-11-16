@@ -176,4 +176,152 @@ BEGIN
         SET MESSAGE_TEXT = 'Audit_Log es inmutable: no se permite eliminar registros.';
 END$$
 
+
+/* La eliminación física de usuarios se centraliza en un procedimiento
+   DEFINER: la cuenta sgln_app no recibe DELETE sobre Usuarios. El procedimiento
+   vuelve a comprobar historial, referencias y último administrador en MySQL,
+   sin depender exclusivamente de las validaciones de la interfaz. */
+DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro;
+
+CREATE PROCEDURE sp_EliminarUsuarioSeguro(IN p_id INT, IN p_actor_id INT)
+SQL SECURITY DEFINER
+MODIFIES SQL DATA
+BEGIN
+    DECLARE v_usuario VARCHAR(50);
+    DECLARE v_nombre VARCHAR(150);
+    DECLARE v_actor VARCHAR(50);
+    DECLARE v_protegido TINYINT DEFAULT 0;
+    DECLARE v_total INT DEFAULT 0;
+    DECLARE v_fin INT DEFAULT 0;
+    DECLARE v_tabla VARCHAR(64);
+    DECLARE v_columna VARCHAR(64);
+
+    DECLARE cur_referencias CURSOR FOR
+        SELECT TABLE_NAME, COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME NOT IN ('Usuarios', 'Audit_Log', 'Intentos_Acceso')
+          AND DATA_TYPE IN ('char','varchar','tinytext','text','mediumtext','longtext')
+          AND COLUMN_NAME REGEXP 'Usuario|Responsable|Creado|Modificado|Autor|Asignado|Propietario|Firmante|Confirma';
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = 1;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    IF p_id IS NULL OR p_id <= 0 OR p_actor_id IS NULL OR p_actor_id <= 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Identificadores de usuario no válidos.';
+    END IF;
+
+    SELECT COUNT(*) INTO v_total FROM Usuarios WHERE ID = p_id;
+    IF v_total = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario ya no existe.';
+    END IF;
+
+    SELECT u.Usuario, u.Nombre_Completo, COALESCE(r.Protegido, 0)
+      INTO v_usuario, v_nombre, v_protegido
+    FROM Usuarios u
+    LEFT JOIN Roles r ON r.ID = u.ID_Rol
+    WHERE u.ID = p_id
+    FOR UPDATE;
+
+    SELECT COUNT(*) INTO v_total
+    FROM Usuarios u
+    INNER JOIN Roles r ON r.ID = u.ID_Rol
+    WHERE u.ID = p_actor_id AND u.Activo = 1 AND r.Protegido = 1;
+
+    IF v_total = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La operación requiere un administrador activo.';
+    END IF;
+
+    IF p_actor_id = p_id THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede eliminar la cuenta administradora en uso.';
+    END IF;
+
+    SELECT Usuario INTO v_actor FROM Usuarios WHERE ID = p_actor_id;
+
+    SELECT COUNT(*) INTO v_total
+    FROM Intentos_Acceso WHERE Usuario_ID = p_id;
+    IF v_total > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cuenta tiene historial de intentos de acceso.';
+    END IF;
+
+    IF v_protegido = 1 THEN
+        SELECT COUNT(*) INTO v_total
+        FROM Usuarios u
+        INNER JOIN Roles r ON r.ID = u.ID_Rol
+        WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> p_id;
+        IF v_total = 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Debe quedar al menos un administrador activo.';
+        END IF;
+    END IF;
+
+    SELECT COUNT(*) INTO v_total
+    FROM Audit_Log
+    WHERE (Usuario = v_usuario OR Usuario = v_nombre)
+      AND NOT (Tabla_Afectada = 'Usuarios' AND Accion = 'CREAR' AND ID_Registro = p_id);
+    IF v_total > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cuenta tiene actividad registrada en la bitácora.';
+    END IF;
+
+    SELECT COUNT(*) INTO v_total
+    FROM Audit_Log
+    WHERE Tabla_Afectada = 'Usuarios' AND ID_Registro = p_id AND Accion <> 'CREAR';
+    IF v_total > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cuenta tiene historial de mantenimiento en la bitácora.';
+    END IF;
+
+    OPEN cur_referencias;
+    referencias_loop: LOOP
+        FETCH cur_referencias INTO v_tabla, v_columna;
+        IF v_fin = 1 THEN
+            LEAVE referencias_loop;
+        END IF;
+
+        SET @sgln_delete_sql = CONCAT(
+            'SELECT COUNT(*) INTO @sgln_delete_count FROM `',
+            REPLACE(v_tabla, '`', '``'), '` WHERE `',
+            REPLACE(v_columna, '`', '``'), '` = ?');
+        SET @sgln_delete_id = p_id;
+        PREPARE sgln_delete_stmt FROM @sgln_delete_sql;
+        EXECUTE sgln_delete_stmt USING @sgln_delete_id;
+        DEALLOCATE PREPARE sgln_delete_stmt;
+
+        IF COALESCE(@sgln_delete_count, 0) > 0 THEN
+            CLOSE cur_referencias;
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La cuenta tiene referencias históricas en otras tablas.';
+        END IF;
+
+        SET @sgln_delete_sql = CONCAT(
+            'SELECT COUNT(*) INTO @sgln_delete_count FROM `',
+            REPLACE(v_tabla, '`', '``'), '` WHERE CAST(`',
+            REPLACE(v_columna, '`', '``'), '` AS CHAR) = ? OR CAST(`',
+            REPLACE(v_columna, '`', '``'), '` AS CHAR) = ?');
+        SET @sgln_delete_usuario = v_usuario;
+        SET @sgln_delete_nombre = v_nombre;
+        PREPARE sgln_delete_stmt FROM @sgln_delete_sql;
+        EXECUTE sgln_delete_stmt USING @sgln_delete_usuario, @sgln_delete_nombre;
+        DEALLOCATE PREPARE sgln_delete_stmt;
+
+        IF COALESCE(@sgln_delete_count, 0) > 0 THEN
+            CLOSE cur_referencias;
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La cuenta tiene referencias textuales históricas en otras tablas.';
+        END IF;
+    END LOOP;
+    CLOSE cur_referencias;
+
+    DELETE FROM Usuarios WHERE ID = p_id;
+    INSERT INTO Audit_Log (Usuario, Accion, Tabla_Afectada, ID_Registro, Detalle)
+    VALUES (v_actor, 'ELIMINAR', 'Usuarios', p_id,
+            CONCAT('Cuenta eliminada tras validar historial y referencias: ', v_usuario));
+
+    COMMIT;
+END$
+
 DELIMITER ;
