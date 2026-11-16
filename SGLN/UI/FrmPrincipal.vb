@@ -103,6 +103,17 @@ Public Class FrmPrincipal
         CargarPanel()
     End Sub
 
+    Private Sub mnuCambiarClave_Click(sender As Object, e As EventArgs) Handles mnuCambiarClave.Click
+        Try
+            Using formulario As New FrmCambioClave()
+                formulario.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            RegistroErrores.Escribir("Abrir cambio de clave", ex)
+            UtileriasUI.MostrarError("No se pudo abrir la pantalla de cambio de clave.")
+        End Try
+    End Sub
+
     Private Sub mnuCerrarSesion_Click(sender As Object, e As EventArgs) Handles mnuCerrarSesion.Click
         If UtileriasUI.Confirmar("¿Cerrar la sesión actual?") Then
             Sesion.CerrarSesionSolicitado = True
