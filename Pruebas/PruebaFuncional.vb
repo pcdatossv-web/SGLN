@@ -1891,6 +1891,14 @@ Module PruebaFuncional
         Verificar("La fecha de entrega no puede ser anterior al cierre", Not rEntregaAnterior.Exito)
         Dim rEntregaFutura As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today.AddDays(1))
         Verificar("Entrega al Notariado con fecha futura se rechaza", Not rEntregaFutura.Exito)
+        Dim entregaDirectaFuturaRechazada As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).RegistrarEntrega(idLibro, Date.Today.AddDays(1))
+        Catch ex As ArgumentException
+            entregaDirectaFuturaRechazada = True
+        End Try
+        Verificar("El repositorio impide registrar directamente una entrega futura",
+                  entregaDirectaFuturaRechazada)
         Dim rEntrega As Respuesta = protocolo.RegistrarEntrega(idLibro, Date.Today)
         Verificar("Registrar entrega del libro cerrado", rEntrega.Exito, rEntrega.Mensaje)
         Verificar("No se puede anular una escritura después de entregar el libro",
