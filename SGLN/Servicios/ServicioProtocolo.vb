@@ -83,19 +83,23 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Solo se pueden cerrar libros en estado Vigente.")
         End If
 
-        Dim pendientes As Integer = _repositorio.InstrumentosSinOtorgante(id)
-        If pendientes > 0 Then
-            Return Respuesta.Fallo(
-                "No se puede cerrar el libro: " & pendientes &
-                " instrumento(s) no tienen otorgante registrado.")
-        End If
-
         If razon.Trim().Length > 1000 Then Return Respuesta.Fallo("La razón del cierre no puede superar 1000 caracteres.")
+        Try
+            Dim pendientes As Integer = _repositorio.InstrumentosSinOtorgante(id)
+            If pendientes > 0 Then
+                Return Respuesta.Fallo(
+                    "No se puede cerrar el libro: " & pendientes &
+                    " instrumento(s) no tienen otorgante registrado.")
+            End If
 
-        Dim cierre As Integer = _repositorio.CerrarLibro(id, razon.Trim(), Date.Today)
-        If cierre = -1 Then Return Respuesta.Fallo("No se puede cerrar el libro: apareció una escritura sin otorgante durante la operación.")
-        If cierre = 0 Then Return Respuesta.Fallo("El libro cambió de estado y ya no puede cerrarse.")
-        Return Respuesta.Ok("Libro cerrado. Recuerde la entrega al Notariado.")
+            Dim cierre As Integer = _repositorio.CerrarLibro(id, razon.Trim(), Date.Today)
+            If cierre = -1 Then Return Respuesta.Fallo("No se puede cerrar el libro: apareció una escritura sin otorgante durante la operación.")
+            If cierre = 0 Then Return Respuesta.Fallo("El libro cambió de estado y ya no puede cerrarse.")
+            Return Respuesta.Ok("Libro cerrado. Recuerde la entrega al Notariado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - CerrarLibro", ex)
+            Return Respuesta.Fallo("No se pudo cerrar el libro. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
     ''' <summary>
@@ -139,23 +143,28 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("El libro no tiene fecha de cierre registrada.")
         End If
 
-        Dim cierre As Date = Convert.ToDateTime(fila("Fecha_Cierre")).Date
-        Dim limite As Date = FechaLimiteEntrega(cierre)
+        Try
+            Dim cierre As Date = Convert.ToDateTime(fila("Fecha_Cierre")).Date
+            Dim limite As Date = FechaLimiteEntrega(cierre)
 
-        If fechaEntrega.Date < cierre Then
-            Return Respuesta.Fallo("La fecha de entrega no puede ser anterior a la fecha de cierre del libro.")
-        End If
+            If fechaEntrega.Date < cierre Then
+                Return Respuesta.Fallo("La fecha de entrega no puede ser anterior a la fecha de cierre del libro.")
+            End If
 
-        Dim filasEntrega As Integer = _repositorio.RegistrarEntrega(id, fechaEntrega.Date)
-        If filasEntrega = 0 Then Return Respuesta.Fallo("El libro ya fue entregado o cambió de estado. Actualice la lista.")
+            Dim filasEntrega As Integer = _repositorio.RegistrarEntrega(id, fechaEntrega.Date)
+            If filasEntrega = 0 Then Return Respuesta.Fallo("El libro ya fue entregado o cambió de estado. Actualice la lista.")
 
-        If fechaEntrega.Date > limite Then
-            Return Respuesta.Ok(
-                "Entrega registrada con atraso. La fecha límite referencial era el " &
-                limite.ToString("dd/MM/yyyy") & ".")
-        End If
+            If fechaEntrega.Date > limite Then
+                Return Respuesta.Ok(
+                    "Entrega registrada con atraso. La fecha límite referencial era el " &
+                    limite.ToString("dd/MM/yyyy") & ".")
+            End If
 
-        Return Respuesta.Ok("Entrega al Notariado registrada correctamente.")
+            Return Respuesta.Ok("Entrega al Notariado registrada correctamente.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - RegistrarEntrega", ex)
+            Return Respuesta.Fallo("No se pudo registrar la entrega. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
     ' ------------------------------------------------------------------
@@ -240,15 +249,20 @@ Public Class ServicioProtocolo
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un instrumento.")
-        Dim actual As DataTable = _repositorio.ObtenerInstrumento(id)
-        If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura no existe.")
-        If Convert.ToString(actual.Rows(0)("Estado")) <> "Vigente" Then
-            Return Respuesta.Fallo("La escritura ya está anulada.")
-        End If
-        If _repositorio.AnularInstrumento(id) = 0 Then
-            Return Respuesta.Fallo("No se puede anular: el libro ya fue entregado, la escritura cambió de estado o tiene testimonios expedidos.")
-        End If
-        Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
+        Try
+            Dim actual As DataTable = _repositorio.ObtenerInstrumento(id)
+            If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura no existe.")
+            If Convert.ToString(actual.Rows(0)("Estado")) <> "Vigente" Then
+                Return Respuesta.Fallo("La escritura ya está anulada.")
+            End If
+            If _repositorio.AnularInstrumento(id) = 0 Then
+                Return Respuesta.Fallo("No se puede anular: el libro ya fue entregado, la escritura cambió de estado o tiene testimonios expedidos.")
+            End If
+            Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - AnularInstrumento", ex)
+            Return Respuesta.Fallo("No se pudo anular la escritura. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
     ' ------------------------------------------------------------------
@@ -363,16 +377,21 @@ Public Class ServicioProtocolo
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
 
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
-        Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
-        If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
-        If Convert.ToString(libro.Rows(0)("Estado")) = "Vigente" Then
-            Return Respuesta.Fallo("El índice solo se puede generar después del cierre del libro.")
-        End If
-        Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
-        If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
+        Try
+            Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
+            If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
+            If Convert.ToString(libro.Rows(0)("Estado")) = "Vigente" Then
+                Return Respuesta.Fallo("El índice solo se puede generar después del cierre del libro.")
+            End If
+            Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
+            If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
 
-        _repositorio.MarcarIndiceGenerado(idLibro)
-        Return Respuesta.Ok("Índice generado con " & indice.Rows.Count & " instrumento(s).")
+            _repositorio.MarcarIndiceGenerado(idLibro)
+            Return Respuesta.Ok("Índice generado con " & indice.Rows.Count & " instrumento(s).")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - GenerarIndice", ex)
+            Return Respuesta.Fallo("No se pudo generar el índice. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
 End Class
