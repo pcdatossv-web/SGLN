@@ -25,7 +25,16 @@ DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bd;
 DROP TRIGGER IF EXISTS trg_audit_log_no_update;
 DROP TRIGGER IF EXISTS trg_audit_log_no_delete;
 
-DELIMITER $$
+/* Revoca permisos administrativos que pudieran haberse delegado antes
+   de esta versión. El cambio se ejecuta como administrador SQL antes de
+   activar los nuevos candados. */
+DELETE rp
+FROM Rol_Permiso rp
+INNER JOIN Roles r ON r.ID = rp.ID_Rol
+WHERE r.Protegido = 0
+  AND rp.Codigo IN ('config.usuarios', 'config.roles');
+
+DELIMITER $
 
 CREATE TRIGGER trg_roles_protegido_bi BEFORE INSERT ON Roles
 FOR EACH ROW
