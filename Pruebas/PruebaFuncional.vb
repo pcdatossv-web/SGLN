@@ -1254,6 +1254,16 @@ Module PruebaFuncional
         Dim rPlazo As Respuesta = plazos.Confirmar(actuacion)
         Verificar("Confirmar plazo guarda la actuación", rPlazo.Exito, rPlazo.Mensaje)
         Dim idActuacion As Integer = actuacion.ID
+        Dim auditoriaAntesReconfirmar As Integer = ContarSqlDirecto(
+            "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
+            "AND ID_Registro = " & idActuacion.ToString() & " AND Accion = 'CONFIRMAR PLAZO'")
+        Dim reconfirmacion As Respuesta = plazos.Confirmar(actuacion)
+        Dim auditoriaDespuesReconfirmar As Integer = ContarSqlDirecto(
+            "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
+            "AND ID_Registro = " & idActuacion.ToString() & " AND Accion = 'CONFIRMAR PLAZO'")
+        Verificar("Cada confirmación explícita de plazo queda auditada incluso si no cambia los datos",
+                  reconfirmacion.Exito AndAlso auditoriaDespuesReconfirmar > auditoriaAntesReconfirmar,
+                  reconfirmacion.Mensaje)
 
         Dim tablaActuaciones As DataTable = plazos.Actuaciones(idCaso)
         Dim guardada As DataRow = Nothing
