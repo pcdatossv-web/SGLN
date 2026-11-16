@@ -41,7 +41,7 @@ Public Class ProtocoloRepositorio
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Libros_Protocolo (Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, Fecha_Vencimiento, Estado) " &
-                    "VALUES (@numero, @anio, @autorizacion, @vencimiento, @estado)",
+                    "VALUES (@numero, @anio, @autorizacion, @vencimiento, 'Vigente')",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosLibro(comando, libro)
                     End Sub)
@@ -103,7 +103,7 @@ Public Class ProtocoloRepositorio
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Numero_Libro = @numero, Anio_Vigencia = @anio, " &
-                    "Fecha_Autorizacion = @autorizacion, Fecha_Vencimiento = @vencimiento, Estado = @estado WHERE ID = @id",
+                    "Fecha_Autorizacion = @autorizacion, Fecha_Vencimiento = @vencimiento WHERE ID = @id",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosLibro(comando, libro)
                         Parametro(comando, "@id", libro.ID)
