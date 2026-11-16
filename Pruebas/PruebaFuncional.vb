@@ -1364,6 +1364,18 @@ Module PruebaFuncional
                       .Domicilio = "Domicilio actualizado de prueba", .Activo = True}, Nothing).Exito)
         Verificar("La búsqueda de entidades sin filtro lista resultados",
                   entidades.Buscar("").Rows.Count >= 1)
+        Dim representantesAntesQuitar As DataTable = entidades.Representantes(idEntidad)
+        Dim idRepresentantePrueba As Integer = 0
+        If representantesAntesQuitar.Rows.Count > 0 Then
+            idRepresentantePrueba = UtileriasUI.Entero(representantesAntesQuitar.Rows(0), "ID")
+        End If
+        Dim quitarRepresentantePrueba As Respuesta = entidades.QuitarRepresentante(idRepresentantePrueba)
+        Verificar("Al retirar un representante se conserva su identidad y entidad en la bitácora",
+                  idRepresentantePrueba > 0 AndAlso quitarRepresentantePrueba.Exito AndAlso
+                  ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Representantes_Legales' " &
+                                   "AND ID_Registro = " & idRepresentantePrueba.ToString() &
+                                   " AND Accion = 'ELIMINAR' AND Detalle LIKE '%Ana María%' " &
+                                   "AND Detalle LIKE '%Inversiones Cuscatlán%'") = 1)
         Verificar("Desactivar una entidad inexistente no se reporta como éxito",
                   Not entidades.Desactivar(Integer.MaxValue).Exito)
         Verificar("Quitar un representante inexistente no se reporta como éxito",
