@@ -123,7 +123,7 @@ Public Class ProtocoloRepositorio
         If String.IsNullOrWhiteSpace(razon) OrElse razon.Trim().Length > 1000 Then
             Throw New ArgumentException("La razón del cierre debe contener entre 1 y 1000 caracteres.", NameOf(razon))
         End If
-        If fechaCierre = Date.MinValue OrElse fechaCierre.Date > Date.Today Then
+        If fechaCierre = Date.MinValue OrElse fechaCierre.Date.Year < 1000 OrElse fechaCierre.Date > Date.Today Then
             Throw New ArgumentException("La fecha de cierre no puede estar vacía ni ser futura.", NameOf(fechaCierre))
         End If
         razon = razon.Trim()
@@ -192,7 +192,7 @@ Public Class ProtocoloRepositorio
     Public Function RegistrarEntrega(id As Integer, fechaEntrega As Date) As Integer
         If Not Permisos.TieneAcceso("protocolo.entregar") Then Throw New UnauthorizedAccessException("No tiene permiso para registrar entregas al Notariado.")
         If id <= 0 Then Return 0
-        If fechaEntrega = Date.MinValue OrElse fechaEntrega.Date > Date.Today Then
+        If fechaEntrega = Date.MinValue OrElse fechaEntrega.Date.Year < 1000 OrElse fechaEntrega.Date > Date.Today Then
             Throw New ArgumentException("La fecha de entrega no puede estar vacía ni ser futura.", NameOf(fechaEntrega))
         End If
         Return EnTransaccion(
@@ -392,7 +392,7 @@ Public Class ProtocoloRepositorio
         If instrumento.FolioInicio < 1 OrElse instrumento.FolioFin < instrumento.FolioInicio Then
             Throw New ArgumentException("El rango de folios no es válido.", NameOf(instrumento))
         End If
-        If instrumento.FechaHoraOtorgamiento = Date.MinValue OrElse instrumento.FechaHoraOtorgamiento.Date > Date.Today Then
+        If instrumento.FechaHoraOtorgamiento = Date.MinValue OrElse instrumento.FechaHoraOtorgamiento.Date.Year < 1000 OrElse instrumento.FechaHoraOtorgamiento.Date > Date.Today Then
             Throw New ArgumentException("La fecha de otorgamiento no puede estar vacía ni ser futura.", NameOf(instrumento))
         End If
         If String.IsNullOrWhiteSpace(instrumento.ObjetoActo) OrElse instrumento.ObjetoActo.Trim().Length > 500 Then
@@ -678,7 +678,7 @@ Public Class ProtocoloRepositorio
                 String.Equals(tipo, "Ulterior", StringComparison.Ordinal)) Then
             Throw New ArgumentException("El tipo de testimonio debe ser Primer o Ulterior.", NameOf(tipo))
         End If
-        If fecha = Date.MinValue OrElse fecha.Date > Date.Today Then
+        If fecha = Date.MinValue OrElse fecha.Date.Year < 1000 OrElse fecha.Date > Date.Today Then
             Throw New ArgumentException("La fecha de expedición no puede estar vacía ni ser futura.", NameOf(fecha))
         End If
         If String.IsNullOrWhiteSpace(destinatario) OrElse destinatario.Trim().Length > 200 Then
@@ -868,7 +868,8 @@ Public Class ProtocoloRepositorio
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
             Throw New ArgumentException("El año de vigencia no es válido.", NameOf(libro))
         End If
-        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue Then
+        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue OrElse
+           libro.FechaAutorizacion.Date.Year < 1000 OrElse libro.FechaVencimiento.Date.Year < 1000 Then
             Throw New ArgumentException("Las fechas de autorización y vencimiento son obligatorias.", NameOf(libro))
         End If
         If libro.FechaVencimiento.Date < libro.FechaAutorizacion.Date Then
