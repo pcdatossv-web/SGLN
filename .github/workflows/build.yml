@@ -91,6 +91,13 @@ jobs:
               -not $configRepo.Contains('Permisos.TieneAcceso("config.respaldos")')) {
             throw 'Faltan las comprobaciones de permisos en el repositorio de configuración.'
           }
+          $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
+          if (-not $servicioConfig.Contains('If EsClaveReservada(clave) Then') -or
+              -not $servicioConfig.Contains('StringComparison.OrdinalIgnoreCase') -or
+              -not $configRepo.Contains('Carpeta_Documentos') -or
+              -not $configRepo.Contains('Carpeta_Respaldos')) {
+            throw 'Las rutas reservadas deben protegerse también en el repositorio de configuración.'
+          }
           $terminadorDoble = ([string][char]36) + ([string][char]36)
           if (-not $triggersSql.Contains('DELIMITER ' + $terminadorDoble) -or
               -not $triggersSql.Contains('DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro' + $terminadorDoble) -or
