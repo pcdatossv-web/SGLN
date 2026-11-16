@@ -138,6 +138,15 @@ Public Module InicializadorBD
                 "Falta la tabla de protección contra intentos de acceso. " &
                 "Un administrador debe ejecutar Scripts\Migracion_Seguridad_Acceso.sql con permisos DDL.")
         End If
+
+        If EscalarEntero(
+            "SELECT COUNT(*) FROM information_schema.routines " &
+            "WHERE routine_schema = DATABASE() AND routine_name = 'sp_EliminarUsuarioSeguro' " &
+            "AND routine_type = 'PROCEDURE'") = 0 Then
+            Throw New InvalidOperationException(
+                "Falta el procedimiento de eliminación segura de usuarios o la cuenta de aplicación no tiene EXECUTE. " &
+                "Un administrador debe volver a ejecutar Scripts\Triggers_MySQL.sql y Scripts\Privilegios_Minimos.sql.")
+        End If
     End Sub
 
     Private Sub SembrarDatosIniciales()
