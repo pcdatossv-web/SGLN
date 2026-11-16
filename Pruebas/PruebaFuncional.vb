@@ -586,6 +586,9 @@ Module PruebaFuncional
         Verificar("El catálogo no permite listar ni modificar configuración sin permiso",
                   catalogoConfigPrueba.ListarConfig().Rows.Count = 0 AndAlso
                   Not catalogoConfigPrueba.GuardarConfig("Prueba_SinPermiso", "No debe guardarse").Exito)
+        Verificar("Los parámetros internos de cumplimiento y protocolo se ocultan sin permiso de módulo",
+                  catalogoConfigPrueba.ObtenerConfig("Umbral_Efectivo") = "" AndAlso
+                  catalogoConfigPrueba.ObtenerConfig("Protocolo_Dias_Entrega") = "")
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
             repositorioConfiguracionPrueba.Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
