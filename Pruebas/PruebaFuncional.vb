@@ -68,6 +68,9 @@ Module PruebaFuncional
                   New ServicioCasos().Actuaciones(1).Rows.Count = 0)
         Verificar("Los documentos no se consultan sin permiso",
                   New ServicioDocumentos().Buscar("", "").Rows.Count = 0)
+        Verificar("La ruta de documentos no se revela sin permiso",
+                  New ServicioDocumentos().RutaBaseDocumentos() = "" AndAlso
+                  New ServicioDocumentos().RutaCompleta("archivo.pdf") = "")
         Verificar("El protocolo no se consulta sin permiso",
                   New ServicioProtocolo().Libros().Rows.Count = 0)
         Verificar("Los comparecientes del protocolo no se exponen sin permiso",
@@ -80,6 +83,8 @@ Module PruebaFuncional
                   New ServicioRoles().Listar().Rows.Count = 0)
         Verificar("La configuración no se consulta sin permiso",
                   New ServicioConfiguracion().Listar().Rows.Count = 0)
+        Verificar("La ruta de respaldos no se revela sin permiso",
+                  New ServicioConfiguracion().CarpetaRespaldos() = "")
         Verificar("El panel de alertas no expone datos sin sesión",
                   New ServicioAlertas().ObtenerAlertas().Rows.Count = 0)
         Verificar("El resumen no expone conteos sin sesión",
