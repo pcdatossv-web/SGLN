@@ -310,6 +310,9 @@ Module PruebaFuncional
         Dim servicioUsuariosClave As New ServicioUsuarios()
         Verificar("El cambio de clave propia rechaza una clave actual incorrecta",
                   Not servicioUsuariosClave.CambiarClavePropia(admin.ID, "Incorrecta99!", "CambioPropio99!").Exito)
+        Verificar("El repositorio también rechaza una clave actual incorrecta sin pasar por el servicio",
+                  Not New UsuarioRepositorio().CambiarClavePropia(
+                      admin.ID, "Incorrecta99!", "CambioDirecto99!").Exito)
         Dim cambioClavePropia As Respuesta = servicioUsuariosClave.CambiarClavePropia(
             admin.ID, "TemporalClave99!", "CambioPropioTemporal99!")
         Verificar("El usuario puede cambiar su propia clave con la clave actual",
