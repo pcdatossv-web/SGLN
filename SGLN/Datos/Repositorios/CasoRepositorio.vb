@@ -9,6 +9,7 @@ Public Class CasoRepositorio
     Inherits RepositorioBase
 
     Public Function Buscar(filtro As String) As DataTable
+        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Return Consultar(
             "SELECT c.ID, c.Numero_Expediente, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente, " &
@@ -26,6 +27,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If id <= 0 OrElse Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT c.*, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente " &
             "FROM Casos c INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
@@ -36,6 +38,8 @@ Public Class CasoRepositorio
     End Function
 
     Public Function Insertar(caso As Caso) As Integer
+        If Not Permisos.TieneAcceso("casos.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar casos.")
+        If caso Is Nothing Then Throw New ArgumentNullException(NameOf(caso))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -50,6 +54,8 @@ Public Class CasoRepositorio
     End Function
 
     Public Function Actualizar(caso As Caso) As Integer
+        If Not Permisos.TieneAcceso("casos.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar casos.")
+        If caso Is Nothing OrElse caso.ID <= 0 Then Throw New ArgumentException("El caso seleccionado no es válido.", NameOf(caso))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim clienteActual As Integer = 0
@@ -100,6 +106,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function ActuacionesPorCaso(idCaso As Integer) As DataTable
+        If idCaso <= 0 OrElse Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT a.ID, a.ID_Tipo_Actuacion, t.Nombre AS Tipo, a.Fecha_Notificacion, " &
             "       a.Plazo_Legal_Dias, a.Fecha_Vencimiento_Calculada, a.Estado, a.Observaciones, " &
@@ -114,6 +121,8 @@ Public Class CasoRepositorio
     End Function
 
     Public Function GuardarActuacion(actuacion As ActuacionProcesal) As Integer
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para confirmar plazos.")
+        If actuacion Is Nothing Then Throw New ArgumentNullException(NameOf(actuacion))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 If actuacion.ID = 0 Then
@@ -155,6 +164,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function MarcarVencidas() As Integer
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para actualizar plazos.")
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -168,6 +178,8 @@ Public Class CasoRepositorio
     End Function
 
     Public Function MarcarCumplida(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para marcar plazos cumplidos.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -182,6 +194,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
