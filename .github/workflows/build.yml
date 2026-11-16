@@ -95,6 +95,8 @@ jobs:
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("cumplimiento.operaciones")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("protocolo.entregar")') -or
               -not $catalogoRepo.Contains('Carpeta_Documentos') -or
               -not $catalogoRepo.Contains('Carpeta_Respaldos') -or
               $catalogoRepo.Contains('clave & " = " & valor')) {
