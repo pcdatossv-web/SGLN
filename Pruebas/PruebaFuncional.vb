@@ -1713,6 +1713,29 @@ Module PruebaFuncional
                       .FolioInicio = 60, .FolioFin = 65,
                       .ObjetoActo = "ID inválido"}).Exito)
 
+        Dim libroDirectoInvalidoRechazado As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).InsertarLibro(New LibroProtocolo With {
+                .NumeroLibro = 999, .AnioVigencia = 2200,
+                .FechaAutorizacion = Date.Today, .FechaVencimiento = Date.Today.AddYears(1)})
+        Catch ex As ArgumentException
+            libroDirectoInvalidoRechazado = True
+        End Try
+        Verificar("El repositorio rechaza directamente años de vigencia de libro fuera de rango",
+                  libroDirectoInvalidoRechazado)
+
+        Dim folioDirectoInvalidoRechazado As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).InsertarInstrumento(New Instrumento With {
+                .IDLibro = idLibro, .NumeroEscritura = 900,
+                .FechaHoraOtorgamiento = Date.Today,
+                .FolioInicio = 0, .FolioFin = 5, .ObjetoActo = "Folio directo inválido"})
+        Catch ex As ArgumentException
+            folioDirectoInvalidoRechazado = True
+        End Try
+        Verificar("El repositorio rechaza directamente rangos de folios inválidos",
+                  folioDirectoInvalidoRechazado)
+
         ' Dos sesiones intentan reservar intervalos que se cruzan al mismo tiempo.
         ' El bloqueo FOR UPDATE del libro debe permitir exactamente una escritura.
         Dim iniciarConcurrentes As New ManualResetEvent(False)
