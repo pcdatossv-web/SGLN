@@ -196,6 +196,9 @@ Public Class EntidadRepositorio
         If If(cargo, "").Trim().Length > 120 OrElse If(tipo, "").Trim().Length > 80 Then
             Return Respuesta.Fallo("El cargo o tipo de representación supera la longitud permitida.")
         End If
+        If Array.IndexOf(New String() {"Legal", "Voluntario", "Judicial"}, If(tipo, "").Trim()) < 0 Then
+            Return Respuesta.Fallo("El tipo de representación no es válido.")
+        End If
         cargo = If(cargo, "").Trim()
         tipo = If(tipo, "").Trim()
         Try
