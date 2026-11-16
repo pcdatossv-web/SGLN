@@ -117,6 +117,13 @@ Public Class ProtocoloRepositorio
     Public Function CerrarLibro(id As Integer, razon As String, fechaCierre As Date) As Integer
         If Not Permisos.TieneAcceso("protocolo.cerrar_libro") Then Throw New UnauthorizedAccessException("No tiene permiso para cerrar libros del protocolo.")
         If id <= 0 Then Return 0
+        If String.IsNullOrWhiteSpace(razon) OrElse razon.Trim().Length > 1000 Then
+            Throw New ArgumentException("La razón del cierre debe contener entre 1 y 1000 caracteres.", NameOf(razon))
+        End If
+        If fechaCierre = Date.MinValue OrElse fechaCierre.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de cierre no puede estar vacía ni ser futura.", NameOf(fechaCierre))
+        End If
+        razon = razon.Trim()
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim estado As String = Nothing
@@ -160,6 +167,9 @@ Public Class ProtocoloRepositorio
     Public Function RegistrarEntrega(id As Integer, fechaEntrega As Date) As Integer
         If Not Permisos.TieneAcceso("protocolo.entregar") Then Throw New UnauthorizedAccessException("No tiene permiso para registrar entregas al Notariado.")
         If id <= 0 Then Return 0
+        If fechaEntrega = Date.MinValue OrElse fechaEntrega.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de entrega no puede estar vacía ni ser futura.", NameOf(fechaEntrega))
+        End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
