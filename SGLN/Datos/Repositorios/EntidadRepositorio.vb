@@ -46,6 +46,9 @@ Public Class EntidadRepositorio
         If Not Permisos.TieneAcceso("entidades.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar entidades.")
         If entidad Is Nothing Then Throw New ArgumentNullException(NameOf(entidad))
         If entidad.ID < 0 Then Throw New ArgumentException("El identificador de la entidad no es válido.", NameOf(entidad))
+        If entidad.ID = 0 AndAlso Not entidad.Activo Then
+            Throw New InvalidOperationException("Una entidad nueva debe registrarse activa; la baja se realiza mediante la operación autorizada.")
+        End If
         ValidarDatosEntidad(entidad, perfil)
         NormalizarDatosEntidad(entidad, perfil)
         Return EnTransaccion(
@@ -67,8 +70,9 @@ Public Class EntidadRepositorio
                     Dim razonActual As String = Nothing
                     Dim nitActual As String = Nothing
                     Dim nrcActual As String = Nothing
+                    Dim activoActual As Boolean = False
                     Using comandoExiste As New MySqlCommand(
-                            "SELECT Razon_Social, NIT, NRC FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
+                            "SELECT Razon_Social, NIT, NRC, Activo FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
                             conexion, transaccion)
                         Parametro(comandoExiste, "@id", idEntidad)
                         Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
@@ -78,8 +82,14 @@ Public Class EntidadRepositorio
                             razonActual = Convert.ToString(lector("Razon_Social"))
                             nitActual = Convert.ToString(lector("NIT"))
                             nrcActual = Convert.ToString(lector("NRC"))
+                            activoActual = Convert.ToInt32(lector("Activo")) = 1
                         End Using
                     End Using
+
+                    If entidad.Activo <> activoActual Then
+                        Throw New InvalidOperationException(
+                            "El estado activo de la entidad no se cambia desde la edición general. Utilice la operación autorizada de desactivación.")
+                    End If
 
                     Dim representantesExistentes As Integer
                     Using comandoReferencias As New MySqlCommand(
