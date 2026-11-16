@@ -16,7 +16,7 @@ Public Class ServicioCasos
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
+        If Not Permisos.TieneAcceso("casos.ver") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 
