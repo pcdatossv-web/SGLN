@@ -112,6 +112,9 @@ Module PruebaFuncional
                   New ServicioCumplimiento().ClientesCombo().Rows.Count = 0)
         Verificar("La actualización masiva de vencimientos se deniega sin permiso",
                   New ServicioPlazos().ActualizarVencidas() = 0)
+        Verificar("El calendario y cálculo de plazos se protegen sin permiso",
+                  DenegadoPorPermiso(Function() CObj(New ServicioPlazos().ObtenerCalculadora())) AndAlso
+                  DenegadoPorPermiso(Function() CObj(New ServicioPlazos().CalcularVencimiento(Date.Today, 5))))
 
         ' ---------- 1. Inicialización de la base de pruebas ----------
         Console.WriteLine("-- 1. Inicialización de la base de datos")
