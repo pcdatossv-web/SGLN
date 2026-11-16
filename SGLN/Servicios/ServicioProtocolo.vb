@@ -34,7 +34,8 @@ Public Class ServicioProtocolo
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
             Return Respuesta.Fallo("El año de vigencia no es válido.")
         End If
-        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue Then
+        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue OrElse
+           libro.FechaAutorizacion.Date.Year < 1000 OrElse libro.FechaVencimiento.Date.Year < 1000 Then
             Return Respuesta.Fallo("Las fechas de autorización y vencimiento del libro son obligatorias.")
         End If
         If libro.FechaVencimiento.Date < libro.FechaAutorizacion.Date Then
@@ -126,7 +127,7 @@ Public Class ServicioProtocolo
         If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.entregar") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos del protocolo.")
         End If
-        If fechaCierre = Date.MinValue Then
+        If fechaCierre = Date.MinValue OrElse fechaCierre.Date.Year < 1000 Then
             Throw New ArgumentOutOfRangeException(NameOf(fechaCierre), "La fecha de cierre no es válida.")
         End If
         Dim dias As Integer = DiasEntregaConfigurados()
@@ -161,7 +162,7 @@ Public Class ServicioProtocolo
         If Convert.ToString(fila("Estado")) <> "Cerrado" Then
             Return Respuesta.Fallo("Solo se pueden entregar libros cerrados.")
         End If
-        If fechaEntrega = Date.MinValue Then Return Respuesta.Fallo("La fecha de entrega no es válida.")
+        If fechaEntrega = Date.MinValue OrElse fechaEntrega.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de entrega debe ser igual o posterior al 01/01/1000.")
         If fechaEntrega.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de entrega no puede ser futura.")
         End If
@@ -171,7 +172,7 @@ Public Class ServicioProtocolo
 
         Try
             Dim cierre As Date = Convert.ToDateTime(fila("Fecha_Cierre")).Date
-            If cierre = Date.MinValue Then Return Respuesta.Fallo("La fecha de cierre del libro no es válida.")
+            If cierre = Date.MinValue OrElse cierre.Year < 1000 Then Return Respuesta.Fallo("La fecha de cierre del libro no es válida.")
             Dim limite As Date = FechaLimiteEntrega(cierre)
 
             If fechaEntrega.Date < cierre Then
@@ -221,7 +222,7 @@ Public Class ServicioProtocolo
         If instrumento.FolioFin < instrumento.FolioInicio Then
             Return Respuesta.Fallo("El folio final no puede ser menor que el folio inicial.")
         End If
-        If instrumento.FechaHoraOtorgamiento = Date.MinValue Then
+        If instrumento.FechaHoraOtorgamiento = Date.MinValue OrElse instrumento.FechaHoraOtorgamiento.Date.Year < 1000 Then
             Return Respuesta.Fallo("La fecha de otorgamiento no es válida.")
         End If
         If instrumento.FechaHoraOtorgamiento.Date > Date.Today Then
@@ -381,7 +382,7 @@ Public Class ServicioProtocolo
         If String.IsNullOrWhiteSpace(destinatario) Then Return Respuesta.Fallo("Indique el destinatario del testimonio.")
         If destinatario.Trim().Length > 200 Then Return Respuesta.Fallo("El destinatario no puede superar 200 caracteres.")
         If tipo <> "Primer" AndAlso tipo <> "Ulterior" Then Return Respuesta.Fallo("El tipo de testimonio no es válido.")
-        If fecha = Date.MinValue Then Return Respuesta.Fallo("La fecha de expedición no es válida.")
+        If fecha = Date.MinValue OrElse fecha.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de expedición debe ser igual o posterior al 01/01/1000.")
         If fecha.Date > Date.Today Then Return Respuesta.Fallo("La fecha de expedición no puede ser futura.")
 
         Try
