@@ -120,11 +120,7 @@ Public Class ServicioConfiguracion
         If idUsuario <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
-        If Not _usuarios.VerificarClave(idUsuario, claveActual) Then
-            Return Respuesta.Fallo("La clave actual no es correcta.")
-        End If
-
-        Return _usuarios.CambiarClave(idUsuario, claveNueva)
+        Return New ServicioUsuarios().CambiarClavePropia(idUsuario, claveActual, claveNueva)
     End Function
 
     ''' <summary>
