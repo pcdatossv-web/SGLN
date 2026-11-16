@@ -14,6 +14,7 @@ Public Class FrmClientes
         If Not Permisos.Exigir("clientes.ver", Me) Then Return
 
         UtileriasUI.ConfigurarGrid(dgvClientes)
+        chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
 
         cboNivelRiesgo.Items.Clear()
         cboNivelRiesgo.Items.AddRange(New Object() {"Bajo", "Medio", "Alto"})
@@ -95,6 +96,7 @@ Public Class FrmClientes
         txtTelefono.Clear()
         txtEmail.Clear()
         chkActivo.Checked = True
+        chkActivo.Enabled = False
         dtpNacimiento.Checked = False
         cboNivelRiesgo.SelectedItem = "Bajo"
         chkOrigenVerificado.Checked = False
