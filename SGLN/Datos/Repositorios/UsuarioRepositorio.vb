@@ -467,6 +467,7 @@ Public Class UsuarioRepositorio
     ''' trigger de la base hace la misma validación.
     ''' </summary>
     Public Function ContarAdministradoresActivos(idExcluir As Integer) As Integer
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return 0
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
             "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id",
@@ -476,6 +477,7 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function EsAdministrador(id As Integer) As Boolean
+        If Not Permisos.TieneAcceso("config.usuarios") OrElse id <= 0 Then Return False
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
             "WHERE u.ID = @id AND r.Protegido = 1",
