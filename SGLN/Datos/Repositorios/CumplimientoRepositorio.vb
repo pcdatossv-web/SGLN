@@ -220,7 +220,7 @@ Public Class CumplimientoRepositorio
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Solicitudes_ARCO SET Estado = 'Respondida', Fecha_Respuesta = @fecha " &
-                    "WHERE ID = @id AND Fecha_Solicitud <= @fecha AND @fecha <= CURDATE() " &
+                    "WHERE ID = @id AND Fecha_Solicitud <= @fecha " &
                     "AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaRespuesta)
