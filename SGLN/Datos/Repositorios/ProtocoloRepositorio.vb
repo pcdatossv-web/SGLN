@@ -513,6 +513,12 @@ Public Class ProtocoloRepositorio
     Public Sub AgregarCompareciente(idInstrumento As Integer, idCliente As Integer, calidad As String)
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If idInstrumento <= 0 OrElse idCliente <= 0 Then Throw New ArgumentException("Seleccione un instrumento y compareciente válidos.")
+        If Not (String.Equals(calidad, "Otorgante", StringComparison.Ordinal) OrElse
+                String.Equals(calidad, "Favorecido", StringComparison.Ordinal) OrElse
+                String.Equals(calidad, "Testigo", StringComparison.Ordinal) OrElse
+                String.Equals(calidad, "Intérprete", StringComparison.Ordinal)) Then
+            Throw New ArgumentException("La calidad del compareciente no pertenece al catálogo permitido.", NameOf(calidad))
+        End If
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim motivo As String = ""
@@ -522,6 +528,31 @@ Public Class ProtocoloRepositorio
                 If TieneTestimonios(conexion, transaccion, idInstrumento) Then
                     Throw New InvalidOperationException(
                         "No se pueden agregar comparecientes después de expedir testimonios.")
+                End If
+
+                Dim clienteActivo As Integer
+                Using consultarCliente As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Clientes WHERE ID = @cliente AND Activo = 1 FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultarCliente, "@cliente", idCliente)
+                    clienteActivo = Convert.ToInt32(consultarCliente.ExecuteScalar())
+                End Using
+                If clienteActivo = 0 Then
+                    Throw New InvalidOperationException("El cliente no existe o está inactivo; no puede agregarse como compareciente.")
+                End If
+
+                Dim duplicado As Integer
+                Using consultarDuplicado As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Comparecientes_Instrumento " &
+                    "WHERE ID_Instrumento = @instrumento AND ID_Cliente = @cliente AND Calidad = @calidad",
+                    conexion, transaccion)
+                    Parametro(consultarDuplicado, "@instrumento", idInstrumento)
+                    Parametro(consultarDuplicado, "@cliente", idCliente)
+                    Parametro(consultarDuplicado, "@calidad", calidad)
+                    duplicado = Convert.ToInt32(consultarDuplicado.ExecuteScalar())
+                End Using
+                If duplicado > 0 Then
+                    Throw New InvalidOperationException("El cliente ya está registrado con esa calidad en esta escritura.")
                 End If
 
                 Ejecutar(conexion, transaccion,
@@ -594,6 +625,17 @@ Public Class ProtocoloRepositorio
     Public Sub InsertarTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String)
         If Not Permisos.TieneAcceso("protocolo.testimonios") Then Throw New UnauthorizedAccessException("No tiene permiso para expedir testimonios.")
         If idInstrumento <= 0 Then Throw New ArgumentException("Seleccione un instrumento válido.", NameOf(idInstrumento))
+        If Not (String.Equals(tipo, "Primer", StringComparison.Ordinal) OrElse
+                String.Equals(tipo, "Ulterior", StringComparison.Ordinal)) Then
+            Throw New ArgumentException("El tipo de testimonio debe ser Primer o Ulterior.", NameOf(tipo))
+        End If
+        If fecha = Date.MinValue OrElse fecha.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de expedición no puede estar vacía ni ser futura.", NameOf(fecha))
+        End If
+        If String.IsNullOrWhiteSpace(destinatario) OrElse destinatario.Trim().Length > 200 Then
+            Throw New ArgumentException("Indique un destinatario válido de hasta 200 caracteres.", NameOf(destinatario))
+        End If
+        destinatario = destinatario.Trim()
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idLibro As Integer = 0
