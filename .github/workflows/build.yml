@@ -74,6 +74,8 @@ jobs:
           $protocoloRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           $servicioAlertas = Get-Content 'SGLN\\Servicios\\ServicioAlertas.vb' -Raw
           $programa = Get-Content 'SGLN\\Program.vb' -Raw
+          $servicioClientes = Get-Content 'SGLN\\Servicios\\ServicioClientes.vb' -Raw
+          $servicioEntidades = Get-Content 'SGLN\\Servicios\\ServicioEntidades.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -150,6 +152,11 @@ jobs:
               $programa -notmatch 'AppDomain.CurrentDomain.UnhandledException' -or
               $programa -notmatch 'RegistrarExcepcionGlobal') {
             throw 'La aplicación debe registrar excepciones globales de interfaz y proceso.'
+          }
+          if ($servicioClientes -notmatch 'FechaNacimiento.Value.Year < 1000' -or
+              $servicioClientes -notmatch 'FechaVerificacionListas.Value.Year < 1000' -or
+              $servicioEntidades -notmatch 'FechaVerificacionListas.Value.Year < 1000') {
+            throw 'Los servicios deben rechazar fechas fuera del rango DATE admitido por MySQL.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
