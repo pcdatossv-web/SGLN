@@ -146,7 +146,7 @@ jobs:
           }
           if ($programa -notmatch 'Application.ThreadException' -or
               $programa -notmatch 'AppDomain.CurrentDomain.UnhandledException' -or
-              $programa -notmatch 'RegistroExcepcionGlobal') {
+              $programa -notmatch 'RegistrarExcepcionGlobal') {
             throw 'La aplicación debe registrar excepciones globales de interfaz y proceso.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
