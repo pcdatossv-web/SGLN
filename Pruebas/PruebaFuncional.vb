@@ -2383,6 +2383,44 @@ Module PruebaFuncional
         Verificar("El repositorio LDA/FT rechaza directamente montos no positivos",
                   operacionDirectaInvalidaRechazada)
 
+        Verificar("El servicio LDA/FT rechaza fechas anteriores al rango DATE de MySQL",
+                  Not cumplimiento.GuardarOperacion(New OperacionLdaft With {
+                      .TipoOperacion = "Regulada", .Monto = 100D, .Moneda = "USD",
+                      .FechaOperacion = New Date(999, 12, 31)
+                  }).Exito)
+
+        Dim operacionDirectaFechaInvalidaRechazada As Boolean = False
+        Try
+            repositorioCumplimientoDirecto.InsertarOperacion(New OperacionLdaft With {
+                .TipoOperacion = "Regulada", .Monto = 100D, .Moneda = "USD",
+                .FechaOperacion = New Date(999, 12, 31),
+                .FechaVencimientoAnalisis = Date.Today.AddDays(5),
+                .FechaVencimientoReporte = Date.Today.AddDays(15)})
+        Catch ex As ArgumentException
+            operacionDirectaFechaInvalidaRechazada = True
+        End Try
+        Verificar("El repositorio LDA/FT rechaza fechas anteriores al rango DATE de MySQL",
+                  operacionDirectaFechaInvalidaRechazada)
+
+        Verificar("El servicio ARCO rechaza fechas de solicitud anteriores al rango DATE de MySQL",
+                  Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
+                      .IDCliente = 1, .TipoDerecho = "Acceso",
+                      .FechaSolicitud = New Date(999, 12, 31),
+                      .FechaVencimiento = Date.Today.AddDays(10)
+                  }).Exito)
+
+        Dim solicitudDirectaFechaInvalidaRechazada As Boolean = False
+        Try
+            repositorioCumplimientoDirecto.InsertarSolicitud(New SolicitudArco With {
+                .IDCliente = 1, .TipoDerecho = "Acceso",
+                .FechaSolicitud = New Date(999, 12, 31),
+                .FechaVencimiento = Date.Today.AddDays(10)})
+        Catch ex As ArgumentException
+            solicitudDirectaFechaInvalidaRechazada = True
+        End Try
+        Verificar("El repositorio ARCO rechaza fechas anteriores al rango DATE de MySQL",
+                  solicitudDirectaFechaInvalidaRechazada)
+
         Dim operacion As New OperacionLdaft With {
             .TipoOperacion = "Regulada",
             .Monto = 12500D,
