@@ -242,7 +242,7 @@ Public Class ServicioCumplimiento
         If If(solicitud.Detalle, "").Length > 1000 Then Return Respuesta.Fallo("El detalle no puede superar 1000 caracteres.")
 
         If solicitud.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente.")
-        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de solicitud debe ser igual o posterior al 01/01/1000.")
+        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de solicitud no es válida: debe ser igual o posterior al 01/01/1000.")
         If solicitud.FechaSolicitud.Date > Date.Today Then Return Respuesta.Fallo("La fecha de solicitud no puede ser futura.")
         If Not TipoDerechoValido(solicitud.TipoDerecho) Then
             Return Respuesta.Fallo("El tipo de derecho ARCO no es válido.")
