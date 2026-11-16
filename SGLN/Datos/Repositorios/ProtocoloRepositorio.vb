@@ -14,6 +14,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Libros() As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, Fecha_Vencimiento, " &
             "       Estado, Fecha_Cierre, Fecha_Entrega_Notariado, Indice_Generado, Razon_Cierre " &
@@ -21,6 +22,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
+        If id <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Libros_Protocolo WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -29,6 +31,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InsertarLibro(libro As LibroProtocolo) As Integer
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If libro Is Nothing Then Throw New ArgumentNullException(NameOf(libro))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -44,6 +48,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub ActualizarLibro(libro As LibroProtocolo)
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If libro Is Nothing OrElse libro.ID <= 0 Then Throw New ArgumentException("El libro seleccionado no es válido.", NameOf(libro))
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim numeroActual As Integer
@@ -105,6 +111,8 @@ Public Class ProtocoloRepositorio
     End Sub
 
     Public Function CerrarLibro(id As Integer, razon As String, fechaCierre As Date) As Integer
+        If Not Permisos.TieneAcceso("protocolo.cerrar_libro") Then Throw New UnauthorizedAccessException("No tiene permiso para cerrar libros del protocolo.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim estado As String = Nothing
@@ -146,6 +154,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function RegistrarEntrega(id As Integer, fechaEntrega As Date) As Integer
+        If Not Permisos.TieneAcceso("protocolo.entregar") Then Throw New UnauthorizedAccessException("No tiene permiso para registrar entregas al Notariado.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -163,6 +173,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function MarcarIndiceGenerado(idLibro As Integer) As Integer
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If idLibro <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -182,6 +194,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Instrumentos(idLibro As Integer) As DataTable
+        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT i.ID, i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
             "       i.Objeto_Acto, i.Estado, " &
@@ -194,6 +207,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerInstrumento(id As Integer) As DataTable
+        If id <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Instrumentos WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -202,6 +216,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InsertarInstrumento(instrumento As Instrumento) As Integer
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -217,6 +233,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub ActualizarInstrumento(instrumento As Instrumento)
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If instrumento Is Nothing OrElse instrumento.ID <= 0 Then Throw New ArgumentException("El instrumento seleccionado no es válido.", NameOf(instrumento))
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -233,6 +251,8 @@ Public Class ProtocoloRepositorio
     End Sub
 
     Public Function AnularInstrumento(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idLibro As Integer = 0
@@ -298,6 +318,7 @@ Public Class ProtocoloRepositorio
     ''' una anulación conserva el asiento y nunca libera sus folios para reutilización.
     ''' </summary>
     Public Function FoliosOcupados(idLibro As Integer, idExcluir As Integer) As DataTable
+        If idLibro <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT Numero_Escritura, Folio_Inicio, Folio_Fin FROM Instrumentos " &
             "WHERE ID_Libro = @libro AND ID <> @excluir",
@@ -315,6 +336,8 @@ Public Class ProtocoloRepositorio
     ''' en ese libro o los folios se traslapan.
     ''' </summary>
     Public Function GuardarInstrumentoConBloqueo(instrumento As Instrumento,
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
                                                  ByRef idGuardado As Integer,
                                                  ByRef motivo As String) As Boolean
         idGuardado = 0
@@ -446,6 +469,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InstrumentosSinOtorgante(idLibro As Integer) As Integer
+        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.gestionar") Then Return 0
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Instrumentos i " &
             "WHERE i.ID_Libro = @libro AND i.Estado = 'Vigente' " &
@@ -461,6 +485,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Comparecientes(idInstrumento As Integer) As DataTable
+        If idInstrumento <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT c.ID, c.ID_Cliente, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente, " &
             "       IFNULL(cl.DUI, '') AS DUI, c.Calidad " &
@@ -474,6 +499,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub AgregarCompareciente(idInstrumento As Integer, idCliente As Integer, calidad As String)
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If idInstrumento <= 0 OrElse idCliente <= 0 Then Throw New ArgumentException("Seleccione un instrumento y compareciente válidos.")
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim motivo As String = ""
@@ -499,6 +526,8 @@ Public Class ProtocoloRepositorio
     End Sub
 
     Public Function QuitarCompareciente(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idInstrumento As Integer = 0
@@ -537,6 +566,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Testimonios(idLibro As Integer) As DataTable
+        If idLibro <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.testimonios")) Then Return New DataTable()
         Return Consultar(
             "SELECT t.ID, i.Numero_Escritura, t.Tipo_Testimonio, t.Fecha_Expedicion, " &
             "       t.Destinatario, IFNULL(t.Usuario, '') AS Usuario " &
@@ -550,6 +580,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Sub InsertarTestimonio(idInstrumento As Integer, tipo As String, fecha As Date, destinatario As String)
+        If Not Permisos.TieneAcceso("protocolo.testimonios") Then Throw New UnauthorizedAccessException("No tiene permiso para expedir testimonios.")
+        If idInstrumento <= 0 Then Throw New ArgumentException("Seleccione un instrumento válido.", NameOf(idInstrumento))
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idLibro As Integer = 0
@@ -641,6 +673,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
+        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
         ' GROUP_CONCAT reemplaza el STUFF/FOR XML de SQL Server: agrupa los
         ' otorgantes de cada escritura en una sola celda.
         Return Consultar(
@@ -658,6 +691,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos, IFNULL(CONCAT(' (', DUI, ')'), '')) AS Nombre " &
             "FROM Clientes WHERE Activo = 1 ORDER BY Apellidos, Nombres")
