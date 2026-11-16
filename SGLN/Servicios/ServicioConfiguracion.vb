@@ -95,7 +95,8 @@ Public Class ServicioConfiguracion
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un feriado.")
 
         Try
-            _repositorio.EliminarFeriado(id)
+            Dim filas As Integer = _repositorio.EliminarFeriado(id)
+            If filas = 0 Then Return Respuesta.Fallo("El feriado ya no existe.")
             Return Respuesta.Ok("Feriado eliminado. Los plazos ya confirmados no se recalculan.")
         Catch ex As Exception
             RegistroErrores.Escribir("Configuración - eliminar feriado", ex)
