@@ -421,6 +421,9 @@ Public Class ServicioProtocolo
             If Convert.ToString(libro.Rows(0)("Estado")) = "Vigente" Then
                 Return Respuesta.Fallo("El índice solo se puede generar después del cierre del libro.")
             End If
+            If Convert.ToBoolean(libro.Rows(0)("Indice_Generado")) Then
+                Return Respuesta.Ok("El índice de este libro ya fue generado.")
+            End If
             Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
             If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
 
