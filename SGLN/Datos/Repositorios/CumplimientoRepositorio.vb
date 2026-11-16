@@ -51,7 +51,7 @@ Public Class CumplimientoRepositorio
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Operaciones_LDAFT (ID_Caso, ID_Instrumento, Tipo_Operacion, Monto, Moneda, " &
                     "Fecha_Operacion, Descripcion, Estado, Fecha_Vencimiento_Analisis, Fecha_Vencimiento_Reporte, Observaciones) " &
-                    "VALUES (@caso, @instrumento, @tipo, @monto, @moneda, @fecha, @descripcion, @estado, @analisis, @reporte, @observaciones)",
+                    "VALUES (@caso, @instrumento, @tipo, @monto, @moneda, @fecha, @descripcion, 'Registrada', @analisis, @reporte, @observaciones)",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosOperacion(comando, operacion)
                     End Sub)
@@ -69,7 +69,7 @@ Public Class CumplimientoRepositorio
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Operaciones_LDAFT SET ID_Caso = @caso, ID_Instrumento = @instrumento, " &
                     "Tipo_Operacion = @tipo, Monto = @monto, Moneda = @moneda, Fecha_Operacion = @fecha, " &
-                    "Descripcion = @descripcion, Estado = @estado, Fecha_Vencimiento_Analisis = @analisis, " &
+                    "Descripcion = @descripcion, Fecha_Vencimiento_Analisis = @analisis, " &
                     "Fecha_Vencimiento_Reporte = @reporte, Observaciones = @observaciones " &
                     "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
                     Sub(comando As MySqlCommand)
@@ -253,7 +253,6 @@ Public Class CumplimientoRepositorio
         Parametro(comando, "@moneda", operacion.Moneda)
         Parametro(comando, "@fecha", operacion.FechaOperacion)
         Parametro(comando, "@descripcion", operacion.Descripcion)
-        Parametro(comando, "@estado", operacion.Estado)
         Parametro(comando, "@analisis", If(operacion.FechaVencimientoAnalisis.HasValue, CObj(operacion.FechaVencimientoAnalisis.Value), DBNull.Value))
         Parametro(comando, "@reporte", If(operacion.FechaVencimientoReporte.HasValue, CObj(operacion.FechaVencimientoReporte.Value), DBNull.Value))
         Parametro(comando, "@observaciones", operacion.Observaciones)
