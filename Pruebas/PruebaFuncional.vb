@@ -469,6 +469,12 @@ Module PruebaFuncional
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
+        Dim auditoriaDirecta As New AuditoriaRepositorio()
+        Verificar("El repositorio bloquea consultas directas a la bitácora sin permiso",
+                  auditoriaDirecta.Buscar("", "", "", Date.Today.AddDays(-1), Date.Today).Rows.Count = 0 AndAlso
+                  auditoriaDirecta.TablasAfectadas().Rows.Count = 0 AndAlso
+                  auditoriaDirecta.Acciones().Rows.Count = 0 AndAlso
+                  auditoriaDirecta.Usuarios().Rows.Count = 0)
         Dim repositorioConfiguracionPrueba As New ConfiguracionRepositorio()
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
