@@ -122,7 +122,9 @@ jobs:
             throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
           }
           if ($servicioCumplimiento -notmatch 'fecha de solicitud no es válida' -or
-              $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO') {
+              $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO' -or
+              $servicioCumplimiento -notmatch 'IDCaso.Value <= 0' -or
+              $servicioCumplimiento -notmatch 'caracter > "Z"c') {
             throw 'Faltan validaciones de fechas y manejo de errores en cumplimiento ARCO.'
           }
           if ($servicioDocumentos -notmatch 'ValidarReferencias' -or
