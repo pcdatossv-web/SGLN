@@ -56,7 +56,13 @@ Public Class ServicioCumplimiento
 
         Dim recalcularPlazos As Boolean = True
         If operacion.ID > 0 Then
-            Dim actual As DataTable = _repositorio.ObtenerOperacion(operacion.ID)
+            Dim actual As DataTable
+            Try
+                actual = _repositorio.ObtenerOperacion(operacion.ID)
+            Catch ex As Exception
+                RegistroErrores.Escribir("Cumplimiento - consultar operación para edición", ex)
+                Return Respuesta.Fallo("No se pudo consultar la operación. Verifique la conexión.")
+            End Try
             If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La operación ya no existe.")
             Dim estadoActual As String = Convert.ToString(actual.Rows(0)("Estado"))
             If estadoActual = "Reportada" OrElse estadoActual = "Descartada" OrElse
@@ -85,11 +91,16 @@ Public Class ServicioCumplimiento
         End If
 
         If recalcularPlazos Then
-            Dim calculadora As CalculadoraDiasHabiles = NuevaCalculadora()
-            operacion.FechaVencimientoAnalisis =
-                calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Analisis_Dias", 5))
-            operacion.FechaVencimientoReporte =
-                calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Reporte_Dias", 15))
+            Try
+                Dim calculadora As CalculadoraDiasHabiles = NuevaCalculadora()
+                operacion.FechaVencimientoAnalisis =
+                    calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Analisis_Dias", 5))
+                operacion.FechaVencimientoReporte =
+                    calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Reporte_Dias", 15))
+            Catch ex As Exception
+                RegistroErrores.Escribir("Cumplimiento - calcular plazos LDA/FT", ex)
+                Return Respuesta.Fallo("No se pudieron calcular los plazos de cumplimiento. Verifique la configuración de feriados y días hábiles.")
+            End Try
         End If
 
         Try
@@ -222,7 +233,13 @@ Public Class ServicioCumplimiento
         Dim solicitudNueva As Boolean = solicitud.ID = 0
         Dim prorrogaExistente As Boolean = False
         If Not solicitudNueva Then
-            Dim actual As DataTable = _repositorio.ObtenerSolicitud(solicitud.ID)
+            Dim actual As DataTable
+            Try
+                actual = _repositorio.ObtenerSolicitud(solicitud.ID)
+            Catch ex As Exception
+                RegistroErrores.Escribir("Cumplimiento - consultar solicitud ARCO para edición", ex)
+                Return Respuesta.Fallo("No se pudo consultar la solicitud. Verifique la conexión.")
+            End Try
             If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La solicitud ya no existe.")
 
             ' La persona titular y el derecho ejercido forman parte del hecho
@@ -257,14 +274,24 @@ Public Class ServicioCumplimiento
         Else
             solicitud.Estado = "Pendiente"
             solicitud.FechaRespuesta = Nothing
-            solicitud.FechaVencimiento = NuevaCalculadora().CalcularVencimiento(
-                solicitud.FechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
+            Try
+                solicitud.FechaVencimiento = NuevaCalculadora().CalcularVencimiento(
+                    solicitud.FechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
+            Catch ex As Exception
+                RegistroErrores.Escribir("Cumplimiento - calcular plazo inicial ARCO", ex)
+                Return Respuesta.Fallo("No se pudo calcular el vencimiento ARCO. Verifique la configuración de días hábiles y feriados.")
+            End Try
         End If
 
         If solicitud.ProrrogaAplicada Then
             If Not prorrogaExistente Then
-                solicitud.FechaVencimientoProrroga = NuevaCalculadora().CalcularVencimiento(
-                    solicitud.FechaVencimiento, DiasConfigurados("ARCO_Dias_Prorroga", 5))
+                Try
+                    solicitud.FechaVencimientoProrroga = NuevaCalculadora().CalcularVencimiento(
+                        solicitud.FechaVencimiento, DiasConfigurados("ARCO_Dias_Prorroga", 5))
+                Catch ex As Exception
+                    RegistroErrores.Escribir("Cumplimiento - calcular prórroga ARCO", ex)
+                    Return Respuesta.Fallo("No se pudo calcular la prórroga ARCO. Verifique la configuración de días hábiles y feriados.")
+                End Try
             End If
         Else
             solicitud.FechaVencimientoProrroga = Nothing
