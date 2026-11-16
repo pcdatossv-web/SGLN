@@ -166,6 +166,7 @@ Public Class UsuarioRepositorio
     End Sub
 
     Public Function Listar() As DataTable
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return New DataTable()
         Return Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, IFNULL(u.ID_Rol, 0) AS ID_Rol, " &
             "       IFNULL(r.Nombre, 'Sin rol') AS Rol, u.Activo, u.Fecha_Creacion " &
@@ -173,6 +174,7 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, Usuario, Nombre_Completo, IFNULL(ID_Rol, 0) AS ID_Rol, Activo " &
             "FROM Usuarios WHERE ID = @id",
@@ -183,7 +185,8 @@ Public Class UsuarioRepositorio
 
     ''' <summary>Obtiene el estado vigente de una cuenta para revalidar una sesión.</summary>
     Public Function ObtenerEstadoSesion(id As Integer) As UsuarioSesion
-        If id <= 0 Then Return Nothing
+        If id <= 0 OrElse Sesion.UsuarioActual Is Nothing Then Return Nothing
+        If Sesion.UsuarioActual.ID <> id AndAlso Not EsAdministradorAutenticado() Then Return Nothing
 
         Dim tabla As DataTable = Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
