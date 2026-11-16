@@ -168,14 +168,20 @@ Public Class CumplimientoRepositorio
     Public Function InsertarSolicitud(solicitud As SolicitudArco) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar solicitudes ARCO.")
         If solicitud Is Nothing Then Throw New ArgumentNullException(NameOf(solicitud))
+        If solicitud.ID <> 0 Then Throw New ArgumentException("Para registrar una solicitud nueva, el identificador debe ser cero.", NameOf(solicitud))
+        ValidarSolicitudNueva(solicitud)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Solicitudes_ARCO (ID_Cliente, Tipo_Derecho, Fecha_Solicitud, Fecha_Vencimiento, " &
                     "Fecha_Vencimiento_Prorroga, Prorroga_Aplicada, Estado, Fecha_Respuesta, Detalle) " &
-                    "VALUES (@cliente, @derecho, @solicitud, @vencimiento, @prorroga, @aplicada, @estado, @respuesta, @detalle)",
+                    "VALUES (@cliente, @derecho, @solicitud, @vencimiento, @prorroga, @aplicada, 'Pendiente', NULL, @detalle)",
                     Sub(comando As MySqlCommand)
-                        AgregarParametrosSolicitud(comando, solicitud)
+                        Parametro(comando, "@cliente", solicitud.IDCliente)
+                        Parametro(comando, "@derecho", solicitud.TipoDerecho)
+                        Parametro(comando, "@solicitud", solicitud.FechaSolicitud)
+                        Parametro(comando, "@vencimiento", solicitud.FechaVencimiento)
+                        AgregarParametrosSolicitudEditable(comando, solicitud)
                     End Sub)
                 AuditarEnTransaccion(conexion, transaccion, "CREAR", "Solicitudes_ARCO", nuevoId,
                     solicitud.TipoDerecho & " del cliente " & solicitud.IDCliente)
@@ -186,20 +192,19 @@ Public Class CumplimientoRepositorio
     Public Function ActualizarSolicitud(solicitud As SolicitudArco) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar solicitudes ARCO.")
         If solicitud Is Nothing OrElse solicitud.ID <= 0 Then Throw New ArgumentException("La solicitud seleccionada no es válida.", NameOf(solicitud))
+        If If(solicitud.Detalle, "").Length > 1000 Then Throw New ArgumentException("El detalle no puede superar 1000 caracteres.", NameOf(solicitud))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Solicitudes_ARCO SET ID_Cliente = @cliente, Tipo_Derecho = @derecho, " &
-                    "Fecha_Solicitud = @solicitud, Fecha_Vencimiento = @vencimiento, " &
-                    "Fecha_Vencimiento_Prorroga = @prorroga, Prorroga_Aplicada = @aplicada, " &
-                    "Estado = @estado, Fecha_Respuesta = @respuesta, Detalle = @detalle " &
+                    "UPDATE Solicitudes_ARCO SET Fecha_Vencimiento_Prorroga = @prorroga, " &
+                    "Prorroga_Aplicada = @aplicada, Detalle = @detalle " &
                     "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
                     Sub(comando As MySqlCommand)
-                        AgregarParametrosSolicitud(comando, solicitud)
+                        AgregarParametrosSolicitudEditable(comando, solicitud)
                         Parametro(comando, "@id", solicitud.ID)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
-                    "Solicitudes_ARCO", solicitud.ID, solicitud.TipoDerecho)
+                    "Solicitudes_ARCO", solicitud.ID, "Detalle/prórroga actualizados")
                 Return filas
             End Function)
     End Function
@@ -261,16 +266,30 @@ Public Class CumplimientoRepositorio
         Parametro(comando, "@observaciones", operacion.Observaciones)
     End Sub
 
-    Private Sub AgregarParametrosSolicitud(comando As MySqlCommand, solicitud As SolicitudArco)
-        Parametro(comando, "@cliente", solicitud.IDCliente)
-        Parametro(comando, "@derecho", solicitud.TipoDerecho)
-        Parametro(comando, "@solicitud", solicitud.FechaSolicitud)
-        Parametro(comando, "@vencimiento", solicitud.FechaVencimiento)
-        Parametro(comando, "@prorroga", If(solicitud.FechaVencimientoProrroga.HasValue, CObj(solicitud.FechaVencimientoProrroga.Value), DBNull.Value))
+    Private Sub ValidarSolicitudNueva(solicitud As SolicitudArco)
+        If solicitud.IDCliente <= 0 Then Throw New ArgumentException("Seleccione un cliente válido.", NameOf(solicitud))
+        If Not {"Acceso", "Rectificación", "Cancelación", "Oposición"}.Contains(If(solicitud.TipoDerecho, "")) Then
+            Throw New ArgumentException("El tipo de derecho ARCO no es válido.", NameOf(solicitud))
+        End If
+        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de solicitud no puede estar vacía ni ser futura.", NameOf(solicitud))
+        End If
+        If solicitud.FechaVencimiento = Date.MinValue OrElse solicitud.FechaVencimiento.Date < solicitud.FechaSolicitud.Date Then
+            Throw New ArgumentException("El vencimiento inicial no puede ser anterior a la fecha de solicitud.", NameOf(solicitud))
+        End If
+        If If(solicitud.Detalle, "").Length > 1000 Then Throw New ArgumentException("El detalle no puede superar 1000 caracteres.", NameOf(solicitud))
+        If solicitud.ProrrogaAplicada AndAlso
+           (Not solicitud.FechaVencimientoProrroga.HasValue OrElse
+            solicitud.FechaVencimientoProrroga.Value.Date < solicitud.FechaVencimiento.Date) Then
+            Throw New ArgumentException("La fecha de vencimiento de la prórroga no es válida.", NameOf(solicitud))
+        End If
+    End Sub
+
+    Private Sub AgregarParametrosSolicitudEditable(comando As MySqlCommand, solicitud As SolicitudArco)
+        Parametro(comando, "@prorroga", If(solicitud.ProrrogaAplicada AndAlso solicitud.FechaVencimientoProrroga.HasValue,
+                                           CObj(solicitud.FechaVencimientoProrroga.Value), DBNull.Value))
         Parametro(comando, "@aplicada", solicitud.ProrrogaAplicada)
-        Parametro(comando, "@estado", solicitud.Estado)
-        Parametro(comando, "@respuesta", If(solicitud.FechaRespuesta.HasValue, CObj(solicitud.FechaRespuesta.Value), DBNull.Value))
-        Parametro(comando, "@detalle", solicitud.Detalle)
+        Parametro(comando, "@detalle", If(solicitud.Detalle, "").Trim())
     End Sub
 
 End Class
