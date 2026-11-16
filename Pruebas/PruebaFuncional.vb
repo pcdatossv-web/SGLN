@@ -2584,6 +2584,13 @@ Module PruebaFuncional
                   Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
                       .ID = arco.ID, .IDCliente = idCliente, .TipoDerecho = "Acceso",
                       .FechaSolicitud = Date.Today, .Detalle = "Intento de modificación posterior"}).Exito)
+        Verificar("El repositorio impide modificar directamente una solicitud ARCO respondida",
+                  repositorioCumplimientoDirecto.ActualizarSolicitud(New SolicitudArco With {
+                      .ID = arco.ID, .ProrrogaAplicada = False,
+                      .Detalle = "Intento directo de alterar solicitud respondida"
+                  }) = 0)
+        Verificar("El repositorio impide responder dos veces directamente una solicitud ARCO",
+                  repositorioCumplimientoDirecto.Responder(arco.ID, Date.Today) = 0)
 
         ' ---------- 10. Auditoría ----------
         Console.WriteLine()
