@@ -335,8 +335,8 @@ Public Class ProtocoloRepositorio
     ''' Devuelve False si el libro no está vigente, el instrumento no existe
     ''' en ese libro o los folios se traslapan.
     ''' </summary>
-    Public Function GuardarInstrumentoConBloqueo(instrumento As Instrumento,
-                                                 ByRef idGuardado As Integer,
+    Public Function GuardarInstrumentoConBloqueo(instrumento As Instrumento, _
+                                                 ByRef idGuardado As Integer, _
                                                  ByRef motivo As String) As Boolean
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
