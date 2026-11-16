@@ -75,10 +75,21 @@ Module PruebaFuncional
                   New ServicioProtocolo().Libros().Rows.Count = 0)
         Verificar("Los comparecientes del protocolo no se exponen sin permiso",
                   New ServicioProtocolo().Comparecientes(1).Rows.Count = 0)
+        Verificar("Los plazos y parámetros del protocolo se protegen sin permiso",
+                  DenegadoPorPermiso(Function() CObj(New ServicioProtocolo().DiasEntregaConfigurados())) AndAlso
+                  DenegadoPorPermiso(Function() CObj(New ServicioProtocolo().FechaLimiteEntrega(Date.Today))))
+        Verificar("Las consultas del protocolo rechazan identificadores inválidos",
+                  New ServicioProtocolo().ObtenerLibro(0).Rows.Count = 0 AndAlso
+                  New ServicioProtocolo().Instrumentos(0).Rows.Count = 0 AndAlso
+                  New ServicioProtocolo().Testimonios(0).Rows.Count = 0 AndAlso
+                  New ServicioProtocolo().IndiceLibro(0).Rows.Count = 0)
         Verificar("Cumplimiento no se consulta sin permiso",
                   New ServicioCumplimiento().Operaciones("").Rows.Count = 0)
         Verificar("El umbral de cumplimiento no revela configuración sin permiso",
                   New ServicioCumplimiento().UmbralEfectivo() = 10000D)
+        Verificar("Los cálculos ARCO se deniegan sin permiso",
+                  DenegadoPorPermiso(Function() CObj(New ServicioCumplimiento().CalcularVencimientoArco(Date.Today))) AndAlso
+                  DenegadoPorPermiso(Function() CObj(New ServicioCumplimiento().CalcularProrrogaArco(Date.Today))))
         Verificar("Los roles no se consultan sin permiso",
                   New ServicioRoles().Listar().Rows.Count = 0)
         Verificar("La configuración no se consulta sin permiso",
@@ -1868,6 +1879,15 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Environment.ExitCode = _fallos
     End Sub
+
+    Private Function DenegadoPorPermiso(accion As Func(Of Object)) As Boolean
+        Try
+            accion()
+            Return False
+        Catch ex As UnauthorizedAccessException
+            Return True
+        End Try
+    End Function
 
     Private Sub Verificar(nombre As String, condicion As Boolean, Optional detalle As String = "")
         _pruebas += 1
