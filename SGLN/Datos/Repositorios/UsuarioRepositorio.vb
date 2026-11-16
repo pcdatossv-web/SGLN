@@ -309,8 +309,18 @@ Public Class UsuarioRepositorio
                         Parametro(comando, "@salt", credencial.Salt)
                         Parametro(comando, "@id", idUsuario)
                     End Sub)
-                If afectadas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios",
-                    idUsuario, "Cambio de clave")
+                If afectadas > 0 Then
+                    ' Un restablecimiento administrativo debe retirar también
+                    ' el bloqueo por intentos fallidos, dentro de la misma transacción.
+                    Ejecutar(conexion, transaccion,
+                        "UPDATE Intentos_Acceso SET Intentos = 0, Inicio_Ventana = NULL, " &
+                        "Ultimo_Intento = NOW(), Bloqueado_Hasta = NULL WHERE Usuario_ID = @id",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", idUsuario)
+                        End Sub)
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios",
+                        idUsuario, "Cambio de clave")
+                End If
                 Return afectadas
             End Function)
 
