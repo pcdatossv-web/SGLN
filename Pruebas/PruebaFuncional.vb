@@ -508,6 +508,8 @@ Module PruebaFuncional
                   Not repositorioRolesPrueba.Crear("Rol inválido", "", New List(Of String)()).Exito AndAlso
                   Not repositorioRolesPrueba.Crear("Rol inválido", New String("D"c, 201),
                       New List(Of String)()).Exito)
+        Verificar("El repositorio no permite guardar permisos para un rol inexistente",
+                  Not repositorioRolesPrueba.GuardarPermisos(0, New List(Of String)()).Exito)
         Dim altaAtomica As Respuesta = repositorioRolesPrueba.Crear(
             "Rol transaccional fallido", "No debe persistir",
             New List(Of String) From {"permiso.inexistente"})
