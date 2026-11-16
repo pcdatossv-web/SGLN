@@ -301,7 +301,7 @@ Module PruebaFuncional
         Verificar("Una clave nueva de primer ingreso exige longitud y complejidad",
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave nueva rechaza más de 128 caracteres",
-                  SeguridadClave.ValidarClaveNuevaInicial(New String("A"c, 120) & "a1!") <> "")
+                  SeguridadClave.ValidarClaveNuevaInicial(New String("A"c, 126) & "a1!") <> "")
         Verificar("El repositorio rechaza nombres de usuario y claves fuera de límite antes de consultar",
                   usuarios.Autenticar(New String("u"c, 51), "ClaveValida99!") Is Nothing AndAlso
                   usuarios.Autenticar("admin", New String("A"c, 129)) Is Nothing)
