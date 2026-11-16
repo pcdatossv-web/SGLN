@@ -37,6 +37,8 @@ Public Class ProtocoloRepositorio
     Public Function InsertarLibro(libro As LibroProtocolo) As Integer
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If libro Is Nothing Then Throw New ArgumentNullException(NameOf(libro))
+        If libro.ID <> 0 Then Throw New ArgumentException("Para insertar un libro nuevo, el identificador debe ser cero.", NameOf(libro))
+        ValidarDatosLibro(libro)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -54,6 +56,7 @@ Public Class ProtocoloRepositorio
     Public Sub ActualizarLibro(libro As LibroProtocolo)
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If libro Is Nothing OrElse libro.ID <= 0 Then Throw New ArgumentException("El libro seleccionado no es válido.", NameOf(libro))
+        ValidarDatosLibro(libro)
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim numeroActual As Integer
@@ -361,6 +364,19 @@ Public Class ProtocoloRepositorio
                                                  ByRef motivo As String) As Boolean
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
+        If instrumento.ID < 0 Then Throw New ArgumentException("El identificador de la escritura no es válido.", NameOf(instrumento))
+        If instrumento.IDLibro <= 0 Then Throw New ArgumentException("Seleccione un libro del protocolo.", NameOf(instrumento))
+        If instrumento.NumeroEscritura <= 0 Then Throw New ArgumentException("El número de escritura debe ser mayor que cero.", NameOf(instrumento))
+        If instrumento.FolioInicio < 1 OrElse instrumento.FolioFin < instrumento.FolioInicio Then
+            Throw New ArgumentException("El rango de folios no es válido.", NameOf(instrumento))
+        End If
+        If instrumento.FechaHoraOtorgamiento = Date.MinValue OrElse instrumento.FechaHoraOtorgamiento.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de otorgamiento no puede estar vacía ni ser futura.", NameOf(instrumento))
+        End If
+        If String.IsNullOrWhiteSpace(instrumento.ObjetoActo) OrElse instrumento.ObjetoActo.Trim().Length > 500 Then
+            Throw New ArgumentException("El objeto del acto debe contener entre 1 y 500 caracteres.", NameOf(instrumento))
+        End If
+        instrumento.ObjetoActo = instrumento.ObjetoActo.Trim()
         idGuardado = 0
         motivo = ""
 
@@ -824,6 +840,19 @@ Public Class ProtocoloRepositorio
 
         Return True
     End Function
+
+    Private Sub ValidarDatosLibro(libro As LibroProtocolo)
+        If libro.NumeroLibro <= 0 Then Throw New ArgumentException("El número de libro debe ser mayor que cero.", NameOf(libro))
+        If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
+            Throw New ArgumentException("El año de vigencia no es válido.", NameOf(libro))
+        End If
+        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue Then
+            Throw New ArgumentException("Las fechas de autorización y vencimiento son obligatorias.", NameOf(libro))
+        End If
+        If libro.FechaVencimiento.Date < libro.FechaAutorizacion.Date Then
+            Throw New ArgumentException("El vencimiento no puede ser anterior a la autorización.", NameOf(libro))
+        End If
+    End Sub
 
     Private Sub AgregarParametrosLibro(comando As MySqlCommand, libro As LibroProtocolo)
         Parametro(comando, "@numero", libro.NumeroLibro)
