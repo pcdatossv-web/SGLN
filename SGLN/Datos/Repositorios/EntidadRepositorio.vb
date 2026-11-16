@@ -10,6 +10,7 @@ Public Class EntidadRepositorio
     Inherits RepositorioBase
 
     Public Function Buscar(filtro As String) As DataTable
+        If Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Return Consultar(
             "SELECT e.ID, e.Razon_Social, e.NIT, e.NRC, " &
@@ -25,6 +26,7 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If id <= 0 OrElse Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT e.*, p.ID AS ID_Perfil, p.Nivel_Riesgo, p.Origen_Fondos_Verificado, " &
             "       p.Detalle_Origen_Fondos, p.Fecha_Verificacion_Listas, p.Observaciones AS Observaciones_LDAFT " &
@@ -41,6 +43,8 @@ Public Class EntidadRepositorio
     ''' Si falla el perfil o la auditoría, la entidad también se revierte.
     ''' </summary>
     Public Function GuardarCompleto(entidad As EntidadLegal, perfil As PerfilLdaft) As Integer
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar entidades.")
+        If entidad Is Nothing Then Throw New ArgumentNullException(NameOf(entidad))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idEntidad As Integer = entidad.ID
@@ -135,6 +139,8 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function Desactivar(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar entidades.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -152,6 +158,7 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function Representantes(idEntidad As Integer) As DataTable
+        If idEntidad <= 0 OrElse Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT r.ID, c.ID AS ID_Cliente, CONCAT(c.Nombres, ' ', c.Apellidos) AS Nombre, " &
             "       r.Cargo, r.Tipo_Representacion " &
@@ -164,12 +171,15 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
+        If Not (Permisos.TieneAcceso("entidades.ver") OrElse Permisos.TieneAcceso("entidades.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
 
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar representantes.")
+        If idEntidad <= 0 OrElse idCliente <= 0 Then Return Respuesta.Fallo("Seleccione una entidad y un cliente válidos.")
         Try
             EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
@@ -196,6 +206,8 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function QuitarRepresentante(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("entidades.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar representantes.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
