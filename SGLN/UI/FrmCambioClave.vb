@@ -55,6 +55,7 @@ Public Class FrmCambioClave
 
         Me.AcceptButton = _btnGuardar
         Me.CancelButton = _btnCancelar
+        AddHandler Me.Shown, Sub(sender As Object, e As EventArgs) _txtActual.Focus()
     End Sub
 
     Private Sub CrearEtiqueta(texto As String, x As Integer, y As Integer)
