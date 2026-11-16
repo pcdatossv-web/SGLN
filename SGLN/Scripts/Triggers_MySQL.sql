@@ -36,7 +36,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'No se permite crear roles protegidos desde la cuenta de aplicación.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_roles_protegido_bu BEFORE UPDATE ON Roles
 FOR EACH ROW
@@ -52,7 +52,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'El rol Administrador es protegido: no se puede desactivar ni renombrar.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_roles_protegido_bd BEFORE DELETE ON Roles
 FOR EACH ROW
