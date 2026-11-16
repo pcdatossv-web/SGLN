@@ -164,7 +164,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function MarcarVencidas() As Integer
-        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para actualizar plazos.")
+        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para actualizar plazos.")
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -178,7 +178,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function MarcarCumplida(id As Integer) As Integer
-        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para marcar plazos cumplidos.")
+        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para marcar plazos cumplidos.")
         If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
