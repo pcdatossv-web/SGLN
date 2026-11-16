@@ -1557,6 +1557,8 @@ Module PruebaFuncional
                   Not rCerrar.Exito AndAlso rCerrar.Mensaje.Contains("otorgante"), rCerrar.Mensaje)
         Verificar("El índice no se genera mientras el libro sigue vigente",
                   Not protocolo.GenerarIndice(idLibro).Exito)
+        Verificar("El repositorio tampoco permite marcar un índice antes del cierre",
+                  New ProtocoloRepositorio().MarcarIndiceGenerado(idLibro) = 0)
 
         Dim rComp2 As Respuesta = protocolo.AgregarCompareciente(idInstrumento2, idCliente, "Otorgante")
         Verificar("Agregar otorgante a la escritura 2", rComp2.Exito, rComp2.Mensaje)
