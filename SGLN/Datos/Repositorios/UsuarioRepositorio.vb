@@ -1,6 +1,7 @@
 Imports System
 Imports System.Data
 Imports System.Collections.Generic
+Imports System.Text.RegularExpressions
 Imports MySql.Data.MySqlClient
 
 ''' <summary>
@@ -14,6 +15,7 @@ Public Class UsuarioRepositorio
     ' cuando el nombre no existe. No corresponde a ninguna cuenta real.
     Private Const HashTiempoConstante As String = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     Private Const SaltTiempoConstante As String = "AAAAAAAAAAAAAAAAAAAAAA=="
+    Private Shared ReadOnly PatronUsuario As New Regex("\A[a-zA-Z0-9._-]{3,50}\z", RegexOptions.CultureInvariant)
 
     Public Function Autenticar(usuario As String, clave As String) As UsuarioSesion
         ' Los límites se aplican también en el repositorio, no solo en los
@@ -223,6 +225,15 @@ Public Class UsuarioRepositorio
         If Not Permisos.TieneAcceso("config.usuarios") Then
             Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
         End If
+        If String.IsNullOrWhiteSpace(usuario) OrElse Not PatronUsuario.IsMatch(usuario.Trim()) Then
+            Return Respuesta.Fallo("El usuario debe tener entre 3 y 50 caracteres y solo letras, números, punto, guion o guion bajo.")
+        End If
+        If String.IsNullOrWhiteSpace(nombreCompleto) OrElse nombreCompleto.Trim().Length > 150 Then
+            Return Respuesta.Fallo("El nombre completo debe contener entre 1 y 150 caracteres.")
+        End If
+        If idRol <= 0 OrElse Not RolActivo(idRol) Then Return Respuesta.Fallo("El rol seleccionado no existe o está desactivado.")
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         If EsRolProtegido(idRol) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
@@ -261,6 +272,19 @@ Public Class UsuarioRepositorio
                                activo As Boolean) As Respuesta
         If Not Permisos.TieneAcceso("config.usuarios") Then
             Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        End If
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
+        If String.IsNullOrWhiteSpace(nombreCompleto) OrElse nombreCompleto.Trim().Length > 150 Then
+            Return Respuesta.Fallo("El nombre completo debe contener entre 1 y 150 caracteres.")
+        End If
+        If idRol <= 0 OrElse Not RolActivo(idRol) Then Return Respuesta.Fallo("El rol seleccionado no existe o está desactivado.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id AndAlso
+           (idRol <> Sesion.UsuarioActual.IDRol OrElse Not activo) Then
+            Return Respuesta.Fallo("No puede cambiar su propio rol ni desactivar su cuenta desde esta sesión.")
+        End If
+        If EsAdministrador(id) AndAlso (Not EsRolProtegido(idRol) OrElse Not activo) AndAlso
+           ContarAdministradoresActivos(id) = 0 Then
+            Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
         End If
         If EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede modificar otra cuenta Administrador.")
@@ -422,6 +446,14 @@ Public Class UsuarioRepositorio
         Return Sesion.UsuarioActual IsNot Nothing AndAlso
                Sesion.UsuarioActual.RolProtegido AndAlso
                Permisos.TieneAcceso("config.usuarios") AndAlso Permisos.AccesoTotal
+    End Function
+
+    Private Function RolActivo(idRol As Integer) As Boolean
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Roles WHERE ID = @id AND Activo = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", idRol)
+            End Sub) > 0
     End Function
 
     Private Function EsRolProtegido(idRol As Integer) As Boolean
