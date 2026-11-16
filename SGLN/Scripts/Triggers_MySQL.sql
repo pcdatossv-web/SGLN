@@ -33,7 +33,7 @@ DELETE rp
 FROM Rol_Permiso rp
 INNER JOIN Roles r ON r.ID = rp.ID_Rol
 WHERE r.Protegido = 0
-  AND rp.Codigo IN ('config.usuarios', 'config.roles');
+  AND rp.Codigo LIKE 'config.%';
 
 DELIMITER $$
 
@@ -125,12 +125,12 @@ BEGIN
     SELECT Protegido INTO v_protegido
     FROM Roles WHERE ID = NEW.ID_Rol LIMIT 1;
 
-    /* config.usuarios y config.roles son privilegios administrativos.
-       Ningún rol ordinario puede obtenerlos por SQL directo. */
-    IF NEW.Codigo IN ('config.usuarios', 'config.roles')
+    /* Todo el catálogo config.* queda reservado al rol protegido.
+       Ningún rol ordinario puede obtener privilegios de configuración por SQL directo. */
+    IF NEW.Codigo LIKE 'config.%'
        AND COALESCE(v_protegido, 0) <> 1 THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
+            SET MESSAGE_TEXT = 'Los permisos de configuración solo pueden pertenecer al rol Administrador protegido.';
     END IF;
 END$$
 
@@ -150,7 +150,7 @@ BEGIN
             SET MESSAGE_TEXT = 'No se pueden reasignar ni cambiar los permisos esenciales del Administrador.';
     END IF;
 
-    IF NEW.Codigo IN ('config.usuarios', 'config.roles')
+    IF NEW.Codigo LIKE 'config.%'
        AND COALESCE(v_nuevo_protegido, 0) <> 1 THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
