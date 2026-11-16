@@ -84,8 +84,13 @@ Public Class FrmLogin
                     Return
                 End If
 
-                Dim cambio As Respuesta = repositorio.CambiarClave(usuario.ID, claveNueva)
+                ' La cuenta autenticada se establece temporalmente para que el
+                ' repositorio verifique la clave actual y la cambie atómicamente.
+                Sesion.UsuarioActual = usuario
+                Dim cambio As Respuesta = repositorio.CambiarClavePropia(
+                    usuario.ID, txtClave.Text, claveNueva)
                 If Not cambio.Exito Then
+                    Sesion.Limpiar()
                     lblError.Text = cambio.Mensaje
                     txtClave.Clear()
                     txtClave.Focus()
