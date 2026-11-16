@@ -1633,7 +1633,7 @@ Module PruebaFuncional
             (New ProtocoloRepositorio()).ActualizarInstrumento(New Instrumento With {
                 .ID = idInstrumento1, .IDLibro = idLibro, .NumeroEscritura = 1,
                 .FechaHoraOtorgamiento = New Date(2026, 2, 10, 10, 30, 0),
-                .FolioInicio = 10, .FolioFin = 12,
+                .FolioInicio = 20, .FolioFin = 25,
                 .ObjetoActo = "Edición directa con folios ocupados", .Estado = "Vigente"})
         Catch ex As InvalidOperationException
             edicionDirectaTraslapeRechazada = True
