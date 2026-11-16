@@ -9,6 +9,8 @@ Imports System.Collections.Generic
 Public Class CalculadoraDiasHabiles
 
     Private ReadOnly _feriados As HashSet(Of Date)
+    Private Const MaxDiasHabiles As Integer = 36600
+    Private Const MaxRangoConteoDias As Integer = 365000
 
     Public Sub New(feriados As IEnumerable(Of Date))
         _feriados = New HashSet(Of Date)()
@@ -32,8 +34,12 @@ Public Class CalculadoraDiasHabiles
     ''' siguiente a la notificación.
     ''' </summary>
     Public Function CalcularVencimiento(fechaNotificacion As Date, diasHabiles As Integer) As Date
-        If diasHabiles <= 0 Then
-            Throw New ArgumentOutOfRangeException(NameOf(diasHabiles), "El plazo debe ser mayor que cero.")
+        If fechaNotificacion = Date.MinValue Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion), "La fecha de notificación no es válida.")
+        End If
+        If diasHabiles <= 0 OrElse diasHabiles > MaxDiasHabiles Then
+            Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
+                "El plazo debe estar entre 1 y " & MaxDiasHabiles.ToString() & " días hábiles.")
         End If
 
         Dim fecha As Date = fechaNotificacion.Date
@@ -52,7 +58,14 @@ Public Class CalculadoraDiasHabiles
     ''' día inicial, igual que el cómputo de plazos).
     ''' </summary>
     Public Function ContarDiasHabiles(desde As Date, hasta As Date) As Integer
+        If desde = Date.MinValue OrElse hasta = Date.MinValue Then
+            Throw New ArgumentOutOfRangeException(NameOf(desde), "Las fechas del período no son válidas.")
+        End If
         If hasta.Date < desde.Date Then Return 0
+        If (hasta.Date - desde.Date).TotalDays > MaxRangoConteoDias Then
+            Throw New ArgumentOutOfRangeException(NameOf(hasta),
+                "El período no puede superar " & MaxRangoConteoDias.ToString() & " días.")
+        End If
 
         Dim contador As Integer = 0
         Dim fecha As Date = desde.Date
@@ -64,6 +77,9 @@ Public Class CalculadoraDiasHabiles
     End Function
 
     Public Function SiguienteDiaHabil(fecha As Date) As Date
+        If fecha = Date.MinValue Then
+            Throw New ArgumentOutOfRangeException(NameOf(fecha), "La fecha no es válida.")
+        End If
         Dim actual As Date = fecha.Date
         Do While Not EsDiaHabil(actual)
             actual = actual.AddDays(1)
