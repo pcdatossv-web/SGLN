@@ -112,7 +112,9 @@ Public Class CasoRepositorio
                         AgregarParametrosActuacion(comando, actuacion)
                         Parametro(comando, "@id", actuacion.ID)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
+                ' La confirmación es un evento de negocio y debe quedar auditada
+                ' incluso si los datos calculados coinciden con los ya almacenados.
+                AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
                     actuacion.ID, "Vencimiento " & If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D"))
                 Return actuacion.ID
             End Function)
