@@ -1949,6 +1949,8 @@ Module PruebaFuncional
         Next
         Dim rEliminarFeriado As Respuesta = seguridad.EliminarFeriado(idNuevoFeriado)
         Verificar("Eliminar el feriado de prueba", rEliminarFeriado.Exito, rEliminarFeriado.Mensaje)
+        Verificar("Eliminar un feriado inexistente se rechaza",
+                  Not seguridad.EliminarFeriado(Integer.MaxValue).Exito)
         Dim calculadora3 As CalculadoraDiasHabiles = plazos.ObtenerCalculadora()
         Verificar("Sin el feriado, el 31/12/2026 vuelve a ser hábil",
                   calculadora3.EsDiaHabil(New Date(2026, 12, 31)))
