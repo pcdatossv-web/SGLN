@@ -31,6 +31,10 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Sub Guardar(clave As String, valor As String)
+        If Not Permisos.TieneAcceso("config.editar") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para modificar la configuración.")
+        End If
+
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -50,6 +54,10 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Sub InsertarFeriado(fecha As Date, descripcion As String)
+        If Not Permisos.TieneAcceso("config.feriados") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para administrar feriados.")
+        End If
+
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim id As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -65,6 +73,10 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Public Sub EliminarFeriado(id As Integer)
+        If Not Permisos.TieneAcceso("config.feriados") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para administrar feriados.")
+        End If
+
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -114,6 +126,10 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Public Sub RespaldarBaseDatos(rutaDestino As String)
+        If Not Permisos.TieneAcceso("config.respaldos") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para crear respaldos.")
+        End If
+
         ValidarMotoresRespaldo()
         Dim ejecutable As String = RutaMySqlDump()
         If String.IsNullOrWhiteSpace(ejecutable) Then
