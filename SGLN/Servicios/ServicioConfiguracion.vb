@@ -134,6 +134,9 @@ Public Class ServicioConfiguracion
         Try
             Dim carpeta As String = CarpetaRespaldos()
             Directory.CreateDirectory(carpeta)
+            ' La carpeta puede haber sido sustituida por un junction/symlink
+            ' después de leer la configuración. Revalidar antes de escribir.
+            carpeta = CarpetaRespaldos()
 
             ' Milisegundos más sufijo aleatorio: dos respaldos en el mismo
             ' segundo nunca deben reemplazarse entre sí.
@@ -181,8 +184,33 @@ Public Class ServicioConfiguracion
             Throw New InvalidOperationException(
                 "La carpeta de respaldos debe ser una carpeta dedicada; no se permite usar la raíz de una unidad o recurso compartido.")
         End If
+
+        ValidarCarpetaRespaldosSinEnlaces(rutaCompleta)
         Return rutaCompleta
     End Function
+
+    ''' <summary>
+    ''' Impide que una carpeta de respaldos aparentemente local redirija la
+    ''' escritura de copias sensibles fuera de la ubicación autorizada.
+    ''' </summary>
+    Private Shared Sub ValidarCarpetaRespaldosSinEnlaces(rutaCompleta As String)
+        Dim raiz As String = Path.GetPathRoot(rutaCompleta)
+        Dim relativo As String = rutaCompleta.Substring(raiz.Length)
+        Dim segmentos As String() = relativo.Split(
+            New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar},
+            StringSplitOptions.RemoveEmptyEntries)
+        Dim actual As String = raiz
+
+        For Each segmento As String In segmentos
+            actual = Path.Combine(actual, segmento)
+            If Directory.Exists(actual) OrElse File.Exists(actual) Then
+                If (File.GetAttributes(actual) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+                    Throw New InvalidOperationException(
+                        "La ruta de respaldos contiene un enlace simbólico o punto de reanálisis no permitido.")
+                End If
+            End If
+        Next
+    End Sub
 
     Public Function EsClaveReservada(clave As String) As Boolean
         If String.IsNullOrWhiteSpace(clave) Then Return False
