@@ -34,8 +34,9 @@ Public Class CalculadoraDiasHabiles
     ''' siguiente a la notificación.
     ''' </summary>
     Public Function CalcularVencimiento(fechaNotificacion As Date, diasHabiles As Integer) As Date
-        If fechaNotificacion = Date.MinValue Then
-            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion), "La fecha de notificación no es válida.")
+        If fechaNotificacion = Date.MinValue OrElse fechaNotificacion.Date.Year < 1000 Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
+                "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
         If diasHabiles <= 0 OrElse diasHabiles > MaxDiasHabiles Then
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
@@ -46,6 +47,10 @@ Public Class CalculadoraDiasHabiles
         Dim contador As Integer = 0
 
         Do While contador < diasHabiles
+            If fecha = Date.MaxValue.Date Then
+                Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
+                    "El vencimiento calculado supera el rango máximo de fechas admitido.")
+            End If
             fecha = fecha.AddDays(1)
             If EsDiaHabil(fecha) Then contador += 1
         Loop
@@ -58,8 +63,10 @@ Public Class CalculadoraDiasHabiles
     ''' día inicial, igual que el cómputo de plazos).
     ''' </summary>
     Public Function ContarDiasHabiles(desde As Date, hasta As Date) As Integer
-        If desde = Date.MinValue OrElse hasta = Date.MinValue Then
-            Throw New ArgumentOutOfRangeException(NameOf(desde), "Las fechas del período no son válidas.")
+        If desde = Date.MinValue OrElse hasta = Date.MinValue OrElse
+           desde.Date.Year < 1000 OrElse hasta.Date.Year < 1000 Then
+            Throw New ArgumentOutOfRangeException(NameOf(desde),
+                "Las fechas del período deben estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
         If hasta.Date < desde.Date Then Return 0
         If (hasta.Date - desde.Date).TotalDays > MaxRangoConteoDias Then
@@ -77,11 +84,16 @@ Public Class CalculadoraDiasHabiles
     End Function
 
     Public Function SiguienteDiaHabil(fecha As Date) As Date
-        If fecha = Date.MinValue Then
-            Throw New ArgumentOutOfRangeException(NameOf(fecha), "La fecha no es válida.")
+        If fecha = Date.MinValue OrElse fecha.Date.Year < 1000 Then
+            Throw New ArgumentOutOfRangeException(NameOf(fecha),
+                "La fecha debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
         Dim actual As Date = fecha.Date
         Do While Not EsDiaHabil(actual)
+            If actual = Date.MaxValue.Date Then
+                Throw New ArgumentOutOfRangeException(NameOf(fecha),
+                    "No existe un día hábil posterior dentro del rango de fechas admitido.")
+            End If
             actual = actual.AddDays(1)
         Loop
         Return actual

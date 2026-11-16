@@ -43,6 +43,22 @@ Module PruebaFuncional
         End Try
         Verificar("La calculadora rechaza fechas de notificación no inicializadas", fechaMinimaRechazada)
 
+        Dim fechaAnteriorMysqlRechazada As Boolean = False
+        Try
+            calculadoraInicial.CalcularVencimiento(New Date(999, 12, 31), 1)
+        Catch ex As ArgumentOutOfRangeException
+            fechaAnteriorMysqlRechazada = True
+        End Try
+        Verificar("La calculadora rechaza fechas anteriores al mínimo de MySQL", fechaAnteriorMysqlRechazada)
+
+        Dim desbordamientoVencimientoRechazado As Boolean = False
+        Try
+            calculadoraInicial.CalcularVencimiento(Date.MaxValue, 1)
+        Catch ex As ArgumentOutOfRangeException
+            desbordamientoVencimientoRechazado = True
+        End Try
+        Verificar("La calculadora rechaza vencimientos que exceden DateTime.MaxValue", desbordamientoVencimientoRechazado)
+
         Dim plazoExcesivoRechazado As Boolean = False
         Try
             calculadoraInicial.CalcularVencimiento(Date.Today, 36601)
