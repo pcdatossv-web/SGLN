@@ -117,6 +117,7 @@ jobs:
             throw 'Faltan validaciones de entrada o manejo de reglas históricas en el servicio de casos.'
           }
           if ($servicioPlazos -notmatch 'casos.confirmar_plazo' -or
+              $servicioPlazos -notmatch 'FechaNotificacion = Date.MinValue' -or
               $casoRepo -notmatch 'CONFIRMAR PLAZO') {
             throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
           }
