@@ -468,6 +468,14 @@ Module PruebaFuncional
         Verificar("Un usuario con config.usuarios no puede promover otra cuenta a Administrador",
                   Not servicioUsuarios.Actualizar(idUsuarioPrueba, "Usuario de Prueba",
                       idRolAdmin, True).Exito)
+        Verificar("Un usuario con config.usuarios no puede modificar la cuenta Administrador",
+                  Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAdmin, True).Exito)
+        Verificar("Un usuario con config.usuarios no puede desactivar la cuenta Administrador",
+                  Not servicioUsuarios.Desactivar(admin.ID).Exito)
+        Verificar("Un usuario con config.usuarios no puede restablecer la clave del Administrador",
+                  Not servicioUsuarios.RestablecerClave(admin.ID, "ClaveTemporal99!").Exito)
+        Verificar("El repositorio bloquea el restablecimiento directo de la clave Administrador",
+                  Not New UsuarioRepositorio().CambiarClave(admin.ID, "ClaveTemporal99!").Exito)
         Verificar("El repositorio también bloquea el alta directa de cuentas Administrador",
                   Not New UsuarioRepositorio().Crear("repo_admin_" & sufijoGestor,
                       "Intento directo de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
