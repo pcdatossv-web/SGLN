@@ -2612,6 +2612,8 @@ Module PruebaFuncional
                   consultaAuditoriaLimiteMaximo)
         Verificar("La consulta de auditoría rechaza rangos invertidos sin consultar datos",
                   auditoria.Buscar("", "", "", Date.Today, Date.Today.AddDays(-1)).Rows.Count = 0)
+        Verificar("La consulta de auditoría rechaza fechas anteriores al rango DATETIME de MySQL",
+                  auditoria.Buscar("", "", "", Date.MinValue.Date, Date.Today).Rows.Count = 0)
 
         If bitacoraTodo.Rows.Count > 0 Then
             Dim idAuditInmutable As Integer = Convert.ToInt32(bitacoraTodo.Rows(0)("ID"))
