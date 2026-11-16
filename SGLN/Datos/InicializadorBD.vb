@@ -12,7 +12,7 @@ Imports MySql.Data.MySqlClient
 ''' si la base está vacía (solo posible si el usuario tiene permisos DDL) y
 ''' siembra catálogos y configuración. La primera cuenta administradora se registra mediante el asistente inicial.
 '''
-''' En producción el usuario sgln_app solo tiene SELECT, INSERT, UPDATE y DELETE;
+''' En producción sgln_app tiene DML por tabla, sin alterar el catálogo de permisos;
 ''' por eso la instalación normal la hace un administrador con
 ''' Scripts\Instalacion_Servidor_MySQL.sql. Si el esquema no existe y el usuario
 ''' no puede crearlo, se detiene con un mensaje que indica qué ejecutar.
@@ -133,6 +133,16 @@ Public Module InicializadorBD
                 "con un usuario administrador.")
         End If
 
+        If EscalarEntero("SELECT COUNT(*) FROM Permisos WHERE Codigo = 'config.editar'") = 0 OrElse
+           EscalarEntero(
+               "SELECT COUNT(*) FROM Rol_Permiso rp " &
+               "INNER JOIN Roles r ON r.ID = rp.ID_Rol " &
+               "WHERE r.Protegido = 1 AND rp.Codigo = 'config.editar'") = 0 Then
+            Throw New InvalidOperationException(
+                "Falta el permiso config.editar o no está asignado al Administrador. " &
+                "Un administrador debe ejecutar Scripts\Esquema_MySQL.sql.")
+        End If
+
         If Not TablaExiste("Intentos_Acceso") Then
             Throw New InvalidOperationException(
                 "Falta la tabla de protección contra intentos de acceso. " &
@@ -150,7 +160,6 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarDatosIniciales()
-        SembrarPermisosAdicionales()
         SembrarConfiguracion()
         SembrarFeriados()
         SembrarJuzgados()
@@ -241,17 +250,6 @@ Public Module InicializadorBD
                 End If
             End Try
         End Using
-    End Sub
-
-    ''' <summary>Agrega permisos nuevos de forma compatible con bases ya instaladas.</summary>
-    Private Sub SembrarPermisosAdicionales()
-        Ejecutar(
-            "INSERT IGNORE INTO Permisos (Codigo, Modulo, Descripcion) " &
-            "VALUES ('config.editar', 'Configuración', 'Modificar parámetros de configuración')")
-
-        Ejecutar(
-            "INSERT IGNORE INTO Rol_Permiso (ID_Rol, Codigo) " &
-            "SELECT ID, 'config.editar' FROM Roles WHERE Protegido = 1")
     End Sub
 
     Private Sub SembrarConfiguracion()
