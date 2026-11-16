@@ -2208,6 +2208,20 @@ Module PruebaFuncional
         Verificar("El vencimiento ARCO se calcula a 10 días hábiles",
                   UtileriasUI.Fecha(cumplimiento.ObtenerSolicitud(arco.ID).Rows(0), "Fecha_Vencimiento") =
                   calculadoraFeriados.CalcularVencimiento(Date.Today, 10))
+        Dim intentoAlterarHechoArco As Integer =
+            (New CumplimientoRepositorio()).ActualizarSolicitud(New SolicitudArco With {
+                .ID = arco.ID, .IDCliente = idCliente + 999, .TipoDerecho = "Cancelación",
+                .FechaSolicitud = Date.Today.AddDays(30), .FechaVencimiento = Date.Today.AddDays(60),
+                .Estado = "Respondida", .FechaRespuesta = Date.Today,
+                .ProrrogaAplicada = False, .Detalle = "Detalle corregido sin alterar el hecho original"})
+        Dim arcoTrasAlteracionDirecta As DataTable = cumplimiento.ObtenerSolicitud(arco.ID)
+        Verificar("El repositorio conserva titular, derecho, fechas y estado histórico de ARCO al editar",
+                  intentoAlterarHechoArco = 1 AndAlso arcoTrasAlteracionDirecta.Rows.Count = 1 AndAlso
+                  Convert.ToInt32(arcoTrasAlteracionDirecta.Rows(0)("ID_Cliente")) = idCliente AndAlso
+                  Convert.ToString(arcoTrasAlteracionDirecta.Rows(0)("Tipo_Derecho")) = "Acceso" AndAlso
+                  UtileriasUI.Fecha(arcoTrasAlteracionDirecta.Rows(0), "Fecha_Solicitud") = Date.Today AndAlso
+                  Convert.ToString(arcoTrasAlteracionDirecta.Rows(0)("Estado")) = "Pendiente" AndAlso
+                  arcoTrasAlteracionDirecta.Rows(0).IsNull("Fecha_Respuesta"))
 
         Dim arcoVencida As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Acceso",
