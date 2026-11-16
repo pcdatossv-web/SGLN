@@ -33,10 +33,13 @@ Module PruebaFuncional
                           "; Origen=" & configEfectiva.Origen)
         Dim baseAisladaCorrecta As Boolean =
             String.Equals(configEfectiva.BaseDatos, "sgln_sv_pruebas", StringComparison.OrdinalIgnoreCase)
+        Dim modoTlsEfectivo As String = If(configEfectiva.ModoSsl, "").Trim()
         Dim tlsPruebasCorrecto As Boolean =
-            String.Equals(configEfectiva.ModoSsl, "Preferred", StringComparison.OrdinalIgnoreCase)
+            String.Equals(modoTlsEfectivo, "Preferred", StringComparison.OrdinalIgnoreCase)
         Verificar("El arnés carga exclusivamente sgln_sv_pruebas", baseAisladaCorrecta)
-        Verificar("El arnés carga TLS Preferred únicamente para la base aislada", tlsPruebasCorrecto)
+        Verificar("El arnés carga TLS Preferred únicamente para la base aislada", tlsPruebasCorrecto,
+                  "Valor TLS recibido=[" & If(configEfectiva.ModoSsl, "<Nothing>") &
+                  "]; longitud=" & If(configEfectiva.ModoSsl, "").Length.ToString())
         If Not baseAisladaCorrecta OrElse Not tlsPruebasCorrecto Then
             Console.WriteLine("Ejecución detenida por seguridad: revise PruebaFuncional.exe.config y su copia en Pruebas\\bin.")
             Environment.ExitCode = 1
