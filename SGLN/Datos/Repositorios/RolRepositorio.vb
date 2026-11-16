@@ -53,6 +53,10 @@ Public Class RolRepositorio
 
     Public Function Crear(nombre As String, descripcion As String,
                           codigos As List(Of String)) As Respuesta
+        If Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
+        End If
+
         Dim nuevoId As Integer = 0
 
         Try
@@ -93,6 +97,10 @@ Public Class RolRepositorio
 
     Public Function Actualizar(id As Integer, nombre As String, descripcion As String,
                                activo As Boolean, codigos As List(Of String)) As Respuesta
+        If Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
+        End If
+
         Try
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
@@ -138,6 +146,10 @@ Public Class RolRepositorio
     End Function
 
     Public Function Eliminar(id As Integer) As Respuesta
+        If Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede eliminar roles.")
+        End If
+
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
@@ -167,6 +179,10 @@ Public Class RolRepositorio
     ''' Se conserva este método público para operaciones puntuales y pruebas.
     ''' </summary>
     Public Function GuardarPermisos(idRol As Integer, codigos As List(Of String)) As Respuesta
+        If Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede modificar los permisos de roles.")
+        End If
+
         Try
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
@@ -240,6 +256,12 @@ Public Class RolRepositorio
             End Using
         Next
     End Sub
+
+    Private Function EsAdministradorAutenticado() As Boolean
+        If Sesion.UsuarioActual Is Nothing Then Return False
+        If Not Permisos.TieneAcceso("config.roles") Then Return False
+        Return Sesion.UsuarioActual.RolProtegido AndAlso Permisos.AccesoTotal
+    End Function
 
     Private Shared Sub Revertir(transaccion As MySqlTransaction)
         Try
