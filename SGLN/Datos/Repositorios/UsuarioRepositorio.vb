@@ -389,6 +389,9 @@ Public Class UsuarioRepositorio
             Return Respuesta.Ok("Usuario desactivado.")
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - desactivar", ex)
+            Return Respuesta.Fallo("No se pudo desactivar el usuario. Verifique la conexión y vuelva a intentarlo.")
         End Try
     End Function
 
