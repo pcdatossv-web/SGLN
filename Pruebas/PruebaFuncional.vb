@@ -548,6 +548,20 @@ Module PruebaFuncional
         Next
         Verificar("El usuario nuevo aparece en el listado", idUsuarioPrueba > 0)
 
+        If idUsuarioPrueba > 0 Then
+            Dim edicionEstadoDirecta As Respuesta = usuarios.Actualizar(
+                idUsuarioPrueba, "Usuario de Prueba", idRolPrueba, False)
+            Dim estadoTrasEdicionDirecta As DataTable = usuarios.Obtener(idUsuarioPrueba)
+            Verificar("El repositorio impide desactivar usuarios desde la edición general",
+                      Not edicionEstadoDirecta.Exito AndAlso estadoTrasEdicionDirecta.Rows.Count = 1 AndAlso
+                      UtileriasUI.Booleano(estadoTrasEdicionDirecta.Rows(0), "Activo"))
+            Dim desactivacionDedicada As Respuesta = servicioUsuarios.Desactivar(idUsuarioPrueba)
+            Dim estadoTrasDesactivar As DataTable = usuarios.Obtener(idUsuarioPrueba)
+            Verificar("La acción dedicada desactiva y conserva la cuenta para trazabilidad",
+                      desactivacionDedicada.Exito AndAlso estadoTrasDesactivar.Rows.Count = 1 AndAlso
+                      Not UtileriasUI.Booleano(estadoTrasDesactivar.Rows(0), "Activo"))
+        End If
+
         ' Un rol ordinario no puede recibir permisos administrativos ni por SQL directo.
         Dim sufijoGestor As String = Guid.NewGuid().ToString("N").Substring(0, 8)
         Dim nombreRolGestor As String = "Gestor usuarios " & sufijoGestor
