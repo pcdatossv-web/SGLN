@@ -32,6 +32,13 @@ Public Class ServicioCumplimiento
     Public Function GuardarOperacion(operacion As OperacionLdaft) As Respuesta
         If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
         If operacion Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la operación.")
+        If operacion.ID < 0 Then Return Respuesta.Fallo("El identificador de la operación no es válido.")
+        If operacion.IDCaso.HasValue AndAlso operacion.IDCaso.Value <= 0 Then
+            Return Respuesta.Fallo("El caso asociado no es válido.")
+        End If
+        If operacion.IDInstrumento.HasValue AndAlso operacion.IDInstrumento.Value <= 0 Then
+            Return Respuesta.Fallo("El instrumento asociado no es válido.")
+        End If
 
         If Not TipoOperacionValido(operacion.TipoOperacion) Then
             Return Respuesta.Fallo("El tipo de operación no es válido.")
@@ -45,7 +52,9 @@ Public Class ServicioCumplimiento
             Return Respuesta.Fallo("La moneda debe usar un código de 3 a 5 letras.")
         End If
         For Each caracter As Char In operacion.Moneda
-            If Not Char.IsLetter(caracter) Then Return Respuesta.Fallo("El código de moneda solo puede contener letras.")
+            If caracter < "A"c OrElse caracter > "Z"c Then
+                Return Respuesta.Fallo("El código de moneda solo puede contener letras ASCII de la A a la Z.")
+            End If
         Next
         If If(operacion.Descripcion, "").Length > 1000 Then Return Respuesta.Fallo("La descripción no puede superar 1000 caracteres.")
         If If(operacion.Observaciones, "").Length > 500 Then Return Respuesta.Fallo("Las observaciones no pueden superar 500 caracteres.")
