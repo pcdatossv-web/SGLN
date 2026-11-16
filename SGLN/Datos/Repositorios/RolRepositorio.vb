@@ -48,6 +48,8 @@ Public Class RolRepositorio
     End Function
 
     Public Function PermisosDeRol(idRol As Integer) As DataTable
+        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
+        If idRol <= 0 Then Return New DataTable()
         Return Consultar(
             "SELECT Codigo FROM Rol_Permiso WHERE ID_Rol = @rol",
             Sub(comando As MySqlCommand)
