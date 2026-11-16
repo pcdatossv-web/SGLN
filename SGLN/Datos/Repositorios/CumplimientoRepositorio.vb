@@ -213,11 +213,15 @@ Public Class CumplimientoRepositorio
     Public Function Responder(id As Integer, fechaRespuesta As Date) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para responder solicitudes ARCO.")
         If id <= 0 Then Return 0
+        If fechaRespuesta = Date.MinValue OrElse fechaRespuesta.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de respuesta no puede estar vacía ni ser futura.", NameOf(fechaRespuesta))
+        End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Solicitudes_ARCO SET Estado = 'Respondida', Fecha_Respuesta = @fecha " &
-                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
+                    "WHERE ID = @id AND Fecha_Solicitud <= @fecha AND @fecha <= CURDATE() " &
+                    "AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaRespuesta)
                         Parametro(comando, "@id", id)
