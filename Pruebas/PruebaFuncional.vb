@@ -1558,6 +1558,25 @@ Module PruebaFuncional
         Verificar("Guardar libro de protocolo", rLibro.Exito, rLibro.Mensaje)
         Dim idLibro As Integer = libro.ID
 
+        Dim intentoCambioEstadoLibro As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).ActualizarLibro(New LibroProtocolo With {
+                .ID = idLibro, .NumeroLibro = libro.NumeroLibro,
+                .AnioVigencia = libro.AnioVigencia,
+                .FechaAutorizacion = libro.FechaAutorizacion,
+                .FechaVencimiento = libro.FechaVencimiento,
+                .Estado = "Entregado"})
+            Dim libroTrasCambioDirecto As DataTable =
+                (New ProtocoloRepositorio()).ObtenerLibro(idLibro)
+            intentoCambioEstadoLibro =
+                libroTrasCambioDirecto.Rows.Count = 1 AndAlso
+                Convert.ToString(libroTrasCambioDirecto.Rows(0)("Estado")) = "Vigente"
+        Catch
+            intentoCambioEstadoLibro = False
+        End Try
+        Verificar("El repositorio no permite saltarse el cierre y la entrega del libro",
+                  intentoCambioEstadoLibro)
+
         Verificar("Libro duplicado (número y año) se rechaza con mensaje",
                   Not protocolo.GuardarLibro(New LibroProtocolo With {
                       .NumeroLibro = 1, .AnioVigencia = 2026,
