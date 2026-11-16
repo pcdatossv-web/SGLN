@@ -69,7 +69,7 @@ Module PruebaFuncional
 
         Dim rangoExcesivoRechazado As Boolean = False
         Try
-            calculadoraInicial.ContarDiasHabiles(New Date(1, 1, 1), Date.MaxValue)
+            calculadoraInicial.ContarDiasHabiles(New Date(1000, 1, 1), Date.MaxValue)
         Catch ex As ArgumentOutOfRangeException
             rangoExcesivoRechazado = True
         End Try
