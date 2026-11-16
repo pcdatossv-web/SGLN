@@ -272,8 +272,40 @@ Public Class ServicioDocumentos
            Not String.Equals(destino, base, StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("La ruta del documento está fuera de la carpeta documental autorizada.")
         End If
+
+        ValidarRutaSinEnlaces(base, destino)
         Return destino
     End Function
+
+    ''' <summary>
+    ''' Rechaza enlaces simbólicos y puntos de reanálisis dentro de la carpeta
+    ''' documental para evitar que una ruta aparentemente interna redirija a
+    ''' archivos externos mediante junctions o symlinks de Windows.
+    ''' </summary>
+    Private Sub ValidarRutaSinEnlaces(base As String, destino As String)
+        If Directory.Exists(base) AndAlso
+           (File.GetAttributes(base) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+            Throw New InvalidOperationException("La carpeta documental no puede ser un enlace o punto de reanálisis.")
+        End If
+
+        Dim relativo As String = destino.Substring(base.TrimEnd(Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar).Length).TrimStart(Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar)
+        If relativo = "" Then Return
+
+        Dim segmentos As String() = relativo.Split(
+            New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar},
+            StringSplitOptions.RemoveEmptyEntries)
+        Dim actual As String = base
+        For Each segmento As String In segmentos
+            actual = Path.Combine(actual, segmento)
+            If File.Exists(actual) OrElse Directory.Exists(actual) Then
+                If (File.GetAttributes(actual) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+                    Throw New InvalidOperationException("La ruta documental contiene un enlace o punto de reanálisis no permitido.")
+                End If
+            End If
+        Next
+    End Sub
 
     Private Function ValidarReferencias(idCaso As Integer?, idInstrumento As Integer?) As String
         If idCaso.HasValue AndAlso idCaso.Value <= 0 Then Return "El caso asociado no es válido."
