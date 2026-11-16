@@ -1139,6 +1139,22 @@ Module PruebaFuncional
         If tablaCliente.Rows.Count = 1 Then
             Verificar("El DUI se normaliza al formato 00000000-0",
                       Convert.ToString(tablaCliente.Rows(0)("DUI")) = "00000000-0")
+        Dim clienteInactivoPrueba As New Cliente With {
+            .Nombres = "Cliente", .Apellidos = "Inactivo", .Activo = True}
+        Dim altaClienteInactivo As Respuesta = clientes.Guardar(clienteInactivoPrueba, Nothing)
+        Dim clienteInactivoId As Integer = If(altaClienteInactivo.ID.HasValue, altaClienteInactivo.ID.Value, 0)
+        Dim bajaClienteInactivo As Respuesta = clientes.Desactivar(clienteInactivoId)
+        Dim casoClienteInactivoRechazado As Boolean = False
+        Try
+            repositorioCasosDirecto.Insertar(New Caso With {
+                .IDCliente = clienteInactivoId, .NumeroExpediente = "INACTIVO-CLIENTE-TEST",
+                .Materia = "Civil", .Estado = "Activo", .FechaApertura = Date.Today})
+        Catch ex As InvalidOperationException
+            casoClienteInactivoRechazado = True
+        End Try
+        Verificar("El repositorio no permite abrir casos para clientes inactivos",
+                  altaClienteInactivo.Exito AndAlso bajaClienteInactivo.Exito AndAlso
+                  casoClienteInactivoRechazado)
             Verificar("El NIT se normaliza con separadores",
                       Convert.ToString(tablaCliente.Rows(0)("NIT")).Contains("-"))
             Verificar("El perfil LDA/FT quedó guardado con su nivel de riesgo",
