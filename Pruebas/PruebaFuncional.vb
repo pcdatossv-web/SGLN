@@ -1936,6 +1936,16 @@ Module PruebaFuncional
         Directory.CreateDirectory(carpetaTrabajo)
         Dim rutaPdf As String = Path.Combine(carpetaTrabajo, "contrato_prueba.pdf")
         File.WriteAllText(rutaPdf, "%PDF-1.4" & Environment.NewLine & "Contenido simulado de un PDF de prueba.")
+        Dim hashDirectoInvalidoRechazado As Boolean = False
+        Try
+            (New DocumentoRepositorio()).Insertar(New Documento With {
+                .TipoDocumento = "Contrato", .RutaArchivo = "Documentos/prueba.pdf",
+                .Hash = "NO_ES_SHA256", .EstadoProcesamientoIA = "Procesado"})
+        Catch ex As ArgumentException
+            hashDirectoInvalidoRechazado = True
+        End Try
+        Verificar("El repositorio documental rechaza hashes que no son SHA-256",
+                  hashDirectoInvalidoRechazado)
         Dim rutaPdfFalso As String = Path.Combine(carpetaTrabajo, "archivo_falso.pdf")
         File.WriteAllText(rutaPdfFalso, "Este contenido no es un PDF.")
         Verificar("Un archivo con extensión PDF pero firma incorrecta se rechaza",
