@@ -208,6 +208,14 @@ Public Class UsuarioRepositorio
 
     Public Function Crear(usuario As String, nombreCompleto As String, clave As String,
                           idRol As Integer, activo As Boolean) As Respuesta
+        If EsRolProtegido(idRol) AndAlso
+           (Not Permisos.TieneAcceso("config.usuarios") OrElse
+            Sesion.UsuarioActual Is Nothing OrElse
+            Not Sesion.UsuarioActual.RolProtegido OrElse
+            Not Permisos.AccesoTotal) Then
+            Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
+        End If
+
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
@@ -240,6 +248,14 @@ Public Class UsuarioRepositorio
 
     Public Function Actualizar(id As Integer, nombreCompleto As String, idRol As Integer,
                                activo As Boolean) As Respuesta
+        If EsRolProtegido(idRol) AndAlso
+           (Not Permisos.TieneAcceso("config.usuarios") OrElse
+            Sesion.UsuarioActual Is Nothing OrElse
+            Not Sesion.UsuarioActual.RolProtegido OrElse
+            Not Permisos.AccesoTotal) Then
+            Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
+        End If
+
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
@@ -516,6 +532,14 @@ Public Class UsuarioRepositorio
     Private Shared Function IdentificadorSeguro(nombre As String) As String
         Dim delimitador As String = Convert.ToChar(96).ToString()
         Return delimitador & nombre.Replace(delimitador, delimitador & delimitador) & delimitador
+    End Function
+
+    Private Function EsRolProtegido(idRol As Integer) As Boolean
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Roles WHERE ID = @id AND Protegido = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", idRol)
+            End Sub) > 0
     End Function
 
     Private Function Existe(id As Integer) As Boolean
