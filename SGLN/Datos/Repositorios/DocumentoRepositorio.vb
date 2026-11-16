@@ -68,6 +68,11 @@ Public Class DocumentoRepositorio
         If String.IsNullOrWhiteSpace(documento.RutaArchivo) OrElse documento.RutaArchivo.Trim().Length > 500 Then
             Throw New ArgumentException("La ruta del documento debe contener entre 1 y 500 caracteres.", NameOf(documento))
         End If
+        If Regex.IsMatch(documento.RutaArchivo, "[\x00-\x1F]") Then
+            Throw New ArgumentException("La ruta del documento contiene caracteres de control no permitidos.", NameOf(documento))
+        End If
+        documento.TipoDocumento = documento.TipoDocumento.Trim()
+        documento.RutaArchivo = documento.RutaArchivo.Trim()
         If String.IsNullOrWhiteSpace(documento.Hash) OrElse
            Not Regex.IsMatch(documento.Hash, "\A[0-9a-fA-F]{64}\z") Then
             Throw New ArgumentException("El hash del documento debe ser SHA-256 hexadecimal de 64 caracteres.", NameOf(documento))
@@ -109,6 +114,7 @@ Public Class DocumentoRepositorio
         If String.IsNullOrWhiteSpace(documento.TipoDocumento) OrElse documento.TipoDocumento.Trim().Length > 60 Then
             Throw New ArgumentException("El tipo de documento debe contener entre 1 y 60 caracteres.", NameOf(documento))
         End If
+        documento.TipoDocumento = documento.TipoDocumento.Trim()
         If documento.IDCaso.HasValue AndAlso documento.IDCaso.Value <= 0 Then
             Throw New ArgumentException("El caso asociado no es válido.", NameOf(documento))
         End If
