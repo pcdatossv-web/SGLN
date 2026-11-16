@@ -204,7 +204,8 @@ Public Class CumplimientoRepositorio
                     "UPDATE Solicitudes_ARCO SET Fecha_Vencimiento_Prorroga = @prorroga, " &
                     "Prorroga_Aplicada = @aplicada, Detalle = @detalle " &
                     "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL " &
-                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga >= Fecha_Vencimiento))",
+                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga >= Fecha_Vencimiento)) " &
+                    "AND (Prorroga_Aplicada = 0 OR (@aplicada = 1 AND @prorroga = Fecha_Vencimiento_Prorroga))",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosSolicitudEditable(comando, solicitud)
                         Parametro(comando, "@id", solicitud.ID)
