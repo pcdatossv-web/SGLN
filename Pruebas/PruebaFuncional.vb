@@ -1098,6 +1098,16 @@ Module PruebaFuncional
             .FechaVerificacionListas = Date.Today
         }
 
+        Dim clienteDirectoInvalidoRechazado As Boolean = False
+        Try
+            (New ClienteRepositorio()).GuardarCompleto(New Cliente With {
+                .Nombres = "", .Apellidos = "Apellido", .Activo = True}, Nothing)
+        Catch ex As ArgumentException
+            clienteDirectoInvalidoRechazado = True
+        End Try
+        Verificar("El repositorio de clientes rechaza directamente nombres obligatorios vacíos",
+                  clienteDirectoInvalidoRechazado)
+
         Dim idCliente As Integer = 0
         Dim rCliente As Respuesta = clientes.Guardar(cliente, perfil)
         Verificar("Guardar cliente válido", rCliente.Exito, rCliente.Mensaje)
