@@ -69,7 +69,7 @@ Public Class DocumentoRepositorio
             Throw New ArgumentException("La ruta del documento debe contener entre 1 y 500 caracteres.", NameOf(documento))
         End If
         If String.IsNullOrWhiteSpace(documento.Hash) OrElse
-           Not Regex.IsMatch(documento.Hash, "\\A[0-9a-fA-F]{64}\\z") Then
+           Not Regex.IsMatch(documento.Hash, "\A[0-9a-fA-F]{64}\z") Then
             Throw New ArgumentException("El hash del documento debe ser SHA-256 hexadecimal de 64 caracteres.", NameOf(documento))
         End If
         If documento.IDCaso.HasValue AndAlso documento.IDCaso.Value <= 0 Then
