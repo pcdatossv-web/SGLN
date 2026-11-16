@@ -80,6 +80,7 @@ Public Class FrmRoles
 
     Private Sub dgvRoles_SelectionChanged(sender As Object, e As EventArgs) Handles dgvRoles.SelectionChanged
         If _cargando Then Return
+        Try
 
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvRoles)
         If fila Is Nothing Then Return
@@ -98,6 +99,10 @@ Public Class FrmRoles
 
         MarcarPermisos(_servicio.PermisosDeRol(_idSeleccionado))
         Mostrar("", True)
+            Catch ex As Exception
+            RegistroErrores.Escribir("Roles - seleccionar", ex)
+            Mostrar("No se pudieron cargar los permisos del rol. Verifique la conexión.", False)
+        End Try
     End Sub
 
     Private Sub MarcarPermisos(codigos As List(Of String))
