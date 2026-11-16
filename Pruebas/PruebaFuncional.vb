@@ -780,6 +780,23 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio bloquea respaldos directos sin permiso",
                   respaldoDirectoBloqueado)
+        Dim desactivarRolConUsuariosBloqueado As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "UPDATE Roles SET Activo = 0 WHERE ID = @id", conexion)
+                    comando.Parameters.AddWithValue("@id", idRolPrueba)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            desactivarRolConUsuariosBloqueado = ex.Number = 1644
+        End Try
+        Verificar("MySQL impide desactivar directamente un rol que tiene usuarios asignados",
+                  desactivarRolConUsuariosBloqueado AndAlso roles.Obtener(idRolPrueba).Rows.Count = 1 AndAlso
+                  UtileriasUI.Booleano(roles.Obtener(idRolPrueba).Rows(0), "Activo"))
+
         Dim catalogoPermisosSoloLectura As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
