@@ -1369,6 +1369,16 @@ Module PruebaFuncional
                       .IDCliente = idCliente, .NumeroExpediente = "ESTADO-1",
                       .Materia = "Civil", .Estado = "Desconocido"
                   }).Exito)
+        Dim casoDirectoInvalidoRechazado As Boolean = False
+        Try
+            (New CasoRepositorio()).Insertar(New Caso With {
+                .IDCliente = idCliente, .NumeroExpediente = New String("X"c, 81),
+                .Materia = "Civil", .Estado = "Activo", .FechaApertura = Date.Today})
+        Catch ex As ArgumentException
+            casoDirectoInvalidoRechazado = True
+        End Try
+        Verificar("El repositorio de casos rechaza directamente expedientes fuera de longitud",
+                  casoDirectoInvalidoRechazado)
         Dim idJuzgado As Integer = UtileriasUI.Entero(casos.JuzgadosCombo().Rows(0), "ID")
         Dim tipoContestacion As DataRow = Nothing
         For Each fila As DataRow In casos.TiposActuacionCombo().Rows
