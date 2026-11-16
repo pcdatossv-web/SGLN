@@ -21,8 +21,9 @@ Public Class ServicioPlazos
         If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then
             Throw New UnauthorizedAccessException("No tiene permiso para calcular plazos procesales.")
         End If
-        If fechaNotificacion = Date.MinValue Then
-            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion), "La fecha de notificación no es válida.")
+        If fechaNotificacion = Date.MinValue OrElse fechaNotificacion.Date.Year < 1000 Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
+                "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
         If diasHabiles <= 0 Then
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles), "El plazo debe ser mayor que cero.")
@@ -37,7 +38,9 @@ Public Class ServicioPlazos
         If actuacion.IDCaso <= 0 Then Return Respuesta.Fallo("Seleccione un caso.")
         If actuacion.IDTipoActuacion <= 0 Then Return Respuesta.Fallo("Seleccione el tipo de actuación.")
         If actuacion.PlazoLegalDias <= 0 Then Return Respuesta.Fallo("El plazo legal debe ser mayor que cero.")
-        If actuacion.FechaNotificacion = Date.MinValue Then Return Respuesta.Fallo("La fecha de notificación no es válida.")
+        If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date.Year < 1000 Then
+            Return Respuesta.Fallo("La fecha de notificación debe ser igual o posterior al 01/01/1000.")
+        End If
         If actuacion.FechaNotificacion.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de notificación no puede ser futura.")
         End If
