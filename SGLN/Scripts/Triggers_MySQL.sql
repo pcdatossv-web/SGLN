@@ -7,8 +7,9 @@
    Garantizan, incluso por SQL directo, que:
      - el rol Administrador no se elimina, desactiva ni renombra;
      - siempre queda al menos un usuario administrador activo;
-     - el Administrador conserva los permisos de Usuarios y Roles;
-     - Audit_Log es inmutable: la aplicación no puede editar ni borrar la bitácora.
+     - los permisos de administración no se asignan a roles ordinarios;
+     - Audit_Log es inmutable: la aplicación no puede editar ni borrar la bitácora;
+     - la eliminación física de usuarios se ejecuta por procedimiento controlado.
 
    Va en archivo aparte porque el conector ADO no entiende DELIMITER:
    el esquema embebido se ejecuta sentencia por sentencia y esto no.
