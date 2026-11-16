@@ -216,6 +216,11 @@ Public Class ServicioProtocolo
             instrumento.ID = idGuardado
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe una escritura con ese número en el libro.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - GuardarInstrumento", ex)
+            Return Respuesta.Fallo("No se pudo guardar la escritura. Verifique los datos y la conexión.")
         End Try
 
         Return New Respuesta With {
@@ -245,6 +250,8 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Comparecientes(idInstrumento As Integer) As DataTable
+        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If idInstrumento <= 0 Then Return New DataTable()
         Return _repositorio.Comparecientes(idInstrumento)
     End Function
 
