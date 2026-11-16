@@ -530,14 +530,15 @@ Public Class ProtocoloRepositorio
                         "No se pueden agregar comparecientes después de expedir testimonios.")
                 End If
 
-                Dim clienteActivo As Integer
+                Dim estadoCliente As Object
                 Using consultarCliente As New MySqlCommand(
-                    "SELECT COUNT(*) FROM Clientes WHERE ID = @cliente AND Activo = 1 FOR UPDATE",
+                    "SELECT Activo FROM Clientes WHERE ID = @cliente FOR UPDATE",
                     conexion, transaccion)
                     Parametro(consultarCliente, "@cliente", idCliente)
-                    clienteActivo = Convert.ToInt32(consultarCliente.ExecuteScalar())
+                    estadoCliente = consultarCliente.ExecuteScalar()
                 End Using
-                If clienteActivo = 0 Then
+                If estadoCliente Is Nothing OrElse Convert.IsDBNull(estadoCliente) OrElse
+                   Not Convert.ToBoolean(estadoCliente) Then
                     Throw New InvalidOperationException("El cliente no existe o está inactivo; no puede agregarse como compareciente.")
                 End If
 
