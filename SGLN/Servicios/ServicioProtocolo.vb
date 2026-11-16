@@ -21,7 +21,7 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If Not Permisos.TieneAcceso("protocolo.ver") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerLibro(id)
     End Function
 
