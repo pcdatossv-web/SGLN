@@ -378,6 +378,12 @@ Module PruebaFuncional
 
         Sesion.CargarPermisos()
         Verificar("La sesión se revalida contra la cuenta y rol vigentes", Permisos.TieneAcceso("config.usuarios"))
+        Verificar("Un administrador no puede cambiar su propio rol desde mantenimiento de usuarios",
+                  Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAbogado, True).Exito)
+        Verificar("Un administrador no puede desactivar su propia cuenta desde mantenimiento",
+                  Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAdmin, False).Exito)
+        Verificar("El restablecimiento administrativo no permite omitir la clave actual de la propia cuenta",
+                  Not servicioUsuarios.RestablecerClave(admin.ID, "NuevaClaveAdmin99!").Exito)
         Dim eliminacionPropiaDirecta As Respuesta = New UsuarioRepositorio().EliminarSiNoTieneHistorial(admin.ID)
         Verificar("El repositorio impide la autoeliminación incluso si se invoca directamente",
                   Not eliminacionPropiaDirecta.Exito)
