@@ -77,7 +77,13 @@ Public Class ServicioProtocolo
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
         If String.IsNullOrWhiteSpace(razon) Then Return Respuesta.Fallo("Indique la razón del cierre del libro.")
 
-        Dim libro As DataTable = _repositorio.ObtenerLibro(id)
+        Dim libro As DataTable
+        Try
+            libro = _repositorio.ObtenerLibro(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - consultar libro para cierre", ex)
+            Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión y vuelva a intentarlo.")
+        End Try
         If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
         If Convert.ToString(libro.Rows(0)("Estado")) <> "Vigente" Then
             Return Respuesta.Fallo("Solo se pueden cerrar libros en estado Vigente.")
@@ -129,7 +135,13 @@ Public Class ServicioProtocolo
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
 
-        Dim libro As DataTable = _repositorio.ObtenerLibro(id)
+        Dim libro As DataTable
+        Try
+            libro = _repositorio.ObtenerLibro(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - consultar libro para entrega", ex)
+            Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión y vuelva a intentarlo.")
+        End Try
         If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
 
         Dim fila As DataRow = libro.Rows(0)
@@ -344,16 +356,16 @@ Public Class ServicioProtocolo
         If tipo <> "Primer" AndAlso tipo <> "Ulterior" Then Return Respuesta.Fallo("El tipo de testimonio no es válido.")
         If fecha.Date > Date.Today Then Return Respuesta.Fallo("La fecha de expedición no puede ser futura.")
 
-        Dim instrumento As DataTable = _repositorio.ObtenerInstrumento(idInstrumento)
-        If instrumento.Rows.Count = 0 Then Return Respuesta.Fallo("El instrumento no existe.")
-        If Convert.ToString(instrumento.Rows(0)("Estado")) = "Anulado" Then
-            Return Respuesta.Fallo("No se pueden expedir testimonios de un instrumento anulado.")
-        End If
-        If fecha.Date < Convert.ToDateTime(instrumento.Rows(0)("Fecha_Hora_Otorgamiento")).Date Then
-            Return Respuesta.Fallo("La fecha del testimonio no puede ser anterior al otorgamiento.")
-        End If
-
         Try
+            Dim instrumento As DataTable = _repositorio.ObtenerInstrumento(idInstrumento)
+            If instrumento.Rows.Count = 0 Then Return Respuesta.Fallo("El instrumento no existe.")
+            If Convert.ToString(instrumento.Rows(0)("Estado")) = "Anulado" Then
+                Return Respuesta.Fallo("No se pueden expedir testimonios de un instrumento anulado.")
+            End If
+            If fecha.Date < Convert.ToDateTime(instrumento.Rows(0)("Fecha_Hora_Otorgamiento")).Date Then
+                Return Respuesta.Fallo("La fecha del testimonio no puede ser anterior al otorgamiento.")
+            End If
+
             _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
