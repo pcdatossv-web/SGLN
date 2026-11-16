@@ -1396,7 +1396,7 @@ Module PruebaFuncional
                       "No se pudo crear la entidad auxiliar.")
         End If
 
-        Dim rRep As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Presidenta de la junta directiva", "Judicial y extrajudicial")
+        Dim rRep As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Presidenta de la junta directiva", "Judicial")
         Verificar("Agregar representante a la entidad", rRep.Exito, rRep.Mensaje)
         Dim rRepDup As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Auditor", "Judicial")
         Verificar("Representante duplicado se rechaza con mensaje",
