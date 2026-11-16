@@ -531,6 +531,21 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio bloquea respaldos directos sin permiso",
                   respaldoDirectoBloqueado)
+        Dim catalogoPermisosSoloLectura As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "UPDATE Permisos SET Descripcion = Descripcion WHERE Codigo = 'config.editar'",
+                    conexion)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            catalogoPermisosSoloLectura = ex.Number = 1142
+        End Try
+        Verificar("La cuenta de aplicación no puede alterar el catálogo maestro de permisos",
+                  catalogoPermisosSoloLectura)
         Dim insercionPermisoAdminBloqueada As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
