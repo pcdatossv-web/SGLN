@@ -9,7 +9,21 @@ Imports MySql.Data.MySqlClient
 Public Class DocumentoRepositorio
     Inherits RepositorioBase
 
+    Private Function PuedeConsultarDocumentos() As Boolean
+        Return Permisos.TieneAcceso("documentos.ver") OrElse
+               Permisos.TieneAcceso("documentos.verificar") OrElse
+               Permisos.TieneAcceso("documentos.metadatos") OrElse
+               Permisos.TieneAcceso("documentos.importar")
+    End Function
+
+    Private Function PuedeCargarCombosDocumentos() As Boolean
+        Return Permisos.TieneAcceso("documentos.ver") OrElse
+               Permisos.TieneAcceso("documentos.importar") OrElse
+               Permisos.TieneAcceso("documentos.metadatos")
+    End Function
+
     Public Function Buscar(filtro As String, tipo As String) As DataTable
+        If Not Permisos.TieneAcceso("documentos.ver") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
 
@@ -34,6 +48,7 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
+        If id <= 0 OrElse Not PuedeConsultarDocumentos() Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Documentos WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -42,6 +57,10 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function Insertar(documento As Documento) As Integer
+        If Not Permisos.TieneAcceso("documentos.importar") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para importar documentos.")
+        End If
+        If documento Is Nothing Then Throw New ArgumentNullException(NameOf(documento))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -65,6 +84,12 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function ActualizarMetadatos(documento As Documento) As Integer
+        If Not Permisos.TieneAcceso("documentos.metadatos") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para modificar metadatos de documentos.")
+        End If
+        If documento Is Nothing OrElse documento.ID <= 0 Then
+            Throw New ArgumentException("El documento seleccionado no es válido.", NameOf(documento))
+        End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -86,6 +111,7 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function CasosCombo() As DataTable
+        If Not PuedeCargarCombosDocumentos() Then Return New DataTable()
         Return Consultar(
             "SELECT c.ID, CONCAT(c.Numero_Expediente, ' - ', cl.Nombres, ' ', cl.Apellidos) AS Nombre " &
             "FROM Casos c INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
@@ -93,6 +119,7 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function InstrumentosCombo() As DataTable
+        If Not PuedeCargarCombosDocumentos() Then Return New DataTable()
         Return Consultar(
             "SELECT i.ID, CONCAT('Libro ', l.Numero_Libro, ' - Escritura ', i.Numero_Escritura) AS Nombre " &
             "FROM Instrumentos i INNER JOIN Libros_Protocolo l ON l.ID = i.ID_Libro " &
