@@ -28,11 +28,18 @@ DELIMITER $$
 CREATE TRIGGER trg_roles_protegido_bu BEFORE UPDATE ON Roles
 FOR EACH ROW
 BEGIN
-    IF OLD.Protegido = 1 AND (NEW.Protegido = 0 OR NEW.Activo = 0 OR NEW.Nombre <> OLD.Nombre) THEN
+    /* El indicador Protegido define acceso total y nunca debe poder elevarse
+       mediante un UPDATE ejecutado con las credenciales DML de la aplicación. */
+    IF NOT (NEW.Protegido <=> OLD.Protegido) THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'El rol Administrador es protegido: no se puede desactivar, renombrar ni desproteger.';
+            SET MESSAGE_TEXT = 'El indicador de rol protegido no se puede modificar después de crear el rol.';
     END IF;
-END$$
+
+    IF OLD.Protegido = 1 AND (NEW.Activo = 0 OR NEW.Nombre <> OLD.Nombre) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El rol Administrador es protegido: no se puede desactivar ni renombrar.';
+    END IF;
+END$
 
 CREATE TRIGGER trg_roles_protegido_bd BEFORE DELETE ON Roles
 FOR EACH ROW
