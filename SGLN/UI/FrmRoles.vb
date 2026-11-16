@@ -82,24 +82,24 @@ Public Class FrmRoles
         If _cargando Then Return
         Try
 
-        Dim fila As DataRow = UtileriasUI.FilaActual(dgvRoles)
-        If fila Is Nothing Then Return
+            Dim fila As DataRow = UtileriasUI.FilaActual(dgvRoles)
+            If fila Is Nothing Then Return
 
-        _idSeleccionado = UtileriasUI.Entero(fila, "ID")
-        _esProtegido = UtileriasUI.Booleano(fila, "Protegido")
+            _idSeleccionado = UtileriasUI.Entero(fila, "ID")
+            _esProtegido = UtileriasUI.Booleano(fila, "Protegido")
 
-        txtNombre.Text = UtileriasUI.Texto(fila, "Nombre")
-        txtDescripcion.Text = UtileriasUI.Texto(fila, "Descripcion")
-        chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
+            txtNombre.Text = UtileriasUI.Texto(fila, "Nombre")
+            txtDescripcion.Text = UtileriasUI.Texto(fila, "Descripcion")
+            chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
 
-        ' El rol protegido solo admite cambios de descripción y permisos.
-        txtNombre.ReadOnly = _esProtegido
-        chkActivo.Enabled = Not _esProtegido
-        btnEliminar.Enabled = Not _esProtegido
+            ' El rol protegido solo admite cambios de descripción y permisos.
+            txtNombre.ReadOnly = _esProtegido
+            chkActivo.Enabled = Not _esProtegido
+            btnEliminar.Enabled = Not _esProtegido
 
-        MarcarPermisos(_servicio.PermisosDeRol(_idSeleccionado))
-        Mostrar("", True)
-            Catch ex As Exception
+            MarcarPermisos(_servicio.PermisosDeRol(_idSeleccionado))
+            Mostrar("", True)
+        Catch ex As Exception
             RegistroErrores.Escribir("Roles - seleccionar", ex)
             Mostrar("No se pudieron cargar los permisos del rol. Verifique la conexión.", False)
         End Try
@@ -154,23 +154,23 @@ Public Class FrmRoles
         If Not Permisos.ExigirAccion("config.roles") Then Return
         Try
 
-        Dim respuesta As Respuesta
-        Dim codigosRol As List(Of String) = PermisosMarcados()
+            Dim respuesta As Respuesta
+            Dim codigosRol As List(Of String) = PermisosMarcados()
 
-        If _idSeleccionado = 0 Then
-            respuesta = _servicio.Crear(txtNombre.Text, txtDescripcion.Text, codigosRol)
-        Else
-            respuesta = _servicio.Actualizar(
-                _idSeleccionado, txtNombre.Text, txtDescripcion.Text, chkActivo.Checked, codigosRol)
-        End If
+            If _idSeleccionado = 0 Then
+                respuesta = _servicio.Crear(txtNombre.Text, txtDescripcion.Text, codigosRol)
+            Else
+                respuesta = _servicio.Actualizar(
+                    _idSeleccionado, txtNombre.Text, txtDescripcion.Text, chkActivo.Checked, codigosRol)
+            End If
 
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
 
-        If respuesta.Exito Then
-            CargarRoles()
-            Nuevo()
-        End If
-            Catch ex As Exception
+            If respuesta.Exito Then
+                CargarRoles()
+                Nuevo()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Roles - btnguardar", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
@@ -180,26 +180,26 @@ Public Class FrmRoles
         If Not Permisos.ExigirAccion("config.roles") Then Return
         Try
 
-        If _idSeleccionado = 0 Then
-            Mostrar("Seleccione el rol que desea eliminar.", False)
-            Return
-        End If
+            If _idSeleccionado = 0 Then
+                Mostrar("Seleccione el rol que desea eliminar.", False)
+                Return
+            End If
 
-        If _esProtegido Then
-            Mostrar("El rol Administrador es protegido y no se puede eliminar.", False)
-            Return
-        End If
+            If _esProtegido Then
+                Mostrar("El rol Administrador es protegido y no se puede eliminar.", False)
+                Return
+            End If
 
-        If Not UtileriasUI.Confirmar("¿Eliminar el rol '" & txtNombre.Text & "'? Esta acción no se puede deshacer.") Then Return
+            If Not UtileriasUI.Confirmar("¿Eliminar el rol '" & txtNombre.Text & "'? Esta acción no se puede deshacer.") Then Return
 
-        Dim respuesta As Respuesta = _servicio.Eliminar(_idSeleccionado)
-        Mostrar(respuesta.Mensaje, respuesta.Exito)
+            Dim respuesta As Respuesta = _servicio.Eliminar(_idSeleccionado)
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
 
-        If respuesta.Exito Then
-            CargarRoles()
-            Nuevo()
-        End If
-            Catch ex As Exception
+            If respuesta.Exito Then
+                CargarRoles()
+                Nuevo()
+            End If
+        Catch ex As Exception
             RegistroErrores.Escribir("Roles - btneliminar", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
