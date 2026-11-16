@@ -86,7 +86,7 @@ Public Class ServicioEntidades
     End Function
 
     Public Function Representantes(idEntidad As Integer) As DataTable
-        If Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
+        If Not Permisos.TieneAcceso("entidades.ver") OrElse idEntidad <= 0 Then Return New DataTable()
         Return _repositorio.Representantes(idEntidad)
     End Function
 
