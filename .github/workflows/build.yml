@@ -75,9 +75,10 @@ jobs:
               -not $configRepo.Contains('Permisos.TieneAcceso("config.respaldos")')) {
             throw 'Faltan las comprobaciones de permisos en el repositorio de configuración.'
           }
-          if (-not $triggersSql.Contains('DELIMITER $') -or
-              -not $triggersSql.Contains('DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro$') -or
-              -not $triggersSql.Contains('END$')) {
+          $terminadorDoble = ([string][char]36) + ([string][char]36)
+          if (-not $triggersSql.Contains('DELIMITER ' + $terminadorDoble) -or
+              -not $triggersSql.Contains('DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro' + $terminadorDoble) -or
+              -not $triggersSql.Contains('END' + $terminadorDoble)) {
             throw 'El archivo de candados MySQL tiene delimitadores incompletos.'
           }
           if ($privilegiosSql -match '(?i)GRANT\s+DELETE\s+ON\s+sgln_sv\.Usuarios' -or
