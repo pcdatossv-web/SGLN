@@ -31,6 +31,9 @@ Public Class ServicioUsuarios
         Dim errorValidacion As String = ValidarDatos(usuario, nombreCompleto, clave, idRol)
         If errorValidacion <> "" Then Return Respuesta.Fallo(errorValidacion)
 
+        Dim errorAsignacionAdmin As String = ValidarAsignacionAdministrador(idRol)
+        If errorAsignacionAdmin <> "" Then Return Respuesta.Fallo(errorAsignacionAdmin)
+
         Return _repositorio.Crear(usuario.Trim(), nombreCompleto.Trim(), clave, idRol, activo)
     End Function
 
@@ -46,6 +49,9 @@ Public Class ServicioUsuarios
 
         Dim errorRol As String = ValidarRolActivo(idRol)
         If errorRol <> "" Then Return Respuesta.Fallo(errorRol)
+
+        Dim errorAsignacionAdmin As String = ValidarAsignacionAdministrador(idRol)
+        If errorAsignacionAdmin <> "" Then Return Respuesta.Fallo(errorAsignacionAdmin)
 
         ' Si el usuario es administrador y se le quita el rol o se desactiva,
         ' debe quedar otro administrador activo.
@@ -143,6 +149,20 @@ Public Class ServicioUsuarios
             If Convert.ToInt32(fila("ID")) = idRol Then Return ""
         Next
         Return "El rol seleccionado no existe o está desactivado."
+    End Function
+
+    ''' <summary>
+    ''' Un rol protegido concede acceso total. Solo una sesión Administrador
+    ''' vigente puede asignarlo; tener únicamente config.usuarios no basta.
+    ''' </summary>
+    Private Function ValidarAsignacionAdministrador(idRol As Integer) As String
+        If Not EsRolProtegido(idRol) Then Return ""
+        If Sesion.UsuarioActual Is Nothing OrElse
+           Not Sesion.UsuarioActual.RolProtegido OrElse
+           Not Permisos.AccesoTotal Then
+            Return "Solo un administrador puede asignar el rol protegido Administrador."
+        End If
+        Return ""
     End Function
 
     Private Function EsRolProtegido(idRol As Integer) As Boolean
