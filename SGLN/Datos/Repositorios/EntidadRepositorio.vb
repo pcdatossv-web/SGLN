@@ -183,9 +183,40 @@ Public Class EntidadRepositorio
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
         If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar representantes.")
         If idEntidad <= 0 OrElse idCliente <= 0 Then Return Respuesta.Fallo("Seleccione una entidad y un cliente válidos.")
+        If If(cargo, "").Trim().Length > 120 OrElse If(tipo, "").Trim().Length > 80 Then
+            Return Respuesta.Fallo("El cargo o tipo de representación supera la longitud permitida.")
+        End If
+        cargo = If(cargo, "").Trim()
+        tipo = If(tipo, "").Trim()
         Try
             EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim entidadActiva As Integer
+                    Using comprobarEntidad As New MySqlCommand(
+                        "SELECT Activo FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(comprobarEntidad, "@id", idEntidad)
+                        Dim valor As Object = comprobarEntidad.ExecuteScalar()
+                        If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                            Throw New InvalidOperationException("La entidad seleccionada no existe.")
+                        End If
+                        entidadActiva = Convert.ToInt32(valor)
+                    End Using
+                    If entidadActiva <> 1 Then Throw New InvalidOperationException("No se pueden agregar representantes a una entidad inactiva.")
+
+                    Dim clienteActivo As Integer
+                    Using comprobarCliente As New MySqlCommand(
+                        "SELECT Activo FROM Clientes WHERE ID = @id FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(comprobarCliente, "@id", idCliente)
+                        Dim valor As Object = comprobarCliente.ExecuteScalar()
+                        If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                            Throw New InvalidOperationException("El cliente seleccionado no existe.")
+                        End If
+                        clienteActivo = Convert.ToInt32(valor)
+                    End Using
+                    If clienteActivo <> 1 Then Throw New InvalidOperationException("No se pueden agregar clientes inactivos como representantes.")
+
                     Ejecutar(conexion, transaccion,
                         "INSERT INTO Representantes_Legales (ID_Entidad, ID_Cliente, Cargo, Tipo_Representacion) " &
                         "VALUES (@entidad, @cliente, @cargo, @tipo)",
@@ -213,6 +244,25 @@ Public Class EntidadRepositorio
         If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim detalleHistorico As String = Nothing
+                Using consultar As New MySqlCommand(
+                    "SELECT e.Razon_Social, c.Nombres, c.Apellidos, r.Cargo, r.Tipo_Representacion " &
+                    "FROM Representantes_Legales r " &
+                    "INNER JOIN Entidades_Legales e ON e.ID = r.ID_Entidad " &
+                    "INNER JOIN Clientes c ON c.ID = r.ID_Cliente " &
+                    "WHERE r.ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultar, "@id", id)
+                    Using lector As MySqlDataReader = consultar.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        detalleHistorico = "Representante: " & Convert.ToString(lector("Nombres")) & " " &
+                            Convert.ToString(lector("Apellidos")) & "; entidad: " &
+                            Convert.ToString(lector("Razon_Social")) & "; cargo: " &
+                            Convert.ToString(lector("Cargo")) & "; representación: " &
+                            Convert.ToString(lector("Tipo_Representacion"))
+                    End Using
+                End Using
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "DELETE FROM Representantes_Legales WHERE ID = @id",
                     Sub(comando As MySqlCommand)
@@ -221,7 +271,7 @@ Public Class EntidadRepositorio
 
                 If filas > 0 Then
                     AuditarEnTransaccion(conexion, transaccion, "ELIMINAR", "Representantes_Legales",
-                                         id, "Representante removido")
+                                         id, detalleHistorico)
                 End If
                 Return filas
             End Function)
