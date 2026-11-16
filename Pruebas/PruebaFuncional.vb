@@ -582,6 +582,10 @@ Module PruebaFuncional
                   repositorioConfiguracionPrueba.Obtener("Carpeta_Respaldos") = "" AndAlso
                   repositorioConfiguracionPrueba.Feriados().Rows.Count = 0 AndAlso
                   repositorioConfiguracionPrueba.Usuarios().Rows.Count = 0)
+        Dim catalogoConfigPrueba As New CatalogoRepositorio()
+        Verificar("El catálogo no permite listar ni modificar configuración sin permiso",
+                  catalogoConfigPrueba.ListarConfig().Rows.Count = 0 AndAlso
+                  Not catalogoConfigPrueba.GuardarConfig("Prueba_SinPermiso", "No debe guardarse").Exito)
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
             repositorioConfiguracionPrueba.Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
