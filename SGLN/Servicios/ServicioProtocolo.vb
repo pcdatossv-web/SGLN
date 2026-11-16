@@ -33,13 +33,22 @@ Public Class ServicioProtocolo
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
             Return Respuesta.Fallo("El año de vigencia no es válido.")
         End If
+        If libro.FechaAutorizacion = Date.MinValue OrElse libro.FechaVencimiento = Date.MinValue Then
+            Return Respuesta.Fallo("Las fechas de autorización y vencimiento del libro son obligatorias.")
+        End If
         If libro.FechaVencimiento.Date < libro.FechaAutorizacion.Date Then
             Return Respuesta.Fallo("La fecha de vencimiento no puede ser anterior a la de autorización.")
         End If
 
         ' Los libros cerrados o entregados son inmutables desde el editor.
         If libro.ID > 0 Then
-            Dim actual As DataTable = _repositorio.ObtenerLibro(libro.ID)
+            Dim actual As DataTable
+            Try
+                actual = _repositorio.ObtenerLibro(libro.ID)
+            Catch ex As Exception
+                RegistroErrores.Escribir("Protocolo - consultar libro para edición", ex)
+                Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión.")
+            End Try
             If actual.Rows.Count = 0 Then Return Respuesta.Fallo("El libro ya no existe.")
             Dim estadoActual As String = Convert.ToString(actual.Rows(0)("Estado"))
             If estadoActual <> "Vigente" Then
@@ -116,6 +125,9 @@ Public Class ServicioProtocolo
         If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.entregar") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos del protocolo.")
         End If
+        If fechaCierre = Date.MinValue Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaCierre), "La fecha de cierre no es válida.")
+        End If
         Dim dias As Integer = DiasEntregaConfigurados()
         Return New CalculadoraDiasHabiles(_catalogo.FechasFeriadas()).CalcularVencimiento(fechaCierre, dias)
     End Function
@@ -148,6 +160,7 @@ Public Class ServicioProtocolo
         If Convert.ToString(fila("Estado")) <> "Cerrado" Then
             Return Respuesta.Fallo("Solo se pueden entregar libros cerrados.")
         End If
+        If fechaEntrega = Date.MinValue Then Return Respuesta.Fallo("La fecha de entrega no es válida.")
         If fechaEntrega.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de entrega no puede ser futura.")
         End If
@@ -157,6 +170,7 @@ Public Class ServicioProtocolo
 
         Try
             Dim cierre As Date = Convert.ToDateTime(fila("Fecha_Cierre")).Date
+            If cierre = Date.MinValue Then Return Respuesta.Fallo("La fecha de cierre del libro no es válida.")
             Dim limite As Date = FechaLimiteEntrega(cierre)
 
             If fechaEntrega.Date < cierre Then
@@ -205,32 +219,43 @@ Public Class ServicioProtocolo
         If instrumento.FolioFin < instrumento.FolioInicio Then
             Return Respuesta.Fallo("El folio final no puede ser menor que el folio inicial.")
         End If
+        If instrumento.FechaHoraOtorgamiento = Date.MinValue Then
+            Return Respuesta.Fallo("La fecha de otorgamiento no es válida.")
+        End If
         If instrumento.FechaHoraOtorgamiento.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de otorgamiento no puede ser futura.")
         End If
 
-        Dim libro As DataTable = _repositorio.ObtenerLibro(instrumento.IDLibro)
-        If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro seleccionado no existe.")
-        If Convert.ToString(libro.Rows(0)("Estado")) <> "Vigente" Then
-            Return Respuesta.Fallo("Solo se pueden registrar escrituras en libros vigentes.")
-        End If
-        Dim fechaAutorizacion As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Autorizacion")).Date
-        Dim fechaVencimiento As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Vencimiento")).Date
-        If instrumento.FechaHoraOtorgamiento.Date < fechaAutorizacion OrElse
-           instrumento.FechaHoraOtorgamiento.Date > fechaVencimiento Then
-            Return Respuesta.Fallo("La fecha de otorgamiento debe estar dentro de la vigencia autorizada del libro.")
-        End If
+        Try
+            Dim libro As DataTable = _repositorio.ObtenerLibro(instrumento.IDLibro)
+            If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro seleccionado no existe.")
+            If Convert.ToString(libro.Rows(0)("Estado")) <> "Vigente" Then
+                Return Respuesta.Fallo("Solo se pueden registrar escrituras en libros vigentes.")
+            End If
+            If libro.Rows(0).IsNull("Fecha_Autorizacion") OrElse libro.Rows(0).IsNull("Fecha_Vencimiento") Then
+                Return Respuesta.Fallo("El libro no tiene vigencia completa registrada.")
+            End If
+            Dim fechaAutorizacion As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Autorizacion")).Date
+            Dim fechaVencimiento As Date = Convert.ToDateTime(libro.Rows(0)("Fecha_Vencimiento")).Date
+            If instrumento.FechaHoraOtorgamiento.Date < fechaAutorizacion OrElse
+               instrumento.FechaHoraOtorgamiento.Date > fechaVencimiento Then
+                Return Respuesta.Fallo("La fecha de otorgamiento debe estar dentro de la vigencia autorizada del libro.")
+            End If
 
-        If instrumento.ID > 0 Then
-            Dim existente As DataTable = _repositorio.ObtenerInstrumento(instrumento.ID)
-            If existente.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura ya no existe.")
-            If Convert.ToInt32(existente.Rows(0)("ID_Libro")) <> instrumento.IDLibro Then
-                Return Respuesta.Fallo("La escritura no pertenece al libro seleccionado.")
+            If instrumento.ID > 0 Then
+                Dim existente As DataTable = _repositorio.ObtenerInstrumento(instrumento.ID)
+                If existente.Rows.Count = 0 Then Return Respuesta.Fallo("La escritura ya no existe.")
+                If Convert.ToInt32(existente.Rows(0)("ID_Libro")) <> instrumento.IDLibro Then
+                    Return Respuesta.Fallo("La escritura no pertenece al libro seleccionado.")
+                End If
+                If Convert.ToString(existente.Rows(0)("Estado")) <> "Vigente" Then
+                    Return Respuesta.Fallo("Una escritura anulada no se puede modificar.")
+                End If
             End If
-            If Convert.ToString(existente.Rows(0)("Estado")) <> "Vigente" Then
-                Return Respuesta.Fallo("Una escritura anulada no se puede modificar.")
-            End If
-        End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - validar referencias de escritura", ex)
+            Return Respuesta.Fallo("No se pudieron verificar el libro y la escritura. Compruebe la conexión y vuelva a intentarlo.")
+        End Try
         instrumento.Estado = "Vigente"
 
         Try
@@ -354,6 +379,7 @@ Public Class ServicioProtocolo
         If String.IsNullOrWhiteSpace(destinatario) Then Return Respuesta.Fallo("Indique el destinatario del testimonio.")
         If destinatario.Trim().Length > 200 Then Return Respuesta.Fallo("El destinatario no puede superar 200 caracteres.")
         If tipo <> "Primer" AndAlso tipo <> "Ulterior" Then Return Respuesta.Fallo("El tipo de testimonio no es válido.")
+        If fecha = Date.MinValue Then Return Respuesta.Fallo("La fecha de expedición no es válida.")
         If fecha.Date > Date.Today Then Return Respuesta.Fallo("La fecha de expedición no puede ser futura.")
 
         Try
