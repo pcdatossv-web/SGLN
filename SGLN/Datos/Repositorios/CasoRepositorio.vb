@@ -139,13 +139,16 @@ Public Class CasoRepositorio
     Public Function GuardarActuacion(actuacion As ActuacionProcesal) As Integer
         If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para confirmar plazos.")
         If actuacion Is Nothing Then Throw New ArgumentNullException(NameOf(actuacion))
+        If actuacion.ID < 0 Then Throw New ArgumentException("El identificador de la actuación no es válido.", NameOf(actuacion))
+        ValidarDatosActuacion(actuacion)
+        actuacion.Observaciones = If(actuacion.Observaciones, "").Trim()
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 If actuacion.ID = 0 Then
                     Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                         "INSERT INTO Actuaciones_Procesales (ID_Caso, ID_Tipo_Actuacion, Fecha_Notificacion, " &
                         "Plazo_Legal_Dias, Fecha_Vencimiento_Calculada, Estado, Fecha_Confirmacion, Usuario_Confirma, Observaciones) " &
-                        "VALUES (@caso, @tipo, @notificacion, @plazo, @vencimiento, @estado, NOW(), @usuario, @observaciones)",
+                        "VALUES (@caso, @tipo, @notificacion, @plazo, @vencimiento, 'Pendiente', NOW(), @usuario, @observaciones)",
                         Sub(comando As MySqlCommand)
                             AgregarParametrosActuacion(comando, actuacion)
                         End Sub)
@@ -165,8 +168,9 @@ Public Class CasoRepositorio
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &
-                    "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, Estado = @estado, " &
-                    "Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, Observaciones = @observaciones WHERE ID = @id",
+                    "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, " &
+                    "Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, Observaciones = @observaciones " &
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosActuacion(comando, actuacion)
                         Parametro(comando, "@id", actuacion.ID)
@@ -247,6 +251,24 @@ Public Class CasoRepositorio
         Parametro(comando, "@estado", caso.Estado)
         Parametro(comando, "@apertura", caso.FechaApertura)
         Parametro(comando, "@responsable", caso.Responsable)
+    End Sub
+
+    Private Sub ValidarDatosActuacion(actuacion As ActuacionProcesal)
+        If actuacion.IDCaso <= 0 OrElse actuacion.IDTipoActuacion <= 0 Then
+            Throw New ArgumentException("Seleccione un caso y un tipo de actuación válidos.", NameOf(actuacion))
+        End If
+        If actuacion.PlazoLegalDias <= 0 Then Throw New ArgumentException("El plazo legal debe ser mayor que cero.", NameOf(actuacion))
+        If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de notificación no puede estar vacía ni ser futura.", NameOf(actuacion))
+        End If
+        If Not actuacion.FechaVencimiento.HasValue OrElse
+           actuacion.FechaVencimiento.Value = Date.MinValue OrElse
+           actuacion.FechaVencimiento.Value.Date < actuacion.FechaNotificacion.Date Then
+            Throw New ArgumentException("La fecha de vencimiento calculada no es válida.", NameOf(actuacion))
+        End If
+        If If(actuacion.Observaciones, "").Length > 1000 Then
+            Throw New ArgumentException("Las observaciones no pueden superar 1000 caracteres.", NameOf(actuacion))
+        End If
     End Sub
 
     Private Sub AgregarParametrosActuacion(comando As MySqlCommand, actuacion As ActuacionProcesal)
