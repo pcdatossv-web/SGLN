@@ -1,6 +1,7 @@
 Imports System
 Imports System.Data
 Imports MySql.Data.MySqlClient
+Imports System.Text.RegularExpressions
 
 ''' <summary>
 ''' Acceso a datos de los documentos del expediente y su vínculo con
@@ -61,17 +62,32 @@ Public Class DocumentoRepositorio
             Throw New UnauthorizedAccessException("No tiene permiso para importar documentos.")
         End If
         If documento Is Nothing Then Throw New ArgumentNullException(NameOf(documento))
+        If String.IsNullOrWhiteSpace(documento.TipoDocumento) OrElse documento.TipoDocumento.Trim().Length > 60 Then
+            Throw New ArgumentException("El tipo de documento debe contener entre 1 y 60 caracteres.", NameOf(documento))
+        End If
+        If String.IsNullOrWhiteSpace(documento.RutaArchivo) OrElse documento.RutaArchivo.Trim().Length > 500 Then
+            Throw New ArgumentException("La ruta del documento debe contener entre 1 y 500 caracteres.", NameOf(documento))
+        End If
+        If String.IsNullOrWhiteSpace(documento.Hash) OrElse
+           Not Regex.IsMatch(documento.Hash, "\\A[0-9a-fA-F]{64}\\z") Then
+            Throw New ArgumentException("El hash del documento debe ser SHA-256 hexadecimal de 64 caracteres.", NameOf(documento))
+        End If
+        If documento.IDCaso.HasValue AndAlso documento.IDCaso.Value <= 0 Then
+            Throw New ArgumentException("El caso asociado no es válido.", NameOf(documento))
+        End If
+        If documento.IDInstrumento.HasValue AndAlso documento.IDInstrumento.Value <= 0 Then
+            Throw New ArgumentException("El instrumento asociado no es válido.", NameOf(documento))
+        End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Documentos (Tipo_Documento, Ruta_Archivo, Hash, Estado_Procesamiento_IA, " &
                     "       ID_Caso, ID_Instrumento, Usuario) " &
-                    "VALUES (@tipo, @ruta, @hash, @estado, @caso, @instrumento, @usuario)",
+                    "VALUES (@tipo, @ruta, @hash, 'No procesado', @caso, @instrumento, @usuario)",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@tipo", documento.TipoDocumento)
                         Parametro(comando, "@ruta", documento.RutaArchivo)
                         Parametro(comando, "@hash", documento.Hash)
-                        Parametro(comando, "@estado", documento.EstadoProcesamientoIA)
                         Parametro(comando, "@caso", If(documento.IDCaso.HasValue, CObj(documento.IDCaso.Value), DBNull.Value))
                         Parametro(comando, "@instrumento", If(documento.IDInstrumento.HasValue, CObj(documento.IDInstrumento.Value), DBNull.Value))
                         Parametro(comando, "@usuario", Sesion.NombreUsuario)
@@ -89,6 +105,15 @@ Public Class DocumentoRepositorio
         End If
         If documento Is Nothing OrElse documento.ID <= 0 Then
             Throw New ArgumentException("El documento seleccionado no es válido.", NameOf(documento))
+        End If
+        If String.IsNullOrWhiteSpace(documento.TipoDocumento) OrElse documento.TipoDocumento.Trim().Length > 60 Then
+            Throw New ArgumentException("El tipo de documento debe contener entre 1 y 60 caracteres.", NameOf(documento))
+        End If
+        If documento.IDCaso.HasValue AndAlso documento.IDCaso.Value <= 0 Then
+            Throw New ArgumentException("El caso asociado no es válido.", NameOf(documento))
+        End If
+        If documento.IDInstrumento.HasValue AndAlso documento.IDInstrumento.Value <= 0 Then
+            Throw New ArgumentException("El instrumento asociado no es válido.", NameOf(documento))
         End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
