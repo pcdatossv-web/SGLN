@@ -22,12 +22,25 @@ Public Class ServicioCasos
 
     Public Function Guardar(caso As Caso) As Respuesta
         If Not Permisos.TieneAcceso("casos.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar casos.")
-
+        If caso Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos del caso.")
         If caso.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente del caso.")
         If String.IsNullOrWhiteSpace(caso.NumeroExpediente) Then Return Respuesta.Fallo("El número de expediente es obligatorio.")
+        If caso.NumeroExpediente.Trim().Length > 80 Then Return Respuesta.Fallo("El número de expediente no puede superar 80 caracteres.")
         If String.IsNullOrWhiteSpace(caso.Materia) Then Return Respuesta.Fallo("Seleccione la materia del caso.")
+        If caso.Materia.Trim().Length > 40 Then Return Respuesta.Fallo("La materia no puede superar 40 caracteres.")
+        If If(caso.Descripcion, "").Length > 1000 Then Return Respuesta.Fallo("La descripción no puede superar 1000 caracteres.")
+        If If(caso.Responsable, "").Length > 120 Then Return Respuesta.Fallo("El responsable no puede superar 120 caracteres.")
+        If Not {"Activo", "Suspendido", "Cerrado", "Archivado"}.Contains(If(caso.Estado, "")) Then
+            Return Respuesta.Fallo("El estado del caso no es válido.")
+        End If
+        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date > Date.Today Then
+            Return Respuesta.Fallo("La fecha de apertura no es válida.")
+        End If
 
         caso.NumeroExpediente = caso.NumeroExpediente.Trim()
+        caso.Materia = caso.Materia.Trim()
+        caso.Descripcion = If(caso.Descripcion, "").Trim()
+        caso.Responsable = If(caso.Responsable, "").Trim()
 
         Try
             If caso.ID = 0 Then
@@ -40,6 +53,9 @@ Public Class ServicioCasos
             End If
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un caso con ese número de expediente en el mismo juzgado.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Casos - guardar", ex)
+            Return Respuesta.Fallo("No se pudo guardar el caso. Verifique los datos y la conexión.")
         End Try
 
         Return New Respuesta With {
