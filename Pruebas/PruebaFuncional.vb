@@ -1586,6 +1586,8 @@ Module PruebaFuncional
                   filaCumplida IsNot Nothing AndAlso UtileriasUI.Texto(filaCumplida, "Estado") = "Cumplido")
         Verificar("Una actuación ya cumplida no se vuelve a modificar",
                   Not plazos.MarcarCumplida(idActuacion).Exito)
+        Verificar("El repositorio no permite reabrir ni editar una actuación cumplida",
+                  (New CasoRepositorio()).GuardarActuacion(actuacion) = 0)
         Verificar("Marcar como cumplida una actuación inexistente se rechaza",
                   Not plazos.MarcarCumplida(Integer.MaxValue).Exito)
 
