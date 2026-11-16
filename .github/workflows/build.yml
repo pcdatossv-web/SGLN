@@ -70,6 +70,7 @@ jobs:
           $servicioCumplimiento = Get-Content 'SGLN\\Servicios\\ServicioCumplimiento.vb' -Raw
           $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
           $calculadoraDias = Get-Content 'SGLN\\Servicios\\CalculadoraDiasHabiles.vb' -Raw
+          $servicioProtocolo = Get-Content 'SGLN\\Servicios\\ServicioProtocolo.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -126,6 +127,11 @@ jobs:
               $calculadoraDias -notmatch 'MaxRangoConteoDias' -or
               $calculadoraDias -notmatch 'fechaNotificacion = Date.MinValue') {
             throw 'La calculadora de días hábiles debe limitar fechas y rangos excesivos.'
+          }
+          if ($servicioProtocolo -notmatch 'FechaAutorizacion = Date.MinValue' -or
+              $servicioProtocolo -notmatch 'FechaHoraOtorgamiento = Date.MinValue' -or
+              $servicioProtocolo -notmatch 'validar referencias de escritura') {
+            throw 'El protocolo debe validar fechas obligatorias y controlar errores al consultar referencias.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
