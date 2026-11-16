@@ -26,7 +26,7 @@ Public Class ServicioClientes
         Dim errorValidacion As String = Validar(cliente, perfil)
         If errorValidacion <> "" Then Return Respuesta.Fallo(errorValidacion)
 
-        Normalizar(cliente)
+        Normalizar(cliente, perfil)
 
         Try
             cliente.ID = _repositorio.GuardarCompleto(cliente, perfil)
@@ -103,7 +103,7 @@ Public Class ServicioClientes
         Return ""
     End Function
 
-    Private Sub Normalizar(cliente As Cliente)
+    Private Sub Normalizar(cliente As Cliente, perfil As PerfilLdaft)
         If Not String.IsNullOrWhiteSpace(cliente.DUI) Then
             cliente.DUI = ValidadorIdentidad.FormatearDui(cliente.DUI)
         End If
