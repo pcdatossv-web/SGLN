@@ -46,6 +46,9 @@ Public Class CumplimientoRepositorio
     Public Function InsertarOperacion(operacion As OperacionLdaft) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
         If operacion Is Nothing Then Throw New ArgumentNullException(NameOf(operacion))
+        If operacion.ID <> 0 Then Throw New ArgumentException("Para registrar una operación nueva, el identificador debe ser cero.", NameOf(operacion))
+        ValidarDatosOperacion(operacion)
+        NormalizarDatosOperacion(operacion)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -64,6 +67,8 @@ Public Class CumplimientoRepositorio
     Public Function ActualizarOperacion(operacion As OperacionLdaft) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
         If operacion Is Nothing OrElse operacion.ID <= 0 Then Throw New ArgumentException("La operación seleccionada no es válida.", NameOf(operacion))
+        ValidarDatosOperacion(operacion)
+        NormalizarDatosOperacion(operacion)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -257,6 +262,43 @@ Public Class CumplimientoRepositorio
             "FROM Instrumentos i INNER JOIN Libros_Protocolo l ON l.ID = i.ID_Libro " &
             "WHERE i.Estado = 'Vigente' ORDER BY l.Anio_Vigencia DESC, l.Numero_Libro, i.Numero_Escritura")
     End Function
+
+    Private Sub ValidarDatosOperacion(operacion As OperacionLdaft)
+        If operacion.IDCaso.HasValue AndAlso operacion.IDCaso.Value <= 0 Then
+            Throw New ArgumentException("El caso asociado no es válido.", NameOf(operacion))
+        End If
+        If operacion.IDInstrumento.HasValue AndAlso operacion.IDInstrumento.Value <= 0 Then
+            Throw New ArgumentException("El instrumento asociado no es válido.", NameOf(operacion))
+        End If
+        If Array.IndexOf(New String() {"Regulada", "Inusual", "Sospechosa"}, If(operacion.TipoOperacion, "")) < 0 Then
+            Throw New ArgumentException("El tipo de operación no es válido.", NameOf(operacion))
+        End If
+        If operacion.Monto <= 0D OrElse operacion.Monto > 9999999999999999.99D Then
+            Throw New ArgumentException("El monto de la operación está fuera del rango permitido.", NameOf(operacion))
+        End If
+        Dim moneda As String = If(operacion.Moneda, "").Trim().ToUpperInvariant()
+        If moneda.Length < 3 OrElse moneda.Length > 5 Then Throw New ArgumentException("El código de moneda debe tener entre 3 y 5 letras.", NameOf(operacion))
+        For Each caracter As Char In moneda
+            If caracter < "A"c OrElse caracter > "Z"c Then Throw New ArgumentException("El código de moneda solo admite letras ASCII.", NameOf(operacion))
+        Next
+        If If(operacion.Descripcion, "").Length > 1000 OrElse If(operacion.Observaciones, "").Length > 500 Then
+            Throw New ArgumentException("La descripción u observaciones superan la longitud permitida.", NameOf(operacion))
+        End If
+        If operacion.FechaOperacion = Date.MinValue OrElse operacion.FechaOperacion.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de la operación no puede estar vacía ni ser futura.", NameOf(operacion))
+        End If
+        If Not operacion.FechaVencimientoAnalisis.HasValue OrElse Not operacion.FechaVencimientoReporte.HasValue OrElse
+           operacion.FechaVencimientoAnalisis.Value.Date < operacion.FechaOperacion.Date OrElse
+           operacion.FechaVencimientoReporte.Value.Date < operacion.FechaVencimientoAnalisis.Value.Date Then
+            Throw New ArgumentException("Los vencimientos de análisis y reporte no son válidos.", NameOf(operacion))
+        End If
+    End Sub
+
+    Private Sub NormalizarDatosOperacion(operacion As OperacionLdaft)
+        operacion.Moneda = operacion.Moneda.Trim().ToUpperInvariant()
+        operacion.Descripcion = If(operacion.Descripcion, "").Trim()
+        operacion.Observaciones = If(operacion.Observaciones, "").Trim()
+    End Sub
 
     Private Sub AgregarParametrosOperacion(comando As MySqlCommand, operacion As OperacionLdaft)
         Parametro(comando, "@caso", If(operacion.IDCaso.HasValue, CObj(operacion.IDCaso.Value), DBNull.Value))
