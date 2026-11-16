@@ -52,6 +52,40 @@ Public Class CasoRepositorio
     Public Function Actualizar(caso As Caso) As Integer
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Dim clienteActual As Integer = 0
+                Dim expedienteActual As String = Nothing
+                Using comandoExiste As New MySqlCommand(
+                    "SELECT ID_Cliente, Numero_Expediente FROM Casos WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(comandoExiste, "@id", caso.ID)
+                    Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        clienteActual = Convert.ToInt32(lector("ID_Cliente"))
+                        expedienteActual = Convert.ToString(lector("Numero_Expediente"))
+                    End Using
+                End Using
+
+                Dim referenciasHistoricas As Integer
+                Using comandoReferencias As New MySqlCommand(
+                    "SELECT " &
+                    " (SELECT COUNT(*) FROM Actuaciones_Procesales WHERE ID_Caso = @idActuaciones) + " &
+                    " (SELECT COUNT(*) FROM Documentos WHERE ID_Caso = @idDocumentos) + " &
+                    " (SELECT COUNT(*) FROM Operaciones_LDAFT WHERE ID_Caso = @idOperaciones)",
+                    conexion, transaccion)
+                    Parametro(comandoReferencias, "@idActuaciones", caso.ID)
+                    Parametro(comandoReferencias, "@idDocumentos", caso.ID)
+                    Parametro(comandoReferencias, "@idOperaciones", caso.ID)
+                    referenciasHistoricas = Convert.ToInt32(comandoReferencias.ExecuteScalar())
+                End Using
+
+                If referenciasHistoricas > 0 AndAlso
+                   (caso.IDCliente <> clienteActual OrElse
+                    Not String.Equals(If(caso.NumeroExpediente, "").Trim(), expedienteActual,
+                                      StringComparison.OrdinalIgnoreCase)) Then
+                    Throw New InvalidOperationException(
+                        "No se puede cambiar el cliente ni el número de expediente de un caso con actuaciones, documentos u operaciones históricas. Use el procedimiento autorizado de rectificación.")
+                End If
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Casos SET ID_Cliente = @cliente, Numero_Expediente = @expediente, Materia = @materia, " &
                     "ID_Juzgado = @juzgado, Descripcion = @descripcion, Estado = @estado, Fecha_Apertura = @apertura, " &
