@@ -70,6 +70,9 @@ Public Class ServicioClientes
         If If(cliente.Direccion, "").Length > 300 Then Return "La dirección no puede superar 300 caracteres."
         If If(cliente.Telefono, "").Length > 40 Then Return "El teléfono no puede superar 40 caracteres."
         If If(cliente.Email, "").Length > 120 Then Return "El correo electrónico no puede superar 120 caracteres."
+        If cliente.FechaNacimiento.HasValue AndAlso cliente.FechaNacimiento.Value.Year < 1000 Then
+            Return "La fecha de nacimiento no es válida."
+        End If
         If cliente.FechaNacimiento.HasValue AndAlso cliente.FechaNacimiento.Value.Date > Date.Today Then
             Return "La fecha de nacimiento no puede ser futura."
         End If
@@ -93,6 +96,10 @@ Public Class ServicioClientes
             If If(perfil.DetalleOrigenFondos, "").Length > 500 OrElse
                If(perfil.Observaciones, "").Length > 500 Then
                 Return "El detalle de origen de fondos y las observaciones no pueden superar 500 caracteres."
+            End If
+            If perfil.FechaVerificacionListas.HasValue AndAlso
+               perfil.FechaVerificacionListas.Value.Year < 1000 Then
+                Return "La fecha de verificación de listas no es válida."
             End If
             If perfil.FechaVerificacionListas.HasValue AndAlso
                perfil.FechaVerificacionListas.Value.Date > Date.Today Then
