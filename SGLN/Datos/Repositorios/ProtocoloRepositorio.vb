@@ -152,7 +152,7 @@ Public Class ProtocoloRepositorio
 
                 Dim ultimaEscritura As Object
                 Using consultarFecha As New MySqlCommand(
-                    "SELECT MAX(DATE(Fecha_Hora_Otorgamiento)) FROM Instrumentos WHERE ID_Libro = @id AND Estado = 'Vigente'",
+                    "SELECT MAX(DATE(Fecha_Hora_Otorgamiento)) FROM Instrumentos WHERE ID_Libro = @id",
                     conexion, transaccion)
                     Parametro(consultarFecha, "@id", id)
                     ultimaEscritura = consultarFecha.ExecuteScalar()
