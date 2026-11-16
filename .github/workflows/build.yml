@@ -71,6 +71,7 @@ jobs:
           $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
           $calculadoraDias = Get-Content 'SGLN\\Servicios\\CalculadoraDiasHabiles.vb' -Raw
           $servicioProtocolo = Get-Content 'SGLN\\Servicios\\ServicioProtocolo.vb' -Raw
+          $protocoloRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -132,6 +133,10 @@ jobs:
               $servicioProtocolo -notmatch 'FechaHoraOtorgamiento = Date.MinValue' -or
               $servicioProtocolo -notmatch 'validar referencias de escritura') {
             throw 'El protocolo debe validar fechas obligatorias y controlar errores al consultar referencias.'
+          }
+          if ($protocoloRepo -notmatch "Estado IN \\('Cerrado', 'Entregado'\\)" -or
+              $servicioProtocolo -notmatch 'cambió de estado y no se pudo marcar el índice') {
+            throw 'El índice notarial solo puede marcarse después del cierre y debe detectar cambios concurrentes.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
