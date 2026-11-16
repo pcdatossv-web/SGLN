@@ -431,6 +431,54 @@ Module PruebaFuncional
         Next
         Verificar("El usuario nuevo aparece en el listado", idUsuarioPrueba > 0)
 
+        ' Un rol ordinario puede recibir config.usuarios, pero ese permiso
+        ' nunca debe permitir elevar una cuenta al rol protegido Administrador.
+        Dim sufijoGestor As String = Guid.NewGuid().ToString("N").Substring(0, 8)
+        Dim nombreRolGestor As String = "Gestor usuarios " & sufijoGestor
+        Dim nombreUsuarioGestor As String = "gestor" & sufijoGestor
+        Dim altaRolGestor As Respuesta = roles.Crear(nombreRolGestor,
+            "Rol ordinario para probar la separación de privilegios",
+            New List(Of String) From {"config.usuarios"})
+        Dim idRolGestor As Integer = 0
+        For Each fila As DataRow In roles.Listar().Rows
+            If UtileriasUI.Texto(fila, "Nombre") = nombreRolGestor Then
+                idRolGestor = UtileriasUI.Entero(fila, "ID")
+                Exit For
+            End If
+        Next
+        Dim altaGestor As Respuesta = servicioUsuarios.Crear(
+            nombreUsuarioGestor, "Gestor temporal de pruebas", "GestorPrueba99!", idRolGestor, True)
+        Dim idUsuarioGestor As Integer = 0
+        For Each fila As DataRow In servicioUsuarios.Listar().Rows
+            If UtileriasUI.Texto(fila, "Usuario") = nombreUsuarioGestor Then
+                idUsuarioGestor = UtileriasUI.Entero(fila, "ID")
+                Exit For
+            End If
+        Next
+        Dim sesionGestor As UsuarioSesion = usuarios.ObtenerEstadoSesion(idUsuarioGestor)
+        Sesion.UsuarioActual = sesionGestor
+        Sesion.CargarPermisos()
+        Verificar("El rol ordinario de prueba recibe únicamente el permiso explícito de usuarios",
+                  altaRolGestor.Exito AndAlso altaGestor.Exito AndAlso
+                  sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("config.usuarios") AndAlso
+                  Not Sesion.UsuarioActual.RolProtegido)
+        Verificar("Un usuario con config.usuarios no puede crear cuentas Administrador",
+                  Not servicioUsuarios.Crear("admin_no_autorizado_" & sufijoGestor,
+                      "Intento de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
+        Verificar("Un usuario con config.usuarios no puede promover otra cuenta a Administrador",
+                  Not servicioUsuarios.Actualizar(idUsuarioPrueba, "Usuario de Prueba",
+                      idRolAdmin, True).Exito)
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        If idUsuarioGestor > 0 Then
+            Verificar("La cuenta temporal de gestor se limpia al terminar la prueba",
+                      servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor).Exito)
+        End If
+        If idRolGestor > 0 Then
+            Verificar("El rol temporal de gestor se limpia al terminar la prueba",
+                      roles.Eliminar(idRolGestor).Exito)
+        End If
+
         Dim actualizarSinCambios As Respuesta = servicioUsuarios.Actualizar(
             idUsuarioPrueba, "Usuario de Prueba", idRolPrueba, True)
         Verificar("Guardar un usuario sin modificar sus datos no se reporta como inexistente",
