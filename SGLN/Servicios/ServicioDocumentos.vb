@@ -56,6 +56,11 @@ Public Class ServicioDocumentos
         If String.IsNullOrWhiteSpace(tipoDocumento) Then
             Return Respuesta.Fallo("Seleccione el tipo de documento.")
         End If
+        If tipoDocumento.Trim().Length > 60 Then
+            Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
+        End If
+        Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
+        If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
 
         Dim extension As String = Path.GetExtension(rutaOrigen)
         If Not ExtensionesPermitidas.Contains(extension) Then
@@ -131,6 +136,9 @@ Public Class ServicioDocumentos
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
         If String.IsNullOrWhiteSpace(tipoDocumento) Then Return Respuesta.Fallo("Seleccione el tipo de documento.")
+        If tipoDocumento.Trim().Length > 60 Then Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
+        Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
+        If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
 
         Dim documento As New Documento With {
             .ID = id,
@@ -265,6 +273,22 @@ Public Class ServicioDocumentos
             Throw New InvalidOperationException("La ruta del documento está fuera de la carpeta documental autorizada.")
         End If
         Return destino
+    End Function
+
+    Private Function ValidarReferencias(idCaso As Integer?, idInstrumento As Integer?) As String
+        If idCaso.HasValue Then
+            If idCaso.Value <= 0 Then Return "El caso asociado no es válido."
+            If New CasoRepositorio().Obtener(idCaso.Value).Rows.Count = 0 Then
+                Return "El caso asociado no existe."
+            End If
+        End If
+        If idInstrumento.HasValue Then
+            If idInstrumento.Value <= 0 Then Return "El instrumento asociado no es válido."
+            If New ProtocoloRepositorio().ObtenerInstrumento(idInstrumento.Value).Rows.Count = 0 Then
+                Return "El instrumento asociado no existe."
+            End If
+        End If
+        Return ""
     End Function
 
     ''' <summary>
