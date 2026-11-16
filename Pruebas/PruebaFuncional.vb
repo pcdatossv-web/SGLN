@@ -525,6 +525,20 @@ Module PruebaFuncional
                       True, New List(Of String) From {"casos.ver"}).Exito)
         Verificar("Un usuario ordinario no puede eliminar roles",
                   Not roles.Eliminar(idRolPrueba).Exito)
+        Verificar("El repositorio también bloquea la creación directa de roles por usuarios ordinarios",
+                  Not New RolRepositorio().Crear("Rol directo no autorizado " & sufijoGestor,
+                      "Prueba", New List(Of String) From {"casos.ver"}).Exito)
+        Verificar("El repositorio también bloquea la modificación directa de roles por usuarios ordinarios",
+                  Not New RolRepositorio().Actualizar(idRolPrueba, "Cambio directo no autorizado",
+                      "Prueba", True, New List(Of String) From {"casos.ver"}).Exito)
+        Verificar("El repositorio también bloquea la eliminación directa de roles por usuarios ordinarios",
+                  Not New RolRepositorio().Eliminar(idRolPrueba).Exito)
+        Verificar("El repositorio bloquea la modificación directa de una cuenta Administrador",
+                  Not New UsuarioRepositorio().Actualizar(admin.ID, admin.NombreCompleto,
+                      idRolAdmin, True).Exito)
+        Verificar("El repositorio bloquea altas directas de usuarios sin permiso administrativo",
+                  Not New UsuarioRepositorio().Crear("repo_usuario_no_autorizado_" & sufijoGestor,
+                      "Alta directa no autorizada", "IntentoSeguro99!", idRolPrueba, True).Exito)
         Verificar("Un usuario ordinario no puede crear cuentas Administrador",
                   Not servicioUsuarios.Crear("admin_no_autorizado_" & sufijoGestor,
                       "Intento de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
