@@ -19,6 +19,7 @@ DROP TRIGGER IF EXISTS trg_roles_protegido_bu;
 DROP TRIGGER IF EXISTS trg_roles_protegido_bd;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bu;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bd;
+DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bi;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bu;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bd;
 DROP TRIGGER IF EXISTS trg_audit_log_no_update;
@@ -106,12 +107,31 @@ BEGIN
     END IF;
 END$$
 
+CREATE TRIGGER trg_rol_permiso_admin_bi BEFORE INSERT ON Rol_Permiso
+FOR EACH ROW
+BEGIN
+    DECLARE v_protegido TINYINT DEFAULT 0;
+
+    SELECT Protegido INTO v_protegido
+    FROM Roles WHERE ID = NEW.ID_Rol LIMIT 1;
+
+    /* config.usuarios y config.roles son privilegios administrativos.
+       Ningún rol ordinario puede obtenerlos por SQL directo. */
+    IF NEW.Codigo IN ('config.usuarios', 'config.roles')
+       AND COALESCE(v_protegido, 0) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
+    END IF;
+END$
+
 CREATE TRIGGER trg_rol_permiso_admin_bu BEFORE UPDATE ON Rol_Permiso
 FOR EACH ROW
 BEGIN
-    DECLARE v_protegido TINYINT;
+    DECLARE v_protegido TINYINT DEFAULT 0;
+    DECLARE v_nuevo_protegido TINYINT DEFAULT 0;
 
     SELECT Protegido INTO v_protegido FROM Roles WHERE ID = OLD.ID_Rol LIMIT 1;
+    SELECT Protegido INTO v_nuevo_protegido FROM Roles WHERE ID = NEW.ID_Rol LIMIT 1;
 
     IF v_protegido = 1
        AND OLD.Codigo IN ('config.usuarios', 'config.roles')
@@ -119,7 +139,13 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'No se pueden reasignar ni cambiar los permisos esenciales del Administrador.';
     END IF;
-END$$
+
+    IF NEW.Codigo IN ('config.usuarios', 'config.roles')
+       AND COALESCE(v_nuevo_protegido, 0) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
+    END IF;
+END$
 
 CREATE TRIGGER trg_rol_permiso_admin_bd BEFORE DELETE ON Rol_Permiso
 FOR EACH ROW
