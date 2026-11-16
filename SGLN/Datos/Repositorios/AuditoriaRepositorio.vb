@@ -11,6 +11,7 @@ Public Class AuditoriaRepositorio
 
     Public Function Buscar(usuario As String, tabla As String, accion As String,
                            desde As Date, hasta As Date) As DataTable
+        If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
 
         Return Consultar(
             "SELECT ID, Usuario, Fecha_Hora, Accion, Tabla_Afectada, ID_Registro, Detalle " &
@@ -32,16 +33,19 @@ Public Class AuditoriaRepositorio
     End Function
 
     Public Function TablasAfectadas() As DataTable
+        If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT DISTINCT Tabla_Afectada FROM Audit_Log ORDER BY Tabla_Afectada")
     End Function
 
     Public Function Acciones() As DataTable
+        If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT DISTINCT Accion FROM Audit_Log ORDER BY Accion")
     End Function
 
     Public Function Usuarios() As DataTable
+        If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT DISTINCT Usuario FROM Audit_Log ORDER BY Usuario")
     End Function
