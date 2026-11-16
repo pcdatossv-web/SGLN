@@ -68,6 +68,8 @@ Module PruebaFuncional
                   New ServicioDocumentos().Buscar("", "").Rows.Count = 0)
         Verificar("El protocolo no se consulta sin permiso",
                   New ServicioProtocolo().Libros().Rows.Count = 0)
+        Verificar("Los comparecientes del protocolo no se exponen sin permiso",
+                  New ServicioProtocolo().Comparecientes(1).Rows.Count = 0)
         Verificar("Cumplimiento no se consulta sin permiso",
                   New ServicioCumplimiento().Operaciones("").Rows.Count = 0)
         Verificar("Los roles no se consultan sin permiso",
