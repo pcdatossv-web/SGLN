@@ -26,25 +26,18 @@ El inventario no sustituye el análisis de vulnerabilidades: después de conocer
 las versiones efectivas hay que contrastarlas con los avisos de seguridad del
 proveedor y planificar actualizaciones compatibles.
 
-## Riesgo pendiente antes de producción
+## Versiones fijadas para esta etapa
 
-El inventario de CI identificó actualmente `MySql.Data.dll` **8.0.30.0**
-(FileVersion 8.0.30, publicado el 26/07/2022). No debe considerarse una
-dependencia actual para una instalación nueva de producción.
+Se conserva **MySql.Data.dll 8.0.30.0** y la versión de servidor MySQL que
+actualmente utiliza la instalación. No se actualizarán el conector, sus DLL
+auxiliares ni el servidor durante esta etapa de correcciones, para evitar
+introducir incompatibilidades en una aplicación que ya trabaja con esa
+combinación.
 
-Oracle publicó Connector/NET 26.10.0 el 21/10/2026 y declara compatibilidad
-con .NET Framework 4.8. La actualización es técnicamente viable para el marco
-objetivo, pero el paquete actual incorpora dependencias adicionales
-(BouncyCastle.Cryptography, Google.Protobuf, K4os.Compression.LZ4.Streams,
-System.Configuration.ConfigurationManager y ZstdSharp.Port, entre otras).
-No se debe reemplazar solo `MySql.Data.dll`: hay que incorporar el conjunto
-completo de dependencias y sus redirecciones de ensamblado, compilar Release y
-ejecutar la batería funcional contra `sgln_sv_pruebas` antes de publicar.
-
-La familia MySQL 8.0 pasó a soporte sustentador el 21/04/2026; Oracle recomienda
-migrar a una versión LTS vigente. Por ello, la actualización del conector y la
-validación con la versión de servidor de producción quedan como requisito
-pendiente de cierre de la puesta en producción.
+Las correcciones deben realizarse en el código VB.NET, consultas y scripts SQL
+compatibles con la versión MySQL instalada. Cualquier cambio futuro de
+versiones será una migración independiente, con respaldo, entorno de pruebas
+y validación completa, y no forma parte de esta ronda.
 
 Las referencias a `System.*` proporcionadas por .NET Framework no se incluyen
 en esta lista porque forman parte de la plataforma de destino.
