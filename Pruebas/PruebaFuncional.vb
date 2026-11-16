@@ -2191,6 +2191,18 @@ Module PruebaFuncional
             .Detalle = "Solicitud de copia de datos personales"}
         Dim rArco As Respuesta = cumplimiento.GuardarSolicitud(arco)
         Verificar("Guardar solicitud ARCO de acceso", rArco.Exito, rArco.Mensaje)
+        Dim arcoDirectoForzadoPendiente As Integer =
+            (New CumplimientoRepositorio()).InsertarSolicitud(New SolicitudArco With {
+                .IDCliente = idCliente, .TipoDerecho = "Acceso",
+                .FechaSolicitud = Date.Today, .FechaVencimiento = Date.Today.AddDays(10),
+                .Estado = "Respondida", .FechaRespuesta = Date.Today,
+                .Detalle = "Prueba de estado inicial protegido"})
+        Dim arcoDirectoForzadoTabla As DataTable =
+            (New CumplimientoRepositorio()).ObtenerSolicitud(arcoDirectoForzadoPendiente)
+        Verificar("El repositorio fuerza estado Pendiente y fecha de respuesta nula al crear ARCO",
+                  arcoDirectoForzadoTabla.Rows.Count = 1 AndAlso
+                  Convert.ToString(arcoDirectoForzadoTabla.Rows(0)("Estado")) = "Pendiente" AndAlso
+                  arcoDirectoForzadoTabla.Rows(0).IsNull("Fecha_Respuesta"))
         Verificar("La búsqueda de solicitudes ARCO sin filtro lista resultados",
                   cumplimiento.SolicitudesArco("").Rows.Count >= 1)
         Verificar("El vencimiento ARCO se calcula a 10 días hábiles",
