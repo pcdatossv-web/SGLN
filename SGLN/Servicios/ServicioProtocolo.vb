@@ -103,6 +103,9 @@ Public Class ServicioProtocolo
     ''' Se toman los días configurados (15 por defecto) en días hábiles.
     ''' </summary>
     Public Function FechaLimiteEntrega(fechaCierre As Date) As Date
+        If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.entregar") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then
+            Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos del protocolo.")
+        End If
         Dim dias As Integer = DiasEntregaConfigurados()
         Return New CalculadoraDiasHabiles(_catalogo.FechasFeriadas()).CalcularVencimiento(fechaCierre, dias)
     End Function
