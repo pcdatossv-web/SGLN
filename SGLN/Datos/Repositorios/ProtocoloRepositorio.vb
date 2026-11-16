@@ -210,6 +210,19 @@ Public Class ProtocoloRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Comprueba una referencia notarial al vincular documentos sin exponer
+    ''' los datos del instrumento a usuarios sin permiso de consulta del protocolo.
+    ''' </summary>
+    Public Function ExisteInstrumentoParaVinculoDocumento(id As Integer) As Boolean
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("documentos.importar") OrElse
+                               Permisos.TieneAcceso("documentos.metadatos")) Then Return False
+        Return Consultar("SELECT ID FROM Instrumentos WHERE ID = @id",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", id)
+            End Sub).Rows.Count > 0
+    End Function
+
     Public Function ObtenerInstrumento(id As Integer) As DataTable
         If id <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse
                                Permisos.TieneAcceso("protocolo.gestionar") OrElse
