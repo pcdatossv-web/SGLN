@@ -130,15 +130,37 @@ Public Class ProtocoloRepositorio
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim estado As String = Nothing
+                Dim fechaAutorizacion As Date = Date.MinValue
                 Using consultar As New MySqlCommand(
-                    "SELECT Estado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+                    "SELECT Estado, Fecha_Autorizacion FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
                     Parametro(consultar, "@id", id)
-                    Dim valor As Object = consultar.ExecuteScalar()
-                    If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estado = Convert.ToString(valor)
+                    Using lector As MySqlDataReader = consultar.ExecuteReader()
+                        If lector.Read() Then
+                            estado = Convert.ToString(lector("Estado"))
+                            If Not lector.IsDBNull(lector.GetOrdinal("Fecha_Autorizacion")) Then
+                                fechaAutorizacion = Convert.ToDateTime(lector("Fecha_Autorizacion")).Date
+                            End If
+                        End If
+                    End Using
                 End Using
 
                 If estado <> "Vigente" Then Return 0
+                If fechaAutorizacion = Date.MinValue OrElse fechaCierre.Date < fechaAutorizacion Then
+                    Throw New ArgumentException("La fecha de cierre no puede ser anterior a la autorización del libro.", NameOf(fechaCierre))
+                End If
+
+                Dim ultimaEscritura As Object
+                Using consultarFecha As New MySqlCommand(
+                    "SELECT MAX(DATE(Fecha_Hora_Otorgamiento)) FROM Instrumentos WHERE ID_Libro = @id AND Estado = 'Vigente'",
+                    conexion, transaccion)
+                    Parametro(consultarFecha, "@id", id)
+                    ultimaEscritura = consultarFecha.ExecuteScalar()
+                End Using
+                If ultimaEscritura IsNot Nothing AndAlso Not Convert.IsDBNull(ultimaEscritura) AndAlso
+                   fechaCierre.Date < Convert.ToDateTime(ultimaEscritura).Date Then
+                    Throw New ArgumentException("La fecha de cierre no puede ser anterior a la última escritura vigente.", NameOf(fechaCierre))
+                End If
 
                 ' El bloqueo del libro serializa el cierre con las altas y bajas
                 ' de instrumentos/comparecientes que también bloquean esta fila.
