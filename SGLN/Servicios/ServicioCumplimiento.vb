@@ -309,6 +309,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function CalcularProrrogaArco(fechaVencimiento As Date) As Date
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
         Return NuevaCalculadora().CalcularVencimiento(
             fechaVencimiento, DiasConfigurados("ARCO_Dias_Prorroga", 5))
     End Function
