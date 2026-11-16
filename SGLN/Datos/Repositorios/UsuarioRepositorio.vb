@@ -316,6 +316,8 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function VerificarClave(idUsuario As Integer, clave As String) As Boolean
+        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario Then Return False
+
         Dim tabla As DataTable = Consultar(
             "SELECT Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1",
             Sub(comando As MySqlCommand)
