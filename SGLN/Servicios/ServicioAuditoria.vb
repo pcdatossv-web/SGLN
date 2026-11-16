@@ -18,7 +18,7 @@ Public Class ServicioAuditoria
     Public Function Buscar(usuario As String, tabla As String, accion As String,
                            desde As Date, hasta As Date) As DataTable
         If Not PuedeConsultar() Then Return New DataTable()
-        If hasta.Date < desde.Date Then Return New DataTable()
+        If desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return New DataTable()
         Return _repositorio.Buscar(usuario, tabla, accion, desde, hasta)
     End Function
 
