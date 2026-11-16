@@ -469,9 +469,10 @@ Module PruebaFuncional
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
+        Dim repositorioConfiguracionPrueba As New ConfiguracionRepositorio()
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
-            New ConfiguracionRepositorio().Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
+            repositorioConfiguracionPrueba.Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
         Catch ex As UnauthorizedAccessException
             configuracionDirectaBloqueada = True
         End Try
@@ -479,7 +480,7 @@ Module PruebaFuncional
                   configuracionDirectaBloqueada)
         Dim feriadoDirectoBloqueado As Boolean = False
         Try
-            New ConfiguracionRepositorio().InsertarFeriado(New Date(2099, 1, 2), "No autorizado")
+            repositorioConfiguracionPrueba.InsertarFeriado(New Date(2099, 1, 2), "No autorizado")
         Catch ex As UnauthorizedAccessException
             feriadoDirectoBloqueado = True
         End Try
@@ -487,7 +488,7 @@ Module PruebaFuncional
                   feriadoDirectoBloqueado)
         Dim respaldoDirectoBloqueado As Boolean = False
         Try
-            New ConfiguracionRepositorio().RespaldarBaseDatos(
+            repositorioConfiguracionPrueba.RespaldarBaseDatos(
                 Path.Combine(Path.GetTempPath(), "sgln_no_autorizado.sql"))
         Catch ex As UnauthorizedAccessException
             respaldoDirectoBloqueado = True
