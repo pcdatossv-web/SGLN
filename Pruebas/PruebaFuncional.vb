@@ -2114,6 +2114,20 @@ Module PruebaFuncional
                       .FechaOperacion = Date.Today, .IDInstrumento = -1
                   }).Exito)
 
+        Dim operacionDirectaInvalidaRechazada As Boolean = False
+        Try
+            (New CumplimientoRepositorio()).InsertarOperacion(New OperacionLdaft With {
+                .TipoOperacion = "Regulada", .Monto = 0D, .Moneda = "USD",
+                .FechaOperacion = Date.Today,
+                .FechaVencimientoAnalisis = Date.Today.AddDays(5),
+                .FechaVencimientoReporte = Date.Today.AddDays(15),
+                .Descripcion = "Monto inválido"})
+        Catch ex As ArgumentException
+            operacionDirectaInvalidaRechazada = True
+        End Try
+        Verificar("El repositorio LDA/FT rechaza directamente montos no positivos",
+                  operacionDirectaInvalidaRechazada)
+
         Dim operacion As New OperacionLdaft With {
             .TipoOperacion = "Regulada",
             .Monto = 12500D,
