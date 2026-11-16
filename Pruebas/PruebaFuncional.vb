@@ -1614,6 +1614,32 @@ Module PruebaFuncional
                       .FechaHoraOtorgamiento = Date.Now,
                       .FolioInicio = 10, .FolioFin = 12,
                       .ObjetoActo = "Prueba de traslape"}).Exito)
+
+        Dim altaDirectaTraslapeRechazada As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).InsertarInstrumento(New Instrumento With {
+                .IDLibro = idLibro, .NumeroEscritura = 90,
+                .FechaHoraOtorgamiento = New Date(2026, 4, 10, 9, 0, 0),
+                .FolioInicio = 10, .FolioFin = 12,
+                .ObjetoActo = "Alta directa con folios ocupados"})
+        Catch ex As InvalidOperationException
+            altaDirectaTraslapeRechazada = True
+        End Try
+        Verificar("El repositorio impide altas directas que traslapen folios",
+                  altaDirectaTraslapeRechazada)
+
+        Dim edicionDirectaTraslapeRechazada As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).ActualizarInstrumento(New Instrumento With {
+                .ID = idInstrumento1, .IDLibro = idLibro, .NumeroEscritura = 1,
+                .FechaHoraOtorgamiento = New Date(2026, 2, 10, 10, 30, 0),
+                .FolioInicio = 10, .FolioFin = 12,
+                .ObjetoActo = "Edición directa con folios ocupados", .Estado = "Vigente"})
+        Catch ex As InvalidOperationException
+            edicionDirectaTraslapeRechazada = True
+        End Try
+        Verificar("El repositorio impide ediciones directas que traslapen folios",
+                  edicionDirectaTraslapeRechazada)
         Verificar("Escritura duplicada en el libro se rechaza con mensaje",
                   Not protocolo.GuardarInstrumento(New Instrumento With {
                       .IDLibro = idLibro, .NumeroEscritura = 1,
