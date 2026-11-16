@@ -314,6 +314,8 @@ Module PruebaFuncional
             admin.ID, "TemporalClave99!", "CambioPropioTemporal99!")
         Verificar("El usuario puede cambiar su propia clave con la clave actual",
                   cambioClavePropia.Exito AndAlso usuarios.Autenticar("admin", "CambioPropioTemporal99!") IsNot Nothing)
+        Verificar("El repositorio impide restablecer directamente la clave de la cuenta propia sin validar la clave actual",
+                  Not New UsuarioRepositorio().CambiarClave(admin.ID, "AccesoDirecto99!").Exito)
         Dim restauracionClavePrueba As Respuesta = servicioUsuariosClave.CambiarClavePropia(
             admin.ID, "CambioPropioTemporal99!", "TemporalClave99!")
         Verificar("La prueba restaura la clave de administrador para el resto del arnés",
