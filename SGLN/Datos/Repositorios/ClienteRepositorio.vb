@@ -46,6 +46,9 @@ Public Class ClienteRepositorio
     Public Function GuardarCompleto(cliente As Cliente, perfil As PerfilLdaft) As Integer
         If Not Permisos.TieneAcceso("clientes.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar clientes.")
         If cliente Is Nothing Then Throw New ArgumentNullException(NameOf(cliente))
+        If cliente.ID < 0 Then Throw New ArgumentException("El identificador del cliente no es válido.", NameOf(cliente))
+        ValidarDatosCliente(cliente, perfil)
+        NormalizarDatosCliente(cliente, perfil)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idCliente As Integer = cliente.ID
@@ -197,6 +200,62 @@ Public Class ClienteRepositorio
         Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
                              StringComparison.Ordinal)
     End Function
+
+    Private Sub ValidarDatosCliente(cliente As Cliente, perfil As PerfilLdaft)
+        If String.IsNullOrWhiteSpace(cliente.Nombres) OrElse cliente.Nombres.Trim().Length > 120 Then
+            Throw New ArgumentException("Los nombres son obligatorios y no pueden superar 120 caracteres.", NameOf(cliente))
+        End If
+        If String.IsNullOrWhiteSpace(cliente.Apellidos) OrElse cliente.Apellidos.Trim().Length > 120 Then
+            Throw New ArgumentException("Los apellidos son obligatorios y no pueden superar 120 caracteres.", NameOf(cliente))
+        End If
+        If If(cliente.Nacionalidad, "").Length > 60 OrElse If(cliente.Profesion, "").Length > 120 OrElse
+           If(cliente.Direccion, "").Length > 300 OrElse If(cliente.Telefono, "").Length > 40 OrElse
+           If(cliente.Email, "").Length > 120 Then
+            Throw New ArgumentException("Uno o más datos del cliente superan la longitud permitida.", NameOf(cliente))
+        End If
+        If cliente.FechaNacimiento.HasValue AndAlso
+           (cliente.FechaNacimiento.Value.Year < 1000 OrElse cliente.FechaNacimiento.Value.Date > Date.Today) Then
+            Throw New ArgumentException("La fecha de nacimiento no es válida.", NameOf(cliente))
+        End If
+        If Not String.IsNullOrWhiteSpace(cliente.DUI) AndAlso Not ValidadorIdentidad.EsFormatoDuiValido(cliente.DUI) Then
+            Throw New ArgumentException("El DUI debe tener 9 dígitos (formato 00000000-0).", NameOf(cliente))
+        End If
+        If Not String.IsNullOrWhiteSpace(cliente.NIT) AndAlso Not ValidadorIdentidad.EsFormatoNitValido(cliente.NIT) Then
+            Throw New ArgumentException("El NIT debe tener 14 dígitos.", NameOf(cliente))
+        End If
+        If Not String.IsNullOrWhiteSpace(cliente.Email) AndAlso Not cliente.Email.Contains("@") Then
+            Throw New ArgumentException("El correo electrónico no es válido.", NameOf(cliente))
+        End If
+        If perfil IsNot Nothing Then
+            If perfil.NivelRiesgo <> "Bajo" AndAlso perfil.NivelRiesgo <> "Medio" AndAlso perfil.NivelRiesgo <> "Alto" Then
+                Throw New ArgumentException("El nivel de riesgo LDA/FT no es válido.", NameOf(perfil))
+            End If
+            If If(perfil.DetalleOrigenFondos, "").Length > 500 OrElse If(perfil.Observaciones, "").Length > 500 Then
+                Throw New ArgumentException("Los datos del perfil LDA/FT no pueden superar 500 caracteres.", NameOf(perfil))
+            End If
+            If perfil.FechaVerificacionListas.HasValue AndAlso
+               (perfil.FechaVerificacionListas.Value.Year < 1000 OrElse
+                perfil.FechaVerificacionListas.Value.Date > Date.Today) Then
+                Throw New ArgumentException("La fecha de verificación de listas no es válida.", NameOf(perfil))
+            End If
+        End If
+    End Sub
+
+    Private Sub NormalizarDatosCliente(cliente As Cliente, perfil As PerfilLdaft)
+        cliente.Nombres = If(cliente.Nombres, "").Trim()
+        cliente.Apellidos = If(cliente.Apellidos, "").Trim()
+        cliente.Nacionalidad = If(cliente.Nacionalidad, "").Trim()
+        cliente.Profesion = If(cliente.Profesion, "").Trim()
+        cliente.Direccion = If(cliente.Direccion, "").Trim()
+        cliente.Telefono = If(cliente.Telefono, "").Trim()
+        cliente.Email = If(cliente.Email, "").Trim()
+        If Not String.IsNullOrWhiteSpace(cliente.DUI) Then cliente.DUI = ValidadorIdentidad.FormatearDui(cliente.DUI)
+        If Not String.IsNullOrWhiteSpace(cliente.NIT) Then cliente.NIT = ValidadorIdentidad.FormatearNit(cliente.NIT)
+        If perfil IsNot Nothing Then
+            perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
+            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+        End If
+    End Sub
 
     Private Sub AgregarParametros(comando As MySqlCommand, cliente As Cliente)
         Parametro(comando, "@nombres", cliente.Nombres)
