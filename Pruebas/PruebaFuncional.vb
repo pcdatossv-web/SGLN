@@ -609,6 +609,9 @@ Module PruebaFuncional
                   New UsuarioRepositorio().Listar().Rows.Count = 0 AndAlso
                   New UsuarioRepositorio().Obtener(admin.ID).Rows.Count = 0 AndAlso
                   New UsuarioRepositorio().ObtenerEstadoSesion(admin.ID) Is Nothing)
+        Verificar("El repositorio oculta conteos y clasificación de administradores a roles ordinarios",
+                  New UsuarioRepositorio().ContarAdministradoresActivos(0) = 0 AndAlso
+                  Not New UsuarioRepositorio().EsAdministrador(admin.ID))
         Verificar("El repositorio no expone el catálogo de roles a un rol ordinario",
                   New RolRepositorio().Listar().Rows.Count = 0 AndAlso
                   New RolRepositorio().Obtener(idRolAdmin).Rows.Count = 0 AndAlso
