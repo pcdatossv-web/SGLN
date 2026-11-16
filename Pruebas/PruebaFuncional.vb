@@ -1832,7 +1832,7 @@ Module PruebaFuncional
                 Try
                     iniciarConcurrentes.WaitOne()
                     Dim resultado As Respuesta =
-                        (New ServicioProtocolo()).GuardarInstrumento(New Instrumento With {
+                        servicioProtocoloConcurrente.GuardarInstrumento(New Instrumento With {
                             .IDLibro = idLibro, .NumeroEscritura = 21,
                             .FechaHoraOtorgamiento = Date.Now,
                             .FolioInicio = 35, .FolioFin = 45,
