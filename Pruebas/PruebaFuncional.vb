@@ -431,8 +431,7 @@ Module PruebaFuncional
         Next
         Verificar("El usuario nuevo aparece en el listado", idUsuarioPrueba > 0)
 
-        ' Un rol ordinario puede recibir config.usuarios, pero ese permiso
-        ' nunca debe permitir elevar una cuenta al rol protegido Administrador.
+        ' Un rol ordinario no puede recibir permisos administrativos ni por SQL directo.
         Dim sufijoGestor As String = Guid.NewGuid().ToString("N").Substring(0, 8)
         Dim nombreRolGestor As String = "Gestor usuarios " & sufijoGestor
         Dim nombreUsuarioGestor As String = "gestor" & sufijoGestor
@@ -514,24 +513,24 @@ Module PruebaFuncional
         End Try
         Verificar("MySQL deniega DELETE directo sobre Usuarios a la cuenta de aplicación",
                   borradoDirectoUsuariosBloqueado)
-        Verificar("Un usuario con config.roles no puede crear roles ni permisos",
+        Verificar("Un usuario ordinario no puede crear roles ni permisos",
                   Not roles.Crear("Rol no autorizado " & sufijoGestor, "Prueba", New List(Of String) From {"casos.ver"}).Exito)
-        Verificar("Un usuario con config.roles no puede modificar roles ni permisos",
+        Verificar("Un usuario ordinario no puede modificar roles ni permisos",
                   Not roles.Actualizar(idRolPrueba, "Rol de prueba editado", "Descripción editada",
                       True, New List(Of String) From {"casos.ver"}).Exito)
-        Verificar("Un usuario con config.roles no puede eliminar roles",
+        Verificar("Un usuario ordinario no puede eliminar roles",
                   Not roles.Eliminar(idRolPrueba).Exito)
-        Verificar("Un usuario con config.usuarios no puede crear cuentas Administrador",
+        Verificar("Un usuario ordinario no puede crear cuentas Administrador",
                   Not servicioUsuarios.Crear("admin_no_autorizado_" & sufijoGestor,
                       "Intento de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
-        Verificar("Un usuario con config.usuarios no puede promover otra cuenta a Administrador",
+        Verificar("Un usuario ordinario no puede promover otra cuenta a Administrador",
                   Not servicioUsuarios.Actualizar(idUsuarioPrueba, "Usuario de Prueba",
                       idRolAdmin, True).Exito)
-        Verificar("Un usuario con config.usuarios no puede modificar la cuenta Administrador",
+        Verificar("Un usuario ordinario no puede modificar la cuenta Administrador",
                   Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAdmin, True).Exito)
-        Verificar("Un usuario con config.usuarios no puede desactivar la cuenta Administrador",
+        Verificar("Un usuario ordinario no puede desactivar la cuenta Administrador",
                   Not servicioUsuarios.Desactivar(admin.ID).Exito)
-        Verificar("Un usuario con config.usuarios no puede restablecer la clave del Administrador",
+        Verificar("Un usuario ordinario no puede restablecer la clave del Administrador",
                   Not servicioUsuarios.RestablecerClave(admin.ID, "ClaveTemporal99!").Exito)
         Verificar("El repositorio bloquea el restablecimiento directo de la clave Administrador",
                   Not New UsuarioRepositorio().CambiarClave(admin.ID, "ClaveTemporal99!").Exito)
