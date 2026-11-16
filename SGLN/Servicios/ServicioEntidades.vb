@@ -105,6 +105,9 @@ Public Class ServicioEntidades
         If idCliente <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
         If If(cargo, "").Length > 120 Then Return Respuesta.Fallo("El cargo no puede superar 120 caracteres.")
         If If(tipo, "").Length > 80 Then Return Respuesta.Fallo("El tipo de representación no puede superar 80 caracteres.")
+        If Array.IndexOf(New String() {"Legal", "Voluntario", "Judicial"}, If(tipo, "").Trim()) < 0 Then
+            Return Respuesta.Fallo("Seleccione un tipo de representación válido.")
+        End If
         Try
             Return _repositorio.AgregarRepresentante(idEntidad, idCliente, If(cargo, "").Trim(), If(tipo, "").Trim())
         Catch ex As Exception
