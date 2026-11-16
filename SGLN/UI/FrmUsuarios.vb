@@ -178,6 +178,7 @@ Public Class FrmUsuarios
 
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
+        If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
         If Not EsAdministradorActual() Then
             Mostrar("Solo un administrador puede eliminar definitivamente usuarios.", False)
