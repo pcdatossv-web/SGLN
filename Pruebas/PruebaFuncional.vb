@@ -603,6 +603,9 @@ Module PruebaFuncional
                   sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
                   Not Permisos.TieneAcceso("config.usuarios") AndAlso
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+        Verificar("Un rol ordinario no puede desactivar ni eliminar usuarios",
+                  Not servicioUsuarios.Desactivar(idUsuarioPrueba).Exito AndAlso
+                  Not servicioUsuarios.EliminarDefinitivamente(idUsuarioPrueba).Exito)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
         Verificar("El repositorio no expone el listado ni el estado de otros usuarios a un rol ordinario",
