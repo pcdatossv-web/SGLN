@@ -467,6 +467,8 @@ Module PruebaFuncional
                   sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
                   Not Permisos.TieneAcceso("config.usuarios") AndAlso
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+        Verificar("El repositorio no permite verificar la clave de otra cuenta",
+                  Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
         Dim insercionPermisoAdminBloqueada As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
