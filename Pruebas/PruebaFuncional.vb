@@ -469,6 +469,31 @@ Module PruebaFuncional
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
+        Dim configuracionDirectaBloqueada As Boolean = False
+        Try
+            New ConfiguracionRepositorio().Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
+        Catch ex As UnauthorizedAccessException
+            configuracionDirectaBloqueada = True
+        End Try
+        Verificar("El repositorio bloquea cambios directos de configuración sin permiso",
+                  configuracionDirectaBloqueada)
+        Dim feriadoDirectoBloqueado As Boolean = False
+        Try
+            New ConfiguracionRepositorio().InsertarFeriado(New Date(2099, 1, 2), "No autorizado")
+        Catch ex As UnauthorizedAccessException
+            feriadoDirectoBloqueado = True
+        End Try
+        Verificar("El repositorio bloquea altas directas de feriados sin permiso",
+                  feriadoDirectoBloqueado)
+        Dim respaldoDirectoBloqueado As Boolean = False
+        Try
+            New ConfiguracionRepositorio().RespaldarBaseDatos(
+                Path.Combine(Path.GetTempPath(), "sgln_no_autorizado.sql"))
+        Catch ex As UnauthorizedAccessException
+            respaldoDirectoBloqueado = True
+        End Try
+        Verificar("El repositorio bloquea respaldos directos sin permiso",
+                  respaldoDirectoBloqueado)
         Dim insercionPermisoAdminBloqueada As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
