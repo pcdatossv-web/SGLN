@@ -92,6 +92,7 @@ Public Class FrmUsuarios
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
+        Try
 
         Dim respuesta As Respuesta
 
@@ -116,10 +117,15 @@ Public Class FrmUsuarios
             CargarUsuarios()
             Nuevo()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - btnguardar", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
     Private Sub btnRestablecer_Click(sender As Object, e As EventArgs) Handles btnRestablecer.Click
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
+        Try
 
         If _idSeleccionado = 0 Then
             Mostrar("Seleccione el usuario al que desea restablecer la clave.", False)
@@ -140,10 +146,15 @@ Public Class FrmUsuarios
             txtClaveNueva.Clear()
             txtClaveConfirmar.Clear()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - btnrestablecer", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
+        Try
 
         If _idSeleccionado = 0 Then
             Mostrar("Seleccione el usuario que desea desactivar.", False)
@@ -159,10 +170,15 @@ Public Class FrmUsuarios
             CargarUsuarios()
             Nuevo()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - btndesactivar", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
+        Try
         If Not EsAdministradorActual() Then
             Mostrar("Solo un administrador puede eliminar definitivamente usuarios.", False)
             Return
@@ -191,6 +207,10 @@ Public Class FrmUsuarios
             CargarUsuarios()
             Nuevo()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - btneliminar", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
     Private Function EsAdministradorActual() As Boolean
