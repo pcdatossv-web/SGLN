@@ -387,6 +387,13 @@ Module PruebaFuncional
                   Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAbogado, True).Exito)
         Verificar("Un administrador no puede desactivar su propia cuenta desde mantenimiento",
                   Not servicioUsuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAdmin, False).Exito)
+        Verificar("El repositorio también impide cambiar directamente el rol de la propia cuenta",
+                  Not usuarios.Actualizar(admin.ID, admin.NombreCompleto, idRolAbogado, True).Exito)
+        Verificar("El repositorio rechaza directamente nombres de usuario fuera del formato permitido",
+                  Not usuarios.Crear("usuario invalido", "Usuario de prueba", "ClaveTemporal99!", idRolAbogado, True).Exito)
+        Verificar("El repositorio rechaza directamente nombres completos vacíos o excesivos",
+                  Not usuarios.Crear("usuario" & Guid.NewGuid().ToString("N").Substring(0, 8), New String("N"c, 151),
+                                     "ClaveTemporal99!", idRolAbogado, True).Exito)
         Verificar("El restablecimiento administrativo no permite omitir la clave actual de la propia cuenta",
                   Not servicioUsuarios.RestablecerClave(admin.ID, "NuevaClaveAdmin99!").Exito)
         Dim eliminacionPropiaDirecta As Respuesta = New UsuarioRepositorio().EliminarSiNoTieneHistorial(admin.ID)
