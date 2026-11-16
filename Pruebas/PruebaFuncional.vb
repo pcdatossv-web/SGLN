@@ -1984,6 +1984,10 @@ Module PruebaFuncional
         Verificar("Clave vacía se rechaza", Not seguridad.Guardar("", "x").Exito)
         Verificar("Las claves de carpetas se protegen como reservadas",
                   seguridad.EsClaveReservada("Carpeta_Documentos"))
+        Verificar("No se permite modificar la ruta reservada de documentos",
+                  Not seguridad.Guardar("Carpeta_Documentos", "C:\\Temporal\\Documentos").Exito)
+        Verificar("La protección de rutas reservadas no distingue mayúsculas",
+                  Not seguridad.Guardar("carpeta_respaldos", "C:\\Temporal\\Respaldos").Exito)
 
         Verificar("Feriado duplicado (01/01/2027) se rechaza",
                   Not seguridad.AgregarFeriado(New Date(2027, 1, 1), "Duplicado").Exito)
