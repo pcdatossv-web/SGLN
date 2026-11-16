@@ -2289,6 +2289,16 @@ Module PruebaFuncional
                       .FechaSolicitud = Date.Today.AddDays(1)}).Exito)
         Verificar("Responder antes de la fecha de solicitud se rechaza",
                   Not cumplimiento.ResponderSolicitud(arco.ID, Date.Today.AddDays(-5)).Exito)
+        Verificar("El repositorio tampoco responde ARCO con fecha anterior a la solicitud",
+                  (New CumplimientoRepositorio()).Responder(arco.ID, Date.Today.AddDays(-5)) = 0)
+        Dim respuestaArcoDirectaFuturaRechazada As Boolean = False
+        Try
+            (New CumplimientoRepositorio()).Responder(arco.ID, Date.Today.AddDays(1))
+        Catch ex As ArgumentException
+            respuestaArcoDirectaFuturaRechazada = True
+        End Try
+        Verificar("El repositorio rechaza directamente fechas futuras de respuesta ARCO",
+                  respuestaArcoDirectaFuturaRechazada)
         Dim rResponder As Respuesta = cumplimiento.ResponderSolicitud(arco.ID, Date.Today)
         Verificar("Responder solicitud ARCO", rResponder.Exito, rResponder.Mensaje)
         Verificar("No se responde dos veces una solicitud ARCO",
