@@ -69,7 +69,7 @@ Public Class CatalogoRepositorio
                         Parametro(comando, "@valor", valor)
                     End Sub)
                 AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing,
-                    clave & " = " & valor)
+                    "Clave actualizada: " & clave.Trim())
                 Return filas
             End Function)
         Return Respuesta.Ok("Configuración guardada.")
