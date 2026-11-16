@@ -64,6 +64,9 @@ jobs:
           $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
           $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
           $documentoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\DocumentoRepositorio.vb' -Raw
+          $clienteRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ClienteRepositorio.vb' -Raw
+          $entidadRepo = Get-Content 'SGLN\\Datos\\Repositorios\\EntidadRepositorio.vb' -Raw
+          $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $seguridadClave = Get-Content 'SGLN\\Servicios\\SeguridadClave.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
           $servicioRoles = Get-Content 'SGLN\\Servicios\\ServicioRoles.vb' -Raw
@@ -160,6 +163,16 @@ jobs:
               $documentoRepo -notmatch 'PuedeConsultarDocumentos' -or
               $documentoRepo -notmatch 'PuedeCargarCombosDocumentos') {
             throw 'El repositorio documental debe validar permisos en cada operación directa.'
+          }
+          if ($clienteRepo -notmatch 'Permisos.TieneAcceso\("clientes.ver"\)' -or
+              $clienteRepo -notmatch 'Permisos.TieneAcceso\("clientes.gestionar"\)' -or
+              $clienteRepo -notmatch 'Permisos.TieneAcceso\("clientes.desactivar"\)' -or
+              $entidadRepo -notmatch 'Permisos.TieneAcceso\("entidades.ver"\)' -or
+              $entidadRepo -notmatch 'Permisos.TieneAcceso\("entidades.gestionar"\)' -or
+              $casoRepo -notmatch 'Permisos.TieneAcceso\("casos.ver"\)' -or
+              $casoRepo -notmatch 'Permisos.TieneAcceso\("casos.gestionar"\)' -or
+              $casoRepo -notmatch 'Permisos.TieneAcceso\("casos.confirmar_plazo"\)') {
+            throw 'Los repositorios de clientes, entidades y casos deben validar permisos de lectura y escritura.'
           }
           if ($seguridadClave -notmatch 'clave.Length > 128') {
             throw 'Las claves nuevas deben tener un límite máximo aplicado en la capa de seguridad.'
