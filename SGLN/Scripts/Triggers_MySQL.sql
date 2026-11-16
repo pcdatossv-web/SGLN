@@ -205,6 +205,7 @@ BEGIN
     DECLARE v_fin INT DEFAULT 0;
     DECLARE v_tabla VARCHAR(64);
     DECLARE v_columna VARCHAR(64);
+    DECLARE v_preparado BOOLEAN DEFAULT FALSE;
 
     DECLARE cur_fk CURSOR FOR
         SELECT TABLE_NAME, COLUMN_NAME
@@ -224,6 +225,17 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = 1;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        IF v_preparado THEN
+            BEGIN
+                DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
+                DEALLOCATE PREPARE sgln_delete_stmt;
+            END;
+        END IF;
+        SET @sgln_delete_sql = NULL;
+        SET @sgln_delete_count = NULL;
+        SET @sgln_delete_id = NULL;
+        SET @sgln_delete_usuario = NULL;
+        SET @sgln_delete_nombre = NULL;
         ROLLBACK;
         RESIGNAL;
     END;
@@ -312,8 +324,10 @@ BEGIN
             REPLACE(v_columna, '`', '``'), '` = ?');
         SET @sgln_delete_id = p_id;
         PREPARE sgln_delete_stmt FROM @sgln_delete_sql;
+        SET v_preparado = TRUE;
         EXECUTE sgln_delete_stmt USING @sgln_delete_id;
         DEALLOCATE PREPARE sgln_delete_stmt;
+        SET v_preparado = FALSE;
 
         IF COALESCE(@sgln_delete_count, 0) > 0 THEN
             CLOSE cur_fk;
@@ -339,8 +353,10 @@ BEGIN
         SET @sgln_delete_usuario = v_usuario;
         SET @sgln_delete_nombre = v_nombre;
         PREPARE sgln_delete_stmt FROM @sgln_delete_sql;
+        SET v_preparado = TRUE;
         EXECUTE sgln_delete_stmt USING @sgln_delete_usuario, @sgln_delete_nombre;
         DEALLOCATE PREPARE sgln_delete_stmt;
+        SET v_preparado = FALSE;
 
         IF COALESCE(@sgln_delete_count, 0) > 0 THEN
             CLOSE cur_referencias;
@@ -355,7 +371,14 @@ BEGIN
     VALUES (v_actor, 'ELIMINAR', 'Usuarios', p_id,
             CONCAT('Cuenta eliminada tras validar historial y referencias: ', v_usuario));
 
+    /* No dejar variables de sesión ni SQL dinámico en conexiones reutilizables del pool. */
+    SET @sgln_delete_sql = NULL;
+    SET @sgln_delete_count = NULL;
+    SET @sgln_delete_id = NULL;
+    SET @sgln_delete_usuario = NULL;
+    SET @sgln_delete_nombre = NULL;
+
     COMMIT;
-END$$
+END$
 
 DELIMITER ;
