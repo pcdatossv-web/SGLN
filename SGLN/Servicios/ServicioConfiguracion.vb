@@ -30,6 +30,9 @@ Public Class ServicioConfiguracion
 
         If String.IsNullOrWhiteSpace(clave) Then Return Respuesta.Fallo("Indique la clave de configuración.")
         If clave.Trim().Length > 60 Then Return Respuesta.Fallo("La clave no puede superar 60 caracteres.")
+        If EsClaveReservada(clave) Then
+            Return Respuesta.Fallo("Las rutas de documentos y respaldos no se pueden modificar desde la configuración general.")
+        End If
 
         Dim valorNormalizado As String = If(valor, "").Trim()
         If valorNormalizado.Length > 500 Then
@@ -186,7 +189,8 @@ Public Class ServicioConfiguracion
 
     Public Function EsClaveReservada(clave As String) As Boolean
         If String.IsNullOrWhiteSpace(clave) Then Return False
-        Return Array.IndexOf(ClavesReservadas.Split(","c), clave.Trim()) >= 0
+        Return ClavesReservadas.Split(","c).Any(
+            Function(reservada As String) String.Equals(reservada, clave.Trim(), StringComparison.OrdinalIgnoreCase))
     End Function
 
 End Class
