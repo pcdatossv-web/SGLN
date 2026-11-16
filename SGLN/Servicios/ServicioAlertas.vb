@@ -115,7 +115,7 @@ Public Class ServicioAlertas
         If consultas.Count = 0 Then Return New DataTable()
 
         Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
-            " ORDER BY CASE WHEN Prioridad = 'Alta' THEN 1 ELSE 2 END, Fecha_Referencia")
+            " ORDER BY Prioridad, Fecha_Referencia")
 
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
