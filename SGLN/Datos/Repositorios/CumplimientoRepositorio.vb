@@ -91,7 +91,7 @@ Public Class CumplimientoRepositorio
     Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.reportar_uif") Then Throw New UnauthorizedAccessException("No tiene permiso para reportar operaciones a la UIF.")
         If id <= 0 Then Return 0
-        If fechaReporte = Date.MinValue OrElse fechaReporte.Date > Date.Today Then
+        If fechaReporte = Date.MinValue OrElse fechaReporte.Date.Year < 1000 OrElse fechaReporte.Date > Date.Today Then
             Throw New ArgumentException("La fecha de reporte no puede estar vacía ni ser futura.", NameOf(fechaReporte))
         End If
         Return EnTransaccion(
@@ -219,7 +219,7 @@ Public Class CumplimientoRepositorio
     Public Function Responder(id As Integer, fechaRespuesta As Date) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para responder solicitudes ARCO.")
         If id <= 0 Then Return 0
-        If fechaRespuesta = Date.MinValue OrElse fechaRespuesta.Date > Date.Today Then
+        If fechaRespuesta = Date.MinValue OrElse fechaRespuesta.Date.Year < 1000 OrElse fechaRespuesta.Date > Date.Today Then
             Throw New ArgumentException("La fecha de respuesta no puede estar vacía ni ser futura.", NameOf(fechaRespuesta))
         End If
         Return EnTransaccion(
@@ -285,10 +285,12 @@ Public Class CumplimientoRepositorio
         If If(operacion.Descripcion, "").Length > 1000 OrElse If(operacion.Observaciones, "").Length > 500 Then
             Throw New ArgumentException("La descripción u observaciones superan la longitud permitida.", NameOf(operacion))
         End If
-        If operacion.FechaOperacion = Date.MinValue OrElse operacion.FechaOperacion.Date > Date.Today Then
+        If operacion.FechaOperacion = Date.MinValue OrElse operacion.FechaOperacion.Date.Year < 1000 OrElse operacion.FechaOperacion.Date > Date.Today Then
             Throw New ArgumentException("La fecha de la operación no puede estar vacía ni ser futura.", NameOf(operacion))
         End If
         If Not operacion.FechaVencimientoAnalisis.HasValue OrElse Not operacion.FechaVencimientoReporte.HasValue OrElse
+           operacion.FechaVencimientoAnalisis.Value.Date.Year < 1000 OrElse
+           operacion.FechaVencimientoReporte.Value.Date.Year < 1000 OrElse
            operacion.FechaVencimientoAnalisis.Value.Date < operacion.FechaOperacion.Date OrElse
            operacion.FechaVencimientoReporte.Value.Date < operacion.FechaVencimientoAnalisis.Value.Date Then
             Throw New ArgumentException("Los vencimientos de análisis y reporte no son válidos.", NameOf(operacion))
@@ -320,15 +322,16 @@ Public Class CumplimientoRepositorio
                            If(solicitud.TipoDerecho, "")) < 0 Then
             Throw New ArgumentException("El tipo de derecho ARCO no es válido.", NameOf(solicitud))
         End If
-        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date > Date.Today Then
+        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date.Year < 1000 OrElse solicitud.FechaSolicitud.Date > Date.Today Then
             Throw New ArgumentException("La fecha de solicitud no puede estar vacía ni ser futura.", NameOf(solicitud))
         End If
-        If solicitud.FechaVencimiento = Date.MinValue OrElse solicitud.FechaVencimiento.Date < solicitud.FechaSolicitud.Date Then
+        If solicitud.FechaVencimiento = Date.MinValue OrElse solicitud.FechaVencimiento.Date.Year < 1000 OrElse solicitud.FechaVencimiento.Date < solicitud.FechaSolicitud.Date Then
             Throw New ArgumentException("El vencimiento inicial no puede ser anterior a la fecha de solicitud.", NameOf(solicitud))
         End If
         If If(solicitud.Detalle, "").Length > 1000 Then Throw New ArgumentException("El detalle no puede superar 1000 caracteres.", NameOf(solicitud))
         If solicitud.ProrrogaAplicada AndAlso
            (Not solicitud.FechaVencimientoProrroga.HasValue OrElse
+            solicitud.FechaVencimientoProrroga.Value.Date.Year < 1000 OrElse
             solicitud.FechaVencimientoProrroga.Value.Date <= solicitud.FechaVencimiento.Date) Then
             Throw New ArgumentException("La fecha de vencimiento de la prórroga no es válida.", NameOf(solicitud))
         End If
