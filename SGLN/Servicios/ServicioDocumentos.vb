@@ -276,19 +276,20 @@ Public Class ServicioDocumentos
     End Function
 
     Private Function ValidarReferencias(idCaso As Integer?, idInstrumento As Integer?) As String
-        If idCaso.HasValue Then
-            If idCaso.Value <= 0 Then Return "El caso asociado no es válido."
-            If New CasoRepositorio().Obtener(idCaso.Value).Rows.Count = 0 Then
+        If idCaso.HasValue AndAlso idCaso.Value <= 0 Then Return "El caso asociado no es válido."
+        If idInstrumento.HasValue AndAlso idInstrumento.Value <= 0 Then Return "El instrumento asociado no es válido."
+        Try
+            If idCaso.HasValue AndAlso New CasoRepositorio().Obtener(idCaso.Value).Rows.Count = 0 Then
                 Return "El caso asociado no existe."
             End If
-        End If
-        If idInstrumento.HasValue Then
-            If idInstrumento.Value <= 0 Then Return "El instrumento asociado no es válido."
-            If New ProtocoloRepositorio().ObtenerInstrumento(idInstrumento.Value).Rows.Count = 0 Then
+            If idInstrumento.HasValue AndAlso New ProtocoloRepositorio().ObtenerInstrumento(idInstrumento.Value).Rows.Count = 0 Then
                 Return "El instrumento asociado no existe."
             End If
-        End If
-        Return ""
+            Return ""
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - validar referencias", ex)
+            Return "No se pudieron verificar los registros asociados. Compruebe la conexión y vuelva a intentarlo."
+        End Try
     End Function
 
     ''' <summary>
