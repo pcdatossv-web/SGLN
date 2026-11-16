@@ -279,10 +279,10 @@ Public Class ServicioDocumentos
         If idCaso.HasValue AndAlso idCaso.Value <= 0 Then Return "El caso asociado no es válido."
         If idInstrumento.HasValue AndAlso idInstrumento.Value <= 0 Then Return "El instrumento asociado no es válido."
         Try
-            If idCaso.HasValue AndAlso New CasoRepositorio().Obtener(idCaso.Value).Rows.Count = 0 Then
+            If idCaso.HasValue AndAlso Not New CasoRepositorio().ExisteParaVinculoDocumento(idCaso.Value) Then
                 Return "El caso asociado no existe."
             End If
-            If idInstrumento.HasValue AndAlso New ProtocoloRepositorio().ObtenerInstrumento(idInstrumento.Value).Rows.Count = 0 Then
+            If idInstrumento.HasValue AndAlso Not New ProtocoloRepositorio().ExisteInstrumentoParaVinculoDocumento(idInstrumento.Value) Then
                 Return "El instrumento asociado no existe."
             End If
             Return ""
