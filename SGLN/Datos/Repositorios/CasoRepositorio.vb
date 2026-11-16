@@ -259,7 +259,7 @@ Public Class CasoRepositorio
         If Array.IndexOf(New String() {"Activo", "Suspendido", "Cerrado", "Archivado"}, If(caso.Estado, "")) < 0 Then
             Throw New ArgumentException("El estado del caso no es válido.", NameOf(caso))
         End If
-        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date > Date.Today Then
+        If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date.Year < 1000 OrElse caso.FechaApertura.Date > Date.Today Then
             Throw New ArgumentException("La fecha de apertura no puede estar vacía ni ser futura.", NameOf(caso))
         End If
         caso.NumeroExpediente = caso.NumeroExpediente.Trim()
@@ -284,11 +284,12 @@ Public Class CasoRepositorio
             Throw New ArgumentException("Seleccione un caso y un tipo de actuación válidos.", NameOf(actuacion))
         End If
         If actuacion.PlazoLegalDias <= 0 Then Throw New ArgumentException("El plazo legal debe ser mayor que cero.", NameOf(actuacion))
-        If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date > Date.Today Then
+        If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date.Year < 1000 OrElse actuacion.FechaNotificacion.Date > Date.Today Then
             Throw New ArgumentException("La fecha de notificación no puede estar vacía ni ser futura.", NameOf(actuacion))
         End If
         If Not actuacion.FechaVencimiento.HasValue OrElse
            actuacion.FechaVencimiento.Value = Date.MinValue OrElse
+           actuacion.FechaVencimiento.Value.Date.Year < 1000 OrElse
            actuacion.FechaVencimiento.Value.Date < actuacion.FechaNotificacion.Date Then
             Throw New ArgumentException("La fecha de vencimiento calculada no es válida.", NameOf(actuacion))
         End If
