@@ -286,13 +286,11 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function CambiarClave(idUsuario As Integer, claveNueva As String) As Respuesta
-        If EsAdministrador(idUsuario) AndAlso
-           (Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario) AndAlso
-           (Not Permisos.TieneAcceso("config.usuarios") OrElse
-            Sesion.UsuarioActual Is Nothing OrElse
-            Not Sesion.UsuarioActual.RolProtegido OrElse
-            Not Permisos.AccesoTotal) Then
-            Return Respuesta.Fallo("Solo un administrador puede restablecer la clave de otra cuenta Administrador.")
+        If Sesion.UsuarioActual Is Nothing Then
+            Return Respuesta.Fallo("Debe iniciar sesión para cambiar o restablecer una clave.")
+        End If
+        If Sesion.UsuarioActual.ID <> idUsuario AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede restablecer la clave de otra cuenta.")
         End If
 
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
