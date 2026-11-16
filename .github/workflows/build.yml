@@ -69,6 +69,7 @@ jobs:
           $servicioPlazos = Get-Content 'SGLN\\Servicios\\ServicioPlazos.vb' -Raw
           $servicioCumplimiento = Get-Content 'SGLN\\Servicios\\ServicioCumplimiento.vb' -Raw
           $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
+          $calculadoraDias = Get-Content 'SGLN\\Servicios\\CalculadoraDiasHabiles.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -120,6 +121,11 @@ jobs:
           if ($servicioDocumentos -notmatch 'ValidarReferencias' -or
               $servicioDocumentos -notmatch 'El tipo de documento no puede superar 60 caracteres') {
             throw 'Faltan validaciones de referencias y metadatos documentales.'
+          }
+          if ($calculadoraDias -notmatch 'MaxDiasHabiles' -or
+              $calculadoraDias -notmatch 'MaxRangoConteoDias' -or
+              $calculadoraDias -notmatch 'fechaNotificacion = Date.MinValue') {
+            throw 'La calculadora de días hábiles debe limitar fechas y rangos excesivos.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
