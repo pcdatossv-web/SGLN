@@ -468,6 +468,12 @@ Module PruebaFuncional
         Verificar("Un usuario con config.usuarios no puede promover otra cuenta a Administrador",
                   Not servicioUsuarios.Actualizar(idUsuarioPrueba, "Usuario de Prueba",
                       idRolAdmin, True).Exito)
+        Verificar("El repositorio también bloquea el alta directa de cuentas Administrador",
+                  Not New UsuarioRepositorio().Crear("repo_admin_" & sufijoGestor,
+                      "Intento directo de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
+        Verificar("El repositorio también bloquea la promoción directa a Administrador",
+                  Not New UsuarioRepositorio().Actualizar(idUsuarioPrueba, "Usuario de Prueba",
+                      idRolAdmin, True).Exito)
         Sesion.UsuarioActual = admin
         Sesion.CargarPermisos()
         If idUsuarioGestor > 0 Then
