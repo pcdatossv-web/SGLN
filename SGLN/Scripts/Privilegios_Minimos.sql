@@ -6,7 +6,7 @@
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'sgln_app'@'localhost';
 
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Roles TO 'sgln_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE ON sgln_sv.Permisos TO 'sgln_app'@'localhost';
+GRANT SELECT ON sgln_sv.Permisos TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Rol_Permiso TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Usuarios TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Intentos_Acceso TO 'sgln_app'@'localhost';
