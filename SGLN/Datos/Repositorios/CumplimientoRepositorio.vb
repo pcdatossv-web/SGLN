@@ -86,11 +86,14 @@ Public Class CumplimientoRepositorio
     Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.reportar_uif") Then Throw New UnauthorizedAccessException("No tiene permiso para reportar operaciones a la UIF.")
         If id <= 0 Then Return 0
+        If fechaReporte = Date.MinValue OrElse fechaReporte.Date > Date.Today Then
+            Throw New ArgumentException("La fecha de reporte no puede estar vacía ni ser futura.", NameOf(fechaReporte))
+        End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Operaciones_LDAFT SET Estado = 'Reportada', Reportado_UIF = 1, Fecha_Reporte = @fecha " &
-                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
+                    "WHERE ID = @id AND Fecha_Operacion <= @fecha AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@fecha", fechaReporte)
                         Parametro(comando, "@id", id)
