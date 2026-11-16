@@ -237,36 +237,28 @@ Public Class ProtocoloRepositorio
     Public Function InsertarInstrumento(instrumento As Instrumento) As Integer
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
-        Return EnTransaccion(
-            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
-                    "INSERT INTO Instrumentos (ID_Libro, Numero_Escritura, Fecha_Hora_Otorgamiento, Folio_Inicio, Folio_Fin, Objeto_Acto, Estado) " &
-                    "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, @estado)",
-                    Sub(comando As MySqlCommand)
-                        AgregarParametrosInstrumento(comando, instrumento)
-                    End Sub)
-                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Instrumentos", nuevoId,
-                    "Escritura " & instrumento.NumeroEscritura)
-                Return nuevoId
-            End Function)
+        If instrumento.ID <> 0 Then Throw New ArgumentException("Para insertar una escritura nueva, el identificador debe ser cero.", NameOf(instrumento))
+
+        Dim idGuardado As Integer = 0
+        Dim motivo As String = ""
+        If Not GuardarInstrumentoConBloqueo(instrumento, idGuardado, motivo) Then
+            Throw New InvalidOperationException(If(String.IsNullOrWhiteSpace(motivo),
+                "No fue posible registrar la escritura.", motivo))
+        End If
+        instrumento.ID = idGuardado
+        Return idGuardado
     End Function
 
     Public Sub ActualizarInstrumento(instrumento As Instrumento)
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If instrumento Is Nothing OrElse instrumento.ID <= 0 Then Throw New ArgumentException("El instrumento seleccionado no es válido.", NameOf(instrumento))
-        EnTransaccion(
-            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Instrumentos SET Numero_Escritura = @numero, Fecha_Hora_Otorgamiento = @fecha, " &
-                    "Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto, Estado = @estado WHERE ID = @id",
-                    Sub(comando As MySqlCommand)
-                        AgregarParametrosInstrumento(comando, instrumento)
-                        Parametro(comando, "@id", instrumento.ID)
-                    End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Instrumentos",
-                    instrumento.ID, "Escritura " & instrumento.NumeroEscritura)
-                Return filas
-            End Function)
+
+        Dim idGuardado As Integer = 0
+        Dim motivo As String = ""
+        If Not GuardarInstrumentoConBloqueo(instrumento, idGuardado, motivo) Then
+            Throw New InvalidOperationException(If(String.IsNullOrWhiteSpace(motivo),
+                "No fue posible actualizar la escritura.", motivo))
+        End If
     End Sub
 
     Public Function AnularInstrumento(id As Integer) As Integer
