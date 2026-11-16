@@ -181,7 +181,7 @@ END$$
    DEFINER: la cuenta sgln_app no recibe DELETE sobre Usuarios. El procedimiento
    vuelve a comprobar historial, referencias y último administrador en MySQL,
    sin depender exclusivamente de las validaciones de la interfaz. */
-DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro;
+DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro$
 
 CREATE PROCEDURE sp_EliminarUsuarioSeguro(IN p_id INT, IN p_actor_id INT)
 SQL SECURITY DEFINER
