@@ -594,6 +594,37 @@ Module PruebaFuncional
         Verificar("Los parámetros internos de cumplimiento y protocolo se ocultan sin permiso de módulo",
                   catalogoConfigPrueba.ObtenerConfig("Umbral_Efectivo") = "" AndAlso
                   catalogoConfigPrueba.ObtenerConfig("Protocolo_Dias_Entrega") = "")
+
+        Dim documentosDirectos As New DocumentoRepositorio()
+        Verificar("El repositorio documental bloquea lecturas directas sin permisos del módulo",
+                  documentosDirectos.Buscar("", "").Rows.Count = 0 AndAlso
+                  documentosDirectos.Obtener(1).Rows.Count = 0 AndAlso
+                  documentosDirectos.CasosCombo().Rows.Count = 0 AndAlso
+                  documentosDirectos.InstrumentosCombo().Rows.Count = 0)
+        Dim insercionDocumentoDirectaBloqueada As Boolean = False
+        Try
+            documentosDirectos.Insertar(New Documento With {
+                .TipoDocumento = "Prueba no autorizada",
+                .RutaArchivo = "Documentos\\no_autorizado.pdf",
+                .Hash = New String("0"c, 64),
+                .EstadoProcesamientoIA = "No procesado"
+            })
+        Catch ex As UnauthorizedAccessException
+            insercionDocumentoDirectaBloqueada = True
+        End Try
+        Verificar("El repositorio documental bloquea altas directas sin permiso de importación",
+                  insercionDocumentoDirectaBloqueada)
+        Dim metadatosDocumentoDirectosBloqueados As Boolean = False
+        Try
+            documentosDirectos.ActualizarMetadatos(New Documento With {
+                .ID = 1,
+                .TipoDocumento = "Cambio no autorizado"
+            })
+        Catch ex As UnauthorizedAccessException
+            metadatosDocumentoDirectosBloqueados = True
+        End Try
+        Verificar("El repositorio documental bloquea cambios directos sin permiso de metadatos",
+                  metadatosDocumentoDirectosBloqueados)
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
             repositorioConfiguracionPrueba.Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
