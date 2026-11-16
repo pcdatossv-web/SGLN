@@ -1853,6 +1853,12 @@ Module PruebaFuncional
                   Not protocolo.AnularInstrumento(idInstrumento1).Exito)
         Verificar("Testimonio con fecha futura se rechaza",
                   Not protocolo.ExpedirTestimonio(idInstrumento1, "Primer", Date.Today.AddDays(1), "X").Exito)
+        Verificar("Tipo de testimonio fuera de catálogo se rechaza",
+                  Not protocolo.ExpedirTestimonio(idInstrumento1, "Copia", Date.Today, "Destinatario válido").Exito)
+        Verificar("Testimonio sin destinatario se rechaza",
+                  Not protocolo.ExpedirTestimonio(idInstrumento1, "Ulterior", Date.Today, "   ").Exito)
+        Verificar("Destinatario de testimonio mayor de 200 caracteres se rechaza",
+                  Not protocolo.ExpedirTestimonio(idInstrumento1, "Ulterior", Date.Today, New String("X"c, 201)).Exito)
 
         Verificar("No se expiden testimonios de escritura anulada",
                   Not protocolo.ExpedirTestimonio(idConcurrente, "Ulterior", Date.Today, "X").Exito)
