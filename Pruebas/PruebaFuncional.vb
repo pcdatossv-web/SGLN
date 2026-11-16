@@ -934,6 +934,33 @@ Module PruebaFuncional
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .Email = "correo"}, Nothing).Exito)
         Verificar("Nombres vacíos se rechazan",
                   Not clientes.Guardar(New Cliente With {.Apellidos = "Y"}, Nothing).Exito)
+        Verificar("El servicio rechaza un cliente nulo sin excepción",
+                  Not clientes.Guardar(Nothing, Nothing).Exito)
+        Verificar("Los campos del cliente respetan los tamaños de la base de datos",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = New String("N"c, 121), .Apellidos = "Prueba"
+                  }, Nothing).Exito AndAlso
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Prueba", .Direccion = New String("D"c, 301)
+                  }, Nothing).Exito AndAlso
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Prueba", .Email = New String("e"c, 121) & "@x.com"
+                  }, Nothing).Exito)
+        Verificar("Las fechas futuras de nacimiento y verificación LDA/FT se rechazan",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Fecha", .FechaNacimiento = Date.Today.AddDays(1)
+                  }, Nothing).Exito AndAlso
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Fecha"
+                  }, New PerfilLdaft With {
+                      .NivelRiesgo = "Bajo", .FechaVerificacionListas = Date.Today.AddDays(1)
+                  }).Exito)
+        Verificar("El detalle y observaciones LDA/FT respetan el límite de 500 caracteres",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Perfil"
+                  }, New PerfilLdaft With {
+                      .NivelRiesgo = "Bajo", .DetalleOrigenFondos = New String("O"c, 501)
+                  }).Exito)
         Verificar("Nivel de riesgo fuera de catálogo se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y"},
                                        New PerfilLdaft With {.NivelRiesgo = "Extremo"}).Exito)
