@@ -212,6 +212,10 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaBaseDocumentos() As String
+        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
+                Permisos.TieneAcceso("documentos.importar") OrElse
+                Permisos.TieneAcceso("documentos.verificar") OrElse
+                Permisos.TieneAcceso("documentos.metadatos")) Then Return ""
         Dim carpeta As String = _catalogo.ObtenerConfig("Carpeta_Documentos")
         If String.IsNullOrWhiteSpace(carpeta) Then carpeta = "Documentos"
         If Not Path.IsPathRooted(carpeta) Then
