@@ -154,6 +154,9 @@ jobs:
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
           }
+          if ($usuarioRepo -notmatch 'UPDATE Intentos_Acceso SET Intentos = 0') {
+            throw 'El restablecimiento de contraseña debe retirar el bloqueo de acceso en la misma transacción.'
+          }
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
