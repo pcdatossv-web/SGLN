@@ -104,6 +104,9 @@ Public Class RolRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Roles - crear", ex)
+            Return Respuesta.Fallo("No se pudo crear el rol. Verifique la conexión y los datos.")
         End Try
     End Function
 
@@ -161,6 +164,9 @@ Public Class RolRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Roles - actualizar", ex)
+            Return Respuesta.Fallo("No se pudo actualizar el rol. Verifique la conexión y los datos.")
         End Try
     End Function
 
@@ -190,6 +196,9 @@ Public Class RolRepositorio
         Catch ex As MySqlException When ex.Number = 1451
             Return Respuesta.Fallo("No se puede borrar el rol porque tiene usuarios asignados. " &
                                    "Cámbieles el rol o desactívelos primero.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Roles - eliminar", ex)
+            Return Respuesta.Fallo("No se pudo eliminar el rol. Verifique la conexión y sus asignaciones.")
         End Try
     End Function
 
@@ -223,6 +232,9 @@ Public Class RolRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Roles - guardar permisos", ex)
+            Return Respuesta.Fallo("No se pudieron guardar los permisos. Verifique la conexión y los datos.")
         End Try
     End Function
 
