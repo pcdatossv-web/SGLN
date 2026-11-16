@@ -1342,6 +1342,10 @@ Module PruebaFuncional
                   Not plazos.Confirmar(New ActuacionProcesal With {
                       .IDCaso = idCaso, .IDTipoActuacion = actuacion.IDTipoActuacion,
                       .FechaNotificacion = Date.Today.AddDays(1), .PlazoLegalDias = 5}).Exito)
+        Verificar("Notificación sin fecha se rechaza con validación de negocio",
+                  Not plazos.Confirmar(New ActuacionProcesal With {
+                      .IDCaso = idCaso, .IDTipoActuacion = actuacion.IDTipoActuacion,
+                      .FechaNotificacion = Date.MinValue, .PlazoLegalDias = 5}).Exito)
 
         Dim vencida As New ActuacionProcesal With {
             .IDCaso = idCaso,
