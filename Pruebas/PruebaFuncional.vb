@@ -647,6 +647,9 @@ Module PruebaFuncional
 
         Dim cumplimientoDirecto As New CumplimientoRepositorio()
         Dim protocoloDirecto As New ProtocoloRepositorio()
+        Verificar("Los vínculos documentales no permiten consultar referencias sin permiso documental",
+                  Not casosDirectos.ExisteParaVinculoDocumento(1) AndAlso
+                  Not protocoloDirecto.ExisteInstrumentoParaVinculoDocumento(1))
         Verificar("Los repositorios de cumplimiento y protocolo bloquean lecturas directas sin permiso",
                   cumplimientoDirecto.Operaciones("").Rows.Count = 0 AndAlso
                   cumplimientoDirecto.ObtenerOperacion(1).Rows.Count = 0 AndAlso
