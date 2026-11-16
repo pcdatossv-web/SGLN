@@ -1849,6 +1849,16 @@ Module PruebaFuncional
         Verificar("El repositorio impide omitir la validación de calidad del compareciente",
                   calidadDirectaRechazada)
 
+        Dim fechaCierreAnteriorRechazada As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).CerrarLibro(
+                idLibro, "Fecha anterior a autorización", libro.FechaAutorizacion.AddDays(-1))
+        Catch ex As ArgumentException
+            fechaCierreAnteriorRechazada = True
+        End Try
+        Verificar("El repositorio impide cerrar un libro antes de su fecha de autorización",
+                  fechaCierreAnteriorRechazada)
+
         Dim rCerrar As Respuesta = protocolo.CerrarLibro(idLibro, "Libro completo")
         Verificar("Cerrar libro con escritura sin otorgante se bloquea",
                   Not rCerrar.Exito AndAlso rCerrar.Mensaje.Contains("otorgante"), rCerrar.Mensaje)
