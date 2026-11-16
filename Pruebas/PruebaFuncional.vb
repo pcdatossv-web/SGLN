@@ -438,7 +438,7 @@ Module PruebaFuncional
         Dim nombreUsuarioGestor As String = "gestor" & sufijoGestor
         Dim altaRolGestor As Respuesta = roles.Crear(nombreRolGestor,
             "Rol ordinario para probar la separación de privilegios",
-            New List(Of String) From {"config.usuarios"})
+            New List(Of String) From {"casos.ver"})
         Dim idRolGestor As Integer = 0
         For Each fila As DataRow In roles.Listar().Rows
             If UtileriasUI.Texto(fila, "Nombre") = nombreRolGestor Then
@@ -458,10 +458,47 @@ Module PruebaFuncional
         Dim sesionGestor As UsuarioSesion = usuarios.ObtenerEstadoSesion(idUsuarioGestor)
         Sesion.UsuarioActual = sesionGestor
         Sesion.CargarPermisos()
-        Verificar("El rol ordinario de prueba recibe permisos de gestión sin ser Administrador",
+        Verificar("El rol ordinario de prueba se crea sin privilegios administrativos",
                   altaRolGestor.Exito AndAlso altaGestor.Exito AndAlso
-                  sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("config.usuarios") AndAlso
-                  Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+                  sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
+                  Not Permisos.TieneAcceso("config.usuarios") AndAlso
+                  Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+        Dim insercionPermisoAdminBloqueada As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "INSERT INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, 'config.usuarios')",
+                    conexion)
+                    comando.Parameters.AddWithValue("@rol", idRolGestor)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            insercionPermisoAdminBloqueada = ex.Number = 1644
+        End Try
+        Verificar("MySQL bloquea la asignación SQL directa de config.usuarios a un rol ordinario",
+                  insercionPermisoAdminBloqueada)
+        Dim actualizacionPermisoAdminBloqueada As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "UPDATE Rol_Permiso SET Codigo = 'config.roles' WHERE ID_Rol = @rol AND Codigo = 'casos.ver'",
+                    conexion)
+                    comando.Parameters.AddWithValue("@rol", idRolGestor)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            actualizacionPermisoAdminBloqueada = ex.Number = 1644
+        End Try
+        Verificar("MySQL bloquea la modificación SQL directa hacia config.roles",
+                  actualizacionPermisoAdminBloqueada)
+        Verificar("El rol ordinario conserva sus permisos originales tras los intentos SQL",
+                  roles.PermisosDeRol(idRolGestor).Contains("casos.ver") AndAlso
+                  Not roles.PermisosDeRol(idRolGestor).Contains("config.usuarios") AndAlso
+                  Not roles.PermisosDeRol(idRolGestor).Contains("config.roles"))
         Verificar("Un usuario con config.roles no puede crear roles ni permisos",
                   Not roles.Crear("Rol no autorizado " & sufijoGestor, "Prueba", New List(Of String) From {"casos.ver"}).Exito)
         Verificar("Un usuario con config.roles no puede modificar roles ni permisos",
