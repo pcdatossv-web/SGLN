@@ -147,6 +147,7 @@ Public Class FrmRoles
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
         If Not Permisos.ExigirAccion("config.roles") Then Return
+        Try
 
         Dim respuesta As Respuesta
         Dim codigosRol As List(Of String) = PermisosMarcados()
@@ -164,10 +165,15 @@ Public Class FrmRoles
             CargarRoles()
             Nuevo()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Roles - btnguardar", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
         If Not Permisos.ExigirAccion("config.roles") Then Return
+        Try
 
         If _idSeleccionado = 0 Then
             Mostrar("Seleccione el rol que desea eliminar.", False)
@@ -188,6 +194,10 @@ Public Class FrmRoles
             CargarRoles()
             Nuevo()
         End If
+            Catch ex As Exception
+            RegistroErrores.Escribir("Roles - btneliminar", ex)
+            Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
+        End Try
     End Sub
 
     Private Sub Mostrar(mensaje As String, correcto As Boolean)
