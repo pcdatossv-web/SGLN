@@ -1799,6 +1799,9 @@ Module PruebaFuncional
                   Not plazos.MarcarCumplida(idActuacion).Exito)
         Verificar("El repositorio no permite reabrir ni editar una actuación cumplida",
                   repositorioCasosDirecto.GuardarActuacion(actuacion) = 0)
+        actuacion.ID = idActuacion
+        Verificar("El servicio rechaza confirmar nuevamente una actuación cumplida",
+                  Not plazos.Confirmar(actuacion).Exito)
         Verificar("Marcar como cumplida una actuación inexistente se rechaza",
                   Not plazos.MarcarCumplida(Integer.MaxValue).Exito)
 
