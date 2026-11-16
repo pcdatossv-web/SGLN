@@ -45,6 +45,9 @@ Public Class EntidadRepositorio
     Public Function GuardarCompleto(entidad As EntidadLegal, perfil As PerfilLdaft) As Integer
         If Not Permisos.TieneAcceso("entidades.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar entidades.")
         If entidad Is Nothing Then Throw New ArgumentNullException(NameOf(entidad))
+        If entidad.ID < 0 Then Throw New ArgumentException("El identificador de la entidad no es válido.", NameOf(entidad))
+        ValidarDatosEntidad(entidad, perfil)
+        NormalizarDatosEntidad(entidad, perfil)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim idEntidad As Integer = entidad.ID
@@ -223,6 +226,45 @@ Public Class EntidadRepositorio
                 Return filas
             End Function)
     End Function
+
+    Private Sub ValidarDatosEntidad(entidad As EntidadLegal, perfil As PerfilLdaft)
+        If String.IsNullOrWhiteSpace(entidad.RazonSocial) OrElse entidad.RazonSocial.Trim().Length > 200 Then
+            Throw New ArgumentException("La razón social es obligatoria y no puede superar 200 caracteres.", NameOf(entidad))
+        End If
+        If If(entidad.NRC, "").Length > 30 OrElse If(entidad.Domicilio, "").Length > 300 OrElse
+           If(entidad.NIT, "").Length > 20 Then
+            Throw New ArgumentException("Uno o más datos de la entidad superan la longitud permitida.", NameOf(entidad))
+        End If
+        If Not String.IsNullOrWhiteSpace(entidad.NIT) AndAlso Not ValidadorIdentidad.EsFormatoNitValido(entidad.NIT) Then
+            Throw New ArgumentException("El NIT de la entidad debe tener 14 dígitos.", NameOf(entidad))
+        End If
+        If perfil IsNot Nothing Then
+            If Array.IndexOf(New String() {"Bajo", "Medio", "Alto"}, If(perfil.NivelRiesgo, "")) < 0 Then
+                Throw New ArgumentException("El nivel de riesgo LDA/FT no es válido.", NameOf(perfil))
+            End If
+            If If(perfil.DetalleOrigenFondos, "").Length > 500 OrElse If(perfil.Observaciones, "").Length > 500 Then
+                Throw New ArgumentException("Los datos del perfil LDA/FT no pueden superar 500 caracteres.", NameOf(perfil))
+            End If
+            If perfil.FechaVerificacionListas.HasValue AndAlso
+               (perfil.FechaVerificacionListas.Value.Year < 1000 OrElse
+                perfil.FechaVerificacionListas.Value.Date > Date.Today) Then
+                Throw New ArgumentException("La fecha de verificación de listas no es válida.", NameOf(perfil))
+            End If
+        End If
+    End Sub
+
+    Private Sub NormalizarDatosEntidad(entidad As EntidadLegal, perfil As PerfilLdaft)
+        entidad.RazonSocial = entidad.RazonSocial.Trim()
+        entidad.NRC = If(entidad.NRC, "").Trim()
+        entidad.Domicilio = If(entidad.Domicilio, "").Trim()
+        If Not String.IsNullOrWhiteSpace(entidad.NIT) Then
+            entidad.NIT = ValidadorIdentidad.FormatearNit(entidad.NIT)
+        End If
+        If perfil IsNot Nothing Then
+            perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
+            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+        End If
+    End Sub
 
     Private Shared Function TextoIgual(valorNuevo As String, valorActual As String) As Boolean
         Return String.Equals(If(valorNuevo, "").Trim(), If(valorActual, "").Trim(),
