@@ -37,6 +37,7 @@ Public Class ServicioPlazos
         If actuacion.IDCaso <= 0 Then Return Respuesta.Fallo("Seleccione un caso.")
         If actuacion.IDTipoActuacion <= 0 Then Return Respuesta.Fallo("Seleccione el tipo de actuación.")
         If actuacion.PlazoLegalDias <= 0 Then Return Respuesta.Fallo("El plazo legal debe ser mayor que cero.")
+        If actuacion.FechaNotificacion = Date.MinValue Then Return Respuesta.Fallo("La fecha de notificación no es válida.")
         If actuacion.FechaNotificacion.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de notificación no puede ser futura.")
         End If
