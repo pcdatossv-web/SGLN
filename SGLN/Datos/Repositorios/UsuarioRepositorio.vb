@@ -401,12 +401,69 @@ Public Class UsuarioRepositorio
         End Try
     End Function
 
-    Public Function CambiarClave(idUsuario As Integer, claveNueva As String) As Respuesta
-        If Sesion.UsuarioActual Is Nothing Then
-            Return Respuesta.Fallo("Debe iniciar sesión para cambiar o restablecer una clave.")
+    Public Function CambiarClavePropia(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
+        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario OrElse idUsuario <= 0 Then
+            Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
         End If
-        If Sesion.UsuarioActual.ID <> idUsuario AndAlso Not EsAdministradorAutenticado() Then
-            Return Respuesta.Fallo("Solo un administrador puede restablecer la clave de otra cuenta.")
+        If String.IsNullOrEmpty(claveActual) OrElse claveActual.Length > 128 Then
+            Return Respuesta.Fallo("La clave actual no es válida.")
+        End If
+        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
+        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
+
+        Try
+            Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
+            Dim resultado As Integer = EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim hashActual As String = Nothing
+                    Dim saltActual As String = Nothing
+                    Using consultar As New MySqlCommand(
+                        "SELECT Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1 FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(consultar, "@id", idUsuario)
+                        Using lector As MySqlDataReader = consultar.ExecuteReader()
+                            If Not lector.Read() Then Return 0
+                            hashActual = Convert.ToString(lector("Clave_Hash"))
+                            saltActual = Convert.ToString(lector("Clave_Salt"))
+                        End Using
+                    End Using
+
+                    If Not SeguridadClave.Verificar(claveActual, hashActual, saltActual) Then Return -1
+
+                    Ejecutar(conexion, transaccion,
+                        "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id AND Activo = 1",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@hash", credencial.Hash)
+                            Parametro(comando, "@salt", credencial.Salt)
+                            Parametro(comando, "@id", idUsuario)
+                        End Sub)
+                    Ejecutar(conexion, transaccion,
+                        "UPDATE Intentos_Acceso SET Intentos = 0, Inicio_Ventana = NULL, " &
+                        "Ultimo_Intento = NOW(), Bloqueado_Hasta = NULL WHERE Usuario_ID = @id",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", idUsuario)
+                        End Sub)
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios",
+                        idUsuario, "Cambio de clave propia")
+                    Return 1
+                End Function)
+
+            If resultado = 0 Then Return Respuesta.Fallo("La cuenta ya no existe o está inactiva.")
+            If resultado = -1 Then Return Respuesta.Fallo("La clave actual no es correcta.")
+            Return Respuesta.Ok("Clave actualizada correctamente.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - cambio de clave propia", ex)
+            Return Respuesta.Fallo("No se pudo actualizar la clave. Verifique la conexión y vuelva a intentarlo.")
+        End Try
+    End Function
+
+    Public Function CambiarClave(idUsuario As Integer, claveNueva As String) As Respuesta
+        If Sesion.UsuarioActual Is Nothing OrElse Not Permisos.TieneAcceso("config.usuarios") OrElse
+           Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador con permiso puede restablecer claves.")
+        End If
+        If idUsuario <= 0 OrElse Sesion.UsuarioActual.ID = idUsuario Then
+            Return Respuesta.Fallo("El restablecimiento administrativo solo se permite para otra cuenta.")
         End If
 
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
@@ -415,17 +472,22 @@ Public Class UsuarioRepositorio
         Try
             Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
             Dim filas As Integer = EnTransaccion(
-            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                Dim afectadas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
-                    Sub(comando As MySqlCommand)
-                        Parametro(comando, "@hash", credencial.Hash)
-                        Parametro(comando, "@salt", credencial.Salt)
-                        Parametro(comando, "@id", idUsuario)
-                    End Sub)
-                If afectadas > 0 Then
-                    ' Un restablecimiento administrativo debe retirar también
-                    ' el bloqueo por intentos fallidos, dentro de la misma transacción.
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim existe As Object
+                    Using comandoExiste As New MySqlCommand(
+                        "SELECT ID FROM Usuarios WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(comandoExiste, "@id", idUsuario)
+                        existe = comandoExiste.ExecuteScalar()
+                    End Using
+                    If existe Is Nothing OrElse existe Is DBNull.Value Then Return 0
+
+                    Ejecutar(conexion, transaccion,
+                        "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@hash", credencial.Hash)
+                            Parametro(comando, "@salt", credencial.Salt)
+                            Parametro(comando, "@id", idUsuario)
+                        End Sub)
                     Ejecutar(conexion, transaccion,
                         "UPDATE Intentos_Acceso SET Intentos = 0, Inicio_Ventana = NULL, " &
                         "Ultimo_Intento = NOW(), Bloqueado_Hasta = NULL WHERE Usuario_ID = @id",
@@ -433,15 +495,14 @@ Public Class UsuarioRepositorio
                             Parametro(comando, "@id", idUsuario)
                         End Sub)
                     AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios",
-                        idUsuario, "Cambio de clave")
-                End If
-                Return afectadas
-            End Function)
+                        idUsuario, "Restablecimiento administrativo de clave")
+                    Return 1
+                End Function)
 
-            If filas = 0 AndAlso Not Existe(idUsuario) Then Return Respuesta.Fallo("El usuario ya no existe.")
+            If filas = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
             Return Respuesta.Ok("Clave actualizada correctamente.")
         Catch ex As Exception
-            RegistroErrores.Escribir("Usuarios - cambiar clave", ex)
+            RegistroErrores.Escribir("Usuarios - restablecer clave", ex)
             Return Respuesta.Fallo("No se pudo actualizar la clave. Verifique la conexión y vuelva a intentarlo.")
         End Try
     End Function
