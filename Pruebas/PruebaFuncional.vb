@@ -1398,6 +1398,11 @@ Module PruebaFuncional
 
         Dim rRep As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Presidenta de la junta directiva", "Judicial")
         Verificar("Agregar representante a la entidad", rRep.Exito, rRep.Mensaje)
+        Verificar("El servicio rechaza tipos de representación fuera del catálogo",
+                  Not entidades.AgregarRepresentante(idEntidad, idCliente, "Representante", "Inventado").Exito)
+        Verificar("El repositorio también rechaza tipos de representación fuera del catálogo",
+                  Not repositorioEntidadesDirecto.AgregarRepresentante(
+                      idEntidad, idCliente, "Representante", "Inventado").Exito)
         Dim rRepDup As Respuesta = entidades.AgregarRepresentante(idEntidad, idCliente, "Auditor", "Judicial")
         Verificar("Representante duplicado se rechaza con mensaje",
                   Not rRepDup.Exito AndAlso rRepDup.Mensaje.Length > 0, rRepDup.Mensaje)
