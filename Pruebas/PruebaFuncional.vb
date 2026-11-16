@@ -296,6 +296,27 @@ Module PruebaFuncional
         Dim idRolAdmin As Integer = 0
         If filaRolAdmin IsNot Nothing Then idRolAdmin = UtileriasUI.Entero(filaRolAdmin, "ID")
 
+        Dim sufijoAdminTemporal As String = Guid.NewGuid().ToString("N").Substring(0, 8)
+        Dim nombreAdminTemporal As String = "adminsec" & sufijoAdminTemporal
+        Dim altaAdminTemporal As Respuesta = servicioUsuarios.Crear(
+            nombreAdminTemporal, "Administrador temporal de prueba",
+            "AdminTemporal99!", idRolAdmin, True)
+        Dim idAdminTemporal As Integer = 0
+        For Each fila As DataRow In servicioUsuarios.Listar().Rows
+            If UtileriasUI.Texto(fila, "Usuario") = nombreAdminTemporal Then
+                idAdminTemporal = UtileriasUI.Entero(fila, "ID")
+                Exit For
+            End If
+        Next
+        Dim sesionAdminTemporal As UsuarioSesion = usuarios.ObtenerEstadoSesion(idAdminTemporal)
+        Verificar("Un administrador puede crear otra cuenta con rol Administrador protegido",
+                  altaAdminTemporal.Exito AndAlso idAdminTemporal > 0 AndAlso
+                  sesionAdminTemporal IsNot Nothing AndAlso sesionAdminTemporal.RolProtegido)
+        If idAdminTemporal > 0 Then
+            Verificar("La eliminación segura permite retirar un administrador temporal si queda otro activo",
+                      servicioUsuarios.EliminarDefinitivamente(idAdminTemporal).Exito)
+        End If
+
         Dim permisosAdmin As List(Of String) = roles.PermisosDeRol(idRolAdmin)
         Verificar("El Administrador tiene todos los permisos del catálogo",
                   permisosAdmin.Count = roles.CatalogoPermisos().Rows.Count,
