@@ -120,8 +120,15 @@ Public Class ServicioCumplimiento
             operacion.FechaVencimientoAnalisis.Value.ToString("dd/MM/yyyy") &
             " · Reporte: " & operacion.FechaVencimientoReporte.Value.ToString("dd/MM/yyyy") & "."
 
-        If operacion.Monto >= UmbralEfectivo() AndAlso operacion.TipoOperacion = "Regulada" Then
-            mensaje &= " Supera el umbral de efectivo configurado."
+        If operacion.TipoOperacion = "Regulada" Then
+            Try
+                If operacion.Monto >= UmbralEfectivo() Then
+                    mensaje &= " Supera el umbral de efectivo configurado."
+                End If
+            Catch ex As Exception
+                RegistroErrores.Escribir("Cumplimiento - consultar umbral de efectivo", ex)
+                mensaje &= " No fue posible verificar el umbral de efectivo; revise la configuración."
+            End Try
         End If
 
         Return New Respuesta With {.Exito = True, .Mensaje = mensaje, .ID = operacion.ID}
