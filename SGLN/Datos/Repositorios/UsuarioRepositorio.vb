@@ -263,6 +263,9 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo("Ya existe un usuario con ese nombre de acceso.")
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("El rol seleccionado ya no existe.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - crear", ex)
+            Return Respuesta.Fallo("No se pudo crear el usuario. Verifique los datos y la conexión.")
         End Try
     End Function
 
@@ -326,6 +329,9 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("El rol seleccionado ya no existe.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - actualizar", ex)
+            Return Respuesta.Fallo("No se pudo actualizar el usuario. Verifique los datos y la conexión.")
         End Try
     End Function
 
