@@ -11,10 +11,19 @@ Public Class ServicioPlazos
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
     Public Function ObtenerCalculadora() As CalculadoraDiasHabiles
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para consultar el calendario de plazos procesales.")
+        End If
         Return New CalculadoraDiasHabiles(_catalogo.FechasFeriadas())
     End Function
 
     Public Function CalcularVencimiento(fechaNotificacion As Date, diasHabiles As Integer) As Date
+        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para calcular plazos procesales.")
+        End If
+        If fechaNotificacion = Date.MinValue Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion), "La fecha de notificación no es válida.")
+        End If
         If diasHabiles <= 0 Then
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles), "El plazo debe ser mayor que cero.")
         End If
@@ -50,7 +59,12 @@ Public Class ServicioPlazos
 
     Public Function ActualizarVencidas() As Integer
         If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Return 0
-        Return _repositorio.MarcarVencidas()
+        Try
+            Return _repositorio.MarcarVencidas()
+        Catch ex As Exception
+            RegistroErrores.Escribir("Actualizar plazos vencidos", ex)
+            Return 0
+        End Try
     End Function
 
     Public Function MarcarCumplida(idActuacion As Integer) As Respuesta
