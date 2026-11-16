@@ -113,7 +113,7 @@ jobs:
               $casoRepo -notmatch 'CONFIRMAR PLAZO') {
             throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
           }
-          if ($servicioCumplimiento -notmatch 'fechaSolicitud no es válida' -or
+          if ($servicioCumplimiento -notmatch 'fecha de solicitud no es válida' -or
               $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO') {
             throw 'Faltan validaciones de fechas y manejo de errores en cumplimiento ARCO.'
           }
