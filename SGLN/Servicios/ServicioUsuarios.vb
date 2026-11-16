@@ -43,6 +43,9 @@ Public Class ServicioUsuarios
 
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede modificar otra cuenta Administrador.")
+        End If
         If String.IsNullOrWhiteSpace(nombreCompleto) Then Return Respuesta.Fallo("Indique el nombre completo.")
         If nombreCompleto.Trim().Length > 150 Then Return Respuesta.Fallo("El nombre no puede superar 150 caracteres.")
         If idRol <= 0 Then Return Respuesta.Fallo("Seleccione un rol.")
@@ -76,6 +79,9 @@ Public Class ServicioUsuarios
         If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para restablecer claves de otros usuarios.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede restablecer la clave de otra cuenta Administrador.")
+        End If
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         Return _repositorio.CambiarClave(id, claveNueva)
@@ -100,6 +106,9 @@ Public Class ServicioUsuarios
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         If Sesion.UsuarioActual IsNot Nothing AndAlso id = Sesion.UsuarioActual.ID Then
             Return Respuesta.Fallo("No puede desactivar el usuario con el que inició sesión.")
+        End If
+        If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede desactivar otra cuenta Administrador.")
         End If
         If _repositorio.EsAdministrador(id) AndAlso _repositorio.ContarAdministradoresActivos(id) = 0 Then
             Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
@@ -163,6 +172,11 @@ Public Class ServicioUsuarios
             Return "Solo un administrador puede asignar el rol protegido Administrador."
         End If
         Return ""
+    End Function
+
+    Private Function EsAdministradorAutenticado() As Boolean
+        Return Sesion.UsuarioActual IsNot Nothing AndAlso
+               Sesion.UsuarioActual.RolProtegido AndAlso Permisos.AccesoTotal
     End Function
 
     Private Function EsRolProtegido(idRol As Integer) As Boolean
