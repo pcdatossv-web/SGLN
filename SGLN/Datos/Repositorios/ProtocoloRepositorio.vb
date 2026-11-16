@@ -680,7 +680,8 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
-        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse
+                                    Permisos.TieneAcceso("protocolo.gestionar")) Then Return New DataTable()
         ' GROUP_CONCAT reemplaza el STUFF/FOR XML de SQL Server: agrupa los
         ' otorgantes de cada escritura en una sola celda.
         Return Consultar(
