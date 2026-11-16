@@ -797,6 +797,71 @@ Module PruebaFuncional
                   desactivarRolConUsuariosBloqueado AndAlso roles.Obtener(idRolPrueba).Rows.Count = 1 AndAlso
                   UtileriasUI.Booleano(roles.Obtener(idRolPrueba).Rows(0), "Activo"))
 
+        Dim sufijoRolInactivo As String = Guid.NewGuid().ToString("N").Substring(0, 8)
+        Dim altaRolInactivo As Respuesta = roles.Crear(
+            "Rol inactivo " & sufijoRolInactivo, "Rol temporal para probar triggers", New List(Of String)())
+        Dim idRolInactivo As Integer = 0
+        For Each fila As DataRow In roles.Listar().Rows
+            If UtileriasUI.Texto(fila, "Nombre") = "Rol inactivo " & sufijoRolInactivo Then
+                idRolInactivo = UtileriasUI.Entero(fila, "ID")
+                Exit For
+            End If
+        Next
+        Dim desactivacionRolTemporal As Boolean = False
+        If altaRolInactivo.Exito AndAlso idRolInactivo > 0 Then
+            Try
+                Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                    conexion.Open()
+                    Using comando As New MySqlCommand(
+                        "UPDATE Roles SET Activo = 0 WHERE ID = @id", conexion)
+                        comando.Parameters.AddWithValue("@id", idRolInactivo)
+                        comando.ExecuteNonQuery()
+                    End Using
+                End Using
+                desactivacionRolTemporal = True
+            Catch
+                desactivacionRolTemporal = False
+            End Try
+        End If
+        Dim asignacionUsuarioInactivaBloqueada As Boolean = False
+        If desactivacionRolTemporal Then
+            Try
+                Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                    conexion.Open()
+                    Using comando As New MySqlCommand(
+                        "UPDATE Usuarios SET ID_Rol = @rol WHERE ID = @id", conexion)
+                        comando.Parameters.AddWithValue("@rol", idRolInactivo)
+                        comando.Parameters.AddWithValue("@id", idUsuarioPrueba)
+                        comando.ExecuteNonQuery()
+                    End Using
+                End Using
+            Catch ex As MySqlException
+                asignacionUsuarioInactivaBloqueada = ex.Number = 1644
+            End Try
+        End If
+        Verificar("MySQL impide asignar por SQL directo usuarios a roles desactivados",
+                  altaRolInactivo.Exito AndAlso desactivacionRolTemporal AndAlso
+                  asignacionUsuarioInactivaBloqueada)
+        Dim insercionUsuarioInactivaBloqueada As Boolean = False
+        If desactivacionRolTemporal Then
+            Try
+                Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                    conexion.Open()
+                    Using comando As New MySqlCommand(
+                        "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
+                        "VALUES ('admin', 'Prueba', 'hash', 'salt', @rol, 1)", conexion)
+                        comando.Parameters.AddWithValue("@rol", idRolInactivo)
+                        comando.ExecuteNonQuery()
+                    End Using
+                End Using
+            Catch ex As MySqlException
+                insercionUsuarioInactivaBloqueada = ex.Number = 1644
+            End Try
+        End If
+        Verificar("MySQL impide insertar por SQL directo usuarios con roles desactivados",
+                  desactivacionRolTemporal AndAlso insercionUsuarioInactivaBloqueada)
+        If idRolInactivo > 0 Then roles.Eliminar(idRolInactivo)
+
         Dim catalogoPermisosSoloLectura As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
