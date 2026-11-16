@@ -306,6 +306,18 @@ Module PruebaFuncional
                   usuarios.Autenticar("admin", "PruebaInicial99!") Is Nothing)
         Verificar("La clave inicial ya no vuelve a aceptarse",
                   usuarios.Autenticar("admin", "PruebaInicial99!") Is Nothing)
+
+        Dim servicioUsuariosClave As New ServicioUsuarios()
+        Verificar("El cambio de clave propia rechaza una clave actual incorrecta",
+                  Not servicioUsuariosClave.CambiarClavePropia(admin.ID, "Incorrecta99!", "CambioPropio99!").Exito)
+        Dim cambioClavePropia As Respuesta = servicioUsuariosClave.CambiarClavePropia(
+            admin.ID, "TemporalClave99!", "CambioPropioTemporal99!")
+        Verificar("El usuario puede cambiar su propia clave con la clave actual",
+                  cambioClavePropia.Exito AndAlso usuarios.Autenticar("admin", "CambioPropioTemporal99!") IsNot Nothing)
+        Dim restauracionClavePrueba As Respuesta = servicioUsuariosClave.CambiarClavePropia(
+            admin.ID, "CambioPropioTemporal99!", "TemporalClave99!")
+        Verificar("La prueba restaura la clave de administrador para el resto del arnés",
+                  restauracionClavePrueba.Exito)
         Verificar("Una clave nueva de primer ingreso exige longitud y complejidad",
                   SeguridadClave.ValidarClaveNuevaInicial("ClaveInicial99!") = "")
         Verificar("La clave nueva rechaza más de 128 caracteres",
