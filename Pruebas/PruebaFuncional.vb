@@ -407,6 +407,12 @@ Module PruebaFuncional
                         Exit For
                     End If
                 Next
+                Dim restablecimientoBloqueo As Respuesta =
+                    servicioUsuarios.RestablecerClave(idUsuarioBloqueo, "DesbloqueoSeguro99!")
+                Verificar("Restablecer la clave también retira el bloqueo de acceso",
+                          idUsuarioBloqueo > 0 AndAlso restablecimientoBloqueo.Exito AndAlso
+                          usuarios.Autenticar(usuarioBloqueo, "DesbloqueoSeguro99!") IsNot Nothing,
+                          restablecimientoBloqueo.Mensaje)
                 Verificar("No se elimina una cuenta que conserva historial de intentos de acceso",
                           idUsuarioBloqueo > 0 AndAlso
                           Not servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo).Exito)
