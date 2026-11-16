@@ -1,5 +1,6 @@
 Imports System
 Imports System.Windows.Forms
+Imports System.Threading
 
 ''' <summary>
 ''' Punto de entrada del sistema. Resuelve la conexión, prepara la base de datos
@@ -14,6 +15,9 @@ Public Module Program
     Public Sub Main()
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException)
+        AddHandler Application.ThreadException, AddressOf ManejarExcepcionInterfaz
+        AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf ManejarExcepcionProceso
 
         ' Primero la conexión: registro de Windows -> App.config -> valores por defecto.
         ' Así el inicializador y todo el sistema usan la misma cadena.
@@ -46,6 +50,29 @@ Public Module Program
             ' ventana principal, se termina la aplicación.
             If Not Sesion.CerrarSesionSolicitado Then Exit Do
         Loop
+    End Sub
+
+    Private Sub ManejarExcepcionInterfaz(sender As Object, e As ThreadExceptionEventArgs)
+        RegistrarExcepcionGlobal("Excepción no controlada en la interfaz", e.Exception)
+        MessageBox.Show(
+            "Se produjo un error inesperado. El detalle quedó registrado localmente. " &
+            "Por seguridad, SGLN se cerrará para evitar continuar con la interfaz en un estado inconsistente.",
+            "SGLN El Salvador", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Application.Exit()
+    End Sub
+
+    Private Sub ManejarExcepcionProceso(sender As Object, e As UnhandledExceptionEventArgs)
+        Dim ex As Exception = TryCast(e.ExceptionObject, Exception)
+        If ex Is Nothing Then ex = New Exception(Convert.ToString(e.ExceptionObject))
+        RegistrarExcepcionGlobal("Excepción no controlada del proceso", ex)
+    End Sub
+
+    Private Sub RegistrarExcepcionGlobal(contexto As String, ex As Exception)
+        Try
+            RegistroErrores.Escribir(contexto, ex)
+        Catch
+            ' El registro global nunca debe provocar una segunda excepción.
+        End Try
     End Sub
 
     ''' <summary>
