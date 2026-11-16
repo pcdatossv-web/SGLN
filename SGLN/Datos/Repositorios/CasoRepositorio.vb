@@ -180,6 +180,10 @@ Public Class CasoRepositorio
                         AgregarParametrosActuacion(comando, actuacion)
                         Parametro(comando, "@id", actuacion.ID)
                     End Sub)
+                ' Solo se audita y confirma cuando la actuación sigue pendiente o vencida.
+                ' Una actuación cumplida no puede modificarse ni reportarse como confirmada.
+                If filas <= 0 Then Return 0
+
                 ' La confirmación es un evento de negocio y debe quedar auditada
                 ' incluso si los datos calculados coinciden con los ya almacenados.
                 AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
