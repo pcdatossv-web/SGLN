@@ -64,6 +64,7 @@ Public Class FrmUsuarios
         txtNombre.Text = UtileriasUI.Texto(fila, "Nombre_Completo")
         UtileriasUI.SeleccionarValor(cboRol, UtileriasUI.Entero(fila, "ID_Rol"))
         chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
+        chkActivo.Enabled = False
         btnDesactivar.Enabled = chkActivo.Checked
         btnEliminar.Enabled = EsAdministradorActual() AndAlso _idSeleccionado > 0
         Mostrar("", True)
@@ -80,6 +81,7 @@ Public Class FrmUsuarios
         txtNombre.Clear()
         If cboRol.Items.Count > 0 Then cboRol.SelectedIndex = 0
         chkActivo.Checked = True
+        chkActivo.Enabled = True
         txtClaveNueva.Clear()
         txtClaveConfirmar.Clear()
         btnDesactivar.Enabled = False
