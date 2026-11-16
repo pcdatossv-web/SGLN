@@ -1403,6 +1403,10 @@ Module PruebaFuncional
                   Not protocolo.GuardarLibro(New LibroProtocolo With {
                       .NumeroLibro = 0, .AnioVigencia = 2026,
                       .FechaAutorizacion = Date.Today, .FechaVencimiento = Date.Today.AddYears(1)}).Exito)
+        Verificar("Un ID negativo de libro no se interpreta como alta nueva",
+                  Not protocolo.GuardarLibro(New LibroProtocolo With {
+                      .ID = -1, .NumeroLibro = 4, .AnioVigencia = 2026,
+                      .FechaAutorizacion = Date.Today, .FechaVencimiento = Date.Today.AddYears(1)}).Exito)
         Verificar("Vencimiento anterior a la autorización se rechaza",
                   Not protocolo.GuardarLibro(New LibroProtocolo With {
                       .NumeroLibro = 2, .AnioVigencia = 2026,
@@ -1470,6 +1474,12 @@ Module PruebaFuncional
                       .FechaHoraOtorgamiento = Date.MinValue,
                       .FolioInicio = 50, .FolioFin = 55,
                       .ObjetoActo = "Fecha inválida"}).Exito)
+        Verificar("Un ID negativo de escritura no se interpreta como alta nueva",
+                  Not protocolo.GuardarInstrumento(New Instrumento With {
+                      .ID = -1, .IDLibro = idLibro, .NumeroEscritura = 7,
+                      .FechaHoraOtorgamiento = Date.Today,
+                      .FolioInicio = 60, .FolioFin = 65,
+                      .ObjetoActo = "ID inválido"}).Exito)
 
         ' Dos sesiones intentan reservar intervalos que se cruzan al mismo tiempo.
         ' El bloqueo FOR UPDATE del libro debe permitir exactamente una escritura.
