@@ -10,13 +10,16 @@ La base de datos de producción es `sgln_sv`. Las pruebas automatizadas deben us
 
 1. En SGLN, use la función de respaldo con una cuenta autorizada.
 2. Confirme que la operación terminó correctamente y que el archivo SQL existe y tiene tamaño mayor que cero.
-3. Compruebe el archivo desde PowerShell:
+3. Compruebe el archivo desde **CMD** (reemplace la ruta por el nombre real):
 
-   ```powershell
-   Get-Item 'D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql' |
-       Select-Object FullName, Length, LastWriteTime
-   Get-FileHash 'D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql' -Algorithm SHA256
+   ```bat
+   set "RESPALDO=D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql"
+   if not exist "%RESPALDO%" echo ERROR: no existe el respaldo
+   for %I in ("%RESPALDO%") do @echo Archivo: %~fI ^| Bytes: %~zI ^| Fecha: %~tI
+   certutil -hashfile "%RESPALDO%" SHA256
    ```
+
+   Si guarda estos comandos en un archivo `.cmd`, escriba `%%I` en lugar de `%I`.
 
 4. Guarde el hash junto al registro del respaldo, pero separado del archivo.
 5. Copie el respaldo a un medio o ubicación secundaria cifrada, con acceso limitado. Los SQL contienen datos personales, expedientes y bitácoras; no deben publicarse ni enviarse sin protección.
@@ -31,45 +34,28 @@ Realice ensayos periódicos en **otro servidor o instancia MySQL aislada**, sin 
 1. Verifique el SHA-256 contra el hash registrado.
 2. Use una cuenta administrativa de MySQL con privilegios para crear/modificar tablas. La cuenta `sgln_backup` es solo para exportar y `sgln_app` no tiene privilegios DDL suficientes para restaurar.
 3. Configure un archivo de opciones de cliente MySQL protegido por ACL de Windows (solo el operador, SYSTEM y Administradores). No escriba contraseñas en la línea de comandos ni en scripts versionados.
-4. Restaure el SQL en la instancia aislada. Ejemplo de ejecución desde PowerShell, con rutas y archivo de credenciales ajustados al servidor de ensayo:
+4. Restaure el SQL en la instancia aislada. Abra **CMD** y ajuste las rutas al servidor de ensayo. La cuenta indicada en el archivo de opciones debe tener privilegios para restaurar:
 
-   ```powershell
-   $mysql = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
-   $credenciales = 'C:\RutaProtegida\mysql-admin.cnf'
-   $ca = 'C:\RutaProtegida\ca.pem'
-   $respaldo = 'D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql'
+   ```bat
+   set "MYSQL=C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
+   set "CREDENCIALES=C:\RutaProtegida\mysql-admin.cnf"
+   set "CA=C:\RutaProtegida\ca.pem"
+   set "RESPALDO=D:\Respaldos\SGLN_YYYYMMDD_HHMMSS.sql"
 
-   $info = New-Object System.Diagnostics.ProcessStartInfo
-   $info.FileName = $mysql
-   $info.Arguments = '--defaults-extra-file="' + $credenciales +
-       '" --ssl-mode=VERIFY_CA --ssl-ca="' + $ca +
-       '" --default-character-set=utf8mb4'
-   $info.UseShellExecute = $false
-   $info.CreateNoWindow = $false
+   if not exist "%MYSQL%" echo ERROR: no se encontro mysql.exe
+   if not exist "%CREDENCIALES%" echo ERROR: no existe el archivo de credenciales
+   if not exist "%CA%" echo ERROR: no existe el certificado CA
+   if not exist "%RESPALDO%" echo ERROR: no existe el respaldo
 
-   $proceso = [System.Diagnostics.Process]::Start($info)
-   try {
-       $entrada = [System.IO.File]::OpenRead($respaldo)
-       try {
-           $entrada.CopyTo($proceso.StandardInput.BaseStream)
-           $proceso.StandardInput.Close()
-           $proceso.WaitForExit()
-           if ($proceso.ExitCode -ne 0) {
-               throw "La restauración de ensayo falló. Código: $($proceso.ExitCode)"
-           }
-       }
-       finally {
-           $entrada.Dispose()
-       }
-   }
-   finally {
-       $proceso.Dispose()
-   }
+   type "%RESPALDO%" | "%MYSQL%" --defaults-extra-file="%CREDENCIALES%" --ssl-mode=VERIFY_CA --ssl-ca="%CA%" --default-character-set=utf8mb4
+   if errorlevel 1 echo ERROR: fallo la restauracion de ensayo
+   if not errorlevel 1 echo Restauracion terminada; continue con las verificaciones
    ```
 
+   Ejecute el comando únicamente después de comprobar que el cliente apunta a la instancia aislada y que allí existe la base `sgln_sv`. No use estos comandos contra el servidor productivo durante un ensayo.
 5. Después de restaurar el archivo, ejecute como administrador MySQL los scripts vigentes `Triggers_MySQL.sql` y `Privilegios_Minimos.sql` sobre la base restaurada. El respaldo lógico incluye triggers, pero no exporta las cuentas MySQL ni el procedimiento almacenado `sp_EliminarUsuarioSeguro`; los scripts recrean el procedimiento, los candados y los permisos mínimos. No vuelva a ejecutar `Instalacion_Servidor_MySQL.sql` sin planificar la rotación de contraseñas aleatorias de las cuentas.
 6. Verifique que existen las tablas esperadas, que los conteos y muestras de registros coinciden con el origen, que los triggers y el procedimiento `sp_EliminarUsuarioSeguro` están presentes y que SGLN puede iniciar sesión y consultar la información.
-6. Registre fecha, operador, archivo, hash, duración, resultado y problemas encontrados.
+7. Registre fecha, operador, archivo, hash, duración, resultado y problemas encontrados.
 
 ## Recuperación en producción
 
