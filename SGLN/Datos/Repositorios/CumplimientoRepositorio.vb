@@ -198,7 +198,8 @@ Public Class CumplimientoRepositorio
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Solicitudes_ARCO SET Fecha_Vencimiento_Prorroga = @prorroga, " &
                     "Prorroga_Aplicada = @aplicada, Detalle = @detalle " &
-                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL",
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL " &
+                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga >= Fecha_Vencimiento))",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosSolicitudEditable(comando, solicitud)
                         Parametro(comando, "@id", solicitud.ID)
