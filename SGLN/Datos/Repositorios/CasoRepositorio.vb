@@ -57,6 +57,7 @@ Public Class CasoRepositorio
         ValidarDatosCaso(caso)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ValidarClienteActivo(conexion, transaccion, caso.IDCliente)
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Casos (ID_Cliente, Numero_Expediente, Materia, ID_Juzgado, Descripcion, Estado, Fecha_Apertura, Responsable) " &
                     "VALUES (@cliente, @expediente, @materia, @juzgado, @descripcion, @estado, @apertura, @responsable)",
@@ -86,6 +87,10 @@ Public Class CasoRepositorio
                         expedienteActual = Convert.ToString(lector("Numero_Expediente"))
                     End Using
                 End Using
+
+                If caso.IDCliente <> clienteActual Then
+                    ValidarClienteActivo(conexion, transaccion, caso.IDCliente)
+                End If
 
                 Dim referenciasHistoricas As Integer
                 Using comandoReferencias As New MySqlCommand(
@@ -219,6 +224,23 @@ Public Class CasoRepositorio
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
+
+    Private Sub ValidarClienteActivo(conexion As MySqlConnection,
+                                    transaccion As MySqlTransaction,
+                                    idCliente As Integer)
+        Using comando As New MySqlCommand(
+            "SELECT Activo FROM Clientes WHERE ID = @id FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@id", idCliente)
+            Dim valor As Object = comando.ExecuteScalar()
+            If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                Throw New InvalidOperationException("El cliente asociado al caso no existe.")
+            End If
+            If Convert.ToInt32(valor) <> 1 Then
+                Throw New InvalidOperationException("No se pueden crear casos ni reasignar expedientes a clientes inactivos.")
+            End If
+        End Using
+    End Sub
 
     Private Sub ValidarDatosCaso(caso As Caso)
         If caso.IDCliente <= 0 Then Throw New ArgumentException("Seleccione un cliente válido para el caso.", NameOf(caso))
