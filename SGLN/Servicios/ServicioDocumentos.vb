@@ -86,11 +86,26 @@ Public Class ServicioDocumentos
 
             Dim nombreDestino As String = DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" &
                 Guid.NewGuid().ToString("N").Substring(0, 8) & extension.ToLowerInvariant()
-            rutaDestino = Path.Combine(carpeta, nombreDestino)
+            ' Construir el destino desde la ruta absoluta que acaba de validarse,
+            ' no desde la cadena original de configuración.
+            rutaDestino = Path.Combine(Path.GetDirectoryName(rutaDestinoValidada), nombreDestino)
+
+            ' Volver a comprobar el nombre exacto que se va a crear. La validación
+            ' del archivo temporal anterior solo cubre la carpeta y sus segmentos.
+            rutaDestino = RutaCompleta(rutaDestino)
 
             ' Se calcula el hash sobre la copia final, no sobre el origen:
             ' evita registrar un hash distinto si el archivo cambia durante la copia.
             File.Copy(rutaOrigen, rutaDestino)
+
+            ' Comprobar otra vez la ruta después de crear el archivo para detectar
+            ' cambios de directorio o puntos de reanálisis durante la importación.
+            Dim rutaCopiaValidada As String = RutaCompleta(rutaDestino)
+            If Not String.Equals(Path.GetFullPath(rutaCopiaValidada),
+                                 Path.GetFullPath(rutaDestino),
+                                 StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException("La ruta del archivo cambió durante la importación.")
+            End If
 
             ' Revalidar el tamaño de la copia final: el archivo de origen puede
             ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite debe
@@ -127,9 +142,19 @@ Public Class ServicioDocumentos
         Catch ex As Exception
             ' Si falla el registro, no se deja una copia huérfana en disco.
             Try
-                If File.Exists(rutaDestino) Then File.Delete(rutaDestino)
+                If File.Exists(rutaDestino) Then
+                    ' No borrar a través de una ruta que ahora resuelva mediante
+                    ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
+                    Dim rutaLimpieza As String = RutaCompleta(rutaDestino)
+                    If String.Equals(Path.GetFullPath(rutaLimpieza),
+                                     Path.GetFullPath(rutaDestino),
+                                     StringComparison.OrdinalIgnoreCase) Then
+                        File.Delete(rutaLimpieza)
+                    End If
+                End If
             Catch
-                ' La limpieza es best-effort.
+                ' La limpieza es best-effort; ante una ruta insegura se conserva
+                ' el archivo para evitar borrar datos ajenos fuera del almacén.
             End Try
 
             RegistroErrores.Escribir("Documentos - importar", ex)
