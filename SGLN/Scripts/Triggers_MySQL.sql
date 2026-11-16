@@ -196,6 +196,13 @@ BEGIN
     DECLARE v_tabla VARCHAR(64);
     DECLARE v_columna VARCHAR(64);
 
+    DECLARE cur_fk CURSOR FOR
+        SELECT TABLE_NAME, COLUMN_NAME
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND REFERENCED_TABLE_NAME = 'Usuarios'
+          AND REFERENCED_COLUMN_NAME = 'ID';
+
     DECLARE cur_referencias CURSOR FOR
         SELECT TABLE_NAME, COLUMN_NAME
         FROM INFORMATION_SCHEMA.COLUMNS
@@ -275,11 +282,11 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cuenta tiene historial de mantenimiento en la bitácora.';
     END IF;
 
-    OPEN cur_referencias;
-    referencias_loop: LOOP
-        FETCH cur_referencias INTO v_tabla, v_columna;
+    OPEN cur_fk;
+    fk_loop: LOOP
+        FETCH cur_fk INTO v_tabla, v_columna;
         IF v_fin = 1 THEN
-            LEAVE referencias_loop;
+            LEAVE fk_loop;
         END IF;
 
         SET @sgln_delete_sql = CONCAT(
@@ -292,9 +299,19 @@ BEGIN
         DEALLOCATE PREPARE sgln_delete_stmt;
 
         IF COALESCE(@sgln_delete_count, 0) > 0 THEN
-            CLOSE cur_referencias;
+            CLOSE cur_fk;
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'La cuenta tiene referencias históricas en otras tablas.';
+                SET MESSAGE_TEXT = 'La cuenta tiene registros relacionados en otras tablas.';
+        END IF;
+    END LOOP;
+    CLOSE cur_fk;
+
+    SET v_fin = 0;
+    OPEN cur_referencias;
+    referencias_loop: LOOP
+        FETCH cur_referencias INTO v_tabla, v_columna;
+        IF v_fin = 1 THEN
+            LEAVE referencias_loop;
         END IF;
 
         SET @sgln_delete_sql = CONCAT(
