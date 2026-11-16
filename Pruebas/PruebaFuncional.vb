@@ -1996,14 +1996,10 @@ Module PruebaFuncional
         Verificar("Clave vacía se rechaza", Not seguridad.Guardar("", "x").Exito)
         Verificar("Las claves de carpetas se protegen como reservadas",
                   seguridad.EsClaveReservada("Carpeta_Documentos"))
-        Dim resultadoRutaDocumentos As Respuesta =
-            seguridad.Guardar("Carpeta_Documentos", Path.Combine(Path.GetTempPath(), "Documentos"))
-        Verificar("No se permite modificar la ruta reservada de documentos",
-                  Not resultadoRutaDocumentos.Exito)
-        Dim resultadoRutaRespaldos As Respuesta =
-            seguridad.Guardar("carpeta_respaldos", Path.Combine(Path.GetTempPath(), "Respaldos"))
-        Verificar("La protección de rutas reservadas no distingue mayúsculas",
-                  Not resultadoRutaRespaldos.Exito)
+        Dim resultadoRutaDocumentos As Respuesta = seguridad.Guardar("Carpeta_Documentos", Path.Combine(Path.GetTempPath(), "Documentos"))
+        Verificar("No se permite modificar la ruta reservada de documentos", resultadoRutaDocumentos.Exito = False)
+        Dim resultadoRutaRespaldos As Respuesta = seguridad.Guardar("carpeta_respaldos", Path.Combine(Path.GetTempPath(), "Respaldos"))
+        Verificar("La protección de rutas reservadas no distingue mayúsculas", resultadoRutaRespaldos.Exito = False)
         Dim rutaReservadaRepoBloqueada As Boolean = False
         Try
             Dim repositorioConfigAdmin As New ConfiguracionRepositorio()
@@ -2011,12 +2007,10 @@ Module PruebaFuncional
         Catch ex As InvalidOperationException
             rutaReservadaRepoBloqueada = True
         End Try
-        Verificar("El repositorio impide eludir la protección de rutas reservadas",
-                  rutaReservadaRepoBloqueada)
-        Dim resultadoCatalogoReservado As Respuesta =
-            New CatalogoRepositorio().GuardarConfig("Carpeta_Respaldos", Path.GetTempPath())
-        Verificar("El catálogo heredado también bloquea las rutas reservadas",
-                  Not resultadoCatalogoReservado.Exito)
+        Verificar("El repositorio impide eludir la protección de rutas reservadas", rutaReservadaRepoBloqueada)
+        Dim catalogoConfigAdmin As New CatalogoRepositorio()
+        Dim resultadoCatalogoReservado As Respuesta = catalogoConfigAdmin.GuardarConfig("Carpeta_Respaldos", Path.GetTempPath())
+        Verificar("El catálogo heredado también bloquea las rutas reservadas", resultadoCatalogoReservado.Exito = False)
 
         Verificar("Feriado duplicado (01/01/2027) se rechaza",
                   Not seguridad.AgregarFeriado(New Date(2027, 1, 1), "Duplicado").Exito)
