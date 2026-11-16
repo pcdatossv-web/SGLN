@@ -34,7 +34,7 @@ INNER JOIN Roles r ON r.ID = rp.ID_Rol
 WHERE r.Protegido = 0
   AND rp.Codigo IN ('config.usuarios', 'config.roles');
 
-DELIMITER $
+DELIMITER $$
 
 CREATE TRIGGER trg_roles_protegido_bi BEFORE INSERT ON Roles
 FOR EACH ROW
@@ -131,7 +131,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_rol_permiso_admin_bu BEFORE UPDATE ON Rol_Permiso
 FOR EACH ROW
@@ -154,7 +154,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Los permisos de administración solo pueden pertenecer al rol Administrador protegido.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_rol_permiso_admin_bd BEFORE DELETE ON Rol_Permiso
 FOR EACH ROW
@@ -190,7 +190,7 @@ END$$
    DEFINER: la cuenta sgln_app no recibe DELETE sobre Usuarios. El procedimiento
    vuelve a comprobar historial, referencias y último administrador en MySQL,
    sin depender exclusivamente de las validaciones de la interfaz. */
-DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro$
+DROP PROCEDURE IF EXISTS sp_EliminarUsuarioSeguro$$
 
 CREATE PROCEDURE sp_EliminarUsuarioSeguro(IN p_id INT, IN p_actor_id INT)
 SQL SECURITY DEFINER
@@ -352,6 +352,6 @@ BEGIN
             CONCAT('Cuenta eliminada tras validar historial y referencias: ', v_usuario));
 
     COMMIT;
-END$
+END$$
 
 DELIMITER ;
