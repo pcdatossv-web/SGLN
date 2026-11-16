@@ -57,6 +57,9 @@ Public Module SeguridadClave
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Length < 12 Then
             Return "La nueva clave debe tener al menos 12 caracteres."
         End If
+        If clave.Length > 128 Then
+            Return "La nueva clave no puede superar 128 caracteres."
+        End If
         If String.Equals(clave, ClaveInicialLegada, StringComparison.Ordinal) Then
             Return "Debe utilizar una clave distinta de la clave inicial."
         End If
