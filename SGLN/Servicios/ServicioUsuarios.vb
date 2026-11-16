@@ -121,14 +121,7 @@ Public Class ServicioUsuarios
             Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
         End If
 
-        Dim fila As DataTable = _repositorio.Obtener(id)
-        If fila.Rows.Count = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
-
-        Return _repositorio.Actualizar(
-            id,
-            Convert.ToString(fila.Rows(0)("Nombre_Completo")),
-            Convert.ToInt32(fila.Rows(0)("ID_Rol")),
-            False)
+        Return _repositorio.Desactivar(id)
     End Function
 
 
