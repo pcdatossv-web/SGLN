@@ -341,12 +341,6 @@ try {
         "ALTER USER '$usuarioRespaldo'@'localhost' IDENTIFIED BY '$claveRespaldo'; " +
         "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioApp'@'localhost'; " +
         "REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$usuarioRespaldo'@'localhost'; " +
-        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.* TO '$usuarioApp'@'localhost'; " +
-        "GRANT DELETE ON ``$basePruebas``.Roles TO '$usuarioApp'@'localhost'; " +
-        "GRANT DELETE ON ``$basePruebas``.Rol_Permiso TO '$usuarioApp'@'localhost'; " +
-        "GRANT DELETE ON ``$basePruebas``.Feriados TO '$usuarioApp'@'localhost'; " +
-        "GRANT DELETE ON ``$basePruebas``.Representantes_Legales TO '$usuarioApp'@'localhost'; " +
-        "GRANT DELETE ON ``$basePruebas``.Comparecientes_Instrumento TO '$usuarioApp'@'localhost'; " +
         "GRANT SELECT, SHOW VIEW, TRIGGER ON ``$basePruebas``.* TO '$usuarioRespaldo'@'localhost'; " +
         "FLUSH PRIVILEGES;")
 
@@ -357,9 +351,36 @@ try {
         "INSERT IGNORE INTO ``$basePruebas``.Rol_Permiso (ID_Rol, Codigo) " +
         "SELECT ID, 'config.usuarios' FROM ``$basePruebas``.Roles WHERE Protegido = 0 LIMIT 1;")
     Invoke-MySqlFile (Join-Path $carpetaScripts 'Triggers_MySQL.sql') $basePruebas
-    Invoke-MySqlCommand (
-        "GRANT EXECUTE ON PROCEDURE ``$basePruebas``.sp_EliminarUsuarioSeguro TO '$usuarioApp'@'localhost'; " +
-        "FLUSH PRIVILEGES;")
+
+    # La cuenta de prueba recibe los mismos permisos por tabla que sgln_app.
+    $permisosApp = @(
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Roles TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT ON ``$basePruebas``.Permisos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Rol_Permiso TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Usuarios TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Intentos_Acceso TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Configuracion TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Feriados TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Juzgados TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Tipos_Actuacion TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Clientes TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Entidades_Legales TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Representantes_Legales TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Perfil_LDAFT TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Casos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Actuaciones_Procesales TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Libros_Protocolo TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Instrumentos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Comparecientes_Instrumento TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Testimonios_Expedidos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Documentos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Operaciones_LDAFT TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Solicitudes_ARCO TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Plantillas_Documentos TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT ON ``$basePruebas``.Audit_Log TO '$usuarioApp'@'localhost';"
+        "GRANT EXECUTE ON PROCEDURE ``$basePruebas``.sp_EliminarUsuarioSeguro TO '$usuarioApp'@'localhost';"
+    )
+    Invoke-MySqlCommand ($permisosApp -join " ")
 
     # ------------------------------------------------------------------
     # 4. Compilación del arnés
