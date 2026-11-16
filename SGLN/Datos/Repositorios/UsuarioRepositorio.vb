@@ -238,8 +238,6 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
-        Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
-        If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
         Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
 
         Try
