@@ -1810,6 +1810,14 @@ Module PruebaFuncional
         Verificar("Compareciente duplicado se rechaza con mensaje", Not rCompDup.Exito, rCompDup.Mensaje)
         Verificar("Calidad fuera de catálogo se rechaza",
                   Not protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Curioso").Exito)
+        Dim calidadDirectaRechazada As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).AgregarCompareciente(idInstrumento1, idCliente, "Curioso")
+        Catch ex As ArgumentException
+            calidadDirectaRechazada = True
+        End Try
+        Verificar("El repositorio impide omitir la validación de calidad del compareciente",
+                  calidadDirectaRechazada)
 
         Dim rCerrar As Respuesta = protocolo.CerrarLibro(idLibro, "Libro completo")
         Verificar("Cerrar libro con escritura sin otorgante se bloquea",
