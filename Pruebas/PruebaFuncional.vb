@@ -2316,6 +2316,10 @@ Module PruebaFuncional
                   editarProrroga.Exito AndAlso
                   Convert.ToBoolean(tablaProrrogaActualizada.Rows(0)("Prorroga_Aplicada")) AndAlso
                   UtileriasUI.Fecha(tablaProrrogaActualizada.Rows(0), "Fecha_Vencimiento_Prorroga") = fechaProrrogaOriginal)
+        Verificar("El repositorio tampoco permite retirar directamente una prórroga ARCO aplicada",
+                  (New CumplimientoRepositorio()).ActualizarSolicitud(New SolicitudArco With {
+                      .ID = arcoProrroga.ID, .ProrrogaAplicada = False,
+                      .Detalle = "Intento de retirar prórroga directamente"}) = 0)
 
         Verificar("Solicitud ARCO con fecha futura se rechaza",
                   Not cumplimiento.GuardarSolicitud(New SolicitudArco With {
