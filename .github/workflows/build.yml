@@ -84,6 +84,15 @@ jobs:
               $privilegiosSql -notmatch '(?i)GRANT EXECUTE ON PROCEDURE sgln_sv\.sp_EliminarUsuarioSeguro') {
             throw 'La cuenta sgln_app debe usar el procedimiento para eliminar usuarios y no tener DELETE directo.'
           }
+          if ($privilegiosSql -notmatch '(?i)GRANT SELECT ON sgln_sv\.Permisos' -or
+              $privilegiosSql -match '(?i)GRANT SELECT, INSERT, UPDATE ON sgln_sv\.Permisos') {
+            throw 'El catálogo maestro de permisos debe ser de solo lectura para sgln_app.'
+          }
+          $inicializador = Get-Content 'SGLN\\Datos\\InicializadorBD.vb' -Raw
+          if ($inicializador -match 'SembrarPermisosAdicionales' -or
+              $inicializador -notmatch 'Codigo = ''config.editar''') {
+            throw 'La aplicación no debe modificar el catálogo de permisos; debe verificarlo al iniciar.'
+          }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
           }
