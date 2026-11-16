@@ -22,7 +22,11 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
-        If id <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse
+                               Permisos.TieneAcceso("protocolo.gestionar") OrElse
+                               Permisos.TieneAcceso("protocolo.cerrar_libro") OrElse
+                               Permisos.TieneAcceso("protocolo.entregar") OrElse
+                               Permisos.TieneAcceso("protocolo.testimonios")) Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Libros_Protocolo WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -207,7 +211,9 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerInstrumento(id As Integer) As DataTable
-        If id <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.ver") OrElse
+                               Permisos.TieneAcceso("protocolo.gestionar") OrElse
+                               Permisos.TieneAcceso("protocolo.testimonios")) Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Instrumentos WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -469,7 +475,8 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InstrumentosSinOtorgante(idLibro As Integer) As Integer
-        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.gestionar") Then Return 0
+        If idLibro <= 0 OrElse Not (Permisos.TieneAcceso("protocolo.gestionar") OrElse
+                                    Permisos.TieneAcceso("protocolo.cerrar_libro")) Then Return 0
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Instrumentos i " &
             "WHERE i.ID_Libro = @libro AND i.Estado = 'Vigente' " &
