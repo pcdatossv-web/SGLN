@@ -1261,6 +1261,12 @@ Module PruebaFuncional
             If UtileriasUI.Entero(fila, "ID") = idActuacion Then guardada = fila
         Next
         Verificar("La actuación confirmada queda en el expediente", guardada IsNot Nothing)
+        Verificar("El número de expediente no se puede alterar después de registrar actuaciones",
+                  Not casos.Guardar(New Caso With {
+                      .ID = idCaso, .IDCliente = idCliente, .NumeroExpediente = "EXPEDIENTE-ALTERADO",
+                      .Materia = caso.Materia, .IDJuzgado = idJuzgado, .Descripcion = caso.Descripcion,
+                      .Estado = caso.Estado, .FechaApertura = caso.FechaApertura, .Responsable = caso.Responsable
+                  }).Exito)
         Verificar("Actualizar una actuación inexistente se rechaza",
                   Not plazos.Confirmar(New ActuacionProcesal With {
                       .ID = Integer.MaxValue, .IDCaso = idCaso,
