@@ -1492,6 +1492,24 @@ Module PruebaFuncional
         Dim rPlazo As Respuesta = plazos.Confirmar(actuacion)
         Verificar("Confirmar plazo guarda la actuación", rPlazo.Exito, rPlazo.Mensaje)
         Dim idActuacion As Integer = actuacion.ID
+        Dim actuacionDirectaForzadaPendiente As New ActuacionProcesal With {
+            .IDCaso = idCaso, .IDTipoActuacion = UtileriasUI.Entero(tipoContestacion, "ID"),
+            .FechaNotificacion = Date.Today, .PlazoLegalDias = 10,
+            .FechaVencimiento = plazos.CalcularVencimiento(Date.Today, 10),
+            .Estado = "Cumplido", .Observaciones = "Prueba de estado inicial protegido"}
+        actuacionDirectaForzadaPendiente.ID =
+            (New CasoRepositorio()).GuardarActuacion(actuacionDirectaForzadaPendiente)
+        Dim actuacionDirectaTabla As DataTable =
+            (New CasoRepositorio()).ActuacionesPorCaso(idCaso)
+        Dim estadoDirecto As String = ""
+        For Each fila As DataRow In actuacionDirectaTabla.Rows
+            If UtileriasUI.Entero(fila, "ID") = actuacionDirectaForzadaPendiente.ID Then
+                estadoDirecto = UtileriasUI.Texto(fila, "Estado")
+                Exit For
+            End If
+        Next
+        Verificar("El repositorio fuerza Pendiente al crear una actuación y no acepta estado enviado por el cliente",
+                  actuacionDirectaForzadaPendiente.ID > 0 AndAlso estadoDirecto = "Pendiente")
         Dim auditoriaAntesReconfirmar As Integer = ContarSqlDirecto(
             "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
             "AND ID_Registro = " & idActuacion.ToString() & " AND Accion = 'CONFIRMAR PLAZO'")
