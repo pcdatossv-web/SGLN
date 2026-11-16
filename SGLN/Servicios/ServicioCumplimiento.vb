@@ -121,7 +121,13 @@ Public Class ServicioCumplimiento
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
 
-        Dim tabla As DataTable = _repositorio.ObtenerOperacion(id)
+        Dim tabla As DataTable
+        Try
+            tabla = _repositorio.ObtenerOperacion(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - consultar operación para reporte", ex)
+            Return Respuesta.Fallo("No se pudo consultar la operación. Verifique la conexión.")
+        End Try
         If tabla.Rows.Count = 0 Then Return Respuesta.Fallo("La operación no existe.")
 
         Dim estado As String = Convert.ToString(tabla.Rows(0)("Estado"))
@@ -139,9 +145,14 @@ Public Class ServicioCumplimiento
             Return Respuesta.Fallo("La fecha de reporte no puede ser anterior a la operación.")
         End If
 
-        If _repositorio.MarcarReportada(id, fechaReporte.Date) = 0 Then
-            Return Respuesta.Fallo("La operación cambió de estado. Actualice la lista.")
-        End If
+        Try
+            If _repositorio.MarcarReportada(id, fechaReporte.Date) = 0 Then
+                Return Respuesta.Fallo("La operación cambió de estado. Actualice la lista.")
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - marcar operación reportada", ex)
+            Return Respuesta.Fallo("No se pudo registrar el reporte. Verifique la conexión.")
+        End Try
         Return Respuesta.Ok("Reporte a la UIF registrado el " & fechaReporte.ToString("dd/MM/yyyy") & ".")
     End Function
 
@@ -149,14 +160,25 @@ Public Class ServicioCumplimiento
         If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
-        Dim actual As DataTable = _repositorio.ObtenerOperacion(id)
+        Dim actual As DataTable
+        Try
+            actual = _repositorio.ObtenerOperacion(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - consultar operación para descarte", ex)
+            Return Respuesta.Fallo("No se pudo consultar la operación. Verifique la conexión.")
+        End Try
         If actual.Rows.Count = 0 Then Return Respuesta.Fallo("La operación no existe.")
         Dim estado As String = Convert.ToString(actual.Rows(0)("Estado"))
         If estado = "Reportada" OrElse Convert.ToBoolean(actual.Rows(0)("Reportado_UIF")) Then
             Return Respuesta.Fallo("Una operación reportada a la UIF no se puede descartar.")
         End If
         If estado = "Descartada" Then Return Respuesta.Fallo("La operación ya fue descartada.")
-        If _repositorio.Descartar(id) = 0 Then Return Respuesta.Fallo("La operación cambió de estado. Actualice la lista.")
+        Try
+            If _repositorio.Descartar(id) = 0 Then Return Respuesta.Fallo("La operación cambió de estado. Actualice la lista.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - descartar operación", ex)
+            Return Respuesta.Fallo("No se pudo descartar la operación. Verifique la conexión.")
+        End Try
         Return Respuesta.Ok("Operación descartada. El registro se conserva para auditoría.")
     End Function
 
@@ -274,7 +296,13 @@ Public Class ServicioCumplimiento
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una solicitud.")
 
-        Dim tabla As DataTable = _repositorio.ObtenerSolicitud(id)
+        Dim tabla As DataTable
+        Try
+            tabla = _repositorio.ObtenerSolicitud(id)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - consultar solicitud ARCO para respuesta", ex)
+            Return Respuesta.Fallo("No se pudo consultar la solicitud. Verifique la conexión.")
+        End Try
         If tabla.Rows.Count = 0 Then Return Respuesta.Fallo("La solicitud no existe.")
 
         If Not tabla.Rows(0).IsNull("Fecha_Respuesta") OrElse
@@ -290,9 +318,14 @@ Public Class ServicioCumplimiento
             Return Respuesta.Fallo("La fecha de respuesta no puede ser anterior a la solicitud.")
         End If
 
-        If _repositorio.Responder(id, fechaRespuesta.Date) = 0 Then
-            Return Respuesta.Fallo("La solicitud cambió de estado. Actualice la lista.")
-        End If
+        Try
+            If _repositorio.Responder(id, fechaRespuesta.Date) = 0 Then
+                Return Respuesta.Fallo("La solicitud cambió de estado. Actualice la lista.")
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Cumplimiento - responder solicitud ARCO", ex)
+            Return Respuesta.Fallo("No se pudo registrar la respuesta. Verifique la conexión.")
+        End Try
         Return Respuesta.Ok("Solicitud ARCO marcada como respondida.")
     End Function
 
