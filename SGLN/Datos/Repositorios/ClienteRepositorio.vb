@@ -47,6 +47,9 @@ Public Class ClienteRepositorio
         If Not Permisos.TieneAcceso("clientes.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar clientes.")
         If cliente Is Nothing Then Throw New ArgumentNullException(NameOf(cliente))
         If cliente.ID < 0 Then Throw New ArgumentException("El identificador del cliente no es válido.", NameOf(cliente))
+        If cliente.ID = 0 AndAlso Not cliente.Activo Then
+            Throw New InvalidOperationException("Un cliente nuevo debe registrarse activo; la baja se realiza mediante la operación autorizada.")
+        End If
         ValidarDatosCliente(cliente, perfil)
         NormalizarDatosCliente(cliente, perfil)
         Return EnTransaccion(
@@ -75,10 +78,11 @@ Public Class ClienteRepositorio
                     Dim profesionActual As String = ""
                     Dim direccionActual As String = ""
                     Dim fechaNacimientoActual As Date? = Nothing
+                    Dim activoActual As Boolean = False
 
                     Using comandoExiste As New MySqlCommand(
                             "SELECT Nombres, Apellidos, DUI, NIT, Nacionalidad, Profesion, " &
-                            "Fecha_Nacimiento, Direccion FROM Clientes WHERE ID = @id FOR UPDATE",
+                            "Fecha_Nacimiento, Direccion, Activo FROM Clientes WHERE ID = @id FOR UPDATE",
                             conexion, transaccion)
                         Parametro(comandoExiste, "@id", idCliente)
                         Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
@@ -92,11 +96,17 @@ Public Class ClienteRepositorio
                             nacionalidadActual = Convert.ToString(lector("Nacionalidad"))
                             profesionActual = Convert.ToString(lector("Profesion"))
                             direccionActual = Convert.ToString(lector("Direccion"))
+                            activoActual = Convert.ToInt32(lector("Activo")) = 1
                             If Not lector.IsDBNull(lector.GetOrdinal("Fecha_Nacimiento")) Then
                                 fechaNacimientoActual = Convert.ToDateTime(lector("Fecha_Nacimiento")).Date
                             End If
                         End Using
                     End Using
+
+                    If cliente.Activo <> activoActual Then
+                        Throw New InvalidOperationException(
+                            "El estado activo del cliente no se cambia desde la edición general. Utilice la operación autorizada de desactivación.")
+                    End If
 
                     Dim comparecenciasExistentes As Integer
                     Using comandoReferencias As New MySqlCommand(
