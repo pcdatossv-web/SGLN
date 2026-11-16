@@ -64,6 +64,7 @@ jobs:
           $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
           $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
+          $servicioRoles = Get-Content 'SGLN\\Servicios\\ServicioRoles.vb' -Raw
           $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
           $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $servicioCasos = Get-Content 'SGLN\\Servicios\\ServicioCasos.vb' -Raw
@@ -167,6 +168,10 @@ jobs:
           if ($servicioUsuarios -notmatch 'No puede cambiar su propio rol' -or
               $servicioUsuarios -notmatch 'Para cambiar su propia clave') {
             throw 'El mantenimiento de usuarios debe impedir cambios de rol propios y restablecimientos sin clave actual.'
+          }
+          if ($servicioRoles -notmatch 'descripcion.Trim().Length > 200' -or
+              $servicioRoles -notmatch 'If id <= 0 Then Return Respuesta.Fallo') {
+            throw 'El servicio de roles debe validar la longitud de descripción y el identificador.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
