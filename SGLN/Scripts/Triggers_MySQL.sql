@@ -14,6 +14,7 @@
    el esquema embebido se ejecuta sentencia por sentencia y esto no.
    ============================================================ */
 
+DROP TRIGGER IF EXISTS trg_roles_protegido_bi;
 DROP TRIGGER IF EXISTS trg_roles_protegido_bu;
 DROP TRIGGER IF EXISTS trg_roles_protegido_bd;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bu;
@@ -24,6 +25,18 @@ DROP TRIGGER IF EXISTS trg_audit_log_no_update;
 DROP TRIGGER IF EXISTS trg_audit_log_no_delete;
 
 DELIMITER $$
+
+CREATE TRIGGER trg_roles_protegido_bi BEFORE INSERT ON Roles
+FOR EACH ROW
+BEGIN
+    /* Los roles protegidos solo se crean durante la instalación inicial,
+       antes de aplicar estos triggers. La cuenta de aplicación no puede
+       insertar un segundo rol con privilegios de administrador. */
+    IF NEW.Protegido = 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se permite crear roles protegidos desde la cuenta de aplicación.';
+    END IF;
+END$
 
 CREATE TRIGGER trg_roles_protegido_bu BEFORE UPDATE ON Roles
 FOR EACH ROW

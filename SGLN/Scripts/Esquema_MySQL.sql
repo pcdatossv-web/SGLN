@@ -372,8 +372,14 @@ CREATE TABLE IF NOT EXISTS Audit_Log (
    10. Datos de seguridad iniciales (roles y permisos)
    ================================================================== */
 
+/* El rol protegido se crea solo en la instalación inicial, antes de aplicar
+   Triggers_MySQL.sql. En ejecuciones posteriores no se intenta reinsertarlo:
+   el trigger de seguridad bloquea cualquier nueva inserción Protegido = 1. */
+INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido)
+SELECT 'Administrador', 'Acceso total. Rol protegido del sistema.', 1, 1
+WHERE NOT EXISTS (SELECT 1 FROM Roles WHERE Nombre = 'Administrador');
+
 INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) VALUES
-    ('Administrador', 'Acceso total. Rol protegido del sistema.', 1, 1),
     ('Abogado', 'Gestión legal y notarial; sin configuración del sistema.', 1, 0),
     ('Auxiliar', 'Apoyo administrativo: consulta y carga de documentos.', 1, 0),
     ('Notario', 'Protocolo notarial y documentos.', 1, 0),

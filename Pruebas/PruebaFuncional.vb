@@ -580,6 +580,9 @@ Module PruebaFuncional
                   NumeroErrorSql("UPDATE Roles SET Protegido = 0 WHERE ID = " & idRolAdmin.ToString()) = 1644)
         Verificar("El trigger impide elevar un rol ordinario a Administrador protegido",
                   NumeroErrorSql("UPDATE Roles SET Protegido = 1 WHERE ID = " & idRolAbogado.ToString()) = 1644)
+        Verificar("El trigger impide insertar un segundo rol protegido por SQL directo",
+                  NumeroErrorSql("INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) " &
+                                 "VALUES ('PruebaElevacionProtegida', 'Prueba de seguridad', 1, 1)") = 1644)
         Verificar("El trigger impide eliminar el rol Administrador",
                   NumeroErrorSql("DELETE FROM Roles WHERE ID = " & idRolAdmin.ToString()) = 1644)
         Verificar("El trigger impide quitar config.roles al Administrador",
