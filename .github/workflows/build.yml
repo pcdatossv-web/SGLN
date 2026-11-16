@@ -169,8 +169,8 @@ jobs:
               $servicioUsuarios -notmatch 'Para cambiar su propia clave') {
             throw 'El mantenimiento de usuarios debe impedir cambios de rol propios y restablecimientos sin clave actual.'
           }
-          if ($servicioRoles -notmatch 'descripcion.Trim().Length > 200' -or
-              $servicioRoles -notmatch 'If id <= 0 Then Return Respuesta.Fallo') {
+          if (-not $servicioRoles.Contains('descripcion.Trim().Length > 200') -or
+              -not $servicioRoles.Contains('If id <= 0 Then Return Respuesta.Fallo')) {
             throw 'El servicio de roles debe validar la longitud de descripción y el identificador.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
