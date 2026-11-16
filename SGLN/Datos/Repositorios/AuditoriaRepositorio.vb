@@ -13,7 +13,7 @@ Public Class AuditoriaRepositorio
                            desde As Date, hasta As Date) As DataTable
         If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
 
-        If hasta.Date < desde.Date Then Return New DataTable()
+        If desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return New DataTable()
 
         ' El límite superior exclusivo evita perder registros con hora durante
         ' el último día. Date.MaxValue no admite AddDays(1); en ese único caso
