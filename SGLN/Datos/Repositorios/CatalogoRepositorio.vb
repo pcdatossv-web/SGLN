@@ -45,6 +45,20 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function GuardarConfig(clave As String, valor As String) As Respuesta
+        If Not Permisos.TieneAcceso("config.editar") Then
+            Return Respuesta.Fallo("No tiene permiso para modificar la configuración.")
+        End If
+        If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 60 Then
+            Return Respuesta.Fallo("La clave de configuración no es válida.")
+        End If
+        If String.Equals(clave.Trim(), "Carpeta_Documentos", StringComparison.OrdinalIgnoreCase) OrElse
+           String.Equals(clave.Trim(), "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
+            Return Respuesta.Fallo("Las rutas de documentos y respaldos no se pueden modificar desde la configuración general.")
+        End If
+        If If(valor, "").Trim().Length > 500 Then
+            Return Respuesta.Fallo("El valor de configuración no puede superar 500 caracteres.")
+        End If
+
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -62,6 +76,7 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function ListarConfig() As DataTable
+        If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
         Return Consultar("SELECT Clave, Valor FROM Configuracion ORDER BY Clave")
     End Function
 
