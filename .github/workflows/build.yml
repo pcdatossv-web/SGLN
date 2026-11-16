@@ -66,6 +66,7 @@ jobs:
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
           $servicioRoles = Get-Content 'SGLN\\Servicios\\ServicioRoles.vb' -Raw
           $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
+          $catalogoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CatalogoRepositorio.vb' -Raw
           $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $servicioCasos = Get-Content 'SGLN\\Servicios\\ServicioCasos.vb' -Raw
           $servicioPlazos = Get-Content 'SGLN\\Servicios\\ServicioPlazos.vb' -Raw
@@ -92,6 +93,12 @@ jobs:
             throw 'Faltan las comprobaciones de permisos en el repositorio de configuración.'
           }
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
+          if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
+              -not $catalogoRepo.Contains('Carpeta_Documentos') -or
+              -not $catalogoRepo.Contains('Carpeta_Respaldos')) {
+            throw 'El repositorio de catálogos debe proteger las operaciones heredadas de configuración.'
+          }
           if (-not $servicioConfig.Contains('If EsClaveReservada(clave) Then') -or
               -not $servicioConfig.Contains('StringComparison.OrdinalIgnoreCase') -or
               -not $configRepo.Contains('Carpeta_Documentos') -or
