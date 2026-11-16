@@ -615,6 +615,15 @@ Module PruebaFuncional
                   sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
                   Not Permisos.TieneAcceso("config.usuarios") AndAlso
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+        Dim cambioClaveGestor As Respuesta = servicioUsuarios.CambiarClavePropia(
+            idUsuarioGestor, "GestorPrueba99!", "GestorCambioTemporal99!")
+        Verificar("Un usuario ordinario puede cambiar su propia clave sin permisos administrativos",
+                  cambioClaveGestor.Exito AndAlso
+                  usuarios.VerificarClave(idUsuarioGestor, "GestorCambioTemporal99!"))
+        Dim restauracionClaveGestor As Respuesta = servicioUsuarios.CambiarClavePropia(
+            idUsuarioGestor, "GestorCambioTemporal99!", "GestorPrueba99!")
+        Verificar("La prueba restaura la clave del usuario ordinario",
+                  restauracionClaveGestor.Exito)
         Verificar("Un rol ordinario no puede desactivar ni eliminar usuarios",
                   Not servicioUsuarios.Desactivar(idUsuarioPrueba).Exito AndAlso
                   Not servicioUsuarios.EliminarDefinitivamente(idUsuarioPrueba).Exito)
