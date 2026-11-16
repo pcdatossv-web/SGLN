@@ -412,8 +412,9 @@ Public Class UsuarioRepositorio
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(claveNueva)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
 
-        Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
-        Dim filas As Integer = EnTransaccion(
+        Try
+            Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
+            Dim filas As Integer = EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim afectadas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id",
@@ -437,8 +438,12 @@ Public Class UsuarioRepositorio
                 Return afectadas
             End Function)
 
-        If filas = 0 AndAlso Not Existe(idUsuario) Then Return Respuesta.Fallo("El usuario ya no existe.")
-        Return Respuesta.Ok("Clave actualizada correctamente.")
+            If filas = 0 AndAlso Not Existe(idUsuario) Then Return Respuesta.Fallo("El usuario ya no existe.")
+            Return Respuesta.Ok("Clave actualizada correctamente.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - cambiar clave", ex)
+            Return Respuesta.Fallo("No se pudo actualizar la clave. Verifique la conexión y vuelva a intentarlo.")
+        End Try
     End Function
 
     Public Function VerificarClave(idUsuario As Integer, clave As String) As Boolean
