@@ -1627,6 +1627,8 @@ Module PruebaFuncional
 
         Dim rIndice As Respuesta = protocolo.GenerarIndice(idLibro)
         Verificar("Generar índice del libro", rIndice.Exito, rIndice.Mensaje)
+        Verificar("Volver a solicitar un índice ya generado no produce un falso error",
+                  protocolo.GenerarIndice(idLibro).Exito)
         Dim indice As DataTable = protocolo.IndiceLibro(idLibro)
         Verificar("El índice conserva las 3 escrituras, incluida la anulada", indice.Rows.Count = 3)
         Dim escrituraAnuladaEnIndice As Boolean = False
