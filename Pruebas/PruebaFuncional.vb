@@ -30,6 +30,7 @@ Module PruebaFuncional
         Dim repositorioProtocoloDirecto As New ProtocoloRepositorio()
         Dim repositorioDocumentosDirecto As New DocumentoRepositorio()
         Dim repositorioCumplimientoDirecto As New CumplimientoRepositorio()
+        Dim servicioProtocoloConcurrente As New ServicioProtocolo()
 
         ' La calculadora se usa en varios módulos y debe rechazar entradas que
         ' puedan producir fechas inválidas o ciclos desproporcionados.
