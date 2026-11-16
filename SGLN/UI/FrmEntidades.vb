@@ -14,6 +14,7 @@ Public Class FrmEntidades
         If Not Permisos.Exigir("entidades.ver", Me) Then Return
 
         UtileriasUI.ConfigurarGrid(dgvEntidades)
+        chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
         UtileriasUI.ConfigurarGrid(dgvRepresentantes)
 
         cboNivelRiesgo.Items.Clear()
@@ -111,6 +112,7 @@ Public Class FrmEntidades
         txtNRC.Clear()
         txtDomicilio.Clear()
         chkActivo.Checked = True
+        chkActivo.Enabled = False
         cboNivelRiesgo.SelectedItem = "Bajo"
         chkOrigenVerificado.Checked = False
         txtDetalleOrigen.Clear()
