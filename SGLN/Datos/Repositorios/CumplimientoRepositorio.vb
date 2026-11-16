@@ -273,7 +273,8 @@ Public Class CumplimientoRepositorio
 
     Private Sub ValidarSolicitudNueva(solicitud As SolicitudArco)
         If solicitud.IDCliente <= 0 Then Throw New ArgumentException("Seleccione un cliente válido.", NameOf(solicitud))
-        If Not {"Acceso", "Rectificación", "Cancelación", "Oposición"}.Contains(If(solicitud.TipoDerecho, "")) Then
+        If Array.IndexOf(New String() {"Acceso", "Rectificación", "Cancelación", "Oposición"},
+                           If(solicitud.TipoDerecho, "")) < 0 Then
             Throw New ArgumentException("El tipo de derecho ARCO no es válido.", NameOf(solicitud))
         End If
         If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date > Date.Today Then
