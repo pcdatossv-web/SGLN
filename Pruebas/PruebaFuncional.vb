@@ -1859,6 +1859,16 @@ Module PruebaFuncional
         Verificar("El repositorio impide cerrar un libro antes de su fecha de autorización",
                   fechaCierreAnteriorRechazada)
 
+        Dim cierreAntesUltimaEscrituraRechazado As Boolean = False
+        Try
+            (New ProtocoloRepositorio()).CerrarLibro(
+                idLibro, "Cierre anterior a escritura", libro.FechaAutorizacion.AddDays(1))
+        Catch ex As ArgumentException
+            cierreAntesUltimaEscrituraRechazado = True
+        End Try
+        Verificar("El repositorio impide cerrar un libro antes de su última escritura vigente",
+                  cierreAntesUltimaEscrituraRechazado)
+
         Dim rCerrar As Respuesta = protocolo.CerrarLibro(idLibro, "Libro completo")
         Verificar("Cerrar libro con escritura sin otorgante se bloquea",
                   Not rCerrar.Exito AndAlso rCerrar.Mensaje.Contains("otorgante"), rCerrar.Mensaje)
