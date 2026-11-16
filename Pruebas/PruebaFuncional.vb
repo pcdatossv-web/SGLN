@@ -988,6 +988,15 @@ Module PruebaFuncional
                   }, New PerfilLdaft With {
                       .NivelRiesgo = "Bajo", .FechaVerificacionListas = Date.Today.AddDays(1)
                   }).Exito)
+        Verificar("Las fechas anteriores al rango DATE de MySQL se rechazan en clientes y perfiles",
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Fecha", .FechaNacimiento = Date.MinValue
+                  }, Nothing).Exito AndAlso
+                  Not clientes.Guardar(New Cliente With {
+                      .Nombres = "Prueba", .Apellidos = "Fecha"
+                  }, New PerfilLdaft With {
+                      .NivelRiesgo = "Bajo", .FechaVerificacionListas = Date.MinValue
+                  }).Exito)
         Verificar("El detalle y observaciones LDA/FT respetan el límite de 500 caracteres",
                   Not clientes.Guardar(New Cliente With {
                       .Nombres = "Prueba", .Apellidos = "Perfil"
@@ -1086,6 +1095,11 @@ Module PruebaFuncional
 
         Verificar("NIT inválido en entidad se rechaza",
                   Not entidades.Guardar(New EntidadLegal With {.RazonSocial = "X", .NIT = "12"}, Nothing).Exito)
+        Verificar("La fecha de verificación LDA/FT fuera del rango DATE se rechaza en entidades",
+                  Not entidades.Guardar(New EntidadLegal With {.RazonSocial = "Entidad fecha inválida"},
+                      New PerfilLdaft With {
+                          .NivelRiesgo = "Bajo", .FechaVerificacionListas = Date.MinValue
+                      }).Exito)
         Verificar("Razón social vacía se rechaza",
                   Not entidades.Guardar(New EntidadLegal(), Nothing).Exito)
 
