@@ -603,7 +603,8 @@ Module PruebaFuncional
                   New RolRepositorio().Listar().Rows.Count = 0 AndAlso
                   New RolRepositorio().Obtener(idRolAdmin).Rows.Count = 0 AndAlso
                   New RolRepositorio().RolesActivos().Rows.Count = 0 AndAlso
-                  New RolRepositorio().CatalogoPermisos().Rows.Count = 0)
+                  New RolRepositorio().CatalogoPermisos().Rows.Count = 0 AndAlso
+                   New RolRepositorio().PermisosDeRol(idRolAdmin).Rows.Count = 0)
         Dim auditoriaDirecta As New AuditoriaRepositorio()
         Verificar("El repositorio bloquea consultas directas a la bitácora sin permiso",
                   auditoriaDirecta.Buscar("", "", "", Date.Today.AddDays(-1), Date.Today).Rows.Count = 0 AndAlso
