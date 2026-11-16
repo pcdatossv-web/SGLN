@@ -204,7 +204,7 @@ Public Class CumplimientoRepositorio
                     "UPDATE Solicitudes_ARCO SET Fecha_Vencimiento_Prorroga = @prorroga, " &
                     "Prorroga_Aplicada = @aplicada, Detalle = @detalle " &
                     "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL " &
-                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga >= Fecha_Vencimiento)) " &
+                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga > Fecha_Vencimiento)) " &
                     "AND (Prorroga_Aplicada = 0 OR (@aplicada = 1 AND @prorroga = Fecha_Vencimiento_Prorroga))",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosSolicitudEditable(comando, solicitud)
@@ -329,7 +329,7 @@ Public Class CumplimientoRepositorio
         If If(solicitud.Detalle, "").Length > 1000 Then Throw New ArgumentException("El detalle no puede superar 1000 caracteres.", NameOf(solicitud))
         If solicitud.ProrrogaAplicada AndAlso
            (Not solicitud.FechaVencimientoProrroga.HasValue OrElse
-            solicitud.FechaVencimientoProrroga.Value.Date < solicitud.FechaVencimiento.Date) Then
+            solicitud.FechaVencimientoProrroga.Value.Date <= solicitud.FechaVencimiento.Date) Then
             Throw New ArgumentException("La fecha de vencimiento de la prórroga no es válida.", NameOf(solicitud))
         End If
     End Sub
