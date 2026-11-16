@@ -37,6 +37,25 @@ Public Class CatalogoRepositorio
     Public Function ObtenerConfig(clave As String) As String
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 60 Then Return ""
         Dim claveNormalizada As String = clave.Trim()
+        Dim permisoLectura As Boolean
+        Select Case claveNormalizada
+            Case "Umbral_Efectivo", "LDA_Analisis_Dias", "LDA_Reporte_Dias",
+                 "ARCO_Dias_Respuesta", "ARCO_Dias_Prorroga"
+                permisoLectura =
+                    Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                    Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
+                    Permisos.TieneAcceso("cumplimiento.arco") OrElse
+                    Permisos.TieneAcceso("cumplimiento.reportar_uif")
+            Case "Protocolo_Dias_Entrega"
+                permisoLectura =
+                    Permisos.TieneAcceso("protocolo.ver") OrElse
+                    Permisos.TieneAcceso("protocolo.entregar") OrElse
+                    Permisos.TieneAcceso("protocolo.gestionar")
+            Case Else
+                permisoLectura = Permisos.TieneAcceso("config.ver")
+        End Select
+        If Not permisoLectura Then Return ""
+
         Dim valor As String = Escalar(Of String)(
             "SELECT Valor FROM Configuracion WHERE Clave = @clave",
             Sub(comando As MySqlCommand)
