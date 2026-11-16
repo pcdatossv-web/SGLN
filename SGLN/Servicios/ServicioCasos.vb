@@ -30,7 +30,8 @@ Public Class ServicioCasos
         If caso.Materia.Trim().Length > 40 Then Return Respuesta.Fallo("La materia no puede superar 40 caracteres.")
         If If(caso.Descripcion, "").Length > 1000 Then Return Respuesta.Fallo("La descripción no puede superar 1000 caracteres.")
         If If(caso.Responsable, "").Length > 120 Then Return Respuesta.Fallo("El responsable no puede superar 120 caracteres.")
-        If Not {"Activo", "Suspendido", "Cerrado", "Archivado"}.Contains(If(caso.Estado, "")) Then
+        If Array.IndexOf(New String() {"Activo", "Suspendido", "Cerrado", "Archivado"},
+                             If(caso.Estado, "")) < 0 Then
             Return Respuesta.Fallo("El estado del caso no es válido.")
         End If
         If caso.FechaApertura = Date.MinValue OrElse caso.FechaApertura.Date > Date.Today Then
