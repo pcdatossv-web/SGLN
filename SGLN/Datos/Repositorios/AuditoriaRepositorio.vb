@@ -13,13 +13,22 @@ Public Class AuditoriaRepositorio
                            desde As Date, hasta As Date) As DataTable
         If Not Permisos.TieneAcceso("auditoria.ver") Then Return New DataTable()
 
+        If hasta.Date < desde.Date Then Return New DataTable()
+
+        ' El límite superior exclusivo evita perder registros con hora durante
+        ' el último día. Date.MaxValue no admite AddDays(1); en ese único caso
+        ' se usa un límite inclusivo seguro para el rango DATETIME de MySQL.
+        Dim limiteMaximo As Boolean = hasta.Date = Date.MaxValue.Date
+        Dim condicionHasta As String =
+            If(limiteMaximo, "Fecha_Hora <= @hasta", "Fecha_Hora < @hasta")
+
         Return Consultar(
             "SELECT ID, Usuario, Fecha_Hora, Accion, Tabla_Afectada, ID_Registro, Detalle " &
             "FROM Audit_Log " &
             "WHERE (@usuario IS NULL OR Usuario LIKE @likeUsuario) " &
             "  AND (@tabla IS NULL OR Tabla_Afectada LIKE @likeTabla) " &
             "  AND (@accion IS NULL OR Accion = @accion) " &
-            "  AND Fecha_Hora >= @desde AND Fecha_Hora < @hasta " &
+            "  AND Fecha_Hora >= @desde AND " & condicionHasta & " " &
             "ORDER BY Fecha_Hora DESC, ID DESC",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@usuario", If(usuario, "").Trim())
@@ -28,7 +37,8 @@ Public Class AuditoriaRepositorio
                 Parametro(comando, "@likeTabla", "%" & If(tabla, "").Trim() & "%")
                 Parametro(comando, "@accion", If(accion, "").Trim())
                 Parametro(comando, "@desde", desde.Date)
-                Parametro(comando, "@hasta", hasta.Date.AddDays(1))
+                Parametro(comando, "@hasta",
+                          If(limiteMaximo, Date.MaxValue, hasta.Date.AddDays(1)))
             End Sub)
     End Function
 
