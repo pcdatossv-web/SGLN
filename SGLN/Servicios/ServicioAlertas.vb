@@ -70,9 +70,9 @@ Public Class ServicioAlertas
             consultas.Add(
                 "SELECT 'Protocolo' AS Tipo, " &
                 "CONCAT('Entrega al Notariado pendiente: libro ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)) AS Descripcion, " &
-                "DATE_ADD(l.Fecha_Vencimiento, INTERVAL 15 DAY) AS Fecha_Referencia, 'Media' AS Prioridad " &
+                "l.Fecha_Cierre AS Fecha_Referencia, 'Media' AS Prioridad " &
                 "FROM Libros_Protocolo l WHERE l.Estado = 'Cerrado' AND l.Fecha_Entrega_Notariado IS NULL " &
-                "AND DATE_ADD(l.Fecha_Vencimiento, INTERVAL 15 DAY) <= CURDATE()")
+                "AND l.Fecha_Cierre IS NOT NULL")
         End If
 
         If Permisos.TieneAcceso("cumplimiento.ver") OrElse
@@ -113,8 +113,37 @@ Public Class ServicioAlertas
         End If
 
         If consultas.Count = 0 Then Return New DataTable()
-        Return Consultar(String.Join(" UNION ALL ", consultas) &
-                         " ORDER BY CASE WHEN Prioridad = 'Alta' THEN 1 ELSE 2 END, Fecha_Referencia")
+
+        Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
+            " ORDER BY CASE WHEN Prioridad = 'Alta' THEN 1 ELSE 2 END, Fecha_Referencia")
+
+        ' El plazo de entrega al Notariado se calcula en días hábiles y usa
+        ' la configuración vigente y el calendario de feriados. No se puede
+        ' aproximar con DATE_ADD(..., 15 DAY), porque generaría alertas falsas.
+        If Permisos.TieneAcceso("protocolo.ver") Then
+            Dim protocolo As New ServicioProtocolo()
+            For indice As Integer = resultado.Rows.Count - 1 To 0 Step -1
+                Dim fila As DataRow = resultado.Rows(indice)
+                If Convert.ToString(fila("Tipo")) = "Protocolo" AndAlso
+                   Convert.ToString(fila("Descripcion")).StartsWith(
+                       "Entrega al Notariado pendiente:", StringComparison.Ordinal) Then
+                    Try
+                        Dim fechaCierre As Date = Convert.ToDateTime(fila("Fecha_Referencia")).Date
+                        Dim fechaLimite As Date = protocolo.FechaLimiteEntrega(fechaCierre)
+                        fila("Fecha_Referencia") = fechaLimite
+                        If fechaLimite > Date.Today Then fila.Delete()
+                    Catch ex As Exception
+                        RegistroErrores.Escribir("Alertas - calcular plazo de entrega al Notariado", ex)
+                        ' Ante una configuración o calendario ilegible se omite
+                        ' esta alerta; nunca se muestra una fecha límite inventada.
+                        fila.Delete()
+                    End Try
+                End If
+            Next
+            resultado.AcceptChanges()
+        End If
+
+        Return resultado
     End Function
 
     Public Function ObtenerResumen() As String
