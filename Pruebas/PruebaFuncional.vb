@@ -1951,6 +1951,17 @@ Module PruebaFuncional
         Directory.CreateDirectory(carpetaTrabajo)
         Dim rutaPdf As String = Path.Combine(carpetaTrabajo, "contrato_prueba.pdf")
         File.WriteAllText(rutaPdf, "%PDF-1.4" & Environment.NewLine & "Contenido simulado de un PDF de prueba.")
+        Dim rutaConControlRechazada As Boolean = False
+        Try
+            (New DocumentoRepositorio()).Insertar(New Documento With {
+                .TipoDocumento = "Contrato", .RutaArchivo = "Documentos/" & ChrW(10) & "prueba.pdf",
+                .Hash = New String("A"c, 64)})
+        Catch ex As ArgumentException
+            rutaConControlRechazada = True
+        End Try
+        Verificar("El repositorio documental rechaza rutas con caracteres de control",
+                  rutaConControlRechazada)
+
         Dim hashDirectoInvalidoRechazado As Boolean = False
         Try
             (New DocumentoRepositorio()).Insertar(New Documento With {
