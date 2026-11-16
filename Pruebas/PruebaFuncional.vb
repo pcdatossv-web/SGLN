@@ -644,6 +644,49 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio de casos bloquea confirmaciones directas de plazos sin permiso",
                   confirmacionPlazoDirectaBloqueada)
+
+        Dim cumplimientoDirecto As New CumplimientoRepositorio()
+        Dim protocoloDirecto As New ProtocoloRepositorio()
+        Verificar("Los repositorios de cumplimiento y protocolo bloquean lecturas directas sin permiso",
+                  cumplimientoDirecto.Operaciones("").Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.ObtenerOperacion(1).Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.SolicitudesArco("").Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.ObtenerSolicitud(1).Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.ClientesCombo().Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.CasosCombo().Rows.Count = 0 AndAlso
+                  cumplimientoDirecto.InstrumentosCombo().Rows.Count = 0 AndAlso
+                  protocoloDirecto.Libros().Rows.Count = 0 AndAlso
+                  protocoloDirecto.ObtenerLibro(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.Instrumentos(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.ObtenerInstrumento(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.Comparecientes(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.Testimonios(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.IndiceLibro(1).Rows.Count = 0 AndAlso
+                  protocoloDirecto.ClientesCombo().Rows.Count = 0)
+        Dim escriturasCumplimientoBloqueadas As Boolean = False
+        Dim escriturasProtocoloBloqueadas As Boolean = False
+        Try
+            cumplimientoDirecto.InsertarOperacion(Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasCumplimientoBloqueadas = True
+        End Try
+        Try
+            cumplimientoDirecto.InsertarSolicitud(Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasCumplimientoBloqueadas = escriturasCumplimientoBloqueadas
+        End Try
+        Try
+            protocoloDirecto.InsertarLibro(Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasProtocoloBloqueadas = True
+        End Try
+        Try
+            protocoloDirecto.InsertarInstrumento(Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasProtocoloBloqueadas = escriturasProtocoloBloqueadas
+        End Try
+        Verificar("Los repositorios bloquean escrituras directas de cumplimiento y protocolo sin permiso",
+                  escriturasCumplimientoBloqueadas AndAlso escriturasProtocoloBloqueadas)
         Dim insercionDocumentoDirectaBloqueada As Boolean = False
         Try
             documentosDirectos.Insertar(New Documento With {
