@@ -577,6 +577,11 @@ Module PruebaFuncional
                   auditoriaDirecta.Acciones().Rows.Count = 0 AndAlso
                   auditoriaDirecta.Usuarios().Rows.Count = 0)
         Dim repositorioConfiguracionPrueba As New ConfiguracionRepositorio()
+        Verificar("El repositorio de configuración no expone datos a un rol sin permisos",
+                  repositorioConfiguracionPrueba.Listar().Rows.Count = 0 AndAlso
+                  repositorioConfiguracionPrueba.Obtener("Carpeta_Respaldos") = "" AndAlso
+                  repositorioConfiguracionPrueba.Feriados().Rows.Count = 0 AndAlso
+                  repositorioConfiguracionPrueba.Usuarios().Rows.Count = 0)
         Dim configuracionDirectaBloqueada As Boolean = False
         Try
             repositorioConfiguracionPrueba.Guardar("Prueba_Acceso_NoAutorizado", "No debe guardarse")
