@@ -663,30 +663,33 @@ Module PruebaFuncional
                   protocoloDirecto.Testimonios(1).Rows.Count = 0 AndAlso
                   protocoloDirecto.IndiceLibro(1).Rows.Count = 0 AndAlso
                   protocoloDirecto.ClientesCombo().Rows.Count = 0)
-        Dim escriturasCumplimientoBloqueadas As Boolean = False
-        Dim escriturasProtocoloBloqueadas As Boolean = False
+        Dim insercionOperacionBloqueada As Boolean = False
+        Dim insercionArcoBloqueada As Boolean = False
+        Dim insercionLibroBloqueada As Boolean = False
+        Dim insercionInstrumentoBloqueada As Boolean = False
         Try
             cumplimientoDirecto.InsertarOperacion(Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasCumplimientoBloqueadas = True
+            insercionOperacionBloqueada = True
         End Try
         Try
             cumplimientoDirecto.InsertarSolicitud(Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasCumplimientoBloqueadas = escriturasCumplimientoBloqueadas
+            insercionArcoBloqueada = True
         End Try
         Try
             protocoloDirecto.InsertarLibro(Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasProtocoloBloqueadas = True
+            insercionLibroBloqueada = True
         End Try
         Try
             protocoloDirecto.InsertarInstrumento(Nothing)
         Catch ex As UnauthorizedAccessException
-            escriturasProtocoloBloqueadas = escriturasProtocoloBloqueadas
+            insercionInstrumentoBloqueada = True
         End Try
         Verificar("Los repositorios bloquean escrituras directas de cumplimiento y protocolo sin permiso",
-                  escriturasCumplimientoBloqueadas AndAlso escriturasProtocoloBloqueadas)
+                  insercionOperacionBloqueada AndAlso insercionArcoBloqueada AndAlso
+                  insercionLibroBloqueada AndAlso insercionInstrumentoBloqueada)
         Dim insercionDocumentoDirectaBloqueada As Boolean = False
         Try
             documentosDirectos.Insertar(New Documento With {
