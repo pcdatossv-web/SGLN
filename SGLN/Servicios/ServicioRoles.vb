@@ -65,6 +65,13 @@ Public Class ServicioRoles
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
         End If
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un rol.")
+        If String.IsNullOrWhiteSpace(descripcion) Then
+            Return Respuesta.Fallo("Indique una descripción breve del rol.")
+        End If
+        If descripcion.Trim().Length > 200 Then
+            Return Respuesta.Fallo("La descripción no puede superar 200 caracteres.")
+        End If
 
         Dim actual As DataTable = _repositorio.Obtener(id)
         If actual.Rows.Count = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
@@ -89,10 +96,6 @@ Public Class ServicioRoles
         Else
             Dim errorNombre As String = ValidarNombre(nombre, id)
             If errorNombre <> "" Then Return Respuesta.Fallo(errorNombre)
-
-            If String.IsNullOrWhiteSpace(descripcion) Then
-                Return Respuesta.Fallo("Indique una descripción breve del rol.")
-            End If
 
             If Not activo AndAlso Convert.ToInt32(fila("Usuarios")) > 0 Then
                 Return Respuesta.Fallo(
