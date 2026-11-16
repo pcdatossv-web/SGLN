@@ -1283,6 +1283,15 @@ Module PruebaFuncional
                       }).Exito)
         Verificar("Razón social vacía se rechaza",
                   Not entidades.Guardar(New EntidadLegal(), Nothing).Exito)
+        Dim entidadDirectaInvalidaRechazada As Boolean = False
+        Try
+            (New EntidadRepositorio()).GuardarCompleto(New EntidadLegal With {
+                .RazonSocial = "", .Activo = True}, Nothing)
+        Catch ex As ArgumentException
+            entidadDirectaInvalidaRechazada = True
+        End Try
+        Verificar("El repositorio de entidades rechaza directamente razones sociales vacías",
+                  entidadDirectaInvalidaRechazada)
 
         Dim errorRollbackEntidad As Integer = 0
         Dim detalleRollbackEntidad As String = ""
