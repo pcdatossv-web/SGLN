@@ -42,6 +42,9 @@ Public Class ServicioEntidades
             If If(perfil.DetalleOrigenFondos, "").Length > 500 OrElse If(perfil.Observaciones, "").Length > 500 Then
                 Return Respuesta.Fallo("El detalle de origen de fondos y las observaciones no pueden superar 500 caracteres.")
             End If
+            If perfil.FechaVerificacionListas.HasValue AndAlso perfil.FechaVerificacionListas.Value.Year < 1000 Then
+                Return Respuesta.Fallo("La fecha de verificación de listas no es válida.")
+            End If
             If perfil.FechaVerificacionListas.HasValue AndAlso perfil.FechaVerificacionListas.Value.Date > Date.Today Then
                 Return Respuesta.Fallo("La fecha de verificación de listas no puede ser futura.")
             End If
