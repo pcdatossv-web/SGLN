@@ -294,28 +294,84 @@ Public Class UsuarioRepositorio
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim estadoActual As Object = EscalarEnTransaccion(Of Object)(
+                        conexion, transaccion,
+                        "SELECT Activo FROM Usuarios WHERE ID = @id FOR UPDATE",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", id)
+                        End Sub)
+
+                    If estadoActual Is Nothing OrElse estadoActual Is DBNull.Value Then Return 0
+                    If Convert.ToBoolean(estadoActual) <> activo Then Return -1
+
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
-                        "UPDATE Usuarios SET Nombre_Completo = @nombre, ID_Rol = @rol, Activo = @activo WHERE ID = @id",
+                        "UPDATE Usuarios SET Nombre_Completo = @nombre, ID_Rol = @rol WHERE ID = @id",
                         Sub(comando As MySqlCommand)
                             Parametro(comando, "@nombre", nombreCompleto.Trim())
                             Parametro(comando, "@rol", idRol)
-                            Parametro(comando, "@activo", activo)
                             Parametro(comando, "@id", id)
                         End Sub)
 
                     If afectadas > 0 Then
                         AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Usuarios", id,
-                            "Rol " & idRol & ", activo = " & activo)
+                            "Rol " & idRol & "; datos generales actualizados")
                     End If
                     Return afectadas
                 End Function)
 
+            If filas = -1 Then Return Respuesta.Fallo("El estado Activo no se puede cambiar desde la edición general. Utilice la acción específica de desactivación.")
             If filas = 0 AndAlso Not Existe(id) Then Return Respuesta.Fallo("El usuario ya no existe.")
             Return Respuesta.Ok("Usuario actualizado.")
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("El rol seleccionado ya no existe.")
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Desactiva una cuenta mediante una operación separada de la edición
+    ''' general. Mantiene la protección del último administrador activo.
+    ''' </summary>
+    Public Function Desactivar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id Then
+            Return Respuesta.Fallo("No puede desactivar la cuenta con la que inició sesión.")
+        End If
+
+        Try
+            Dim resultado As Integer = EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim estado As Object = EscalarEnTransaccion(Of Object)(
+                        conexion, transaccion,
+                        "SELECT u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", id)
+                        End Sub)
+                    If estado Is Nothing OrElse estado Is DBNull.Value Then Return 0
+                    If Not Convert.ToBoolean(estado) Then Return 2
+
+                    If EsAdministrador(id) AndAlso ContarAdministradoresActivos(id) = 0 Then Return -1
+
+                    Dim afectadas As Integer = Ejecutar(conexion, transaccion,
+                        "UPDATE Usuarios SET Activo = 0 WHERE ID = @id AND Activo = 1",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", id)
+                        End Sub)
+                    If afectadas > 0 Then
+                        AuditarEnTransaccion(conexion, transaccion, "DESACTIVAR", "Usuarios", id,
+                            "Cuenta desactivada por administrador")
+                    End If
+                    Return afectadas
+                End Function)
+
+            If resultado = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
+            If resultado = -1 Then Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
+            If resultado = 2 Then Return Respuesta.Ok("El usuario ya estaba desactivado.")
+            Return Respuesta.Ok("Usuario desactivado.")
+        Catch ex As MySqlException When ex.Number = 1644
+            Return Respuesta.Fallo(ex.Message)
         End Try
     End Function
 
