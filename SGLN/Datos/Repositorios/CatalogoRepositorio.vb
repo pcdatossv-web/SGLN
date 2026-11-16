@@ -35,10 +35,12 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function ObtenerConfig(clave As String) As String
+        If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 60 Then Return ""
+        Dim claveNormalizada As String = clave.Trim()
         Dim valor As String = Escalar(Of String)(
             "SELECT Valor FROM Configuracion WHERE Clave = @clave",
             Sub(comando As MySqlCommand)
-                Parametro(comando, "@clave", clave)
+                Parametro(comando, "@clave", claveNormalizada)
             End Sub)
         If valor Is Nothing Then Return ""
         Return Convert.ToString(valor)
@@ -58,6 +60,8 @@ Public Class CatalogoRepositorio
         If If(valor, "").Trim().Length > 500 Then
             Return Respuesta.Fallo("El valor de configuración no puede superar 500 caracteres.")
         End If
+        clave = clave.Trim()
+        valor = If(valor, "").Trim()
 
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
