@@ -67,7 +67,8 @@ Realice ensayos periódicos en **otro servidor o instancia MySQL aislada**, sin 
    }
    ```
 
-5. Verifique que existen las tablas esperadas, que los conteos y muestras de registros coinciden con el origen, que las relaciones y triggers están presentes y que SGLN puede iniciar sesión y consultar la información.
+5. Después de restaurar el archivo, ejecute como administrador MySQL los scripts vigentes `Triggers_MySQL.sql` y `Privilegios_Minimos.sql` sobre la base restaurada. El respaldo lógico incluye triggers, pero no exporta las cuentas MySQL ni el procedimiento almacenado `sp_EliminarUsuarioSeguro`; los scripts recrean el procedimiento, los candados y los permisos mínimos. No vuelva a ejecutar `Instalacion_Servidor_MySQL.sql` sin planificar la rotación de contraseñas aleatorias de las cuentas.
+6. Verifique que existen las tablas esperadas, que los conteos y muestras de registros coinciden con el origen, que los triggers y el procedimiento `sp_EliminarUsuarioSeguro` están presentes y que SGLN puede iniciar sesión y consultar la información.
 6. Registre fecha, operador, archivo, hash, duración, resultado y problemas encontrados.
 
 ## Recuperación en producción
