@@ -1610,6 +1610,10 @@ Module PruebaFuncional
                   Not casos.Guardar(New Caso With {
                       .IDCliente = idCliente, .NumeroExpediente = "ESTADO-1",
                       .Materia = "Civil", .Estado = "Desconocido"
+                  }).Exito AndAlso
+                  Not casos.Guardar(New Caso With {
+                      .IDCliente = idCliente, .NumeroExpediente = "FECHA-MYSQL-1",
+                      .Materia = "Civil", .FechaApertura = New Date(999, 12, 31)
                   }).Exito)
         Dim casoDirectoInvalidoRechazado As Boolean = False
         Try
@@ -1621,6 +1625,17 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio de casos rechaza directamente expedientes fuera de longitud",
                   casoDirectoInvalidoRechazado)
+
+        Dim casoDirectoFechaInvalidaRechazado As Boolean = False
+        Try
+            repositorioCasosDirecto.Insertar(New Caso With {
+                .IDCliente = idCliente, .NumeroExpediente = "FECHA-MYSQL-DIRECTO",
+                .Materia = "Civil", .Estado = "Activo", .FechaApertura = New Date(999, 12, 31)})
+        Catch ex As ArgumentException
+            casoDirectoFechaInvalidaRechazado = True
+        End Try
+        Verificar("El repositorio de casos rechaza fechas anteriores al rango DATE de MySQL",
+                  casoDirectoFechaInvalidaRechazado)
         Dim idJuzgado As Integer = UtileriasUI.Entero(casos.JuzgadosCombo().Rows(0), "ID")
         Dim tipoContestacion As DataRow = Nothing
         For Each fila As DataRow In casos.TiposActuacionCombo().Rows
@@ -1882,6 +1897,23 @@ Module PruebaFuncional
                       .NumeroLibro = 3, .AnioVigencia = 2026,
                       .FechaAutorizacion = Date.MinValue,
                       .FechaVencimiento = New Date(2027, 1, 5)}).Exito)
+        Verificar("El servicio de protocolo rechaza fechas anteriores al rango DATE de MySQL",
+                  Not protocolo.GuardarLibro(New LibroProtocolo With {
+                      .NumeroLibro = 4, .AnioVigencia = 2026,
+                      .FechaAutorizacion = New Date(999, 12, 31),
+                      .FechaVencimiento = New Date(2027, 1, 5)}).Exito)
+
+        Dim libroDirectoFechaInvalidaRechazado As Boolean = False
+        Try
+            repositorioProtocoloDirecto.InsertarLibro(New LibroProtocolo With {
+                .NumeroLibro = 5, .AnioVigencia = 2026,
+                .FechaAutorizacion = New Date(999, 12, 31),
+                .FechaVencimiento = New Date(2027, 1, 5)})
+        Catch ex As ArgumentException
+            libroDirectoFechaInvalidaRechazado = True
+        End Try
+        Verificar("El repositorio de protocolo rechaza fechas anteriores al rango DATE de MySQL",
+                  libroDirectoFechaInvalidaRechazado)
 
         Dim instrumento1 As New Instrumento With {
             .IDLibro = idLibro, .NumeroEscritura = 1,
