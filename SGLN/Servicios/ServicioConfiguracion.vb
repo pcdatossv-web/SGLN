@@ -164,6 +164,7 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function CarpetaRespaldos() As String
+        If Not Permisos.TieneAcceso("config.respaldos") Then Return ""
         Dim carpeta As String = _repositorio.Obtener("Carpeta_Respaldos")
         If String.IsNullOrWhiteSpace(carpeta) Then carpeta = "Respaldos"
         If Not Path.IsPathRooted(carpeta) Then
