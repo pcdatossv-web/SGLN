@@ -1136,6 +1136,21 @@ Module PruebaFuncional
         Console.WriteLine()
         Console.WriteLine("-- 5. Casos judiciales")
         Dim casos As New ServicioCasos()
+        Verificar("El servicio de casos rechaza un objeto nulo sin excepción",
+                  Not casos.Guardar(Nothing).Exito)
+        Verificar("El servicio de casos valida longitudes y fechas antes de guardar",
+                  Not casos.Guardar(New Caso With {
+                      .IDCliente = idCliente, .NumeroExpediente = New String("E"c, 81),
+                      .Materia = "Civil"
+                  }).Exito AndAlso
+                  Not casos.Guardar(New Caso With {
+                      .IDCliente = idCliente, .NumeroExpediente = "FUTURO-1",
+                      .Materia = "Civil", .FechaApertura = Date.Today.AddDays(1)
+                  }).Exito AndAlso
+                  Not casos.Guardar(New Caso With {
+                      .IDCliente = idCliente, .NumeroExpediente = "ESTADO-1",
+                      .Materia = "Civil", .Estado = "Desconocido"
+                  }).Exito)
         Dim idJuzgado As Integer = UtileriasUI.Entero(casos.JuzgadosCombo().Rows(0), "ID")
         Dim tipoContestacion As DataRow = Nothing
         For Each fila As DataRow In casos.TiposActuacionCombo().Rows
