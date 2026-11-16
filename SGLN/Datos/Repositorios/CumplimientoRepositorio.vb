@@ -13,6 +13,7 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Operaciones(filtro As String) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
 
         Return Consultar(
@@ -34,6 +35,7 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ObtenerOperacion(id As Integer) As DataTable
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Operaciones_LDAFT WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -42,6 +44,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function InsertarOperacion(operacion As OperacionLdaft) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
+        If operacion Is Nothing Then Throw New ArgumentNullException(NameOf(operacion))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -58,6 +62,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ActualizarOperacion(operacion As OperacionLdaft) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
+        If operacion Is Nothing OrElse operacion.ID <= 0 Then Throw New ArgumentException("La operación seleccionada no es válida.", NameOf(operacion))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -78,6 +84,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.reportar_uif") Then Throw New UnauthorizedAccessException("No tiene permiso para reportar operaciones a la UIF.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -94,6 +102,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function Descartar(id As Integer) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -113,6 +123,7 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function SolicitudesArco(filtro As String) As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
 
         Return Consultar(
@@ -136,6 +147,7 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
         Return Consultar(
             "SELECT a.ID, a.ID_Cliente, a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
@@ -151,6 +163,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function InsertarSolicitud(solicitud As SolicitudArco) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar solicitudes ARCO.")
+        If solicitud Is Nothing Then Throw New ArgumentNullException(NameOf(solicitud))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -167,6 +181,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ActualizarSolicitud(solicitud As SolicitudArco) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar solicitudes ARCO.")
+        If solicitud Is Nothing OrElse solicitud.ID <= 0 Then Throw New ArgumentException("La solicitud seleccionada no es válida.", NameOf(solicitud))
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -186,6 +202,8 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function Responder(id As Integer, fechaRespuesta As Date) As Integer
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para responder solicitudes ARCO.")
+        If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
@@ -206,18 +224,21 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function ClientesCombo() As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
 
     Public Function CasosCombo() As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
         Return Consultar(
             "SELECT c.ID, CONCAT(c.Numero_Expediente, ' - ', cl.Nombres, ' ', cl.Apellidos) AS Nombre " &
             "FROM Casos c INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente ORDER BY c.Numero_Expediente")
     End Function
 
     Public Function InstrumentosCombo() As DataTable
+        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
         Return Consultar(
             "SELECT i.ID, CONCAT('Libro ', l.Numero_Libro, ' - Escritura ', i.Numero_Escritura) AS Nombre " &
             "FROM Instrumentos i INNER JOIN Libros_Protocolo l ON l.ID = i.ID_Libro " &
