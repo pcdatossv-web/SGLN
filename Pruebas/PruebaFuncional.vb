@@ -1996,20 +1996,27 @@ Module PruebaFuncional
         Verificar("Clave vacía se rechaza", Not seguridad.Guardar("", "x").Exito)
         Verificar("Las claves de carpetas se protegen como reservadas",
                   seguridad.EsClaveReservada("Carpeta_Documentos"))
+        Dim resultadoRutaDocumentos As Respuesta =
+            seguridad.Guardar("Carpeta_Documentos", Path.Combine(Path.GetTempPath(), "Documentos"))
         Verificar("No se permite modificar la ruta reservada de documentos",
-                  Not seguridad.Guardar("Carpeta_Documentos", "C:\\Temporal\\Documentos").Exito)
+                  Not resultadoRutaDocumentos.Exito)
+        Dim resultadoRutaRespaldos As Respuesta =
+            seguridad.Guardar("carpeta_respaldos", Path.Combine(Path.GetTempPath(), "Respaldos"))
         Verificar("La protección de rutas reservadas no distingue mayúsculas",
-                  Not seguridad.Guardar("carpeta_respaldos", "C:\\Temporal\\Respaldos").Exito)
+                  Not resultadoRutaRespaldos.Exito)
         Dim rutaReservadaRepoBloqueada As Boolean = False
         Try
-            New ConfiguracionRepositorio().Guardar("Carpeta_Documentos", "C:\\Temporal\\Documentos")
+            Dim repositorioConfigAdmin As New ConfiguracionRepositorio()
+            repositorioConfigAdmin.Guardar("Carpeta_Documentos", Path.GetTempPath())
         Catch ex As InvalidOperationException
             rutaReservadaRepoBloqueada = True
         End Try
         Verificar("El repositorio impide eludir la protección de rutas reservadas",
                   rutaReservadaRepoBloqueada)
+        Dim resultadoCatalogoReservado As Respuesta =
+            New CatalogoRepositorio().GuardarConfig("Carpeta_Respaldos", Path.GetTempPath())
         Verificar("El catálogo heredado también bloquea las rutas reservadas",
-                  Not New CatalogoRepositorio().GuardarConfig("Carpeta_Respaldos", "C:\\Temporal\\Respaldos").Exito)
+                  Not resultadoCatalogoReservado.Exito)
 
         Verificar("Feriado duplicado (01/01/2027) se rechaza",
                   Not seguridad.AgregarFeriado(New Date(2027, 1, 1), "Duplicado").Exito)
