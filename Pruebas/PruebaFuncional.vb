@@ -553,6 +553,8 @@ Module PruebaFuncional
                   Not servicioUsuarios.RestablecerClave(admin.ID, "ClaveTemporal99!").Exito)
         Verificar("El repositorio bloquea el restablecimiento directo de la clave Administrador",
                   Not New UsuarioRepositorio().CambiarClave(admin.ID, "ClaveTemporal99!").Exito)
+        Verificar("El repositorio bloquea restablecer directamente la clave de otro usuario ordinario",
+                  Not New UsuarioRepositorio().CambiarClave(idUsuarioPrueba, "ClaveTemporal99!").Exito)
         Verificar("El repositorio también bloquea el alta directa de cuentas Administrador",
                   Not New UsuarioRepositorio().Crear("repo_admin_" & sufijoGestor,
                       "Intento directo de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
