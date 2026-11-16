@@ -138,6 +138,8 @@ jobs:
           }
           if ($servicioProtocolo -notmatch 'FechaAutorizacion = Date.MinValue' -or
               $servicioProtocolo -notmatch 'FechaHoraOtorgamiento = Date.MinValue' -or
+              $servicioProtocolo -notmatch 'libro.ID < 0' -or
+              $servicioProtocolo -notmatch 'instrumento.ID < 0' -or
               $servicioProtocolo -notmatch 'validar referencias de escritura') {
             throw 'El protocolo debe validar fechas obligatorias y controlar errores al consultar referencias.'
           }
