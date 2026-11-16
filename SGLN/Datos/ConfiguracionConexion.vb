@@ -202,9 +202,22 @@ Public Class ConfiguracionConexion
         End If
 
         ' HKCU primero: una configuración por usuario prevalece sobre la del equipo.
-        Dim datos As DatosConexion = LeerRegistro(RegistryHive.CurrentUser)
+        ' Si una credencial DPAPI quedó ilegible (por cambio de perfil/equipo o
+        ' corrupción), no se bloquea el arranque: se continúa con HKLM/App.config
+        ' para que el usuario pueda volver a registrar la contraseña.
+        Dim datos As DatosConexion = Nothing
+        Try
+            datos = LeerRegistro(RegistryHive.CurrentUser)
+        Catch ex As Exception
+            RegistroErrores.Escribir("ConfiguracionConexion.Cargar - HKCU ilegible", ex)
+        End Try
         If datos IsNot Nothing Then
-            Dim compartida As DatosConexion = LeerRegistro(RegistryHive.LocalMachine, False)
+            Dim compartida As DatosConexion = Nothing
+            Try
+                compartida = LeerRegistro(RegistryHive.LocalMachine, False)
+            Catch ex As Exception
+                RegistroErrores.Escribir("ConfiguracionConexion.Cargar - HKLM ilegible", ex)
+            End Try
             datos.Origen = If(LeerPreferenciaCompartida() AndAlso compartida IsNot Nothing,
                               "HKCU+HKLM", "HKCU")
             Return datos
@@ -213,7 +226,11 @@ Public Class ConfiguracionConexion
         ' HKLM solo aporta parámetros no secretos. Las contraseñas se
         ' guardan por usuario con DPAPI CurrentUser y nunca se descifran desde
         ' el almacén compartido del equipo.
-        datos = LeerRegistro(RegistryHive.LocalMachine, False)
+        Try
+            datos = LeerRegistro(RegistryHive.LocalMachine, False)
+        Catch ex As Exception
+            RegistroErrores.Escribir("ConfiguracionConexion.Cargar - HKLM ilegible", ex)
+        End Try
         If datos IsNot Nothing Then
             datos.Origen = "HKLM"
             Return datos
