@@ -461,6 +461,13 @@ Module PruebaFuncional
         Dim rRolEdit As Respuesta = roles.Actualizar(idRolPrueba, "Rol de prueba editado",
             "Descripción editada", True, New List(Of String) From {"casos.ver"})
         Verificar("Editar el rol de prueba", rRolEdit.Exito, rRolEdit.Mensaje)
+        Verificar("Una descripción de rol superior a 200 caracteres se rechaza",
+                  Not roles.Actualizar(idRolPrueba, "Rol de prueba editado",
+                      New String("D"c, 201), True,
+                      New List(Of String) From {"casos.ver"}).Exito)
+        Verificar("Un identificador de rol inválido se rechaza",
+                  Not roles.Actualizar(0, "Rol inválido", "Descripción", True,
+                      New List(Of String) From {"casos.ver"}).Exito)
         Verificar("La matriz de permisos se reemplaza al editar",
                   roles.PermisosDeRol(idRolPrueba).Count = 1 AndAlso
                   roles.PermisosDeRol(idRolPrueba).Contains("casos.ver"))
