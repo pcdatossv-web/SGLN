@@ -185,7 +185,7 @@ Module PruebaFuncional
         Verificar("La instalación revoca permisos administrativos heredados en roles ordinarios",
                   ContarSqlDirecto(
                       "SELECT COUNT(*) FROM Rol_Permiso rp INNER JOIN Roles r ON r.ID = rp.ID_Rol " &
-                      "WHERE r.Protegido = 0 AND rp.Codigo IN ('config.usuarios', 'config.roles')") = 0)
+                      "WHERE r.Protegido = 0 AND rp.Codigo LIKE 'config.%'") = 0)
 
         Dim usuarios As New UsuarioRepositorio()
         If Not InicializadorBD.HayUsuarios() Then InicializadorBD.CrearAdministradorInicial("admin", "Administrador de pruebas", "PruebaInicial99!")
@@ -510,6 +510,22 @@ Module PruebaFuncional
         End Try
         Verificar("MySQL bloquea la asignación SQL directa de config.usuarios a un rol ordinario",
                   insercionPermisoAdminBloqueada)
+        Dim insercionRespaldoBloqueada As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "INSERT INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, 'config.respaldos')",
+                    conexion)
+                    comando.Parameters.AddWithValue("@rol", idRolGestor)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            insercionRespaldoBloqueada = ex.Number = 1644
+        End Try
+        Verificar("MySQL bloquea la asignación SQL directa de cualquier permiso config.*",
+                  insercionRespaldoBloqueada)
         Dim actualizacionPermisoAdminBloqueada As Boolean = False
         Try
             Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
