@@ -1295,6 +1295,20 @@ Module PruebaFuncional
         Dim idEntidad As Integer = 0
         If rEntidad.ID.HasValue Then idEntidad = rEntidad.ID.Value
 
+        Dim cambioEstadoEntidadDirectoRechazado As Boolean = False
+        Try
+            entidad.Activo = False
+            repositorioEntidadesDirecto.GuardarCompleto(entidad, Nothing)
+        Catch ex As InvalidOperationException
+            cambioEstadoEntidadDirectoRechazado = True
+        Finally
+            entidad.Activo = True
+        End Try
+        Dim entidadTrasCambioEstado As DataTable = entidades.Obtener(idEntidad)
+        Verificar("La edición general no puede desactivar directamente una entidad",
+                  cambioEstadoEntidadDirectoRechazado AndAlso entidadTrasCambioEstado.Rows.Count = 1 AndAlso
+                  UtileriasUI.Booleano(entidadTrasCambioEstado.Rows(0), "Activo"))
+
         Verificar("NIT inválido en entidad se rechaza",
                   Not entidades.Guardar(New EntidadLegal With {.RazonSocial = "X", .NIT = "12"}, Nothing).Exito)
         Verificar("La fecha de verificación LDA/FT fuera del rango DATE se rechaza en entidades",
