@@ -26,16 +26,30 @@ Public Class ServicioEntidades
         If String.IsNullOrWhiteSpace(entidad.RazonSocial) Then
             Return Respuesta.Fallo("La razón social es obligatoria.")
         End If
+        If entidad.RazonSocial.Trim().Length > 200 Then Return Respuesta.Fallo("La razón social no puede superar 200 caracteres.")
+        If If(entidad.NRC, "").Length > 30 Then Return Respuesta.Fallo("El NRC no puede superar 30 caracteres.")
+        If If(entidad.Domicilio, "").Length > 300 Then Return Respuesta.Fallo("El domicilio no puede superar 300 caracteres.")
+        If If(entidad.NIT, "").Length > 20 Then Return Respuesta.Fallo("El NIT no puede superar 20 caracteres.")
 
         If Not String.IsNullOrWhiteSpace(entidad.NIT) AndAlso Not ValidadorIdentidad.EsFormatoNitValido(entidad.NIT) Then
             Return Respuesta.Fallo("El NIT debe tener 14 dígitos.")
         End If
 
-        If perfil IsNot Nothing AndAlso perfil.NivelRiesgo <> "Bajo" AndAlso perfil.NivelRiesgo <> "Medio" AndAlso perfil.NivelRiesgo <> "Alto" Then
-            Return Respuesta.Fallo("El nivel de riesgo debe ser Bajo, Medio o Alto.")
+        If perfil IsNot Nothing Then
+            If perfil.NivelRiesgo <> "Bajo" AndAlso perfil.NivelRiesgo <> "Medio" AndAlso perfil.NivelRiesgo <> "Alto" Then
+                Return Respuesta.Fallo("El nivel de riesgo debe ser Bajo, Medio o Alto.")
+            End If
+            If If(perfil.DetalleOrigenFondos, "").Length > 500 OrElse If(perfil.Observaciones, "").Length > 500 Then
+                Return Respuesta.Fallo("El detalle de origen de fondos y las observaciones no pueden superar 500 caracteres.")
+            End If
+            If perfil.FechaVerificacionListas.HasValue AndAlso perfil.FechaVerificacionListas.Value.Date > Date.Today Then
+                Return Respuesta.Fallo("La fecha de verificación de listas no puede ser futura.")
+            End If
         End If
 
         entidad.RazonSocial = entidad.RazonSocial.Trim()
+        entidad.NRC = If(entidad.NRC, "").Trim()
+        entidad.Domicilio = If(entidad.Domicilio, "").Trim()
         If Not String.IsNullOrWhiteSpace(entidad.NIT) Then
             entidad.NIT = ValidadorIdentidad.FormatearNit(entidad.NIT)
         End If
@@ -86,8 +100,10 @@ Public Class ServicioEntidades
 
         If idEntidad <= 0 Then Return Respuesta.Fallo("Guarde primero la entidad.")
         If idCliente <= 0 Then Return Respuesta.Fallo("Seleccione un cliente.")
+        If If(cargo, "").Length > 120 Then Return Respuesta.Fallo("El cargo no puede superar 120 caracteres.")
+        If If(tipo, "").Length > 80 Then Return Respuesta.Fallo("El tipo de representación no puede superar 80 caracteres.")
         Try
-            Return _repositorio.AgregarRepresentante(idEntidad, idCliente, cargo, tipo)
+            Return _repositorio.AgregarRepresentante(idEntidad, idCliente, If(cargo, "").Trim(), If(tipo, "").Trim())
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - agregar representante", ex)
             Return Respuesta.Fallo("No se pudo agregar el representante. Verifique los datos y la conexión con la base de datos.")
