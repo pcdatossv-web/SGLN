@@ -490,9 +490,10 @@ Module PruebaFuncional
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
-        Verificar("El repositorio no expone el listado de usuarios a un rol ordinario",
+        Verificar("El repositorio no expone el listado ni el estado de otros usuarios a un rol ordinario",
                   New UsuarioRepositorio().Listar().Rows.Count = 0 AndAlso
-                  New UsuarioRepositorio().Obtener(admin.ID).Rows.Count = 0)
+                  New UsuarioRepositorio().Obtener(admin.ID).Rows.Count = 0 AndAlso
+                  New UsuarioRepositorio().ObtenerEstadoSesion(admin.ID) Is Nothing)
         Verificar("El repositorio no expone el catálogo de roles a un rol ordinario",
                   New RolRepositorio().Listar().Rows.Count = 0 AndAlso
                   New RolRepositorio().Obtener(idRolAdmin).Rows.Count = 0 AndAlso
