@@ -367,6 +367,7 @@ Public Class UsuarioRepositorio
                         Parametro(comandoRol, "@id", id)
                         esAdministrador = Convert.ToInt32(comandoRol.ExecuteScalar()) > 0
                     End Using
+                    If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
                     If esAdministrador AndAlso administradoresRestantes = 0 Then Return -1
 
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
@@ -383,6 +384,7 @@ Public Class UsuarioRepositorio
 
             If resultado = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
             If resultado = -1 Then Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
+            If resultado = -2 Then Return Respuesta.Fallo("Solo un administrador puede desactivar otra cuenta Administrador.")
             If resultado = 2 Then Return Respuesta.Ok("El usuario ya estaba desactivado.")
             Return Respuesta.Ok("Usuario desactivado.")
         Catch ex As MySqlException When ex.Number = 1644
