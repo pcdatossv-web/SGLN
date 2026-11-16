@@ -424,7 +424,9 @@ Public Class ServicioProtocolo
             Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
             If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
 
-            _repositorio.MarcarIndiceGenerado(idLibro)
+            If _repositorio.MarcarIndiceGenerado(idLibro) = 0 Then
+                Return Respuesta.Fallo("El libro cambió de estado y no se pudo marcar el índice como generado.")
+            End If
             Return Respuesta.Ok("Índice generado con " & indice.Rows.Count & " instrumento(s).")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - GenerarIndice", ex)
