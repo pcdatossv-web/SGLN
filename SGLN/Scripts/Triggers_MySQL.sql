@@ -228,6 +228,9 @@ BEGIN
         RESIGNAL;
     END;
 
+    /* Igual que la antigua implementación de repositorio: bloquea rangos
+       mientras se comprueba que no aparezcan referencias históricas concurrentes. */
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
     START TRANSACTION;
 
     IF p_id IS NULL OR p_id <= 0 OR p_actor_id IS NULL OR p_actor_id <= 0 THEN
