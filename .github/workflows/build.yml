@@ -84,8 +84,10 @@ jobs:
               -not $triggersSql.Contains('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')) {
             throw 'Faltan los candados SQL de permisos administrativos o eliminación segura.'
           }
-          if (-not $configRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
+          if (-not $configRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
+              -not $configRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $configRepo.Contains('Permisos.TieneAcceso("config.feriados")') -or
+              -not $configRepo.Contains('Permisos.TieneAcceso("config.seguridad")') -or
               -not $configRepo.Contains('Permisos.TieneAcceso("config.respaldos")')) {
             throw 'Faltan las comprobaciones de permisos en el repositorio de configuración.'
           }
