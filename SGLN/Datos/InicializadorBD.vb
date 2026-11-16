@@ -152,7 +152,7 @@ Public Module InicializadorBD
         If EscalarEntero(
             "SELECT COUNT(*) FROM information_schema.routines " &
             "WHERE routine_schema = DATABASE() AND routine_name = 'sp_EliminarUsuarioSeguro' " &
-            "AND routine_type = 'PROCEDURE'") = 0 Then
+            "AND routine_type = 'PROCEDURE' AND security_type = 'DEFINER'") = 0 Then
             Throw New InvalidOperationException(
                 "Falta el procedimiento de eliminación segura de usuarios o la cuenta de aplicación no tiene EXECUTE. " &
                 "Un administrador debe volver a ejecutar Scripts\Triggers_MySQL.sql y Scripts\Privilegios_Minimos.sql.")
