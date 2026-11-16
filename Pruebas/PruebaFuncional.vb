@@ -2159,6 +2159,16 @@ Module PruebaFuncional
 
         Verificar("Reporte a la UIF con fecha futura se rechaza",
                   Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(1)).Exito)
+        Dim fechaReporteDirectaFuturaRechazada As Boolean = False
+        Try
+            (New CumplimientoRepositorio()).MarcarReportada(operacion.ID, Date.Today.AddDays(1))
+        Catch ex As ArgumentException
+            fechaReporteDirectaFuturaRechazada = True
+        End Try
+        Verificar("El repositorio también rechaza directamente fechas futuras de reporte UIF",
+                  fechaReporteDirectaFuturaRechazada)
+        Verificar("El repositorio no permite reportar con fecha anterior a la operación",
+                  (New CumplimientoRepositorio()).MarcarReportada(operacion.ID, Date.Today.AddDays(-1)) = 0)
         Verificar("Reporte con fecha anterior a la operación se rechaza",
                   Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(-1)).Exito)
         Dim rReporte As Respuesta = cumplimiento.MarcarReportada(operacion.ID, Date.Today)
