@@ -1132,9 +1132,10 @@ Module PruebaFuncional
         Finally
             cliente.Activo = True
         End Try
+        Dim clienteTrasCambioEstado As DataTable = clientes.Obtener(idCliente)
         Verificar("La edición directa del cliente no puede desactivarlo ni saltarse la operación autorizada",
-                  cambioEstadoClienteDirectoRechazado AndAlso tablaCliente.Rows.Count = 1 AndAlso
-                  UtileriasUI.Booleano(clientes.Obtener(idCliente).Rows(0), "Activo"))
+                  cambioEstadoClienteDirectoRechazado AndAlso clienteTrasCambioEstado.Rows.Count = 1 AndAlso
+                  UtileriasUI.Booleano(clienteTrasCambioEstado.Rows(0), "Activo"))
         If tablaCliente.Rows.Count = 1 Then
             Verificar("El DUI se normaliza al formato 00000000-0",
                       Convert.ToString(tablaCliente.Rows(0)("DUI")) = "00000000-0")
