@@ -24,6 +24,33 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Console.WriteLine()
 
+        ' La calculadora se usa en varios módulos y debe rechazar entradas que
+        ' puedan producir fechas inválidas o ciclos desproporcionados.
+        Dim calculadoraInicial As New CalculadoraDiasHabiles(Nothing)
+        Dim fechaMinimaRechazada As Boolean = False
+        Try
+            calculadoraInicial.CalcularVencimiento(Date.MinValue, 1)
+        Catch ex As ArgumentOutOfRangeException
+            fechaMinimaRechazada = True
+        End Try
+        Verificar("La calculadora rechaza fechas de notificación no inicializadas", fechaMinimaRechazada)
+
+        Dim plazoExcesivoRechazado As Boolean = False
+        Try
+            calculadoraInicial.CalcularVencimiento(Date.Today, 36601)
+        Catch ex As ArgumentOutOfRangeException
+            plazoExcesivoRechazado = True
+        End Try
+        Verificar("La calculadora limita plazos desproporcionados", plazoExcesivoRechazado)
+
+        Dim rangoExcesivoRechazado As Boolean = False
+        Try
+            calculadoraInicial.ContarDiasHabiles(New Date(1, 1, 1), Date.MaxValue)
+        Catch ex As ArgumentOutOfRangeException
+            rangoExcesivoRechazado = True
+        End Try
+        Verificar("El conteo de días hábiles rechaza períodos excesivos", rangoExcesivoRechazado)
+
         ' Verificar primero la configuración efectiva del proceso de pruebas.
         ' No se permite continuar si por cualquier motivo no se cargó el App.config
         ' aislado: evita que una prueba toque sgln_sv o use TLS de producción.
