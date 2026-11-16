@@ -79,7 +79,7 @@ Public Class RolRepositorio
                             "INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) " &
                             "VALUES (@nombre, @descripcion, 1, 0)", conexion, transaccion)
                             Parametro(comando, "@nombre", nombre.Trim())
-                            Parametro(comando, "@descripcion", descripcion)
+                            Parametro(comando, "@descripcion", descripcion.Trim())
                             comando.ExecuteNonQuery()
                         End Using
 
@@ -216,6 +216,17 @@ Public Class RolRepositorio
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
+                        Dim existeRol As Boolean
+                        Using comandoExiste As New MySqlCommand(
+                            "SELECT ID FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            Parametro(comandoExiste, "@id", idRol)
+                            existeRol = comandoExiste.ExecuteScalar() IsNot Nothing
+                        End Using
+                        If Not existeRol Then
+                            Revertir(transaccion)
+                            Return Respuesta.Fallo("El rol ya no existe.")
+                        End If
+
                         SincronizarPermisos(conexion, transaccion, idRol, codigos)
                         AuditarEnTransaccion(conexion, transaccion, "MODIFICAR PERMISOS", "Roles", idRol,
                             "Matriz de permisos actualizada")
