@@ -37,7 +37,8 @@ Public Class FrmCambioClave
         _lblMensaje.AutoSize = False
         _lblMensaje.Location = New Point(24, 160)
         _lblMensaje.Size = New Size(410, 34)
-        _lblMensaje.ForeColor = Color.Firebrick
+        _lblMensaje.ForeColor = Color.DimGray
+        _lblMensaje.Text = "Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos."
         Me.Controls.Add(_lblMensaje)
 
         _btnGuardar.Text = "Guardar"
@@ -76,11 +77,13 @@ Public Class FrmCambioClave
     Private Sub Guardar(sender As Object, e As EventArgs)
         Try
             If Sesion.UsuarioActual Is Nothing Then
+                _lblMensaje.ForeColor = Color.Firebrick
                 _lblMensaje.Text = "La sesión ya no está activa. Inicie sesión nuevamente."
                 Return
             End If
 
             If Not String.Equals(_txtNueva.Text, _txtConfirmar.Text, StringComparison.Ordinal) Then
+                _lblMensaje.ForeColor = Color.Firebrick
                 _lblMensaje.Text = "La confirmación no coincide con la nueva clave."
                 _txtConfirmar.Clear()
                 _txtConfirmar.Focus()
@@ -92,6 +95,7 @@ Public Class FrmCambioClave
                     Sesion.UsuarioActual.ID, _txtActual.Text, _txtNueva.Text)
 
             If Not respuesta.Exito Then
+                _lblMensaje.ForeColor = Color.Firebrick
                 _lblMensaje.Text = respuesta.Mensaje
                 _txtActual.Clear()
                 _txtActual.Focus()
