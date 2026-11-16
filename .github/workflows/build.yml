@@ -63,6 +63,8 @@ jobs:
           $triggersSql = Get-Content 'SGLN\\Scripts\\Triggers_MySQL.sql' -Raw
           $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
           $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
+          $documentoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\DocumentoRepositorio.vb' -Raw
+          $seguridadClave = Get-Content 'SGLN\\Servicios\\SeguridadClave.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
           $servicioRoles = Get-Content 'SGLN\\Servicios\\ServicioRoles.vb' -Raw
           $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
@@ -151,6 +153,20 @@ jobs:
           if ($servicioDocumentos -notmatch 'ValidarReferencias' -or
               $servicioDocumentos -notmatch 'El tipo de documento no puede superar 60 caracteres') {
             throw 'Faltan validaciones de referencias y metadatos documentales.'
+          }
+          if ($documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.ver"\)' -or
+              $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.importar"\)' -or
+              $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.metadatos"\)' -or
+              $documentoRepo -notmatch 'PuedeConsultarDocumentos' -or
+              $documentoRepo -notmatch 'PuedeCargarCombosDocumentos') {
+            throw 'El repositorio documental debe validar permisos en cada operación directa.'
+          }
+          if ($seguridadClave -notmatch 'clave.Length > 128') {
+            throw 'Las claves nuevas deben tener un límite máximo aplicado en la capa de seguridad.'
+          }
+          if ($usuarioRepo -notmatch 'usuario.Length > 50' -or
+              $usuarioRepo -notmatch 'clave.Length > 128') {
+            throw 'El repositorio de autenticación debe limitar entradas antes de consultar la base.'
           }
           if ($calculadoraDias -notmatch 'MaxDiasHabiles' -or
               $calculadoraDias -notmatch 'MaxRangoConteoDias' -or
