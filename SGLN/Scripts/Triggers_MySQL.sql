@@ -20,6 +20,7 @@ DROP TRIGGER IF EXISTS trg_roles_protegido_bu;
 DROP TRIGGER IF EXISTS trg_roles_protegido_bd;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bu;
 DROP TRIGGER IF EXISTS trg_usuarios_admin_bd;
+DROP TRIGGER IF EXISTS trg_usuarios_rol_activo_bi;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bi;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bu;
 DROP TRIGGER IF EXISTS trg_rol_permiso_admin_bd;
@@ -52,6 +53,8 @@ END$$
 CREATE TRIGGER trg_roles_protegido_bu BEFORE UPDATE ON Roles
 FOR EACH ROW
 BEGIN
+    DECLARE v_usuarios INT DEFAULT 0;
+
     /* El indicador Protegido define acceso total y nunca debe poder elevarse
        mediante un UPDATE ejecutado con las credenciales DML de la aplicación. */
     IF NOT (NEW.Protegido <=> OLD.Protegido) THEN
@@ -63,7 +66,18 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'El rol Administrador es protegido: no se puede desactivar ni renombrar.';
     END IF;
-END$$
+
+    /* La base también impide desactivar un rol que todavía tenga usuarios.
+       La comprobación se ejecuta bajo el bloqueo de la fila de Roles. */
+    IF OLD.Activo = 1 AND NEW.Activo = 0 THEN
+        SELECT COUNT(*) INTO v_usuarios
+        FROM Usuarios WHERE ID_Rol = OLD.ID;
+        IF v_usuarios > 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'No se puede desactivar un rol que tiene usuarios asignados.';
+        END IF;
+    END IF;
+END$
 
 CREATE TRIGGER trg_roles_protegido_bd BEFORE DELETE ON Roles
 FOR EACH ROW
@@ -74,11 +88,31 @@ BEGIN
     END IF;
 END$$
 
+CREATE TRIGGER trg_usuarios_rol_activo_bi BEFORE INSERT ON Usuarios
+FOR EACH ROW
+BEGIN
+    DECLARE v_activo TINYINT DEFAULT 0;
+    SELECT Activo INTO v_activo FROM Roles WHERE ID = NEW.ID_Rol FOR UPDATE;
+    IF COALESCE(v_activo, 0) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se puede asignar un usuario a un rol inexistente o desactivado.';
+    END IF;
+END$
+
 CREATE TRIGGER trg_usuarios_admin_bu BEFORE UPDATE ON Usuarios
 FOR EACH ROW
 BEGIN
     DECLARE v_rol_protegido INT;
+    DECLARE v_rol_activo TINYINT DEFAULT 0;
     DECLARE v_otros INT;
+
+    /* Impide asignar por SQL directo un rol desactivado y serializa
+       asignaciones concurrentes con la desactivación del rol. */
+    SELECT Activo INTO v_rol_activo FROM Roles WHERE ID = NEW.ID_Rol FOR UPDATE;
+    IF COALESCE(v_rol_activo, 0) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se puede asignar un usuario a un rol inexistente o desactivado.';
+    END IF;
 
     /* Bloqueo común para serializar cambios sobre cuentas administradoras. */
     SELECT ID INTO v_rol_protegido FROM Roles WHERE Protegido = 1 LIMIT 1 FOR UPDATE;
