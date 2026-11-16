@@ -166,7 +166,8 @@ Public Class ProtocoloRepositorio
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Libros_Protocolo SET Indice_Generado = 1 WHERE ID = @id",
+                    "UPDATE Libros_Protocolo SET Indice_Generado = 1 " &
+                    "WHERE ID = @id AND Estado IN ('Cerrado', 'Entregado')",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", idLibro)
                     End Sub)
