@@ -1384,6 +1384,11 @@ Module PruebaFuncional
                       .NumeroLibro = 2, .AnioVigencia = 2026,
                       .FechaAutorizacion = New Date(2026, 6, 1),
                       .FechaVencimiento = New Date(2026, 1, 1)}).Exito)
+        Verificar("El libro rechaza fechas de vigencia no inicializadas",
+                  Not protocolo.GuardarLibro(New LibroProtocolo With {
+                      .NumeroLibro = 3, .AnioVigencia = 2026,
+                      .FechaAutorizacion = Date.MinValue,
+                      .FechaVencimiento = New Date(2027, 1, 5)}).Exito)
 
         Dim instrumento1 As New Instrumento With {
             .IDLibro = idLibro, .NumeroEscritura = 1,
@@ -1435,6 +1440,12 @@ Module PruebaFuncional
                       .FechaHoraOtorgamiento = Date.Now,
                       .FolioInicio = 50, .FolioFin = 40,
                       .ObjetoActo = "Folios invertidos"}).Exito)
+        Verificar("La escritura rechaza una fecha de otorgamiento no inicializada",
+                  Not protocolo.GuardarInstrumento(New Instrumento With {
+                      .IDLibro = idLibro, .NumeroEscritura = 6,
+                      .FechaHoraOtorgamiento = Date.MinValue,
+                      .FolioInicio = 50, .FolioFin = 55,
+                      .ObjetoActo = "Fecha inválida"}).Exito)
 
         ' Dos sesiones intentan reservar intervalos que se cruzan al mismo tiempo.
         ' El bloqueo FOR UPDATE del libro debe permitir exactamente una escritura.
