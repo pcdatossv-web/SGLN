@@ -58,7 +58,7 @@ Public Class ServicioCumplimiento
         Next
         If If(operacion.Descripcion, "").Length > 1000 Then Return Respuesta.Fallo("La descripción no puede superar 1000 caracteres.")
         If If(operacion.Observaciones, "").Length > 500 Then Return Respuesta.Fallo("Las observaciones no pueden superar 500 caracteres.")
-        If operacion.FechaOperacion = Date.MinValue Then Return Respuesta.Fallo("La fecha de la operación no es válida.")
+        If operacion.FechaOperacion = Date.MinValue OrElse operacion.FechaOperacion.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de la operación debe ser igual o posterior al 01/01/1000.")
         If operacion.FechaOperacion.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de la operación no puede ser futura.")
         End If
@@ -164,6 +164,7 @@ Public Class ServicioCumplimiento
         If estado = "Reportada" OrElse Convert.ToBoolean(tabla.Rows(0)("Reportado_UIF")) Then
             Return Respuesta.Fallo("La operación ya fue reportada a la UIF.")
         End If
+        If fechaReporte = Date.MinValue OrElse fechaReporte.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de reporte debe ser igual o posterior al 01/01/1000.")
         If fechaReporte.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de reporte no puede ser futura.")
         End If
@@ -241,7 +242,7 @@ Public Class ServicioCumplimiento
         If If(solicitud.Detalle, "").Length > 1000 Then Return Respuesta.Fallo("El detalle no puede superar 1000 caracteres.")
 
         If solicitud.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente.")
-        If solicitud.FechaSolicitud = Date.MinValue Then Return Respuesta.Fallo("La fecha de solicitud no es válida.")
+        If solicitud.FechaSolicitud = Date.MinValue OrElse solicitud.FechaSolicitud.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de solicitud debe ser igual o posterior al 01/01/1000.")
         If solicitud.FechaSolicitud.Date > Date.Today Then Return Respuesta.Fallo("La fecha de solicitud no puede ser futura.")
         If Not TipoDerechoValido(solicitud.TipoDerecho) Then
             Return Respuesta.Fallo("El tipo de derecho ARCO no es válido.")
@@ -352,6 +353,7 @@ Public Class ServicioCumplimiento
            Convert.ToString(tabla.Rows(0)("Estado")) = "Respondida" Then
             Return Respuesta.Fallo("La solicitud ARCO ya fue respondida.")
         End If
+        If fechaRespuesta = Date.MinValue OrElse fechaRespuesta.Date.Year < 1000 Then Return Respuesta.Fallo("La fecha de respuesta debe ser igual o posterior al 01/01/1000.")
         If fechaRespuesta.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de respuesta no puede ser futura.")
         End If
