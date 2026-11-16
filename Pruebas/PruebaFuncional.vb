@@ -24,6 +24,13 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Console.WriteLine()
 
+        Dim repositorioClientesDirecto As New ClienteRepositorio()
+        Dim repositorioEntidadesDirecto As New EntidadRepositorio()
+        Dim repositorioCasosDirecto As New CasoRepositorio()
+        Dim repositorioProtocoloDirecto As New ProtocoloRepositorio()
+        Dim repositorioDocumentosDirecto As New DocumentoRepositorio()
+        Dim repositorioCumplimientoDirecto As New CumplimientoRepositorio()
+
         ' La calculadora se usa en varios módulos y debe rechazar entradas que
         ' puedan producir fechas inválidas o ciclos desproporcionados.
         Dim calculadoraInicial As New CalculadoraDiasHabiles(Nothing)
@@ -1100,7 +1107,7 @@ Module PruebaFuncional
 
         Dim clienteDirectoInvalidoRechazado As Boolean = False
         Try
-            (New ClienteRepositorio()).GuardarCompleto(New Cliente With {
+            repositorioClientesDirecto.GuardarCompleto(New Cliente With {
                 .Nombres = "", .Apellidos = "Apellido", .Activo = True}, Nothing)
         Catch ex As ArgumentException
             clienteDirectoInvalidoRechazado = True
@@ -1285,7 +1292,7 @@ Module PruebaFuncional
                   Not entidades.Guardar(New EntidadLegal(), Nothing).Exito)
         Dim entidadDirectaInvalidaRechazada As Boolean = False
         Try
-            (New EntidadRepositorio()).GuardarCompleto(New EntidadLegal With {
+            repositorioEntidadesDirecto.GuardarCompleto(New EntidadLegal With {
                 .RazonSocial = "", .Activo = True}, Nothing)
         Catch ex As ArgumentException
             entidadDirectaInvalidaRechazada = True
@@ -1402,7 +1409,7 @@ Module PruebaFuncional
                   }).Exito)
         Dim casoDirectoInvalidoRechazado As Boolean = False
         Try
-            (New CasoRepositorio()).Insertar(New Caso With {
+            repositorioCasosDirecto.Insertar(New Caso With {
                 .IDCliente = idCliente, .NumeroExpediente = New String("X"c, 81),
                 .Materia = "Civil", .Estado = "Activo", .FechaApertura = Date.Today})
         Catch ex As ArgumentException
@@ -1519,9 +1526,9 @@ Module PruebaFuncional
             .FechaVencimiento = plazos.CalcularVencimiento(Date.Today, 10),
             .Estado = "Cumplido", .Observaciones = "Prueba de estado inicial protegido"}
         actuacionDirectaForzadaPendiente.ID =
-            (New CasoRepositorio()).GuardarActuacion(actuacionDirectaForzadaPendiente)
+            repositorioCasosDirecto.GuardarActuacion(actuacionDirectaForzadaPendiente)
         Dim actuacionDirectaTabla As DataTable =
-            (New CasoRepositorio()).ActuacionesPorCaso(idCaso)
+            repositorioCasosDirecto.ActuacionesPorCaso(idCaso)
         Dim estadoDirecto As String = ""
         For Each fila As DataRow In actuacionDirectaTabla.Rows
             If UtileriasUI.Entero(fila, "ID") = actuacionDirectaForzadaPendiente.ID Then
@@ -1608,7 +1615,7 @@ Module PruebaFuncional
         Verificar("Una actuación ya cumplida no se vuelve a modificar",
                   Not plazos.MarcarCumplida(idActuacion).Exito)
         Verificar("El repositorio no permite reabrir ni editar una actuación cumplida",
-                  (New CasoRepositorio()).GuardarActuacion(actuacion) = 0)
+                  repositorioCasosDirecto.GuardarActuacion(actuacion) = 0)
         Verificar("Marcar como cumplida una actuación inexistente se rechaza",
                   Not plazos.MarcarCumplida(Integer.MaxValue).Exito)
 
@@ -1628,14 +1635,14 @@ Module PruebaFuncional
 
         Dim intentoCambioEstadoLibro As Boolean = False
         Try
-            (New ProtocoloRepositorio()).ActualizarLibro(New LibroProtocolo With {
+            repositorioProtocoloDirecto.ActualizarLibro(New LibroProtocolo With {
                 .ID = idLibro, .NumeroLibro = libro.NumeroLibro,
                 .AnioVigencia = libro.AnioVigencia,
                 .FechaAutorizacion = libro.FechaAutorizacion,
                 .FechaVencimiento = libro.FechaVencimiento,
                 .Estado = "Entregado"})
             Dim libroTrasCambioDirecto As DataTable =
-                (New ProtocoloRepositorio()).ObtenerLibro(idLibro)
+                repositorioProtocoloDirecto.ObtenerLibro(idLibro)
             intentoCambioEstadoLibro =
                 libroTrasCambioDirecto.Rows.Count = 1 AndAlso
                 Convert.ToString(libroTrasCambioDirecto.Rows(0)("Estado")) = "Vigente"
@@ -1704,7 +1711,7 @@ Module PruebaFuncional
 
         Dim altaDirectaTraslapeRechazada As Boolean = False
         Try
-            (New ProtocoloRepositorio()).InsertarInstrumento(New Instrumento With {
+            repositorioProtocoloDirecto.InsertarInstrumento(New Instrumento With {
                 .IDLibro = idLibro, .NumeroEscritura = 90,
                 .FechaHoraOtorgamiento = New Date(2026, 4, 10, 9, 0, 0),
                 .FolioInicio = 10, .FolioFin = 12,
@@ -1717,7 +1724,7 @@ Module PruebaFuncional
 
         Dim edicionDirectaTraslapeRechazada As Boolean = False
         Try
-            (New ProtocoloRepositorio()).ActualizarInstrumento(New Instrumento With {
+            repositorioProtocoloDirecto.ActualizarInstrumento(New Instrumento With {
                 .ID = idInstrumento1, .IDLibro = idLibro, .NumeroEscritura = 1,
                 .FechaHoraOtorgamiento = New Date(2026, 2, 10, 10, 30, 0),
                 .FolioInicio = 20, .FolioFin = 25,
@@ -1729,7 +1736,7 @@ Module PruebaFuncional
                   edicionDirectaTraslapeRechazada)
         Dim cambioEstadoEscrituraBloqueado As Boolean = False
         Try
-            (New ProtocoloRepositorio()).ActualizarInstrumento(New Instrumento With {
+            repositorioProtocoloDirecto.ActualizarInstrumento(New Instrumento With {
                 .ID = idInstrumento1, .IDLibro = idLibro, .NumeroEscritura = 1,
                 .FechaHoraOtorgamiento = New Date(2026, 2, 10, 10, 30, 0),
                 .FolioInicio = 1, .FolioFin = 15,
@@ -1738,7 +1745,7 @@ Module PruebaFuncional
             cambioEstadoEscrituraBloqueado = True
         End Try
         Dim escrituraTrasCambioEstado As DataTable =
-            (New ProtocoloRepositorio()).ObtenerInstrumento(idInstrumento1)
+            repositorioProtocoloDirecto.ObtenerInstrumento(idInstrumento1)
         Verificar("El guardado ordinario no permite alterar el estado de una escritura",
                   cambioEstadoEscrituraBloqueado AndAlso escrituraTrasCambioEstado.Rows.Count = 1 AndAlso
                   Convert.ToString(escrituraTrasCambioEstado.Rows(0)("Estado")) = "Vigente")
@@ -1776,7 +1783,7 @@ Module PruebaFuncional
 
         Dim libroDirectoInvalidoRechazado As Boolean = False
         Try
-            (New ProtocoloRepositorio()).InsertarLibro(New LibroProtocolo With {
+            repositorioProtocoloDirecto.InsertarLibro(New LibroProtocolo With {
                 .NumeroLibro = 999, .AnioVigencia = 2200,
                 .FechaAutorizacion = Date.Today, .FechaVencimiento = Date.Today.AddYears(1)})
         Catch ex As ArgumentException
@@ -1787,7 +1794,7 @@ Module PruebaFuncional
 
         Dim folioDirectoInvalidoRechazado As Boolean = False
         Try
-            (New ProtocoloRepositorio()).InsertarInstrumento(New Instrumento With {
+            repositorioProtocoloDirecto.InsertarInstrumento(New Instrumento With {
                 .IDLibro = idLibro, .NumeroEscritura = 900,
                 .FechaHoraOtorgamiento = Date.Today,
                 .FolioInicio = 0, .FolioFin = 5, .ObjetoActo = "Folio directo inválido"})
@@ -1807,7 +1814,7 @@ Module PruebaFuncional
                 Try
                     iniciarConcurrentes.WaitOne()
                     Dim resultado As Respuesta =
-                        (New ServicioProtocolo()).GuardarInstrumento(New Instrumento With {
+                        servicioProtocoloConcurrente.GuardarInstrumento(New Instrumento With {
                             .IDLibro = idLibro, .NumeroEscritura = 20,
                             .FechaHoraOtorgamiento = Date.Now,
                             .FolioInicio = 31, .FolioFin = 40,
@@ -1903,7 +1910,7 @@ Module PruebaFuncional
                   Not protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Curioso").Exito)
         Dim calidadDirectaRechazada As Boolean = False
         Try
-            (New ProtocoloRepositorio()).AgregarCompareciente(idInstrumento1, idCliente, "Curioso")
+            repositorioProtocoloDirecto.AgregarCompareciente(idInstrumento1, idCliente, "Curioso")
         Catch ex As ArgumentException
             calidadDirectaRechazada = True
         End Try
@@ -1912,7 +1919,7 @@ Module PruebaFuncional
 
         Dim fechaCierreAnteriorRechazada As Boolean = False
         Try
-            (New ProtocoloRepositorio()).CerrarLibro(
+            repositorioProtocoloDirecto.CerrarLibro(
                 idLibro, "Fecha anterior a autorización", libro.FechaAutorizacion.AddDays(-1))
         Catch ex As ArgumentException
             fechaCierreAnteriorRechazada = True
@@ -1922,7 +1929,7 @@ Module PruebaFuncional
 
         Dim cierreAntesUltimaEscrituraRechazado As Boolean = False
         Try
-            (New ProtocoloRepositorio()).CerrarLibro(
+            repositorioProtocoloDirecto.CerrarLibro(
                 idLibro, "Cierre anterior a escritura", libro.FechaAutorizacion.AddDays(1))
         Catch ex As ArgumentException
             cierreAntesUltimaEscrituraRechazado = True
@@ -2004,7 +2011,7 @@ Module PruebaFuncional
         Verificar("Entrega al Notariado con fecha futura se rechaza", Not rEntregaFutura.Exito)
         Dim entregaDirectaFuturaRechazada As Boolean = False
         Try
-            (New ProtocoloRepositorio()).RegistrarEntrega(idLibro, Date.Today.AddDays(1))
+            repositorioProtocoloDirecto.RegistrarEntrega(idLibro, Date.Today.AddDays(1))
         Catch ex As ArgumentException
             entregaDirectaFuturaRechazada = True
         End Try
@@ -2057,7 +2064,7 @@ Module PruebaFuncional
         File.WriteAllText(rutaPdf, "%PDF-1.4" & Environment.NewLine & "Contenido simulado de un PDF de prueba.")
         Dim rutaConControlRechazada As Boolean = False
         Try
-            (New DocumentoRepositorio()).Insertar(New Documento With {
+            repositorioDocumentosDirecto.Insertar(New Documento With {
                 .TipoDocumento = "Contrato", .RutaArchivo = "Documentos/" & ChrW(10) & "prueba.pdf",
                 .Hash = New String("A"c, 64)})
         Catch ex As ArgumentException
@@ -2068,7 +2075,7 @@ Module PruebaFuncional
 
         Dim hashDirectoInvalidoRechazado As Boolean = False
         Try
-            (New DocumentoRepositorio()).Insertar(New Documento With {
+            repositorioDocumentosDirecto.Insertar(New Documento With {
                 .TipoDocumento = "Contrato", .RutaArchivo = "Documentos/prueba.pdf",
                 .Hash = "NO_ES_SHA256", .EstadoProcesamientoIA = "Procesado"})
         Catch ex As ArgumentException
@@ -2157,7 +2164,7 @@ Module PruebaFuncional
 
         Dim operacionDirectaInvalidaRechazada As Boolean = False
         Try
-            (New CumplimientoRepositorio()).InsertarOperacion(New OperacionLdaft With {
+            repositorioCumplimientoDirecto.InsertarOperacion(New OperacionLdaft With {
                 .TipoOperacion = "Regulada", .Monto = 0D, .Moneda = "USD",
                 .FechaOperacion = Date.Today,
                 .FechaVencimientoAnalisis = Date.Today.AddDays(5),
@@ -2216,14 +2223,14 @@ Module PruebaFuncional
                   Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(1)).Exito)
         Dim fechaReporteDirectaFuturaRechazada As Boolean = False
         Try
-            (New CumplimientoRepositorio()).MarcarReportada(operacion.ID, Date.Today.AddDays(1))
+            repositorioCumplimientoDirecto.MarcarReportada(operacion.ID, Date.Today.AddDays(1))
         Catch ex As ArgumentException
             fechaReporteDirectaFuturaRechazada = True
         End Try
         Verificar("El repositorio también rechaza directamente fechas futuras de reporte UIF",
                   fechaReporteDirectaFuturaRechazada)
         Verificar("El repositorio no permite reportar con fecha anterior a la operación",
-                  (New CumplimientoRepositorio()).MarcarReportada(operacion.ID, Date.Today.AddDays(-1)) = 0)
+                  repositorioCumplimientoDirecto.MarcarReportada(operacion.ID, Date.Today.AddDays(-1)) = 0)
         Verificar("Reporte con fecha anterior a la operación se rechaza",
                   Not cumplimiento.MarcarReportada(operacion.ID, Date.Today.AddDays(-1)).Exito)
         Dim rReporte As Respuesta = cumplimiento.MarcarReportada(operacion.ID, Date.Today)
@@ -2247,13 +2254,13 @@ Module PruebaFuncional
         Dim rArco As Respuesta = cumplimiento.GuardarSolicitud(arco)
         Verificar("Guardar solicitud ARCO de acceso", rArco.Exito, rArco.Mensaje)
         Dim arcoDirectoForzadoPendiente As Integer =
-            (New CumplimientoRepositorio()).InsertarSolicitud(New SolicitudArco With {
+            repositorioCumplimientoDirecto.InsertarSolicitud(New SolicitudArco With {
                 .IDCliente = idCliente, .TipoDerecho = "Acceso",
                 .FechaSolicitud = Date.Today, .FechaVencimiento = Date.Today.AddDays(10),
                 .Estado = "Respondida", .FechaRespuesta = Date.Today,
                 .Detalle = "Prueba de estado inicial protegido"})
         Dim arcoDirectoForzadoTabla As DataTable =
-            (New CumplimientoRepositorio()).ObtenerSolicitud(arcoDirectoForzadoPendiente)
+            repositorioCumplimientoDirecto.ObtenerSolicitud(arcoDirectoForzadoPendiente)
         Verificar("El repositorio fuerza estado Pendiente y fecha de respuesta nula al crear ARCO",
                   arcoDirectoForzadoTabla.Rows.Count = 1 AndAlso
                   Convert.ToString(arcoDirectoForzadoTabla.Rows(0)("Estado")) = "Pendiente" AndAlso
@@ -2264,7 +2271,7 @@ Module PruebaFuncional
                   UtileriasUI.Fecha(cumplimiento.ObtenerSolicitud(arco.ID).Rows(0), "Fecha_Vencimiento") =
                   calculadoraFeriados.CalcularVencimiento(Date.Today, 10))
         Dim intentoAlterarHechoArco As Integer =
-            (New CumplimientoRepositorio()).ActualizarSolicitud(New SolicitudArco With {
+            repositorioCumplimientoDirecto.ActualizarSolicitud(New SolicitudArco With {
                 .ID = arco.ID, .IDCliente = idCliente + 999, .TipoDerecho = "Cancelación",
                 .FechaSolicitud = Date.Today.AddDays(30), .FechaVencimiento = Date.Today.AddDays(60),
                 .Estado = "Respondida", .FechaRespuesta = Date.Today,
@@ -2338,7 +2345,7 @@ Module PruebaFuncional
                   Convert.ToBoolean(tablaProrrogaActualizada.Rows(0)("Prorroga_Aplicada")) AndAlso
                   UtileriasUI.Fecha(tablaProrrogaActualizada.Rows(0), "Fecha_Vencimiento_Prorroga") = fechaProrrogaOriginal)
         Verificar("El repositorio tampoco permite retirar directamente una prórroga ARCO aplicada",
-                  (New CumplimientoRepositorio()).ActualizarSolicitud(New SolicitudArco With {
+                  repositorioCumplimientoDirecto.ActualizarSolicitud(New SolicitudArco With {
                       .ID = arcoProrroga.ID, .ProrrogaAplicada = False,
                       .Detalle = "Intento de retirar prórroga directamente"}) = 0)
 
@@ -2349,10 +2356,10 @@ Module PruebaFuncional
         Verificar("Responder antes de la fecha de solicitud se rechaza",
                   Not cumplimiento.ResponderSolicitud(arco.ID, Date.Today.AddDays(-5)).Exito)
         Verificar("El repositorio tampoco responde ARCO con fecha anterior a la solicitud",
-                  (New CumplimientoRepositorio()).Responder(arco.ID, Date.Today.AddDays(-5)) = 0)
+                  repositorioCumplimientoDirecto.Responder(arco.ID, Date.Today.AddDays(-5)) = 0)
         Dim respuestaArcoDirectaFuturaRechazada As Boolean = False
         Try
-            (New CumplimientoRepositorio()).Responder(arco.ID, Date.Today.AddDays(1))
+            repositorioCumplimientoDirecto.Responder(arco.ID, Date.Today.AddDays(1))
         Catch ex As ArgumentException
             respuestaArcoDirectaFuturaRechazada = True
         End Try
