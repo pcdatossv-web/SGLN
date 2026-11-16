@@ -440,7 +440,7 @@ Public Class ProtocoloRepositorio
                         Using comandoInsertar As New MySqlCommand(
                             "INSERT INTO Instrumentos (ID_Libro, Numero_Escritura, Fecha_Hora_Otorgamiento, " &
                             "Folio_Inicio, Folio_Fin, Objeto_Acto, Estado) " &
-                            "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, @estado)",
+                            "VALUES (@libro, @numero, @fecha, @inicio, @fin, @objeto, 'Vigente')",
                             conexion, transaccion)
                             AgregarParametrosInstrumento(comandoInsertar, instrumento)
                             comandoInsertar.ExecuteNonQuery()
@@ -451,7 +451,7 @@ Public Class ProtocoloRepositorio
                     Else
                         Using comandoActualizar As New MySqlCommand(
                             "UPDATE Instrumentos SET Numero_Escritura = @numero, Fecha_Hora_Otorgamiento = @fecha, " &
-                            "Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto, Estado = @estado " &
+                            "Folio_Inicio = @inicio, Folio_Fin = @fin, Objeto_Acto = @objeto " &
                             "WHERE ID = @id AND ID_Libro = @libro",
                             conexion, transaccion)
                             AgregarParametrosInstrumento(comandoActualizar, instrumento)
@@ -830,7 +830,6 @@ Public Class ProtocoloRepositorio
         Parametro(comando, "@inicio", instrumento.FolioInicio)
         Parametro(comando, "@fin", instrumento.FolioFin)
         Parametro(comando, "@objeto", instrumento.ObjetoActo)
-        Parametro(comando, "@estado", instrumento.Estado)
     End Sub
 
 End Class
