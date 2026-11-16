@@ -1047,11 +1047,22 @@ Module PruebaFuncional
         EjecutarSqlDirecto("INSERT IGNORE INTO Rol_Permiso (ID_Rol, Codigo) VALUES (" &
                            idRolAdmin.ToString() & ", 'auditoria.exportar')")
 
-        ' ---------- 2d. Limpieza de los datos de seguridad temporales ----------
-        EjecutarSqlDirecto("DELETE FROM Usuarios WHERE ID = " & idUsuarioPrueba.ToString())
-        Verificar("El rol de prueba se elimina cuando ya no tiene usuarios",
+        ' ---------- 2d. Limpieza lógica de los datos de seguridad temporales ----------
+        ' La cuenta de aplicación no tiene DELETE sobre Usuarios por diseño.
+        ' Las cuentas con eventos de auditoría se conservan inactivas y fuera
+        ' del rol temporal; la base aislada se recrea en la siguiente corrida.
+        Dim limpiezaUsuarioPrueba As Respuesta = servicioUsuarios.Actualizar(
+            idUsuarioPrueba, "Usuario de Prueba", idRolAbogado, False)
+        Verificar("La limpieza conserva la cuenta de prueba y su trazabilidad",
+                  idUsuarioPrueba > 0 AndAlso limpiezaUsuarioPrueba.Exito,
+                  limpiezaUsuarioPrueba.Mensaje)
+        Verificar("El rol de prueba se elimina después de reasignar su cuenta",
                   roles.Eliminar(idRolPrueba).Exito)
-        EjecutarSqlDirecto("DELETE FROM Usuarios WHERE ID = " & idAdmin2.ToString())
+        Dim limpiezaAdmin2 As Respuesta = servicioUsuarios.Actualizar(
+            idAdmin2, "Administrador de Prueba", idRolAbogado, False)
+        Verificar("La limpieza conserva inactivo al administrador temporal con su historial",
+                  idAdmin2 > 0 AndAlso limpiezaAdmin2.Exito,
+                  limpiezaAdmin2.Mensaje)
 
         Sesion.UsuarioActual = admin
         Sesion.CargarPermisos()
