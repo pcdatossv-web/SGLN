@@ -26,6 +26,19 @@ Public Class CasoRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Comprueba una referencia de caso sin conceder acceso general al expediente.
+    ''' Solo se usa al vincular documentos y no devuelve datos del caso.
+    ''' </summary>
+    Public Function ExisteParaVinculoDocumento(id As Integer) As Boolean
+        If id <= 0 OrElse Not (Permisos.TieneAcceso("documentos.importar") OrElse
+                               Permisos.TieneAcceso("documentos.metadatos")) Then Return False
+        Return Consultar("SELECT ID FROM Casos WHERE ID = @id",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@id", id)
+            End Sub).Rows.Count > 0
+    End Function
+
     Public Function Obtener(id As Integer) As DataTable
         If id <= 0 OrElse Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return Consultar(
