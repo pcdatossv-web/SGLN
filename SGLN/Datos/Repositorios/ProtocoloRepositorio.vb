@@ -336,10 +336,10 @@ Public Class ProtocoloRepositorio
     ''' en ese libro o los folios se traslapan.
     ''' </summary>
     Public Function GuardarInstrumentoConBloqueo(instrumento As Instrumento,
-        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
-        If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
                                                  ByRef idGuardado As Integer,
                                                  ByRef motivo As String) As Boolean
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
+        If instrumento Is Nothing Then Throw New ArgumentNullException(NameOf(instrumento))
         idGuardado = 0
         motivo = ""
 
