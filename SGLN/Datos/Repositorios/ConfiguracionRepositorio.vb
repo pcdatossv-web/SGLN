@@ -72,12 +72,12 @@ Public Class ConfiguracionRepositorio
             End Function)
     End Sub
 
-    Public Sub EliminarFeriado(id As Integer)
+    Public Function EliminarFeriado(id As Integer) As Integer
         If Not Permisos.TieneAcceso("config.feriados") Then
             Throw New UnauthorizedAccessException("No tiene permiso para administrar feriados.")
         End If
 
-        EnTransaccion(
+        Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "DELETE FROM Feriados WHERE ID = @id",
@@ -87,7 +87,7 @@ Public Class ConfiguracionRepositorio
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ELIMINAR", "Feriados", id, "Feriado eliminado")
                 Return filas
             End Function)
-    End Sub
+    End Function
 
     Public Function Usuarios() As DataTable
         Return Consultar(
