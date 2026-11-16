@@ -28,6 +28,7 @@ Public Class ServicioProtocolo
     Public Function GuardarLibro(libro As LibroProtocolo) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
         If libro Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos del libro.")
+        If libro.ID < 0 Then Return Respuesta.Fallo("El identificador del libro no es válido.")
 
         If libro.NumeroLibro <= 0 Then Return Respuesta.Fallo("El número de libro debe ser mayor que cero.")
         If libro.AnioVigencia < 2000 OrElse libro.AnioVigencia > 2100 Then
@@ -210,6 +211,7 @@ Public Class ServicioProtocolo
     Public Function GuardarInstrumento(instrumento As Instrumento) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
         If instrumento Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la escritura.")
+        If instrumento.ID < 0 Then Return Respuesta.Fallo("El identificador de la escritura no es válido.")
 
         If instrumento.IDLibro <= 0 Then Return Respuesta.Fallo("Seleccione el libro del protocolo.")
         If instrumento.NumeroEscritura <= 0 Then Return Respuesta.Fallo("El número de escritura debe ser mayor que cero.")
