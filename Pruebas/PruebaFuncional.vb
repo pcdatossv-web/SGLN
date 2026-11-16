@@ -601,6 +601,47 @@ Module PruebaFuncional
                   documentosDirectos.Obtener(1).Rows.Count = 0 AndAlso
                   documentosDirectos.CasosCombo().Rows.Count = 0 AndAlso
                   documentosDirectos.InstrumentosCombo().Rows.Count = 0)
+
+        Dim clientesDirectos As New ClienteRepositorio()
+        Dim entidadesDirectas As New EntidadRepositorio()
+        Dim casosDirectos As New CasoRepositorio()
+        Verificar("Los repositorios de clientes, entidades y casos bloquean lecturas directas sin permiso",
+                  clientesDirectos.Buscar("").Rows.Count = 0 AndAlso
+                  clientesDirectos.Obtener(1).Rows.Count = 0 AndAlso
+                  entidadesDirectas.Buscar("").Rows.Count = 0 AndAlso
+                  entidadesDirectas.Obtener(1).Rows.Count = 0 AndAlso
+                  entidadesDirectas.Representantes(1).Rows.Count = 0 AndAlso
+                  entidadesDirectas.ClientesCombo().Rows.Count = 0 AndAlso
+                  casosDirectos.Buscar("").Rows.Count = 0 AndAlso
+                  casosDirectos.Obtener(1).Rows.Count = 0 AndAlso
+                  casosDirectos.ActuacionesPorCaso(1).Rows.Count = 0 AndAlso
+                  casosDirectos.ClientesCombo().Rows.Count = 0)
+        Dim escriturasMaestrasBloqueadas As Boolean = False
+        Try
+            clientesDirectos.GuardarCompleto(Nothing, Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasMaestrasBloqueadas = True
+        End Try
+        Try
+            entidadesDirectas.GuardarCompleto(Nothing, Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasMaestrasBloqueadas = escriturasMaestrasBloqueadas AndAlso True
+        End Try
+        Try
+            casosDirectos.Insertar(Nothing)
+        Catch ex As UnauthorizedAccessException
+            escriturasMaestrasBloqueadas = escriturasMaestrasBloqueadas AndAlso True
+        End Try
+        Verificar("Los repositorios bloquean escrituras directas de clientes, entidades y casos sin permiso",
+                  escriturasMaestrasBloqueadas)
+        Dim confirmacionPlazoDirectaBloqueada As Boolean = False
+        Try
+            casosDirectos.GuardarActuacion(Nothing)
+        Catch ex As UnauthorizedAccessException
+            confirmacionPlazoDirectaBloqueada = True
+        End Try
+        Verificar("El repositorio de casos bloquea confirmaciones directas de plazos sin permiso",
+                  confirmacionPlazoDirectaBloqueada)
         Dim insercionDocumentoDirectaBloqueada As Boolean = False
         Try
             documentosDirectos.Insertar(New Documento With {
