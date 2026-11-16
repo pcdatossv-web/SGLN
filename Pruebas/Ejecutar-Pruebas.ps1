@@ -352,6 +352,10 @@ try {
 
     Write-Host 'Aplicando esquema y triggers...' -ForegroundColor Cyan
     Invoke-MySqlFile (Join-Path $carpetaScripts 'Esquema_MySQL.sql') $basePruebas
+    # Simula una base antigua que tenía permisos administrativos delegados.
+    Invoke-MySqlCommand (
+        "INSERT IGNORE INTO ``$basePruebas``.Rol_Permiso (ID_Rol, Codigo) " +
+        "SELECT ID, 'config.usuarios' FROM ``$basePruebas``.Roles WHERE Protegido = 0 LIMIT 1;")
     Invoke-MySqlFile (Join-Path $carpetaScripts 'Triggers_MySQL.sql') $basePruebas
     Invoke-MySqlCommand (
         "GRANT EXECUTE ON PROCEDURE ``$basePruebas``.sp_EliminarUsuarioSeguro TO '$usuarioApp'@'localhost'; " +
