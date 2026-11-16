@@ -22,7 +22,7 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Function Obtener(clave As String) As String
-        If Not Permisos.TieneAcceso("config.ver") Then Return ""
+        If Not (Permisos.TieneAcceso("config.ver") OrElse Permisos.TieneAcceso("config.respaldos")) Then Return ""
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 100 Then Return ""
         Dim valor As Object = Escalar(Of String)(
             "SELECT Valor FROM Configuracion WHERE Clave = @clave",
@@ -36,6 +36,16 @@ Public Class ConfiguracionRepositorio
     Public Sub Guardar(clave As String, valor As String)
         If Not Permisos.TieneAcceso("config.editar") Then
             Throw New UnauthorizedAccessException("No tiene permiso para modificar la configuración.")
+        End If
+        If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 60 Then
+            Throw New ArgumentException("La clave de configuración no es válida.", NameOf(clave))
+        End If
+        If String.Equals(clave.Trim(), "Carpeta_Documentos", StringComparison.OrdinalIgnoreCase) OrElse
+           String.Equals(clave.Trim(), "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("Las rutas de documentos y respaldos no se pueden modificar desde la configuración general.")
+        End If
+        If If(valor, "").Trim().Length > 500 Then
+            Throw New ArgumentException("El valor de configuración no puede superar 500 caracteres.", NameOf(valor))
         End If
 
         EnTransaccion(
