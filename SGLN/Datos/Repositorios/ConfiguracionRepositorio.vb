@@ -17,10 +17,13 @@ Public Class ConfiguracionRepositorio
     Inherits RepositorioBase
 
     Public Function Listar() As DataTable
+        If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
         Return Consultar("SELECT Clave, Valor FROM Configuracion ORDER BY Clave")
     End Function
 
     Public Function Obtener(clave As String) As String
+        If Not Permisos.TieneAcceso("config.ver") Then Return ""
+        If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 100 Then Return ""
         Dim valor As Object = Escalar(Of String)(
             "SELECT Valor FROM Configuracion WHERE Clave = @clave",
             Sub(comando As MySqlCommand)
@@ -50,6 +53,7 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Public Function Feriados() As DataTable
+        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 
@@ -90,6 +94,7 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Function Usuarios() As DataTable
+        If Not Permisos.TieneAcceso("config.seguridad") Then Return New DataTable()
         Return Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, IFNULL(r.Nombre, 'Sin rol') AS Rol, " &
             "       u.Activo, u.Fecha_Creacion " &
