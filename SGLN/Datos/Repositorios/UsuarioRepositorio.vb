@@ -294,12 +294,12 @@ Public Class UsuarioRepositorio
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                    Dim estadoActual As Object = EscalarEnTransaccion(Of Object)(
-                        conexion, transaccion,
-                        "SELECT Activo FROM Usuarios WHERE ID = @id FOR UPDATE",
-                        Sub(comando As MySqlCommand)
-                            Parametro(comando, "@id", id)
-                        End Sub)
+                    Dim estadoActual As Object
+                    Using comandoEstado As New MySqlCommand(
+                        "SELECT Activo FROM Usuarios WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(comandoEstado, "@id", id)
+                        estadoActual = comandoEstado.ExecuteScalar()
+                    End Using
 
                     If estadoActual Is Nothing OrElse estadoActual Is DBNull.Value Then Return 0
                     If Convert.ToBoolean(estadoActual) <> activo Then Return -1
@@ -343,16 +343,31 @@ Public Class UsuarioRepositorio
         Try
             Dim resultado As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                    Dim estado As Object = EscalarEnTransaccion(Of Object)(
-                        conexion, transaccion,
-                        "SELECT u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE",
-                        Sub(comando As MySqlCommand)
-                            Parametro(comando, "@id", id)
-                        End Sub)
+                    Dim estado As Object
+                    Using comandoEstado As New MySqlCommand(
+                        "SELECT u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(comandoEstado, "@id", id)
+                        estado = comandoEstado.ExecuteScalar()
+                    End Using
                     If estado Is Nothing OrElse estado Is DBNull.Value Then Return 0
                     If Not Convert.ToBoolean(estado) Then Return 2
 
-                    If EsAdministrador(id) AndAlso ContarAdministradoresActivos(id) = 0 Then Return -1
+                    Dim administradoresRestantes As Integer
+                    Using comandoAdmin As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                        "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id", conexion, transaccion)
+                        Parametro(comandoAdmin, "@id", id)
+                        administradoresRestantes = Convert.ToInt32(comandoAdmin.ExecuteScalar())
+                    End Using
+
+                    Dim esAdministrador As Boolean
+                    Using comandoRol As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                        "WHERE u.ID = @id AND r.Protegido = 1", conexion, transaccion)
+                        Parametro(comandoRol, "@id", id)
+                        esAdministrador = Convert.ToInt32(comandoRol.ExecuteScalar()) > 0
+                    End Using
+                    If esAdministrador AndAlso administradoresRestantes = 0 Then Return -1
 
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
                         "UPDATE Usuarios SET Activo = 0 WHERE ID = @id AND Activo = 1",
