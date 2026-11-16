@@ -416,7 +416,7 @@ Module PruebaFuncional
                   Not roles.Eliminar(idRolAdmin).Exito)
         Verificar("El servicio impide quitar config.roles al Administrador",
                   Not roles.Actualizar(idRolAdmin, "Administrador", "x", True,
-                      New List(Of String) From {"config.usuarios"}).Exito)
+                      New List(Of String) From {"config.usuarios", "config.roles"}).Exito)
         Verificar("El servicio impide quitar config.usuarios al Administrador",
                   Not roles.Actualizar(idRolAdmin, "Administrador", "x", True,
                       New List(Of String) From {"config.roles"}).Exito)
@@ -458,10 +458,17 @@ Module PruebaFuncional
         Dim sesionGestor As UsuarioSesion = usuarios.ObtenerEstadoSesion(idUsuarioGestor)
         Sesion.UsuarioActual = sesionGestor
         Sesion.CargarPermisos()
-        Verificar("El rol ordinario de prueba recibe únicamente el permiso explícito de usuarios",
+        Verificar("El rol ordinario de prueba recibe permisos de gestión sin ser Administrador",
                   altaRolGestor.Exito AndAlso altaGestor.Exito AndAlso
                   sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("config.usuarios") AndAlso
-                  Not Sesion.UsuarioActual.RolProtegido)
+                  Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+        Verificar("Un usuario con config.roles no puede crear roles ni permisos",
+                  Not roles.Crear("Rol no autorizado " & sufijoGestor, "Prueba", New List(Of String) From {"casos.ver"}).Exito)
+        Verificar("Un usuario con config.roles no puede modificar roles ni permisos",
+                  Not roles.Actualizar(idRolPrueba, "Rol de prueba editado", "Descripción editada",
+                      True, New List(Of String) From {"casos.ver"}).Exito)
+        Verificar("Un usuario con config.roles no puede eliminar roles",
+                  Not roles.Eliminar(idRolPrueba).Exito)
         Verificar("Un usuario con config.usuarios no puede crear cuentas Administrador",
                   Not servicioUsuarios.Crear("admin_no_autorizado_" & sufijoGestor,
                       "Intento de elevación", "IntentoSeguro99!", idRolAdmin, True).Exito)
