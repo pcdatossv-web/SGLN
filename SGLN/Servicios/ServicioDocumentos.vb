@@ -240,6 +240,10 @@ Public Class ServicioDocumentos
     ''' aceptan si permanecen dentro de la carpeta documental configurada.
     ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
+        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
+                Permisos.TieneAcceso("documentos.importar") OrElse
+                Permisos.TieneAcceso("documentos.verificar") OrElse
+                Permisos.TieneAcceso("documentos.metadatos")) Then Return ""
         If String.IsNullOrWhiteSpace(rutaRegistrada) Then Return ""
 
         Dim base As String = Path.GetFullPath(RutaBaseDocumentos())
