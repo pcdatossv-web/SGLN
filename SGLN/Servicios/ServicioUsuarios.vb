@@ -43,6 +43,10 @@ Public Class ServicioUsuarios
 
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id AndAlso
+           (idRol <> Sesion.UsuarioActual.IDRol OrElse Not activo) Then
+            Return Respuesta.Fallo("No puede cambiar su propio rol ni desactivar su cuenta desde esta sesión. Solicite a otro administrador que realice el cambio.")
+        End If
         If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede modificar otra cuenta Administrador.")
         End If
@@ -79,6 +83,9 @@ Public Class ServicioUsuarios
         If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para restablecer claves de otros usuarios.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id Then
+            Return Respuesta.Fallo("Para cambiar su propia clave, utilice la opción de cambio de clave que solicita la clave actual.")
+        End If
         If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede restablecer la clave de otra cuenta Administrador.")
         End If
