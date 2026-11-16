@@ -1751,6 +1751,21 @@ Module PruebaFuncional
         Dim cumplimiento As New ServicioCumplimiento()
         Dim calculadoraFeriados As New CalculadoraDiasHabiles(New CatalogoRepositorio().FechasFeriadas())
 
+        Verificar("El código de moneda rechaza caracteres Unicode ajenos a códigos alfabéticos ASCII",
+                  Not cumplimiento.GuardarOperacion(New OperacionLdaft With {
+                      .TipoOperacion = "Regulada", .Monto = 100D, .Moneda = "USÉ",
+                      .FechaOperacion = Date.Today
+                  }).Exito)
+        Verificar("Los identificadores negativos de caso e instrumento se rechazan",
+                  Not cumplimiento.GuardarOperacion(New OperacionLdaft With {
+                      .TipoOperacion = "Regulada", .Monto = 100D, .Moneda = "USD",
+                      .FechaOperacion = Date.Today, .IDCaso = -1
+                  }).Exito AndAlso
+                  Not cumplimiento.GuardarOperacion(New OperacionLdaft With {
+                      .TipoOperacion = "Regulada", .Monto = 100D, .Moneda = "USD",
+                      .FechaOperacion = Date.Today, .IDInstrumento = -1
+                  }).Exito)
+
         Dim operacion As New OperacionLdaft With {
             .TipoOperacion = "Regulada",
             .Monto = 12500D,
