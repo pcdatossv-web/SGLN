@@ -2437,6 +2437,26 @@ Module PruebaFuncional
                   Not cumplimiento.MarcarReportada(sospechosa.ID, Date.Today).Exito)
         Verificar("No se puede descartar dos veces la misma operación",
                   Not cumplimiento.Descartar(sospechosa.ID).Exito)
+        Verificar("El repositorio tampoco permite descartar directamente una operación ya reportada",
+                  repositorioCumplimientoDirecto.Descartar(operacion.ID) = 0)
+        Verificar("El repositorio impide modificar directamente una operación ya reportada",
+                  repositorioCumplimientoDirecto.ActualizarOperacion(New OperacionLdaft With {
+                      .ID = operacion.ID, .TipoOperacion = "Regulada", .Monto = 13000D,
+                      .Moneda = "USD", .FechaOperacion = Date.Today,
+                      .FechaVencimientoAnalisis = UtileriasUI.Fecha(tablaOperacion.Rows(0), "Fecha_Vencimiento_Analisis"),
+                      .FechaVencimientoReporte = UtileriasUI.Fecha(tablaOperacion.Rows(0), "Fecha_Vencimiento_Reporte"),
+                      .IDInstrumento = idInstrumento1, .Descripcion = "Intento de alterar reporte UIF"
+                  }) = 0)
+        Verificar("El repositorio impide reportar directamente una operación descartada",
+                  repositorioCumplimientoDirecto.MarcarReportada(sospechosa.ID, Date.Today) = 0)
+        Verificar("El repositorio impide modificar directamente una operación descartada",
+                  repositorioCumplimientoDirecto.ActualizarOperacion(New OperacionLdaft With {
+                      .ID = sospechosa.ID, .TipoOperacion = "Sospechosa", .Monto = 800D,
+                      .Moneda = "USD", .FechaOperacion = Date.Today,
+                      .FechaVencimientoAnalisis = calculadoraFeriados.CalcularVencimiento(Date.Today, 5),
+                      .FechaVencimientoReporte = calculadoraFeriados.CalcularVencimiento(Date.Today, 15),
+                      .Descripcion = "Intento de alterar operación descartada"
+                  }) = 0)
 
         Dim arco As New SolicitudArco With {
             .IDCliente = idCliente, .TipoDerecho = "Acceso",
