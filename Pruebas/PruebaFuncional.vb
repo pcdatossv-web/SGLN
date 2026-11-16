@@ -182,6 +182,11 @@ Module PruebaFuncional
         ' ---------- 2. Autenticación y seguridad ----------
         Console.WriteLine()
         Console.WriteLine("-- 2. Autenticación y cambio de clave")
+        Verificar("La instalación revoca permisos administrativos heredados en roles ordinarios",
+                  ContarSqlDirecto(
+                      "SELECT COUNT(*) FROM Rol_Permiso rp INNER JOIN Roles r ON r.ID = rp.ID_Rol " &
+                      "WHERE r.Protegido = 0 AND rp.Codigo IN ('config.usuarios', 'config.roles')") = 0)
+
         Dim usuarios As New UsuarioRepositorio()
         If Not InicializadorBD.HayUsuarios() Then InicializadorBD.CrearAdministradorInicial("admin", "Administrador de pruebas", "PruebaInicial99!")
         Dim admin As UsuarioSesion = usuarios.Autenticar("admin", "PruebaInicial99!")
