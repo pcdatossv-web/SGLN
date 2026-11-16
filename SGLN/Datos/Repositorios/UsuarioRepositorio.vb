@@ -16,6 +16,15 @@ Public Class UsuarioRepositorio
     Private Const SaltTiempoConstante As String = "AAAAAAAAAAAAAAAAAAAAAA=="
 
     Public Function Autenticar(usuario As String, clave As String) As UsuarioSesion
+        ' Los límites se aplican también en el repositorio, no solo en los
+        ' controles visuales. Evita consultas y derivaciones costosas con
+        ' entradas desproporcionadas enviadas desde otros puntos de la app.
+        If String.IsNullOrWhiteSpace(usuario) OrElse usuario.Length > 50 OrElse
+           String.IsNullOrEmpty(clave) OrElse clave.Length > 128 Then
+            SeguridadClave.Verificar("EntradaNoValida99!", HashTiempoConstante, SaltTiempoConstante)
+            Return Nothing
+        End If
+
         Dim tabla As DataTable = Consultar(
             "SELECT u.ID, u.Usuario, u.Nombre_Completo, u.Clave_Hash, u.Clave_Salt, " &
             "       r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
