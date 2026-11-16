@@ -277,7 +277,6 @@ Public Class CasoRepositorio
         Parametro(comando, "@notificacion", actuacion.FechaNotificacion)
         Parametro(comando, "@plazo", actuacion.PlazoLegalDias)
         Parametro(comando, "@vencimiento", If(actuacion.FechaVencimiento.HasValue, CObj(actuacion.FechaVencimiento.Value), DBNull.Value))
-        Parametro(comando, "@estado", actuacion.Estado)
         Parametro(comando, "@usuario", Sesion.NombreUsuario)
         Parametro(comando, "@observaciones", actuacion.Observaciones)
     End Sub
