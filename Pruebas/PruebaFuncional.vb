@@ -499,6 +499,21 @@ Module PruebaFuncional
                   roles.PermisosDeRol(idRolGestor).Contains("casos.ver") AndAlso
                   Not roles.PermisosDeRol(idRolGestor).Contains("config.usuarios") AndAlso
                   Not roles.PermisosDeRol(idRolGestor).Contains("config.roles"))
+        Dim borradoDirectoUsuariosBloqueado As Boolean = False
+        Try
+            Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexion.Open()
+                Using comando As New MySqlCommand(
+                    "DELETE FROM Usuarios WHERE ID = @id", conexion)
+                    comando.Parameters.AddWithValue("@id", idUsuarioGestor)
+                    comando.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As MySqlException
+            borradoDirectoUsuariosBloqueado = ex.Number = 1142
+        End Try
+        Verificar("MySQL deniega DELETE directo sobre Usuarios a la cuenta de aplicación",
+                  borradoDirectoUsuariosBloqueado)
         Verificar("Un usuario con config.roles no puede crear roles ni permisos",
                   Not roles.Crear("Rol no autorizado " & sufijoGestor, "Prueba", New List(Of String) From {"casos.ver"}).Exito)
         Verificar("Un usuario con config.roles no puede modificar roles ni permisos",
