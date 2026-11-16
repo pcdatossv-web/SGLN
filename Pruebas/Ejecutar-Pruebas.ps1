@@ -354,7 +354,7 @@ try {
 
     # La cuenta de prueba recibe los mismos permisos por tabla que sgln_app.
     $permisosApp = @(
-        "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Roles TO '$usuarioApp'@'localhost';"
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Roles TO '$usuarioApp'@'localhost';"
         "GRANT SELECT ON ``$basePruebas``.Permisos TO '$usuarioApp'@'localhost';"
         "GRANT SELECT, INSERT, UPDATE, DELETE ON ``$basePruebas``.Rol_Permiso TO '$usuarioApp'@'localhost';"
         "GRANT SELECT, INSERT, UPDATE ON ``$basePruebas``.Usuarios TO '$usuarioApp'@'localhost';"
