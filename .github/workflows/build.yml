@@ -64,6 +64,11 @@ jobs:
           $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
           $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
           $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
+          $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
+          $servicioCasos = Get-Content 'SGLN\\Servicios\\ServicioCasos.vb' -Raw
+          $servicioPlazos = Get-Content 'SGLN\\Servicios\\ServicioPlazos.vb' -Raw
+          $servicioCumplimiento = Get-Content 'SGLN\\Servicios\\ServicioCumplimiento.vb' -Raw
+          $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
               $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
@@ -93,6 +98,28 @@ jobs:
           if ($inicializador -match 'SembrarPermisosAdicionales' -or
               $inicializador -notmatch 'Codigo = ''config.editar''') {
             throw 'La aplicación no debe modificar el catálogo de permisos; debe verificarlo al iniciar.'
+          }
+          if ($casoRepo -notmatch 'SELECT ID_Cliente, Numero_Expediente FROM Casos WHERE ID = @id FOR UPDATE' -or
+              $casoRepo -notmatch 'Actuaciones_Procesales WHERE ID_Caso' -or
+              $casoRepo -notmatch 'Documentos WHERE ID_Caso' -or
+              $casoRepo -notmatch 'Operaciones_LDAFT WHERE ID_Caso') {
+            throw 'La identidad del expediente debe protegerse frente a cambios cuando existe historial.'
+          }
+          if ($servicioCasos -notmatch 'El número de expediente no puede superar 80 caracteres' -or
+              $servicioCasos -notmatch 'Catch ex As InvalidOperationException') {
+            throw 'Faltan validaciones de entrada o manejo de reglas históricas en el servicio de casos.'
+          }
+          if ($servicioPlazos -notmatch 'casos.confirmar_plazo' -or
+              $casoRepo -notmatch 'CONFIRMAR PLAZO') {
+            throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
+          }
+          if ($servicioCumplimiento -notmatch 'fechaSolicitud no es válida' -or
+              $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO') {
+            throw 'Faltan validaciones de fechas y manejo de errores en cumplimiento ARCO.'
+          }
+          if ($servicioDocumentos -notmatch 'ValidarReferencias' -or
+              $servicioDocumentos -notmatch 'El tipo de documento no puede superar 60 caracteres') {
+            throw 'Faltan validaciones de referencias y metadatos documentales.'
           }
           if ($usuarioRepo -notmatch '(?i)CALL sp_EliminarUsuarioSeguro') {
             throw 'El repositorio de usuarios no está usando el procedimiento SQL protegido.'
