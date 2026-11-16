@@ -196,11 +196,11 @@ Public Class EntidadRepositorio
                         "SELECT Activo FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
                         conexion, transaccion)
                         Parametro(comprobarEntidad, "@id", idEntidad)
-                        Dim valor As Object = comprobarEntidad.ExecuteScalar()
-                        If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                        Dim valorEntidad As Object = comprobarEntidad.ExecuteScalar()
+                        If valorEntidad Is Nothing OrElse Convert.IsDBNull(valorEntidad) Then
                             Throw New InvalidOperationException("La entidad seleccionada no existe.")
                         End If
-                        entidadActiva = Convert.ToInt32(valor)
+                        entidadActiva = Convert.ToInt32(valorEntidad)
                     End Using
                     If entidadActiva <> 1 Then Throw New InvalidOperationException("No se pueden agregar representantes a una entidad inactiva.")
 
@@ -209,11 +209,11 @@ Public Class EntidadRepositorio
                         "SELECT Activo FROM Clientes WHERE ID = @id FOR UPDATE",
                         conexion, transaccion)
                         Parametro(comprobarCliente, "@id", idCliente)
-                        Dim valor As Object = comprobarCliente.ExecuteScalar()
-                        If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                        Dim valorCliente As Object = comprobarCliente.ExecuteScalar()
+                        If valorCliente Is Nothing OrElse Convert.IsDBNull(valorCliente) Then
                             Throw New InvalidOperationException("El cliente seleccionado no existe.")
                         End If
-                        clienteActivo = Convert.ToInt32(valor)
+                        clienteActivo = Convert.ToInt32(valorCliente)
                     End Using
                     If clienteActivo <> 1 Then Throw New InvalidOperationException("No se pueden agregar clientes inactivos como representantes.")
 
