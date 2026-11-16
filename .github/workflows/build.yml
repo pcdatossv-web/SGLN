@@ -134,7 +134,7 @@ jobs:
               $servicioProtocolo -notmatch 'validar referencias de escritura') {
             throw 'El protocolo debe validar fechas obligatorias y controlar errores al consultar referencias.'
           }
-          if ($protocoloRepo -notmatch "Estado IN \\('Cerrado', 'Entregado'\\)" -or
+          if ($protocoloRepo -notmatch "Estado IN \('Cerrado', 'Entregado'\)" -or
               $servicioProtocolo -notmatch 'cambió de estado y no se pudo marcar el índice') {
             throw 'El índice notarial solo puede marcarse después del cierre y debe detectar cambios concurrentes.'
           }
