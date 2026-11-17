@@ -161,6 +161,10 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
+        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf DesactivarUsuario)
+    End Sub
+
+    Private Sub DesactivarUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
@@ -183,7 +187,6 @@ Public Class FrmUsuarios
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
     End Sub
-
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
