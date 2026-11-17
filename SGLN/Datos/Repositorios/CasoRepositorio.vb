@@ -248,6 +248,9 @@ Public Class CasoRepositorio
 
     Private Sub ValidarDatosCaso(caso As Caso)
         If caso.IDCliente <= 0 Then Throw New ArgumentException("Seleccione un cliente válido para el caso.", NameOf(caso))
+        If caso.IDJuzgado.HasValue AndAlso caso.IDJuzgado.Value <= 0 Then
+            Throw New ArgumentException("El juzgado seleccionado no es válido.", NameOf(caso))
+        End If
         If String.IsNullOrWhiteSpace(caso.NumeroExpediente) OrElse caso.NumeroExpediente.Trim().Length > 80 Then
             Throw New ArgumentException("El número de expediente debe contener entre 1 y 80 caracteres.", NameOf(caso))
         End If
