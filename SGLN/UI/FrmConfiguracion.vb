@@ -49,7 +49,9 @@ Public Class FrmConfiguracion
         grpClave.Enabled = puedeSeguridad
 
         grpEditor.Enabled = Permisos.Puede("config.editar")
-        btnRespaldar.Enabled = Permisos.Puede("config.respaldos")
+        Dim puedeRespaldar As Boolean = Permisos.Puede("config.respaldos")
+        btnRespaldar.Enabled = puedeRespaldar
+        btnAbrirCarpeta.Enabled = puedeRespaldar
     End Sub
 
     ' ------------------------------------------------------------------
