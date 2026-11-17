@@ -106,10 +106,15 @@ jobs:
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("cumplimiento.operaciones")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("protocolo.entregar")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.ver")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.gestionar")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.feriados")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.confirmar_plazo")') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAcceso("protocolo.ver")') -or
               -not $catalogoRepo.Contains('Carpeta_Documentos') -or
               -not $catalogoRepo.Contains('Carpeta_Respaldos') -or
               $catalogoRepo.Contains('clave & " = " & valor')) {
-            throw 'El repositorio de catálogos debe proteger las operaciones heredadas de configuración.'
+            throw 'El repositorio de catálogos debe proteger tanto configuración como catálogos judiciales y feriados.'
           }
           if (-not $servicioConfig.Contains('If EsClaveReservada(clave) Then') -or
               -not $servicioConfig.Contains('StringComparison.OrdinalIgnoreCase') -or
