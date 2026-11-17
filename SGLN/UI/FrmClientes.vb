@@ -252,11 +252,11 @@ Public Class FrmClientes
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
-        Guardar()
+        UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf Guardar)
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
-        Desactivar()
+        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf Desactivar)
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
