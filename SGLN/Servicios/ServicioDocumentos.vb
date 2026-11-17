@@ -50,27 +50,37 @@ Public Class ServicioDocumentos
         If Not Permisos.TieneAcceso("documentos.importar") Then Return Respuesta.Fallo("No tiene permiso para importar documentos.")
 
 
-        If String.IsNullOrWhiteSpace(rutaOrigen) OrElse Not File.Exists(rutaOrigen) Then
-            Return Respuesta.Fallo("El archivo seleccionado no existe.")
-        End If
-        If String.IsNullOrWhiteSpace(tipoDocumento) Then
-            Return Respuesta.Fallo("Seleccione el tipo de documento.")
-        End If
-        If tipoDocumento.Trim().Length > 60 Then
-            Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
-        End If
-        Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
-        If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
+        Dim extension As String = ""
+        Try
+            ' Las comprobaciones de ruta y metadatos también pueden fallar
+            ' (ruta inválida, archivo inaccesible o permisos insuficientes).
+            ' Deben quedar dentro del límite de errores del servicio para que
+            ' una excepción de E/S no termine sin controlar en el formulario.
+            If String.IsNullOrWhiteSpace(rutaOrigen) OrElse Not File.Exists(rutaOrigen) Then
+                Return Respuesta.Fallo("El archivo seleccionado no existe.")
+            End If
+            If String.IsNullOrWhiteSpace(tipoDocumento) Then
+                Return Respuesta.Fallo("Seleccione el tipo de documento.")
+            End If
+            If tipoDocumento.Trim().Length > 60 Then
+                Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
+            End If
+            Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
+            If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
 
-        Dim extension As String = Path.GetExtension(rutaOrigen)
-        If Not ExtensionesPermitidas.Contains(extension) Then
-            Return Respuesta.Fallo("Extensión no permitida. Use PDF, Word o imágenes.")
-        End If
+            extension = Path.GetExtension(rutaOrigen)
+            If Not ExtensionesPermitidas.Contains(extension) Then
+                Return Respuesta.Fallo("Extensión no permitida. Use PDF, Word o imágenes.")
+            End If
 
-        Dim informacion As New FileInfo(rutaOrigen)
-        If informacion.Length > TamanoMaximoMb * 1024L * 1024L Then
-            Return Respuesta.Fallo("El archivo supera el límite de " & TamanoMaximoMb & " MB.")
-        End If
+            Dim informacion As New FileInfo(rutaOrigen)
+            If informacion.Length > TamanoMaximoMb * 1024L * 1024L Then
+                Return Respuesta.Fallo("El archivo supera el límite de " & TamanoMaximoMb & " MB.")
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - validar archivo de origen", ex)
+            Return Respuesta.Fallo("No se pudo acceder al archivo seleccionado. Verifique la ruta y los permisos.")
+        End Try
 
         Dim rutaDestino As String = ""
         Try
