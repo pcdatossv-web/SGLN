@@ -318,7 +318,7 @@ Public Class FrmCasos
     End Sub
 
     Private Sub btnGuardarCaso_Click(sender As Object, e As EventArgs) Handles btnGuardarCaso.Click
-        GuardarCaso()
+        UtileriasUI.EjecutarUnaVez(btnGuardarCaso, AddressOf GuardarCaso)
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
@@ -335,11 +335,11 @@ Public Class FrmCasos
     End Sub
 
     Private Sub btnConfirmarPlazo_Click(sender As Object, e As EventArgs) Handles btnConfirmarPlazo.Click
-        ConfirmarPlazo()
+        UtileriasUI.EjecutarUnaVez(btnConfirmarPlazo, AddressOf ConfirmarPlazo)
     End Sub
 
     Private Sub btnMarcarCumplida_Click(sender As Object, e As EventArgs) Handles btnMarcarCumplida.Click
-        MarcarCumplida()
+        UtileriasUI.EjecutarUnaVez(btnMarcarCumplida, AddressOf MarcarCumplida)
     End Sub
 
     Private Sub cboTipoActuacion_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboTipoActuacion.SelectedIndexChanged
