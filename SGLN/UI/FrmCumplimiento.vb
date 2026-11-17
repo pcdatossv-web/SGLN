@@ -447,15 +447,15 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub btnGuardarOp_Click(sender As Object, e As EventArgs) Handles btnGuardarOp.Click
-        GuardarOperacion()
+        UtileriasUI.EjecutarUnaVez(btnGuardarOp, AddressOf GuardarOperacion)
     End Sub
 
     Private Sub btnReportarOp_Click(sender As Object, e As EventArgs) Handles btnReportarOp.Click
-        ReportarOperacion()
+        UtileriasUI.EjecutarUnaVez(btnReportarOp, AddressOf ReportarOperacion)
     End Sub
 
     Private Sub btnDescartarOp_Click(sender As Object, e As EventArgs) Handles btnDescartarOp.Click
-        DescartarOperacion()
+        UtileriasUI.EjecutarUnaVez(btnDescartarOp, AddressOf DescartarOperacion)
     End Sub
 
     Private Sub nudMonto_ValueChanged(sender As Object, e As EventArgs) Handles nudMonto.ValueChanged
@@ -480,11 +480,11 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub btnGuardarArco_Click(sender As Object, e As EventArgs) Handles btnGuardarArco.Click
-        GuardarSolicitud()
+        UtileriasUI.EjecutarUnaVez(btnGuardarArco, AddressOf GuardarSolicitud)
     End Sub
 
     Private Sub btnResponderArco_Click(sender As Object, e As EventArgs) Handles btnResponderArco.Click
-        ResponderSolicitud()
+        UtileriasUI.EjecutarUnaVez(btnResponderArco, AddressOf ResponderSolicitud)
     End Sub
 
     Private Sub dtpFechaSolicitud_ValueChanged(sender As Object, e As EventArgs) Handles dtpFechaSolicitud.ValueChanged
