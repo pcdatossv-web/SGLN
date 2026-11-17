@@ -2790,6 +2790,18 @@ Module PruebaFuncional
         Verificar("La bitácora se exporta a CSV",
                   File.Exists(rutaCsv) AndAlso New FileInfo(rutaCsv).Length > 0)
 
+        Dim tablaCsvFormula As New DataTable()
+        tablaCsvFormula.Columns.Add("Texto", GetType(String))
+        tablaCsvFormula.Columns.Add("Importe", GetType(Decimal))
+        tablaCsvFormula.Rows.Add("=HYPERLINK(""https://ejemplo.invalid"",""Abrir"")", -10D)
+        Dim rutaCsvFormula As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_seguro.csv")
+        UtileriasUI.ExportarCsv(tablaCsvFormula, rutaCsvFormula)
+        Dim contenidoCsvFormula As String = File.ReadAllText(rutaCsvFormula, Encoding.UTF8)
+        Verificar("La exportación CSV neutraliza fórmulas en campos de texto y conserva números negativos",
+                  contenidoCsvFormula.Contains("'=HYPERLINK") AndAlso
+                  contenidoCsvFormula.Contains("-10") AndAlso
+                  Not contenidoCsvFormula.Contains("'-10"))
+
         ' ---------- 11. Configuración, feriados y respaldo ----------
         Console.WriteLine()
         Console.WriteLine("-- 11. Configuración, feriados y respaldo")
