@@ -235,7 +235,11 @@ Public Class ConfiguracionRepositorio
             carpetaConfigurada = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, carpetaConfigurada)
         End If
         carpetaConfigurada = Path.GetFullPath(carpetaConfigurada)
-        If Not String.Equals(Path.GetFullPath(carpetaDestino), carpetaConfigurada,
+        Dim destinoNormalizado As String = Path.GetFullPath(carpetaDestino).TrimEnd(
+            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        Dim carpetaNormalizada As String = carpetaConfigurada.TrimEnd(
+            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        If Not String.Equals(destinoNormalizado, carpetaNormalizada,
                              StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("El respaldo solo puede escribirse en la carpeta configurada.")
         End If
