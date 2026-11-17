@@ -63,6 +63,8 @@ jobs:
           $triggersSql = Get-Content 'SGLN\\Scripts\\Triggers_MySQL.sql' -Raw
           $privilegiosSql = Get-Content 'SGLN\\Scripts\\Privilegios_Minimos.sql' -Raw
           $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
+          $permisosSource = Get-Content 'SGLN\\Servicios\\Permisos.vb' -Raw
+          $rolRepo = Get-Content 'SGLN\\Datos\\Repositorios\\RolRepositorio.vb' -Raw
           $documentoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\DocumentoRepositorio.vb' -Raw
           $clienteRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ClienteRepositorio.vb' -Raw
           $entidadRepo = Get-Content 'SGLN\\Datos\\Repositorios\\EntidadRepositorio.vb' -Raw
@@ -188,8 +190,14 @@ jobs:
             throw 'Las claves nuevas deben tener un límite máximo aplicado en la capa de seguridad.'
           }
           if ($usuarioRepo -notmatch 'usuario.Length > 50' -or
+              $usuarioRepo -notmatch 'PatronUsuario.IsMatch\(usuario\)' -or
               $usuarioRepo -notmatch 'clave.Length > 128') {
-            throw 'El repositorio de autenticación debe limitar entradas antes de consultar la base.'
+            throw 'El repositorio de autenticación debe limitar y validar entradas antes de consultar la base.'
+          }
+          if ($permisosSource -notmatch 'CargarPermisosDeRol\(idRol\)' -or
+              $permisosSource -match 'PermisosDeRol\(idRol\)' -or
+              $rolRepo -notmatch 'Friend Function CargarPermisosDeRol') {
+            throw 'La carga interna de permisos no debe volver a entrar en TieneAcceso y provocar recursión.'
           }
           if ($calculadoraDias -notmatch 'MaxDiasHabiles' -or
               $calculadoraDias -notmatch 'MaxRangoConteoDias' -or
