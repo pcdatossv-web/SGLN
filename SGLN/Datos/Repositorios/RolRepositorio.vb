@@ -49,6 +49,15 @@ Public Class RolRepositorio
 
     Public Function PermisosDeRol(idRol As Integer) As DataTable
         If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
+        Return CargarPermisosDeRol(idRol)
+    End Function
+
+    ''' <summary>
+    ''' Lectura interna usada durante la carga de la sesión. No puede llamar a
+    ''' TieneAcceso: esa validación vuelve a cargar los permisos y provocaría
+    ''' recursión. Permisos.Cargar controla el momento y el identificador del rol.
+    ''' </summary>
+    Friend Function CargarPermisosDeRol(idRol As Integer) As DataTable
         If idRol <= 0 Then Return New DataTable()
         Return Consultar(
             "SELECT Codigo FROM Rol_Permiso WHERE ID_Rol = @rol",
