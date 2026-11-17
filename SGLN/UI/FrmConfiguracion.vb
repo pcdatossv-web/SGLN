@@ -1,4 +1,5 @@
 Imports System
+Imports System.Threading.Tasks
 Imports System.Data
 Imports System.Diagnostics
 Imports System.Drawing
@@ -7,6 +8,7 @@ Imports System.Windows.Forms
 Public Class FrmConfiguracion
 
     Private ReadOnly _servicio As New ServicioConfiguracion()
+    Private _respaldando As Boolean
     Private _cargando As Boolean
 
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -200,24 +202,42 @@ Public Class FrmConfiguracion
     ' Respaldos
     ' ------------------------------------------------------------------
 
-    Private Sub Respaldar()
+    Private Async Sub Respaldar()
+        If _respaldando Then Return
         If Not Permisos.ExigirAccion("config.respaldos") Then Return
 
         If Not UtileriasUI.Confirmar(
             "¿Crear un respaldo completo de la base de datos en la carpeta configurada?") Then Return
 
+        _respaldando = True
+        btnRespaldar.Enabled = False
         Cursor = Cursors.WaitCursor
         lblResultadoRespaldo.ForeColor = Color.DimGray
-        lblResultadoRespaldo.Text = "Creando respaldo..."
-        Application.DoEvents()
+        lblResultadoRespaldo.Text = "Creando respaldo. Puede tardar varios minutos..."
 
         Try
-            Dim respuesta As Respuesta = _servicio.Respaldar()
+            ' El proceso de mysqldump y la escritura del archivo no deben
+            ' bloquear la interfaz ni permitir que se inicie otro respaldo.
+            Dim respuesta As Respuesta = Await Task.Run(Function() _servicio.Respaldar())
             lblResultadoRespaldo.ForeColor = If(respuesta.Exito, Color.ForestGreen, Color.Firebrick)
             lblResultadoRespaldo.Text = respuesta.Mensaje
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - interfaz de respaldo", ex)
+            lblResultadoRespaldo.ForeColor = Color.Firebrick
+            lblResultadoRespaldo.Text = "No se pudo completar el respaldo. Revise el registro local de errores."
         Finally
-            Cursor = Cursors.Default
+            _respaldando = False
+            If Not IsDisposed Then
+                btnRespaldar.Enabled = True
+                Cursor = Cursors.Default
+            End If
         End Try
+    End Sub
+
+    Private Sub FrmConfiguracion_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        If Not _respaldando Then Return
+        e.Cancel = True
+        MostrarMensaje("Espere a que finalice el respaldo antes de cerrar esta ventana.", False)
     End Sub
 
     Private Sub AbrirCarpetaRespaldos()
