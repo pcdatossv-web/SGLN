@@ -151,6 +151,10 @@ Public Class FrmRoles
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
+        UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf GuardarRol)
+    End Sub
+
+    Private Sub GuardarRol()
         If Not Permisos.ExigirAccion("config.roles") Then Return
         Try
 
