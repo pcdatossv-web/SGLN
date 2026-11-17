@@ -22,12 +22,20 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Public Function Obtener(clave As String) As String
-        If Not (Permisos.TieneAcceso("config.ver") OrElse Permisos.TieneAcceso("config.respaldos")) Then Return ""
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 100 Then Return ""
+
+        Dim claveNormalizada As String = clave.Trim()
+        Dim puedeLeer As Boolean = Permisos.TieneAcceso("config.ver")
+        If Not puedeLeer AndAlso
+           String.Equals(claveNormalizada, "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
+            puedeLeer = Permisos.TieneAcceso("config.respaldos")
+        End If
+        If Not puedeLeer Then Return ""
+
         Dim valor As Object = Escalar(Of String)(
             "SELECT Valor FROM Configuracion WHERE Clave = @clave",
             Sub(comando As MySqlCommand)
-                Parametro(comando, "@clave", clave)
+                Parametro(comando, "@clave", claveNormalizada)
             End Sub)
         If valor Is Nothing Then Return ""
         Return Convert.ToString(valor)
