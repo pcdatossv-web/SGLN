@@ -103,6 +103,10 @@ jobs:
               -not $configRepo.Contains('If Not puedeLeer Then Return ""')) {
             throw 'Faltan las comprobaciones de permisos por clave en el repositorio de configuración.'
           }
+          if ($configRepo -notmatch 'usuario.Any\(Function\(caracter As Char\) Char.IsControl\(caracter\)\)' -or
+              $configRepo -notmatch 'clave.Any\(Function\(caracter As Char\) Char.IsControl\(caracter\)\)') {
+            throw 'Las credenciales del archivo de opciones de mysqldump deben rechazar caracteres de control.'
+          }
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
