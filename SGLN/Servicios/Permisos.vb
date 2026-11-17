@@ -119,7 +119,9 @@ Public NotInheritable Class Permisos
             Cargar(estado.IDRol, estado.RolProtegido)
             Return Puede(codigo)
         Catch ex As Exception
-            ' Si no se puede comprobar la sesión, se deniega la operación.
+            ' Si falla la revalidación, retirar también los permisos en memoria:
+            ' no dejar menús ni comprobaciones locales usando una sesión obsoleta.
+            Limpiar()
             RegistroErrores.Escribir("Permisos - validar sesión", ex)
             Return False
         End Try
