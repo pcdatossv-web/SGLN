@@ -35,6 +35,7 @@ Public Class ServicioPlazos
         If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Return Respuesta.Fallo("No tiene permiso para confirmar plazos.")
 
         If actuacion Is Nothing Then Return Respuesta.Fallo("Los datos de la actuación no son válidos.")
+        If actuacion.ID < 0 Then Return Respuesta.Fallo("El identificador de la actuación no es válido.")
         If actuacion.IDCaso <= 0 Then Return Respuesta.Fallo("Seleccione un caso.")
         If actuacion.IDTipoActuacion <= 0 Then Return Respuesta.Fallo("Seleccione el tipo de actuación.")
         If actuacion.PlazoLegalDias <= 0 Then Return Respuesta.Fallo("El plazo legal debe ser mayor que cero.")
