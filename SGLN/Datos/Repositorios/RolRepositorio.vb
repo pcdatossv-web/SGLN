@@ -144,6 +144,10 @@ Public Class RolRepositorio
                             "SELECT ID FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
                             Parametro(comandoExiste, "@id", id)
                             If comandoExiste.ExecuteScalar() Is Nothing Then
+                                ' Cerrar explícitamente la transacción antes de
+                                ' salir: no dejar la reversión dependiendo de
+                                ' la implementación de Dispose del proveedor.
+                                Revertir(transaccion)
                                 Return Respuesta.Fallo("El rol ya no existe.")
                             End If
                         End Using
