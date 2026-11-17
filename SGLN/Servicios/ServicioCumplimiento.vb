@@ -239,6 +239,7 @@ Public Class ServicioCumplimiento
     Public Function GuardarSolicitud(solicitud As SolicitudArco) As Respuesta
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para gestionar solicitudes ARCO.")
         If solicitud Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la solicitud.")
+        If solicitud.ID < 0 Then Return Respuesta.Fallo("El identificador de la solicitud ARCO no es válido.")
         If If(solicitud.Detalle, "").Length > 1000 Then Return Respuesta.Fallo("El detalle no puede superar 1000 caracteres.")
 
         If solicitud.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente.")
