@@ -53,7 +53,9 @@ Public NotInheritable Class Permisos
 
         If idRol > 0 Then
             Try
-                Dim tabla As DataTable = New RolRepositorio().PermisosDeRol(idRol)
+                ' La carga de permisos es parte de la autenticación. Debe usar
+                ' la lectura interna sin volver a entrar en TieneAcceso.
+                Dim tabla As DataTable = New RolRepositorio().CargarPermisosDeRol(idRol)
                 For Each fila As DataRow In tabla.Rows
                     Dim codigo As String = Convert.ToString(fila("Codigo"))
                     If Not String.IsNullOrWhiteSpace(codigo) Then permisosNuevos.Add(codigo.Trim())
