@@ -683,7 +683,7 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnGenerarIndice_Click(sender As Object, e As EventArgs) Handles btnGenerarIndice.Click
-        GenerarIndice()
+        UtileriasUI.EjecutarUnaVez(btnGenerarIndice, AddressOf GenerarIndice)
     End Sub
 
     Private Sub btnExportarIndice_Click(sender As Object, e As EventArgs) Handles btnExportarIndice.Click
