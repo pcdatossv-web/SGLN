@@ -107,6 +107,11 @@ jobs:
               $configRepo -notmatch 'clave.Any\(Function\(caracter As Char\) Char.IsControl\(caracter\)\)') {
             throw 'Las credenciales del archivo de opciones de mysqldump deben rechazar caracteres de control.'
           }
+          if ($configRepo -notmatch 'ValidarCarpetaSinEnlaces\(carpetaConfigurada\)' -or
+              $configRepo -notmatch 'File.Move\(temporalSalida, destinoFinal\)' -or
+              $configRepo -match 'File.Replace\(temporalSalida') {
+            throw 'El repositorio de respaldos debe validar la carpeta y nunca sobrescribir un archivo existente.'
+          }
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
