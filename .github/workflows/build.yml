@@ -98,8 +98,10 @@ jobs:
               -not $configRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $configRepo.Contains('Permisos.TieneAcceso("config.feriados")') -or
               -not $configRepo.Contains('Permisos.TieneAcceso("config.seguridad")') -or
-              -not $configRepo.Contains('Permisos.TieneAcceso("config.respaldos")')) {
-            throw 'Faltan las comprobaciones de permisos en el repositorio de configuración.'
+              -not $configRepo.Contains('Permisos.TieneAcceso("config.respaldos")') -or
+              -not $configRepo.Contains('String.Equals(claveNormalizada, "Carpeta_Respaldos"') -or
+              -not $configRepo.Contains('If Not puedeLeer Then Return ""')) {
+            throw 'Faltan las comprobaciones de permisos por clave en el repositorio de configuración.'
           }
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
