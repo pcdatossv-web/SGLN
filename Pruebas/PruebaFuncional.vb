@@ -695,6 +695,11 @@ Module PruebaFuncional
         Verificar("El catálogo no permite listar ni modificar configuración sin permiso",
                   catalogoConfigPrueba.ListarConfig().Rows.Count = 0 AndAlso
                   Not catalogoConfigPrueba.GuardarConfig("Prueba_SinPermiso", "No debe guardarse").Exito)
+        Verificar("El repositorio de catálogos bloquea lecturas directas de juzgados, actuaciones y feriados",
+                  catalogoConfigPrueba.Juzgados().Rows.Count = 0 AndAlso
+                  catalogoConfigPrueba.TiposActuacion().Rows.Count = 0 AndAlso
+                  catalogoConfigPrueba.Feriados().Rows.Count = 0 AndAlso
+                  catalogoConfigPrueba.FechasFeriadas().Count = 0)
         Verificar("Los parámetros internos de cumplimiento y protocolo se ocultan sin permiso de módulo",
                   catalogoConfigPrueba.ObtenerConfig("Umbral_Efectivo") = "" AndAlso
                   catalogoConfigPrueba.ObtenerConfig("Protocolo_Dias_Entrega") = "")

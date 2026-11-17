@@ -10,22 +10,32 @@ Public Class CatalogoRepositorio
     Inherits RepositorioBase
 
     Public Function Juzgados() As DataTable
+        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' (', Materia, ')') AS Nombre FROM Juzgados " &
             "WHERE Activo = 1 ORDER BY Nombre")
     End Function
 
     Public Function TiposActuacion() As DataTable
+        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' - ', Plazo_Dias_Default, ' días') AS Nombre, " &
             "Plazo_Dias_Default FROM Tipos_Actuacion WHERE Activo = 1 ORDER BY Nombre")
     End Function
 
     Public Function Feriados() As DataTable
+        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 
     Public Function FechasFeriadas() As List(Of Date)
+        Dim puedeConsultar As Boolean =
+            Permisos.TieneAcceso("casos.confirmar_plazo") OrElse
+            Permisos.TieneAcceso("protocolo.ver") OrElse
+            Permisos.TieneAcceso("protocolo.entregar") OrElse
+            Permisos.TieneAcceso("protocolo.gestionar")
+        If Not puedeConsultar Then Return New List(Of Date)()
+
         Dim fechas As New List(Of Date)()
         Dim tabla As DataTable = Consultar("SELECT Fecha FROM Feriados")
         For Each fila As DataRow In tabla.Rows
