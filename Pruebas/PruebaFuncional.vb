@@ -99,6 +99,19 @@ Module PruebaFuncional
 
         ConfiguracionConexion.Inicializar(True)
 
+        ' El identificador de acceso debe cumplir el mismo formato en la capa
+        ' de datos que en el alta de usuarios; las entradas inválidas no deben
+        ' llegar a consultar Usuarios.
+        Dim loginUsuarioMalformado As UsuarioSesion =
+            New UsuarioRepositorio().Autenticar("usuario con espacios", "ClavePrueba99!")
+        Verificar("El login rechaza nombres de usuario con espacios", loginUsuarioMalformado Is Nothing)
+        Dim loginUsuarioCaracterInvalido As UsuarioSesion =
+            New UsuarioRepositorio().Autenticar("usuario;DROP", "ClavePrueba99!")
+        Verificar("El login rechaza caracteres fuera del formato permitido", loginUsuarioCaracterInvalido Is Nothing)
+        Dim loginClaveExcesiva As UsuarioSesion =
+            New UsuarioRepositorio().Autenticar("usuario.valido", New String("A"c, 129))
+        Verificar("El login rechaza claves mayores de 128 caracteres", loginClaveExcesiva Is Nothing)
+
         Sesion.Limpiar()
         Dim operacionSinSesion As Respuesta = New ServicioUsuarios().Desactivar(1)
         Verificar("La capa de servicios deniega operaciones sin sesión autenticada",
