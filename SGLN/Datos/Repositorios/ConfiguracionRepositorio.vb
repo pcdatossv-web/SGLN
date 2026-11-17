@@ -226,7 +226,29 @@ Public Class ConfiguracionRepositorio
         Dim destinoFinal As String = Path.GetFullPath(rutaDestino)
         Dim carpetaDestino As String = Path.GetDirectoryName(destinoFinal)
         If String.IsNullOrWhiteSpace(carpetaDestino) Then Throw New ArgumentException("La ruta del respaldo no es válida.")
-        Directory.CreateDirectory(carpetaDestino)
+
+        ' El repositorio vuelve a imponer el destino autorizado: no basta con
+        ' confiar en que el servicio o la interfaz le entreguen una ruta segura.
+        Dim carpetaConfigurada As String = Obtener("Carpeta_Respaldos")
+        If String.IsNullOrWhiteSpace(carpetaConfigurada) Then carpetaConfigurada = "Respaldos"
+        If Not Path.IsPathRooted(carpetaConfigurada) Then
+            carpetaConfigurada = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, carpetaConfigurada)
+        End If
+        carpetaConfigurada = Path.GetFullPath(carpetaConfigurada)
+        If Not String.Equals(Path.GetFullPath(carpetaDestino), carpetaConfigurada,
+                             StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("El respaldo solo puede escribirse en la carpeta configurada.")
+        End If
+        If Not String.Equals(Path.GetExtension(destinoFinal), ".sql", StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("El archivo de respaldo debe tener extensión .sql.")
+        End If
+        ValidarCarpetaSinEnlaces(carpetaConfigurada)
+        Directory.CreateDirectory(carpetaConfigurada)
+        ValidarCarpetaSinEnlaces(carpetaConfigurada)
+        If File.Exists(destinoFinal) Then
+            Throw New IOException("El archivo de destino ya existe; no se sobrescribirá un respaldo anterior.")
+        End If
+
         Dim temporalSalida As String = destinoFinal & "." & Guid.NewGuid().ToString("N") & ".tmp"
 
         Try
@@ -264,15 +286,13 @@ Public Class ConfiguracionRepositorio
 
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
             ValidarArchivoRespaldo(temporalSalida, baseDatos)
+            ' Revalidar inmediatamente antes del movimiento final y crear el
+            ' destino sin reemplazar archivos existentes (operación no destructiva).
+            ValidarCarpetaSinEnlaces(carpetaConfigurada)
             If File.Exists(destinoFinal) Then
-                ' También se protege el destino existente antes del reemplazo:
-                ' File.Replace puede conservar atributos/ACL del archivo anterior.
-                File.SetAccessControl(destinoFinal, CrearSeguridadArchivoPrivado())
-                ' Reemplazo atómico: si falla, el respaldo anterior permanece intacto.
-                File.Replace(temporalSalida, destinoFinal, Nothing)
-            Else
-                File.Move(temporalSalida, destinoFinal)
+                Throw New IOException("El archivo de destino apareció durante el respaldo; no se sobrescribió.")
             End If
+            File.Move(temporalSalida, destinoFinal)
         Finally
             ' Cada archivo se limpia por separado: un fallo al borrar uno no
             ' debe impedir intentar eliminar el otro ni ocultar el error original.
@@ -290,6 +310,36 @@ Public Class ConfiguracionRepositorio
         End Try
 
         AuditarObligatorio("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+    End Sub
+
+    ''' <summary>
+    ''' Rechaza puntos de reanálisis en todos los segmentos de la carpeta
+    ''' autorizada, incluso cuando se invoca directamente el repositorio.
+    ''' </summary>
+    Private Shared Sub ValidarCarpetaSinEnlaces(rutaCompleta As String)
+        Dim raiz As String = Path.GetPathRoot(rutaCompleta)
+        If String.IsNullOrWhiteSpace(raiz) Then
+            Throw New InvalidOperationException("La carpeta de respaldos no tiene una raíz válida.")
+        End If
+        If String.Equals(rutaCompleta.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                         raiz.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                         StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException("No se permite usar la raíz de una unidad como carpeta de respaldos.")
+        End If
+
+        Dim relativo As String = rutaCompleta.Substring(raiz.Length)
+        Dim segmentos As String() = relativo.Split(
+            New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar},
+            StringSplitOptions.RemoveEmptyEntries)
+        Dim actual As String = raiz
+        For Each segmento As String In segmentos
+            actual = Path.Combine(actual, segmento)
+            If Directory.Exists(actual) OrElse File.Exists(actual) Then
+                If (File.GetAttributes(actual) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+                    Throw New InvalidOperationException("La ruta de respaldos contiene un enlace simbólico o punto de reanálisis.")
+                End If
+            End If
+        Next
     End Sub
 
     ''' <summary>
