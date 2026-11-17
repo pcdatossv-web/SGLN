@@ -161,7 +161,7 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
-        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf DesactivarUsuario)
+        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf DesactivarUsuario, Function() _idSeleccionado > 0 AndAlso chkActivo.Checked)
     End Sub
 
     Private Sub DesactivarUsuario()
@@ -189,7 +189,7 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
-        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarUsuario)
+        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarUsuario, Function() _idSeleccionado > 0 AndAlso _idSeleccionado <> Sesion.UsuarioActual.ID AndAlso EsAdministradorActual())
     End Sub
 
     Private Sub EliminarUsuario()
