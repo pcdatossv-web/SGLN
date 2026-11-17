@@ -1298,6 +1298,12 @@ Module PruebaFuncional
         Verificar("El repositorio de clientes rechaza directamente nombres obligatorios vacíos",
                   clienteDirectoInvalidoRechazado)
 
+        Dim clienteIdNegativo As Respuesta = clientes.Guardar(New Cliente With {
+            .ID = -1, .Nombres = "Nombre", .Apellidos = "Apellido"}, Nothing)
+        Verificar("El servicio de clientes rechaza identificadores negativos",
+                  Not clienteIdNegativo.Exito AndAlso
+                  clienteIdNegativo.Mensaje.IndexOf("identificador", StringComparison.OrdinalIgnoreCase) >= 0)
+
         Dim idCliente As Integer = 0
         Dim rCliente As Respuesta = clientes.Guardar(cliente, perfil)
         Verificar("Guardar cliente válido", rCliente.Exito, rCliente.Mensaje)
@@ -1488,6 +1494,11 @@ Module PruebaFuncional
             .NRC = "123456-7",
             .Domicilio = "Torre Cuscatlán, San Salvador"
         }
+        Dim entidadIdNegativo As Respuesta = entidades.Guardar(New EntidadLegal With {
+            .ID = -1, .RazonSocial = "Entidad de prueba"}, Nothing)
+        Verificar("El servicio de entidades rechaza identificadores negativos",
+                  Not entidadIdNegativo.Exito AndAlso
+                  entidadIdNegativo.Mensaje.IndexOf("identificador", StringComparison.OrdinalIgnoreCase) >= 0)
         Dim rEntidad As Respuesta = entidades.Guardar(entidad, New PerfilLdaft With {.NivelRiesgo = "Bajo"})
         Verificar("Guardar entidad válida con perfil", rEntidad.Exito, rEntidad.Mensaje)
         Dim idEntidad As Integer = 0
