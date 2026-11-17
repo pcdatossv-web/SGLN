@@ -258,11 +258,11 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub btnImportar_Click(sender As Object, e As EventArgs) Handles btnImportar.Click
-        Importar()
+        UtileriasUI.EjecutarUnaVez(btnImportar, AddressOf Importar)
     End Sub
 
     Private Sub btnActualizar_Click(sender As Object, e As EventArgs) Handles btnActualizar.Click
-        ActualizarMetadatos()
+        UtileriasUI.EjecutarUnaVez(btnActualizar, AddressOf ActualizarMetadatos)
     End Sub
 
     Private Sub btnAbrir_Click(sender As Object, e As EventArgs) Handles btnAbrir.Click
@@ -270,7 +270,7 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub btnVerificar_Click(sender As Object, e As EventArgs) Handles btnVerificar.Click
-        VerificarIntegridad()
+        UtileriasUI.EjecutarUnaVez(btnVerificar, AddressOf VerificarIntegridad)
     End Sub
 
     Private Sub btnProcesarIA_Click(sender As Object, e As EventArgs) Handles btnProcesarIA.Click
