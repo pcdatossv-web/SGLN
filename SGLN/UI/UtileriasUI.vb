@@ -12,6 +12,21 @@ Imports Microsoft.VisualBasic
 ''' </summary>
 Public Module UtileriasUI
 
+    ''' <summary>
+    ''' Evita que un doble clic o clics repetidos ejecuten dos veces una
+    ''' operación de escritura mientras el primer evento sigue procesándose.
+    ''' </summary>
+    Public Sub EjecutarUnaVez(boton As Button, accion As Action)
+        If boton Is Nothing OrElse boton.IsDisposed OrElse accion Is Nothing OrElse Not boton.Enabled Then Return
+
+        boton.Enabled = False
+        Try
+            accion.Invoke()
+        Finally
+            If Not boton.IsDisposed Then boton.Enabled = True
+        End Try
+    End Sub
+
     Public Sub ConfigurarGrid(grid As DataGridView)
         grid.AutoGenerateColumns = True
         grid.AllowUserToAddRows = False
