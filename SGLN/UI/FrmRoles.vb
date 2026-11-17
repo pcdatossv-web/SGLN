@@ -181,6 +181,10 @@ Public Class FrmRoles
     End Sub
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
+        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarRol)
+    End Sub
+
+    Private Sub EliminarRol()
         If Not Permisos.ExigirAccion("config.roles") Then Return
         Try
 
