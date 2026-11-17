@@ -91,6 +91,10 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
+        UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf GuardarUsuario)
+    End Sub
+
+    Private Sub GuardarUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
