@@ -87,7 +87,7 @@ Public Class UsuarioRepositorio
             .IDRol = Convert.ToInt32(fila("ID_Rol")),
             .Rol = Convert.ToString(fila("Rol")),
             .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1,
-            .DebeCambiarClave = SeguridadClave.EsClaveInicial(hash, salt)
+            .DebeCambiarClave = SeguridadClave.EsClaveInicial(clave)
         }
 
         Try
