@@ -128,6 +128,10 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnRestablecer_Click(sender As Object, e As EventArgs) Handles btnRestablecer.Click
+        UtileriasUI.EjecutarUnaVez(btnRestablecer, AddressOf RestablecerClaveUsuario)
+    End Sub
+
+    Private Sub RestablecerClaveUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
 
