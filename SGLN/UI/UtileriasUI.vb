@@ -16,14 +16,21 @@ Public Module UtileriasUI
     ''' Evita que un doble clic o clics repetidos ejecuten dos veces una
     ''' operación de escritura mientras el primer evento sigue procesándose.
     ''' </summary>
-    Public Sub EjecutarUnaVez(boton As Button, accion As Action)
+    Public Sub EjecutarUnaVez(boton As Button, accion As Action,
+                              Optional puedeReactivar As Func(Of Boolean) = Nothing)
         If boton Is Nothing OrElse boton.IsDisposed OrElse accion Is Nothing OrElse Not boton.Enabled Then Return
 
         boton.Enabled = False
         Try
             accion.Invoke()
         Finally
-            If Not boton.IsDisposed Then boton.Enabled = True
+            ' Algunas acciones dejan el botón deshabilitado deliberadamente
+            ' (por ejemplo, tras limpiar una selección eliminada). El predicado
+            ' permite conservar ese estado funcional al finalizar el bloqueo.
+            If Not boton.IsDisposed AndAlso
+               (puedeReactivar Is Nothing OrElse puedeReactivar()) Then
+                boton.Enabled = True
+            End If
         End Try
     End Sub
 
