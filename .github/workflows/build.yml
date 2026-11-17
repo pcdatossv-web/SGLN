@@ -195,7 +195,7 @@ jobs:
             throw 'El repositorio de autenticación debe limitar y validar entradas antes de consultar la base.'
           }
           if ($permisosSource -notmatch 'CargarPermisosDeRol\(idRol\)' -or
-              $permisosSource -match 'PermisosDeRol\(idRol\)' -or
+              $permisosSource -match '\.PermisosDeRol\(idRol\)' -or
               $rolRepo -notmatch 'Friend Function CargarPermisosDeRol') {
             throw 'La carga interna de permisos no debe volver a entrar en TieneAcceso y provocar recursión.'
           }
