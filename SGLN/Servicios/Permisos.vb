@@ -48,7 +48,7 @@ Public NotInheritable Class Permisos
     ''' protegido (Administrador) tiene acceso total aunque su matriz esté
     ''' incompleta: así nunca se queda fuera del sistema.
     ''' </summary>
-    Public Shared Sub Cargar(idRol As Integer, esRolProtegido As Boolean)
+    Friend Shared Sub Cargar(idRol As Integer, esRolProtegido As Boolean)
         Dim permisosNuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
         If idRol > 0 Then
