@@ -23,6 +23,7 @@ Public Class ServicioEntidades
         If Not Permisos.TieneAcceso("entidades.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar entidades.")
 
         If entidad Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la entidad.")
+        If entidad.ID < 0 Then Return Respuesta.Fallo("El identificador de la entidad no es válido.")
         If String.IsNullOrWhiteSpace(entidad.RazonSocial) Then
             Return Respuesta.Fallo("La razón social es obligatoria.")
         End If
