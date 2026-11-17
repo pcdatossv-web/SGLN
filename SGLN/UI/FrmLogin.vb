@@ -46,7 +46,7 @@ Public Class FrmLogin
     End Sub
 
     Private Sub btnIngresar_Click(sender As Object, e As EventArgs) Handles btnIngresar.Click
-        Ingresar()
+        UtileriasUI.EjecutarUnaVez(btnIngresar, AddressOf Ingresar)
     End Sub
 
     Private Sub Ingresar()
