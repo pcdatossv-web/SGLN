@@ -54,21 +54,17 @@ Public NotInheritable Class Permisos
 
         If idRol > 0 Then
             Try
-                Dim repositorio As New RolRepositorio()
-                ' No confiar en el indicador recibido desde memoria: confirmar
-                ' en BD que el rol existe, sigue activo y está protegido.
-                accesoTotalNuevo = repositorio.RolProtegidoActivo(idRol)
-
-                ' La carga es parte de la autenticación y no debe volver a
-                ' entrar en TieneAcceso, lo que provocaría recursión.
-                If repositorio.RolActivo(idRol) Then
-                    Dim tabla As DataTable = repositorio.CargarPermisosDeRol(idRol)
+                ' Una sola consulta confirma rol activo, marca protegida y
+                ' permisos bajo la misma lectura de MySQL; evita inconsistencias
+                ' entre varias conexiones si el rol cambia durante la carga.
+                Dim tabla As DataTable = New RolRepositorio().CargarPermisosDeRol(idRol)
+                If tabla.Rows.Count > 0 Then
+                    accesoTotalNuevo = Convert.ToInt32(tabla.Rows(0)("Protegido")) = 1
                     For Each fila As DataRow In tabla.Rows
+                        If fila.IsNull("Codigo") Then Continue For
                         Dim codigo As String = Convert.ToString(fila("Codigo"))
                         If Not String.IsNullOrWhiteSpace(codigo) Then permisosNuevos.Add(codigo.Trim())
                     Next
-                Else
-                    accesoTotalNuevo = False
                 End If
             Catch ex As Exception
                 ' Si no se puede verificar el rol, no se concede acceso total.
