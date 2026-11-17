@@ -491,7 +491,10 @@ Module PruebaFuncional
             End If
         End If
 
-        Permisos.Cargar(idRolAbogado, False)
+        ' Aunque el llamador indique que el rol es protegido, el permiso
+        ' total solo puede proceder de la marca vigente almacenada en MySQL.
+        Permisos.Cargar(idRolAbogado, True)
+        Verificar("Un indicador de rol protegido manipulado no concede acceso total", Not Permisos.AccesoTotal)
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
         Verificar("El rol Abogado no administra usuarios", Not Permisos.Puede("config.usuarios"))
         Verificar("El rol Abogado no administra roles", Not Permisos.Puede("config.roles"))

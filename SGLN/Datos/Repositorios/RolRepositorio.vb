@@ -66,6 +66,24 @@ Public Class RolRepositorio
             End Sub)
     End Function
 
+    Friend Function RolActivo(idRol As Integer) As Boolean
+        If idRol <= 0 Then Return False
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Roles WHERE ID = @rol AND Activo = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@rol", idRol)
+            End Sub) > 0
+    End Function
+
+    Friend Function RolProtegidoActivo(idRol As Integer) As Boolean
+        If idRol <= 0 Then Return False
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Roles WHERE ID = @rol AND Activo = 1 AND Protegido = 1",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@rol", idRol)
+            End Sub) > 0
+    End Function
+
     Public Function Crear(nombre As String, descripcion As String,
                           codigos As List(Of String)) As Respuesta
         If Not EsAdministradorAutenticado() Then

@@ -50,19 +50,30 @@ Public NotInheritable Class Permisos
     ''' </summary>
     Public Shared Sub Cargar(idRol As Integer, esRolProtegido As Boolean)
         Dim permisosNuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        Dim accesoTotalNuevo As Boolean = False
 
         If idRol > 0 Then
             Try
-                ' La carga de permisos es parte de la autenticación. Debe usar
-                ' la lectura interna sin volver a entrar en TieneAcceso.
-                Dim tabla As DataTable = New RolRepositorio().CargarPermisosDeRol(idRol)
-                For Each fila As DataRow In tabla.Rows
-                    Dim codigo As String = Convert.ToString(fila("Codigo"))
-                    If Not String.IsNullOrWhiteSpace(codigo) Then permisosNuevos.Add(codigo.Trim())
-                Next
+                Dim repositorio As New RolRepositorio()
+                ' No confiar en el indicador recibido desde memoria: confirmar
+                ' en BD que el rol existe, sigue activo y está protegido.
+                accesoTotalNuevo = repositorio.RolProtegidoActivo(idRol)
+
+                ' La carga es parte de la autenticación y no debe volver a
+                ' entrar en TieneAcceso, lo que provocaría recursión.
+                If repositorio.RolActivo(idRol) Then
+                    Dim tabla As DataTable = repositorio.CargarPermisosDeRol(idRol)
+                    For Each fila As DataRow In tabla.Rows
+                        Dim codigo As String = Convert.ToString(fila("Codigo"))
+                        If Not String.IsNullOrWhiteSpace(codigo) Then permisosNuevos.Add(codigo.Trim())
+                    Next
+                Else
+                    accesoTotalNuevo = False
+                End If
             Catch ex As Exception
-                ' Sin permisos cargados el usuario queda sin acceso, salvo el
-                ' rol protegido, que conserva su acceso total de emergencia.
+                ' Si no se puede verificar el rol, no se concede acceso total.
+                accesoTotalNuevo = False
+                permisosNuevos.Clear()
                 RegistroErrores.Escribir("Permisos - cargar", ex)
             End Try
         End If
@@ -74,7 +85,7 @@ Public NotInheritable Class Permisos
             For Each codigo As String In permisosNuevos
                 _activos.Add(codigo)
             Next
-            _accesoTotal = esRolProtegido
+            _accesoTotal = accesoTotalNuevo
         End SyncLock
     End Sub
 
