@@ -133,7 +133,12 @@ Public Module UtileriasUI
         For Each fila As DataRow In tabla.Rows
             Dim valores As New List(Of String)()
             For Each columna As DataColumn In tabla.Columns
-                valores.Add(ValorCsv(Convert.ToString(fila(columna))))
+                Dim valor As String = Convert.ToString(fila(columna))
+                ' Excel y otras hojas de cálculo pueden ejecutar fórmulas
+                ' introducidas en campos de texto al abrir un CSV. Anteponer
+                ' apóstrofo solo a columnas de texto evita la ejecución sin
+                ' convertir importes numéricos negativos en texto.
+                valores.Add(ValorCsv(valor, columna.DataType Is GetType(String)))
             Next
             contenido.AppendLine(String.Join(",", valores.ToArray()))
         Next
@@ -141,7 +146,14 @@ Public Module UtileriasUI
         File.WriteAllText(ruta, contenido.ToString(), Encoding.UTF8)
     End Sub
 
-    Private Function ValorCsv(valor As String) As String
+    Private Function ValorCsv(valor As String, Optional protegerFormula As Boolean = False) As String
+        If protegerFormula AndAlso Not String.IsNullOrEmpty(valor) Then
+            Dim significativo As String = valor.TrimStart()
+            If significativo.Length > 0 AndAlso
+               "=+-@".IndexOf(significativo(0)) >= 0 Then
+                valor = "'" & valor
+            End If
+        End If
         Return """" & valor.Replace("""", """""") & """"
     End Function
 
