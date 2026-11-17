@@ -1625,6 +1625,11 @@ Module PruebaFuncional
         Dim casos As New ServicioCasos()
         Verificar("El servicio de casos rechaza un objeto nulo sin excepción",
                   Not casos.Guardar(Nothing).Exito)
+        Dim casoIdNegativo As Respuesta = casos.Guardar(New Caso With {
+            .ID = -1, .IDCliente = idCliente, .NumeroExpediente = "ID-NEGATIVO",
+            .Materia = "Civil", .FechaApertura = Date.Today})
+        Verificar("El servicio de casos rechaza identificadores negativos",
+                  Not casoIdNegativo.Exito AndAlso casoIdNegativo.Mensaje.IndexOf("identificador", StringComparison.OrdinalIgnoreCase) >= 0)
         Verificar("El servicio de casos valida longitudes y fechas antes de guardar",
                   Not casos.Guardar(New Caso With {
                       .IDCliente = idCliente, .NumeroExpediente = New String("E"c, 81),
@@ -1652,6 +1657,18 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio de casos rechaza directamente expedientes fuera de longitud",
                   casoDirectoInvalidoRechazado)
+
+        Dim juzgadoNegativoRechazado As Boolean = False
+        Try
+            repositorioCasosDirecto.Insertar(New Caso With {
+                .IDCliente = idCliente, .IDJuzgado = -1,
+                .NumeroExpediente = "JUZGADO-NEGATIVO",
+                .Materia = "Civil", .Estado = "Activo", .FechaApertura = Date.Today})
+        Catch ex As ArgumentException
+            juzgadoNegativoRechazado = True
+        End Try
+        Verificar("El repositorio de casos rechaza identificadores negativos de juzgado",
+                  juzgadoNegativoRechazado)
 
         Dim casoDirectoFechaInvalidaRechazado As Boolean = False
         Try
