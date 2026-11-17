@@ -149,8 +149,9 @@ jobs:
           }
           $inicializador = Get-Content 'SGLN\\Datos\\InicializadorBD.vb' -Raw
           if ($inicializador -match 'SembrarPermisosAdicionales' -or
-              $inicializador -notmatch 'Codigo = ''config.editar''') {
-            throw 'La aplicación no debe modificar el catálogo de permisos; debe verificarlo al iniciar.'
+              $inicializador -notmatch 'Codigo = ''config.editar''' -or
+              -not $inicializador.Contains('Array.IndexOf(recursos, nombreRecurso)')) {
+            throw 'El inicializador debe verificar el catálogo sin modificarlo y localizar recursos sin abrir flujos innecesarios.'
           }
           if ($casoRepo -notmatch 'SELECT ID_Cliente, Numero_Expediente FROM Casos WHERE ID = @id FOR UPDATE' -or
               $casoRepo -notmatch 'Actuaciones_Procesales WHERE ID_Caso' -or
@@ -202,8 +203,10 @@ jobs:
               $protocoloRepoDatos -notmatch 'Permisos.TieneAcceso\("protocolo.testimonios"\)') {
             throw 'Los repositorios de clientes, entidades y casos deben validar permisos de lectura y escritura.'
           }
-          if ($seguridadClave -notmatch 'clave.Length > 128') {
-            throw 'Las claves nuevas deben tener un límite máximo aplicado en la capa de seguridad.'
+          if ($seguridadClave -notmatch 'clave.Length > 128' -or
+              $seguridadClave -notmatch 'EsClaveInicial\(claveAutenticada As String\)' -or
+              $usuarioRepo -notmatch 'EsClaveInicial\(clave\)') {
+            throw 'La seguridad de claves debe limitar entradas y detectar el primer ingreso sin repetir PBKDF2.'
           }
           if ($usuarioRepo -notmatch 'usuario.Length > 50' -or
               $usuarioRepo -notmatch 'PatronUsuario.IsMatch\(usuario\)' -or
