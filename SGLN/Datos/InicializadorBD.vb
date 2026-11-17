@@ -75,9 +75,10 @@ Public Module InicializadorBD
     Private Function LeerRecurso(nombreRecurso As String) As String
         Dim ensamblado As Assembly = Assembly.GetExecutingAssembly()
 
-        If ensamblado.GetManifestResourceStream(nombreRecurso) Is Nothing Then
+        Dim recursos As String() = ensamblado.GetManifestResourceNames()
+        If Array.IndexOf(recursos, nombreRecurso) < 0 Then
             nombreRecurso = Array.Find(
-                ensamblado.GetManifestResourceNames(),
+                recursos,
                 Function(nombre As String) nombre.EndsWith("Esquema_MySQL.sql", StringComparison.OrdinalIgnoreCase))
         End If
 
