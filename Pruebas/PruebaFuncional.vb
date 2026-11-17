@@ -491,8 +491,11 @@ Module PruebaFuncional
             End If
         End If
 
-        ' Aunque el llamador indique que el rol es protegido, el permiso
-        ' total solo puede proceder de la marca vigente almacenada en MySQL.
+        ' El parámetro heredado no concede ni retira privilegios: MySQL es
+        ' la fuente de verdad para la marca protegida del rol.
+        Permisos.Cargar(idRolAdmin, False)
+        Verificar("El rol protegido vigente en MySQL conserva acceso total aunque el indicador recibido sea falso",
+                  Permisos.AccesoTotal)
         Permisos.Cargar(idRolAbogado, True)
         Verificar("Un indicador de rol protegido manipulado no concede acceso total", Not Permisos.AccesoTotal)
         Verificar("El rol Abogado puede ver casos", Permisos.Puede("casos.ver"))
