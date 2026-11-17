@@ -275,11 +275,11 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
-        Guardar()
+        UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf Guardar)
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
-        Desactivar()
+        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf Desactivar)
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
@@ -287,11 +287,11 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub btnAgregarRep_Click(sender As Object, e As EventArgs) Handles btnAgregarRep.Click
-        AgregarRepresentante()
+        UtileriasUI.EjecutarUnaVez(btnAgregarRep, AddressOf AgregarRepresentante)
     End Sub
 
     Private Sub btnQuitarRep_Click(sender As Object, e As EventArgs) Handles btnQuitarRep.Click
-        QuitarRepresentante()
+        UtileriasUI.EjecutarUnaVez(btnQuitarRep, AddressOf QuitarRepresentante)
     End Sub
 
     Private Sub cboNivelRiesgo_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboNivelRiesgo.SelectedIndexChanged
