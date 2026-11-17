@@ -45,8 +45,13 @@ Public Module SeguridadClave
         End Using
     End Function
 
-    Public Function EsClaveInicial(hashBase64 As String, saltBase64 As String) As Boolean
-        Return Verificar(ClaveInicialLegada, hashBase64, saltBase64)
+    ''' <summary>
+    ''' Debe llamarse únicamente después de verificar correctamente la clave
+    ''' introducida. Comparar el texto ya autenticado evita ejecutar PBKDF2
+    ''' una segunda vez solo para detectar la clave inicial.
+    ''' </summary>
+    Public Function EsClaveInicial(claveAutenticada As String) As Boolean
+        Return String.Equals(claveAutenticada, ClaveInicialLegada, StringComparison.Ordinal)
     End Function
 
     ''' <summary>
