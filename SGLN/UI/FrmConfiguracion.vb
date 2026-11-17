@@ -265,7 +265,7 @@ Public Class FrmConfiguracion
     End Sub
 
     Private Sub btnGuardarConfig_Click(sender As Object, e As EventArgs) Handles btnGuardarConfig.Click
-        GuardarConfiguracion()
+        UtileriasUI.EjecutarUnaVez(btnGuardarConfig, AddressOf GuardarConfiguracion)
     End Sub
 
     Private Sub btnNuevaClaveConfig_Click(sender As Object, e As EventArgs) Handles btnNuevaClaveConfig.Click
@@ -273,15 +273,15 @@ Public Class FrmConfiguracion
     End Sub
 
     Private Sub btnAgregarFeriado_Click(sender As Object, e As EventArgs) Handles btnAgregarFeriado.Click
-        AgregarFeriado()
+        UtileriasUI.EjecutarUnaVez(btnAgregarFeriado, AddressOf AgregarFeriado)
     End Sub
 
     Private Sub btnEliminarFeriado_Click(sender As Object, e As EventArgs) Handles btnEliminarFeriado.Click
-        EliminarFeriado()
+        UtileriasUI.EjecutarUnaVez(btnEliminarFeriado, AddressOf EliminarFeriado)
     End Sub
 
     Private Sub btnCambiarClave_Click(sender As Object, e As EventArgs) Handles btnCambiarClave.Click
-        CambiarClave()
+        UtileriasUI.EjecutarUnaVez(btnCambiarClave, AddressOf CambiarClave)
     End Sub
 
     Private Sub btnRespaldar_Click(sender As Object, e As EventArgs) Handles btnRespaldar.Click
