@@ -646,15 +646,15 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnGuardarLibro_Click(sender As Object, e As EventArgs) Handles btnGuardarLibro.Click
-        GuardarLibro()
+        UtileriasUI.EjecutarUnaVez(btnGuardarLibro, AddressOf GuardarLibro)
     End Sub
 
     Private Sub btnCerrarLibro_Click(sender As Object, e As EventArgs) Handles btnCerrarLibro.Click
-        CerrarLibro()
+        UtileriasUI.EjecutarUnaVez(btnCerrarLibro, AddressOf CerrarLibro)
     End Sub
 
     Private Sub btnEntregarLibro_Click(sender As Object, e As EventArgs) Handles btnEntregarLibro.Click
-        EntregarLibro()
+        UtileriasUI.EjecutarUnaVez(btnEntregarLibro, AddressOf EntregarLibro)
     End Sub
 
     Private Sub btnNuevoInstrumento_Click(sender As Object, e As EventArgs) Handles btnNuevoInstrumento.Click
@@ -663,23 +663,23 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnGuardarInstrumento_Click(sender As Object, e As EventArgs) Handles btnGuardarInstrumento.Click
-        GuardarInstrumento()
+        UtileriasUI.EjecutarUnaVez(btnGuardarInstrumento, AddressOf GuardarInstrumento)
     End Sub
 
     Private Sub btnAnularInstrumento_Click(sender As Object, e As EventArgs) Handles btnAnularInstrumento.Click
-        AnularInstrumento()
+        UtileriasUI.EjecutarUnaVez(btnAnularInstrumento, AddressOf AnularInstrumento)
     End Sub
 
     Private Sub btnAgregarComp_Click(sender As Object, e As EventArgs) Handles btnAgregarComp.Click
-        AgregarCompareciente()
+        UtileriasUI.EjecutarUnaVez(btnAgregarComp, AddressOf AgregarCompareciente)
     End Sub
 
     Private Sub btnQuitarComp_Click(sender As Object, e As EventArgs) Handles btnQuitarComp.Click
-        QuitarCompareciente()
+        UtileriasUI.EjecutarUnaVez(btnQuitarComp, AddressOf QuitarCompareciente)
     End Sub
 
     Private Sub btnExpedirTestimonio_Click(sender As Object, e As EventArgs) Handles btnExpedirTestimonio.Click
-        ExpedirTestimonio()
+        UtileriasUI.EjecutarUnaVez(btnExpedirTestimonio, AddressOf ExpedirTestimonio)
     End Sub
 
     Private Sub btnGenerarIndice_Click(sender As Object, e As EventArgs) Handles btnGenerarIndice.Click
