@@ -1780,6 +1780,13 @@ Module PruebaFuncional
             .PlazoLegalDias = 15,
             .Observaciones = "Notificación del traslado de la demanda"
         }
+        Dim actuacionIdNegativo As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .ID = -1, .IDCaso = idCaso,
+            .IDTipoActuacion = UtileriasUI.Entero(tipoContestacion, "ID"),
+            .FechaNotificacion = New Date(2026, 11, 6), .PlazoLegalDias = 5})
+        Verificar("El servicio de plazos rechaza identificadores negativos de actuación",
+                  Not actuacionIdNegativo.Exito AndAlso
+                  actuacionIdNegativo.Mensaje.IndexOf("identificador", StringComparison.OrdinalIgnoreCase) >= 0)
         Dim rPlazo As Respuesta = plazos.Confirmar(actuacion)
         Verificar("Confirmar plazo guarda la actuación", rPlazo.Exito, rPlazo.Mensaje)
         Dim idActuacion As Integer = actuacion.ID
