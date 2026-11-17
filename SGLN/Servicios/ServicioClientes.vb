@@ -22,6 +22,7 @@ Public Class ServicioClientes
     Public Function Guardar(cliente As Cliente, perfil As PerfilLdaft) As Respuesta
         If Not Permisos.TieneAcceso("clientes.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar clientes.")
         If cliente Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos del cliente.")
+        If cliente.ID < 0 Then Return Respuesta.Fallo("El identificador del cliente no es válido.")
 
         Dim errorValidacion As String = Validar(cliente, perfil)
         If errorValidacion <> "" Then Return Respuesta.Fallo(errorValidacion)
