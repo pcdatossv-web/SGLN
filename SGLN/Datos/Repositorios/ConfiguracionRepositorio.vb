@@ -329,6 +329,17 @@ Public Class ConfiguracionRepositorio
     ''' Si no se puede aplicar la protección, el respaldo se cancela.
     ''' </summary>
     Private Shared Sub EscribirCredencialesProtegidas(ruta As String, usuario As String, clave As String)
+        ' El archivo .cnf es un formato de opciones por líneas. Aunque los
+        ' valores se entrecomillan y escapan, nunca se admiten controles que
+        ' puedan introducir una segunda opción o truncar una credencial.
+        If String.IsNullOrWhiteSpace(usuario) OrElse
+           usuario.Any(Function(caracter As Char) Char.IsControl(caracter)) Then
+            Throw New InvalidOperationException("El usuario de respaldos contiene caracteres no permitidos.")
+        End If
+        If clave Is Nothing OrElse clave.Any(Function(caracter As Char) Char.IsControl(caracter)) Then
+            Throw New InvalidOperationException("La contraseña de respaldos contiene caracteres de control no permitidos.")
+        End If
+
         Dim seguridad As FileSecurity = CrearSeguridadArchivoPrivado()
 
         Using flujo As New FileStream(ruta, FileMode.CreateNew, FileSystemRights.FullControl,
