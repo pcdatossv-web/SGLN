@@ -21,8 +21,10 @@ Public Class UsuarioRepositorio
         ' Los límites se aplican también en el repositorio, no solo en los
         ' controles visuales. Evita consultas y derivaciones costosas con
         ' entradas desproporcionadas enviadas desde otros puntos de la app.
-        If String.IsNullOrWhiteSpace(usuario) OrElse usuario.Length > 50 OrElse
+        If String.IsNullOrWhiteSpace(usuario) OrElse Not PatronUsuario.IsMatch(usuario) OrElse
            String.IsNullOrEmpty(clave) OrElse clave.Length > 128 Then
+            ' Mantener un coste PBKDF2 similar incluso para identificadores mal
+            ' formados, sin consultar la base ni revelar si el usuario existe.
             SeguridadClave.Verificar("EntradaNoValida99!", HashTiempoConstante, SaltTiempoConstante)
             Return Nothing
         End If
