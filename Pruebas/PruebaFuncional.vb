@@ -2819,6 +2819,35 @@ Module PruebaFuncional
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Accion = 'RESPALDO' " &
                                    "AND Tabla_Afectada = 'BaseDatos'") > 0)
 
+        Dim repositorioRespaldoPrueba As New ConfiguracionRepositorio()
+        Dim carpetaRespaldoPrueba As String = seguridad.CarpetaRespaldos()
+        Dim rutaRespaldoFuera As String = Path.Combine(Path.GetTempPath(),
+            "SGLN_fuera_" & Guid.NewGuid().ToString("N") & ".sql")
+        Dim destinoFueraRechazado As Boolean = False
+        Try
+            repositorioRespaldoPrueba.RespaldarBaseDatos(rutaRespaldoFuera)
+        Catch ex As InvalidOperationException
+            destinoFueraRechazado = ex.Message.IndexOf("carpeta configurada", StringComparison.OrdinalIgnoreCase) >= 0
+        End Try
+        Verificar("El repositorio rechaza respaldos fuera de la carpeta autorizada", destinoFueraRechazado)
+
+        Dim rutaRespaldoExistente As String = Path.Combine(carpetaRespaldoPrueba,
+            "SGLN_no_sobrescribir_" & Guid.NewGuid().ToString("N") & ".sql")
+        Dim contenidoRespaldoOriginal As String = "RESPALDO ORIGINAL QUE NO DEBE REEMPLAZARSE"
+        Dim sobrescrituraRechazada As Boolean = False
+        Try
+            File.WriteAllText(rutaRespaldoExistente, contenidoRespaldoOriginal)
+            Try
+                repositorioRespaldoPrueba.RespaldarBaseDatos(rutaRespaldoExistente)
+            Catch ex As IOException
+                sobrescrituraRechazada = ex.Message.IndexOf("ya existe", StringComparison.OrdinalIgnoreCase) >= 0
+            End Try
+            Verificar("El repositorio no sobrescribe un respaldo existente",
+                      sobrescrituraRechazada AndAlso File.ReadAllText(rutaRespaldoExistente) = contenidoRespaldoOriginal)
+        Finally
+            If File.Exists(rutaRespaldoExistente) Then File.Delete(rutaRespaldoExistente)
+        End Try
+
         ' ---------- 12. IA/OCR sigue deshabilitado ----------
         Console.WriteLine()
         Console.WriteLine("-- 12. IA/OCR deshabilitado")
