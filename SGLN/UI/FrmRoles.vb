@@ -181,7 +181,7 @@ Public Class FrmRoles
     End Sub
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
-        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarRol)
+        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarRol, Function() _idSeleccionado > 0 AndAlso Not _esProtegido)
     End Sub
 
     Private Sub EliminarRol()
