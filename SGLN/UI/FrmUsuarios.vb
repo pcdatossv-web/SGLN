@@ -189,6 +189,10 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnEliminar_Click(sender As Object, e As EventArgs) Handles btnEliminar.Click
+        UtileriasUI.EjecutarUnaVez(btnEliminar, AddressOf EliminarUsuario)
+    End Sub
+
+    Private Sub EliminarUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
             If Not EsAdministradorActual() Then
