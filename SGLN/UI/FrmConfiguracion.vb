@@ -219,6 +219,8 @@ Public Class FrmConfiguracion
     End Sub
 
     Private Sub AbrirCarpetaRespaldos()
+        If Not Permisos.ExigirAccion("config.respaldos") Then Return
+
         Try
             Dim carpeta As String = _servicio.CarpetaRespaldos()
             If Not System.IO.Directory.Exists(carpeta) Then
