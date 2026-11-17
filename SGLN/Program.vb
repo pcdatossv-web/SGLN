@@ -122,9 +122,9 @@ Public Module Program
         MessageBox.Show(
             "No se pudo preparar la base de datos." & Environment.NewLine & Environment.NewLine &
             ex.Message & Environment.NewLine & Environment.NewLine &
-            "Verifique que el servicio MySQL80 esté iniciado, que el puerto 3306 esté abierto " &
-            "y que la configuración de conexión (registro de Windows) o App.config " &
-            "apunten al servidor correcto.",
+            "Verifique que el servicio MySQL esté iniciado en el servidor (Windows o Linux), " &
+            "que el puerto configurado sea accesible y que la configuración de conexión " &
+            "(registro de Windows o App.config) apunte al servidor y base de datos correctos.",
             "SGLN El Salvador", MessageBoxButtons.OK, MessageBoxIcon.Error)
     End Sub
 
