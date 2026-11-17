@@ -361,6 +361,9 @@ Module PruebaFuncional
                   usuarios.Autenticar("admin", New String("A"c, 129)) Is Nothing)
         Verificar("La clave inicial no puede reutilizarse como nueva",
                   SeguridadClave.ValidarClaveNuevaInicial("Admin123*") <> "")
+        Verificar("La detección de clave inicial usa la clave ya autenticada sin repetir PBKDF2",
+                  SeguridadClave.EsClaveInicial("Admin123*") AndAlso
+                  Not SeguridadClave.EsClaveInicial("OtraClaveSegura99!"))
         Verificar("La política común rechaza claves de 8 a 11 caracteres",
                   SeguridadClave.ValidarClaveNuevaInicial("Prueba123*") <> "")
         Verificar("La política común rechaza claves sin símbolo",
