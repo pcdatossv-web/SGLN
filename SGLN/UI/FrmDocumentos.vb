@@ -46,6 +46,8 @@ Public Class FrmDocumentos
             UtileriasUI.CargarCombo(cboCaso, ConOpcionNinguno(_servicio.CasosCombo()), "Nombre", "ID")
             UtileriasUI.CargarCombo(cboInstrumento, ConOpcionNinguno(_servicio.InstrumentosCombo()), "Nombre", "ID")
         Catch ex As Exception
+            cboCaso.DataSource = Nothing
+            cboInstrumento.DataSource = Nothing
             RegistroErrores.Escribir("Documentos - combos", ex)
             MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -84,6 +86,8 @@ Public Class FrmDocumentos
             End If
         Catch ex As Exception
             _cargando = False
+            dgvDocumentos.DataSource = Nothing
+            Limpiar()
             RegistroErrores.Escribir("Documentos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
         End Try

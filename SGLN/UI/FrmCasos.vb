@@ -49,6 +49,9 @@ Public Class FrmCasos
             UtileriasUI.CargarCombo(cboTipoActuacion, _servicio.TiposActuacionCombo(), "Nombre", "ID")
             AplicarPlazoDelTipo()
         Catch ex As Exception
+            cboCliente.DataSource = Nothing
+            cboJuzgado.DataSource = Nothing
+            cboTipoActuacion.DataSource = Nothing
             RegistroErrores.Escribir("Casos - combos", ex)
             MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -68,6 +71,8 @@ Public Class FrmCasos
             End If
         Catch ex As Exception
             _cargando = False
+            dgvCasos.DataSource = Nothing
+            Limpiar()
             RegistroErrores.Escribir("Casos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -101,6 +106,7 @@ Public Class FrmCasos
             LimpiarPlazo()
             MostrarMensaje("", True)
         Catch ex As Exception
+            Limpiar()
             RegistroErrores.Escribir("Casos - detalle", ex)
             MostrarMensaje("No se pudo cargar el detalle del caso. Verifique la conexión con la base de datos.", False)
         End Try
@@ -117,6 +123,7 @@ Public Class FrmCasos
             If dgvActuaciones.Columns.Contains("ID") Then dgvActuaciones.Columns("ID").Visible = False
             If dgvActuaciones.Columns.Contains("ID_Tipo_Actuacion") Then dgvActuaciones.Columns("ID_Tipo_Actuacion").Visible = False
         Catch ex As Exception
+            dgvActuaciones.DataSource = Nothing
             RegistroErrores.Escribir("Casos - actuaciones", ex)
         End Try
     End Sub

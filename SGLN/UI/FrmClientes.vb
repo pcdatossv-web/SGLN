@@ -42,6 +42,8 @@ Public Class FrmClientes
             End If
         Catch ex As Exception
             _cargando = False
+            dgvClientes.DataSource = Nothing
+            Limpiar()
             RegistroErrores.Escribir("Clientes - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de clientes. Verifique la conexión con la base de datos.", False)
         End Try
@@ -85,6 +87,7 @@ Public Class FrmClientes
             EvaluarAlertaLdaft()
             MostrarMensaje("", True)
         Catch ex As Exception
+            Limpiar()
             RegistroErrores.Escribir("Clientes - detalle", ex)
             MostrarMensaje("No se pudo cargar el detalle del cliente. Verifique la conexión con la base de datos.", False)
         End Try

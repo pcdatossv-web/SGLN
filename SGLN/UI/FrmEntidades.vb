@@ -46,6 +46,8 @@ Public Class FrmEntidades
             End If
         Catch ex As Exception
             _cargando = False
+            dgvEntidades.DataSource = Nothing
+            Limpiar()
             RegistroErrores.Escribir("Entidades - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de entidades. Verifique la conexión con la base de datos.", False)
         End Try
@@ -55,6 +57,7 @@ Public Class FrmEntidades
         Try
             UtileriasUI.CargarCombo(cboRepCliente, _servicio.ClientesCombo(), "Nombre", "ID")
         Catch ex As Exception
+            cboRepCliente.DataSource = Nothing
             RegistroErrores.Escribir("Entidades - clientes", ex)
         End Try
     End Sub
@@ -91,6 +94,7 @@ Public Class FrmEntidades
             EvaluarAlertaLdaft()
             MostrarMensaje("", True)
         Catch ex As Exception
+            Limpiar()
             RegistroErrores.Escribir("Entidades - detalle", ex)
             MostrarMensaje("No se pudo cargar el detalle de la entidad. Verifique la conexión con la base de datos.", False)
         End Try
@@ -107,6 +111,7 @@ Public Class FrmEntidades
             If dgvRepresentantes.Columns.Contains("ID") Then dgvRepresentantes.Columns("ID").Visible = False
             If dgvRepresentantes.Columns.Contains("ID_Cliente") Then dgvRepresentantes.Columns("ID_Cliente").Visible = False
         Catch ex As Exception
+            dgvRepresentantes.DataSource = Nothing
             RegistroErrores.Escribir("Entidades - representantes", ex)
         End Try
     End Sub

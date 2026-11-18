@@ -62,6 +62,9 @@ Public Class FrmCumplimiento
             UtileriasUI.CargarCombo(cboInstrumentoOp, ConOpcionNinguno(_servicio.InstrumentosCombo()), "Nombre", "ID")
             UtileriasUI.CargarCombo(cboClienteArco, _servicio.ClientesCombo(), "Nombre", "ID")
         Catch ex As Exception
+            cboCasoOp.DataSource = Nothing
+            cboInstrumentoOp.DataSource = Nothing
+            cboClienteArco.DataSource = Nothing
             RegistroErrores.Escribir("Cumplimiento - combos", ex)
             MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -98,6 +101,8 @@ Public Class FrmCumplimiento
             End If
         Catch ex As Exception
             _cargando = False
+            dgvOperaciones.DataSource = Nothing
+            LimpiarOperacion()
             RegistroErrores.Escribir("Cumplimiento - operaciones", ex)
             MostrarMensaje("No se pudieron cargar las operaciones de cumplimiento. Verifique la conexión con la base de datos.", False)
         End Try
@@ -268,6 +273,8 @@ Public Class FrmCumplimiento
             End If
         Catch ex As Exception
             _cargando = False
+            dgvArco.DataSource = Nothing
+            LimpiarSolicitud()
             RegistroErrores.Escribir("Cumplimiento - ARCO", ex)
             MostrarMensaje("No se pudieron cargar las solicitudes ARCO. Verifique la conexión con la base de datos.", False)
         End Try
