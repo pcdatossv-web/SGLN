@@ -178,7 +178,8 @@ jobs:
               $servicioDocumentos -notmatch 'TipoDocumentoValido\(tipoDocumento\)') {
             throw 'Faltan validaciones de referencias y metadatos documentales.'
           }
-          if ($documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.ver"\)' -or
+          if ($documentoRepo -notmatch 'TipoDocumentoValido\(documento.TipoDocumento\)' -or
+              $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.ver"\)' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.importar"\)' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.metadatos"\)' -or
               $documentoRepo -notmatch 'PuedeConsultarDocumentos' -or
