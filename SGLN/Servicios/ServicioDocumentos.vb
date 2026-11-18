@@ -351,40 +351,32 @@ Public Class ServicioDocumentos
     ''' archivos externos mediante junctions o symlinks de Windows.
     ''' </summary>
     Private Sub ValidarRutaSinEnlaces(base As String, destino As String)
-        ' Consultar atributos directamente en vez de depender de Exists:
-        ' File.Exists/Directory.Exists pueden devolver False para un enlace
-        ' simbólico cuyo destino ya no existe.
-        Try
-            Dim atributosBase As FileAttributes = File.GetAttributes(base)
-            If (atributosBase And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
-                Throw New InvalidOperationException("La carpeta documental no puede ser un enlace o punto de reanálisis.")
-            End If
-        Catch ex As FileNotFoundException
-            ' La carpeta todavía no existe; se validarán los segmentos existentes.
-        Catch ex As DirectoryNotFoundException
-            ' La carpeta todavía no existe; se validarán los segmentos existentes.
-        End Try
+        ' Recorrer desde la raíz, no solo desde la carpeta documental:
+        ' cualquiera de sus directorios padres podría ser un junction/symlink.
+        Dim rutaAbsoluta As String = Path.GetFullPath(destino)
+        Dim raiz As String = Path.GetPathRoot(rutaAbsoluta)
+        If String.IsNullOrWhiteSpace(raiz) Then
+            Throw New InvalidOperationException("La ruta documental no tiene una raíz válida.")
+        End If
 
-        Dim relativo As String = destino.Substring(base.TrimEnd(Path.DirectorySeparatorChar,
-            Path.AltDirectorySeparatorChar).Length).TrimStart(Path.DirectorySeparatorChar,
-            Path.AltDirectorySeparatorChar)
-        If relativo = "" Then Return
-
+        Dim relativo As String = rutaAbsoluta.Substring(raiz.Length)
         Dim segmentos As String() = relativo.Split(
             New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar},
             StringSplitOptions.RemoveEmptyEntries)
-        Dim actual As String = base
+        Dim actual As String = raiz
+
         For Each segmento As String In segmentos
             actual = Path.Combine(actual, segmento)
             Try
                 Dim atributos As FileAttributes = File.GetAttributes(actual)
                 If (atributos And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
-                    Throw New InvalidOperationException("La ruta documental contiene un enlace o punto de reanálisis no permitido.")
+                    Throw New InvalidOperationException(
+                        "La ruta documental contiene un enlace o punto de reanálisis no permitido.")
                 End If
             Catch ex As FileNotFoundException
-                ' El último segmento puede no existir todavía al importar.
+                ' El archivo final puede no existir todavía durante la importación.
             Catch ex As DirectoryNotFoundException
-                ' Un segmento padre puede no existir todavía.
+                ' Los segmentos finales pueden no existir todavía.
             End Try
         Next
     End Sub
