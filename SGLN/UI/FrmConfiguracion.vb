@@ -128,6 +128,8 @@ Public Class FrmConfiguracion
             _cargando = False
         Catch ex As Exception
             _cargando = False
+            ' No dejar feriados de una consulta anterior como si fueran vigentes.
+            dgvFeriados.DataSource = Nothing
             RegistroErrores.Escribir("Configuración - feriados", ex)
             MostrarMensaje("No se pudieron cargar los feriados. Verifique la conexión con la base de datos.", False)
         End Try
