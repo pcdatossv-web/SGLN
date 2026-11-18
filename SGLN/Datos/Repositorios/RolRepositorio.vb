@@ -140,17 +140,30 @@ Public Class RolRepositorio
                     Try
                         ' Bloquea la fila y comprueba su existencia dentro de la
                         ' misma transacción que actualizará los permisos.
+                        Dim rolProtegido As Boolean = False
                         Using comandoExiste As New MySqlCommand(
-                            "SELECT ID FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            "SELECT Protegido FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
                             Parametro(comandoExiste, "@id", id)
-                            If comandoExiste.ExecuteScalar() Is Nothing Then
-                                ' Cerrar explícitamente la transacción antes de
-                                ' salir: no dejar la reversión dependiendo de
-                                ' la implementación de Dispose del proveedor.
+                            Dim valorProtegido As Object = comandoExiste.ExecuteScalar()
+                            If valorProtegido Is Nothing OrElse valorProtegido Is DBNull.Value Then
                                 Revertir(transaccion)
                                 Return Respuesta.Fallo("El rol ya no existe.")
                             End If
+                            rolProtegido = Convert.ToInt32(valorProtegido) = 1
                         End Using
+
+                        If rolProtegido AndAlso Not activo Then
+                            Throw New InvalidOperationException("El rol Administrador protegido no se puede desactivar.")
+                        End If
+                        If Not activo Then
+                            Using comandoUsuarios As New MySqlCommand(
+                                "SELECT COUNT(*) FROM Usuarios WHERE ID_Rol = @id", conexion, transaccion)
+                                Parametro(comandoUsuarios, "@id", id)
+                                If Convert.ToInt32(comandoUsuarios.ExecuteScalar()) > 0 Then
+                                    Throw New InvalidOperationException("No se puede desactivar un rol con usuarios asignados.")
+                                End If
+                            End Using
+                        End If
 
                         Using comando As New MySqlCommand(
                             "UPDATE Roles SET Nombre = @nombre, Descripcion = @descripcion, Activo = @activo " &
@@ -179,6 +192,8 @@ Public Class RolRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("Uno de los permisos ya no existe en el catálogo.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - actualizar", ex)
             Return Respuesta.Fallo("No se pudo actualizar el rol. Verifique la conexión y los datos.")
@@ -190,9 +205,25 @@ Public Class RolRepositorio
             Return Respuesta.Fallo("Solo un administrador puede eliminar roles.")
         End If
 
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un rol válido.")
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim protegido As Object
+                    Using comandoExiste As New MySqlCommand(
+                        "SELECT Protegido FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                        Parametro(comandoExiste, "@id", id)
+                        protegido = comandoExiste.ExecuteScalar()
+                    End Using
+                    If protegido Is Nothing OrElse protegido Is DBNull.Value Then Return 0
+                    If Convert.ToInt32(protegido) = 1 Then Return -1
+
+                    Using comandoUsuarios As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Usuarios WHERE ID_Rol = @id", conexion, transaccion)
+                        Parametro(comandoUsuarios, "@id", id)
+                        If Convert.ToInt32(comandoUsuarios.ExecuteScalar()) > 0 Then Return -2
+                    End Using
+
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
                         "DELETE FROM Roles WHERE ID = @id",
                         Sub(comando As MySqlCommand)
@@ -205,6 +236,8 @@ Public Class RolRepositorio
                 End Function)
 
             If filas = 0 Then Return Respuesta.Fallo("El rol ya no existe.")
+            If filas = -1 Then Return Respuesta.Fallo("El rol Administrador protegido no se puede eliminar.")
+            If filas = -2 Then Return Respuesta.Fallo("No se puede eliminar un rol con usuarios asignados.")
             Return Respuesta.Ok("Rol eliminado.")
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
