@@ -346,7 +346,7 @@ Public Class ServicioDocumentos
             Throw New InvalidOperationException("La ruta del documento está fuera de la carpeta documental autorizada.")
         End If
 
-        ValidarRutaSinEnlaces(base, destino)
+        ValidarRutaSinEnlaces(destino)
         Return destino
     End Function
 
@@ -355,7 +355,7 @@ Public Class ServicioDocumentos
     ''' documental para evitar que una ruta aparentemente interna redirija a
     ''' archivos externos mediante junctions o symlinks de Windows.
     ''' </summary>
-    Private Sub ValidarRutaSinEnlaces(base As String, destino As String)
+    Private Sub ValidarRutaSinEnlaces(destino As String)
         ' Recorrer desde la raíz, no solo desde la carpeta documental:
         ' cualquiera de sus directorios padres podría ser un junction/symlink.
         Dim rutaAbsoluta As String = Path.GetFullPath(destino)
