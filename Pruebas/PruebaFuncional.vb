@@ -2348,9 +2348,18 @@ Module PruebaFuncional
                   Not protocolo.ExpedirTestimonio(idInstrumento2, "Primer", Date.Today, "Destinatario posterior").Exito)
 
         Dim rIndice As Respuesta = protocolo.GenerarIndice(idLibro)
-        Verificar("Generar índice del libro", rIndice.Exito, rIndice.Mensaje)
-        Verificar("Volver a solicitar un índice ya generado no produce un falso error",
+        Verificar("Preparar índice del libro para exportación", rIndice.Exito, rIndice.Mensaje)
+        Dim libroAntesDeExportarIndice As DataTable = protocolo.ObtenerLibro(idLibro)
+        Verificar("Preparar el índice no marca como generado un archivo que aún no se exportó",
+                  libroAntesDeExportarIndice.Rows.Count = 1 AndAlso
+                  Not Convert.ToBoolean(libroAntesDeExportarIndice.Rows(0)("Indice_Generado")))
+        Verificar("Volver a preparar el índice antes de exportarlo no produce un falso error",
                   protocolo.GenerarIndice(idLibro).Exito)
+        Dim confirmacionIndice As Respuesta = protocolo.ConfirmarIndiceGenerado(idLibro)
+        Verificar("Confirmar la generación después de exportar el índice",
+                  confirmacionIndice.Exito, confirmacionIndice.Mensaje)
+        Verificar("Confirmar nuevamente un índice ya generado es idempotente",
+                  protocolo.ConfirmarIndiceGenerado(idLibro).Exito)
         Dim indice As DataTable = protocolo.IndiceLibro(idLibro)
         Verificar("El índice conserva las 3 escrituras, incluida la anulada", indice.Rows.Count = 3)
         Dim escrituraAnuladaEnIndice As Boolean = False
