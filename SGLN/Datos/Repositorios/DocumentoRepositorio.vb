@@ -124,8 +124,8 @@ Public Class DocumentoRepositorio
         If documento Is Nothing OrElse documento.ID <= 0 Then
             Throw New ArgumentException("El documento seleccionado no es válido.", NameOf(documento))
         End If
-        If String.IsNullOrWhiteSpace(documento.TipoDocumento) OrElse documento.TipoDocumento.Trim().Length > 60 Then
-            Throw New ArgumentException("El tipo de documento debe contener entre 1 y 60 caracteres.", NameOf(documento))
+        If Not TipoDocumentoValido(documento.TipoDocumento) Then
+            Throw New ArgumentException("El tipo de documento no pertenece al catálogo permitido.", NameOf(documento))
         End If
         documento.TipoDocumento = documento.TipoDocumento.Trim()
         If documento.IDCaso.HasValue AndAlso documento.IDCaso.Value <= 0 Then
