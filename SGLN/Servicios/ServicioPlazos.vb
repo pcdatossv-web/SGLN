@@ -25,8 +25,9 @@ Public Class ServicioPlazos
             Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
                 "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
-        If diasHabiles <= 0 Then
-            Throw New ArgumentOutOfRangeException(NameOf(diasHabiles), "El plazo debe ser mayor que cero.")
+        If diasHabiles <= 0 OrElse diasHabiles > CalculadoraDiasHabiles.MaxDiasHabilesPermitidos Then
+            Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
+                "El plazo debe estar entre 1 y " & CalculadoraDiasHabiles.MaxDiasHabilesPermitidos.ToString() & " días hábiles.")
         End If
         Return ObtenerCalculadora().CalcularVencimiento(fechaNotificacion, diasHabiles)
     End Function
@@ -38,7 +39,9 @@ Public Class ServicioPlazos
         If actuacion.ID < 0 Then Return Respuesta.Fallo("El identificador de la actuación no es válido.")
         If actuacion.IDCaso <= 0 Then Return Respuesta.Fallo("Seleccione un caso.")
         If actuacion.IDTipoActuacion <= 0 Then Return Respuesta.Fallo("Seleccione el tipo de actuación.")
-        If actuacion.PlazoLegalDias <= 0 Then Return Respuesta.Fallo("El plazo legal debe ser mayor que cero.")
+        If actuacion.PlazoLegalDias <= 0 OrElse actuacion.PlazoLegalDias > CalculadoraDiasHabiles.MaxDiasHabilesPermitidos Then
+            Return Respuesta.Fallo("El plazo legal debe estar entre 1 y " & CalculadoraDiasHabiles.MaxDiasHabilesPermitidos.ToString() & " días hábiles.")
+        End If
         If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date.Year < 1000 Then
             Return Respuesta.Fallo("La fecha de notificación debe ser igual o posterior al 01/01/1000.")
         End If

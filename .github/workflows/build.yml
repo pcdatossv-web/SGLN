@@ -256,6 +256,11 @@ jobs:
               $calculadoraDias -notmatch 'fechaNotificacion = Date.MinValue') {
             throw 'La calculadora de días hábiles debe limitar fechas y rangos excesivos.'
           }
+          if ($calculadoraDias -notmatch 'Public Const MaxDiasHabilesPermitidos As Integer = 36600' -or
+              $servicioPlazos -notmatch 'MaxDiasHabilesPermitidos' -or
+              $casoRepo -notmatch 'MaxDiasHabilesPermitidos') {
+            throw 'El límite máximo de días hábiles debe validarse de forma uniforme en servicio y repositorio.'
+          }
           if ($servicioProtocolo -notmatch 'FechaAutorizacion = Date.MinValue' -or
               $servicioProtocolo -notmatch 'FechaHoraOtorgamiento = Date.MinValue' -or
               $servicioProtocolo -notmatch 'libro.ID < 0' -or

@@ -9,7 +9,7 @@ Imports System.Collections.Generic
 Public Class CalculadoraDiasHabiles
 
     Private ReadOnly _feriados As HashSet(Of Date)
-    Private Const MaxDiasHabiles As Integer = 36600
+    Public Const MaxDiasHabilesPermitidos As Integer = 36600
     Private Const MaxRangoConteoDias As Integer = 365000
 
     Public Sub New(feriados As IEnumerable(Of Date))
@@ -38,9 +38,9 @@ Public Class CalculadoraDiasHabiles
             Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
                 "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
-        If diasHabiles <= 0 OrElse diasHabiles > MaxDiasHabiles Then
+        If diasHabiles <= 0 OrElse diasHabiles > MaxDiasHabilesPermitidos Then
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
-                "El plazo debe estar entre 1 y " & MaxDiasHabiles.ToString() & " días hábiles.")
+                "El plazo debe estar entre 1 y " & MaxDiasHabilesPermitidos.ToString() & " días hábiles.")
         End If
 
         Dim fecha As Date = fechaNotificacion.Date

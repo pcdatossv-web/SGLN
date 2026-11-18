@@ -286,7 +286,9 @@ Public Class CasoRepositorio
         If actuacion.IDCaso <= 0 OrElse actuacion.IDTipoActuacion <= 0 Then
             Throw New ArgumentException("Seleccione un caso y un tipo de actuación válidos.", NameOf(actuacion))
         End If
-        If actuacion.PlazoLegalDias <= 0 Then Throw New ArgumentException("El plazo legal debe ser mayor que cero.", NameOf(actuacion))
+        If actuacion.PlazoLegalDias <= 0 OrElse actuacion.PlazoLegalDias > CalculadoraDiasHabiles.MaxDiasHabilesPermitidos Then
+            Throw New ArgumentException("El plazo legal debe estar entre 1 y " & CalculadoraDiasHabiles.MaxDiasHabilesPermitidos.ToString() & " días hábiles.", NameOf(actuacion))
+        End If
         If actuacion.FechaNotificacion = Date.MinValue OrElse actuacion.FechaNotificacion.Date.Year < 1000 OrElse actuacion.FechaNotificacion.Date > Date.Today Then
             Throw New ArgumentException("La fecha de notificación no puede estar vacía ni ser futura.", NameOf(actuacion))
         End If
