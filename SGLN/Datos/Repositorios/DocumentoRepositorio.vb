@@ -24,7 +24,9 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not Permisos.TieneAcceso("documentos.ver") Then Return New DataTable()
+        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
+                Permisos.TieneAcceso("documentos.verificar") OrElse
+                Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
 

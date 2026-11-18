@@ -12,7 +12,22 @@ Public Class FrmDocumentos
     Private _idDocumento As Integer
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        If Not Permisos.Exigir("documentos.ver", Me) Then Return
+        Dim puedeVer As Boolean = Permisos.TieneAcceso("documentos.ver")
+        Dim puedeImportar As Boolean = Permisos.TieneAcceso("documentos.importar")
+        Dim puedeVerificar As Boolean = Permisos.TieneAcceso("documentos.verificar")
+        Dim puedeMetadatos As Boolean = Permisos.TieneAcceso("documentos.metadatos")
+
+        If Not (puedeVer OrElse puedeImportar OrElse puedeVerificar OrElse puedeMetadatos) Then
+            If Not Permisos.Exigir("documentos.ver", Me) Then Return
+        End If
+
+        btnBuscar.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
+        btnAbrir.Enabled = puedeVer
+        btnImportar.Enabled = puedeImportar
+        btnActualizar.Enabled = puedeMetadatos
+        btnVerificar.Enabled = puedeVerificar
+        txtFiltro.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
+        cboFiltroTipo.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
 
         UtileriasUI.ConfigurarGrid(dgvDocumentos)
 
