@@ -23,7 +23,7 @@ Public Class FrmCasos
         cboMateria.SelectedIndex = 0
 
         cboEstado.Items.Clear()
-        cboEstado.Items.AddRange(New Object() {"Activo", "Suspendido", "Cerrado"})
+        cboEstado.Items.AddRange(New Object() {"Activo", "Suspendido", "Cerrado", "Archivado"})
         cboEstado.SelectedIndex = 0
 
         _cargando = True
