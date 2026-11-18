@@ -193,8 +193,8 @@ Public Class ConfiguracionConexion
     End Sub
 
     ''' <summary>
-    ''' Lee la configuración sin guardar nada: registro primero, luego App.config
-    ''' y por último valores por defecto.
+    ''' Lee la configuración sin guardar nada: registro primero, luego los
+    ''' parámetros no secretos de App.config y por último valores por defecto.
     ''' </summary>
     Public Shared Function Cargar() As DatosConexion
         If IgnorarRegistro() Then
