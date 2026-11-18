@@ -61,11 +61,8 @@ Public Class ServicioDocumentos
             If String.IsNullOrWhiteSpace(rutaOrigen) OrElse Not File.Exists(rutaOrigen) Then
                 Return Respuesta.Fallo("El archivo seleccionado no existe.")
             End If
-            If String.IsNullOrWhiteSpace(tipoDocumento) Then
-                Return Respuesta.Fallo("Seleccione el tipo de documento.")
-            End If
-            If tipoDocumento.Trim().Length > 60 Then
-                Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
+            If Not TipoDocumentoValido(tipoDocumento) Then
+                Return Respuesta.Fallo("Seleccione un tipo de documento válido.")
             End If
             Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
             If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
@@ -213,8 +210,7 @@ Public Class ServicioDocumentos
         If Not Permisos.TieneAcceso("documentos.metadatos") Then Return Respuesta.Fallo("No tiene permiso para modificar metadatos de documentos.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
-        If String.IsNullOrWhiteSpace(tipoDocumento) Then Return Respuesta.Fallo("Seleccione el tipo de documento.")
-        If tipoDocumento.Trim().Length > 60 Then Return Respuesta.Fallo("El tipo de documento no puede superar 60 caracteres.")
+        If Not TipoDocumentoValido(tipoDocumento) Then Return Respuesta.Fallo("Seleccione un tipo de documento válido.")
         Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
         If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
 
@@ -390,6 +386,17 @@ Public Class ServicioDocumentos
             End Try
         Next
     End Sub
+
+    Private Shared Function TipoDocumentoValido(tipo As String) As Boolean
+        If String.IsNullOrWhiteSpace(tipo) Then Return False
+        Select Case tipo.Trim()
+            Case "Escritura", "Poder", "Demanda", "Contestación", "Sentencia",
+                 "Resolución", "Contrato", "Identificación", "Comprobante", "Otro"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
 
     Private Function ValidarReferencias(idCaso As Integer?, idInstrumento As Integer?) As String
         If idCaso.HasValue AndAlso idCaso.Value <= 0 Then Return "El caso asociado no es válido."

@@ -10,6 +10,17 @@ Imports System.Text.RegularExpressions
 Public Class DocumentoRepositorio
     Inherits RepositorioBase
 
+    Private Shared Function TipoDocumentoValido(tipo As String) As Boolean
+        If String.IsNullOrWhiteSpace(tipo) Then Return False
+        Select Case tipo.Trim()
+            Case "Escritura", "Poder", "Demanda", "Contestación", "Sentencia",
+                 "Resolución", "Contrato", "Identificación", "Comprobante", "Otro"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+
     Private Function PuedeConsultarDocumentos() As Boolean
         Return Permisos.TieneAcceso("documentos.ver") OrElse
                Permisos.TieneAcceso("documentos.verificar") OrElse
@@ -64,8 +75,8 @@ Public Class DocumentoRepositorio
             Throw New UnauthorizedAccessException("No tiene permiso para importar documentos.")
         End If
         If documento Is Nothing Then Throw New ArgumentNullException(NameOf(documento))
-        If String.IsNullOrWhiteSpace(documento.TipoDocumento) OrElse documento.TipoDocumento.Trim().Length > 60 Then
-            Throw New ArgumentException("El tipo de documento debe contener entre 1 y 60 caracteres.", NameOf(documento))
+        If Not TipoDocumentoValido(documento.TipoDocumento) Then
+            Throw New ArgumentException("El tipo de documento no pertenece al catálogo permitido.", NameOf(documento))
         End If
         If String.IsNullOrWhiteSpace(documento.RutaArchivo) OrElse documento.RutaArchivo.Trim().Length > 500 Then
             Throw New ArgumentException("La ruta del documento debe contener entre 1 y 500 caracteres.", NameOf(documento))
