@@ -91,20 +91,20 @@ Public Module Program
                 RegistroErrores.Escribir("Inicio", ex)
 
                 If intento >= IntentosConexion Then
-                    MostrarErrorBaseDeDatos(ex)
+                    MostrarErrorBaseDeDatos()
                     Return False
                 End If
 
-                If Not PreguntarConfigurarConexion(ex) Then Return False
+                If Not PreguntarConfigurarConexion() Then Return False
             End Try
         Loop
     End Function
 
-    Private Function PreguntarConfigurarConexion(ex As Exception) As Boolean
+    Private Function PreguntarConfigurarConexion() As Boolean
         Dim mensaje As String =
             "No se pudo preparar la base de datos." & Environment.NewLine & Environment.NewLine &
-            ex.Message & Environment.NewLine & Environment.NewLine &
-            "Servidor configurado: " & ConfiguracionConexion.Actual.DescripcionCorta() &
+            "Compruebe que el servidor MySQL esté disponible y que la configuración de conexión " &
+            "sea correcta. El detalle técnico quedó registrado localmente." &
             Environment.NewLine & Environment.NewLine &
             "¿Desea revisar la configuración de la conexión?"
 
@@ -118,13 +118,14 @@ Public Module Program
         End Using
     End Function
 
-    Private Sub MostrarErrorBaseDeDatos(ex As Exception)
+    Private Sub MostrarErrorBaseDeDatos()
         MessageBox.Show(
-            "No se pudo preparar la base de datos." & Environment.NewLine & Environment.NewLine &
-            ex.Message & Environment.NewLine & Environment.NewLine &
-            "Verifique que el servicio MySQL esté iniciado en el servidor (Windows o Linux), " &
-            "que el puerto configurado sea accesible y que la configuración de conexión " &
-            "(registro de Windows o App.config) apunte al servidor y base de datos correctos.",
+            "No se pudo preparar la base de datos después de varios intentos." &
+            Environment.NewLine & Environment.NewLine &
+            "Verifique que el servicio MySQL esté iniciado, que el servidor y el puerto " &
+            "sean accesibles y que la configuración de conexión sea correcta." &
+            Environment.NewLine & Environment.NewLine &
+            "El detalle técnico quedó registrado localmente para su revisión.",
             "SGLN El Salvador", MessageBoxButtons.OK, MessageBoxIcon.Error)
     End Sub
 
