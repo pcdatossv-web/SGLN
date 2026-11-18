@@ -52,6 +52,9 @@ Public Class FrmLogin
     End Sub
 
     Private Sub Ingresar()
+        ' Cada intento de autenticación comienza sin permisos ni identidad
+        ' heredados de un intento anterior dentro del mismo proceso.
+        Sesion.Limpiar()
         lblError.Text = ""
 
         If String.IsNullOrWhiteSpace(txtUsuario.Text) Then
@@ -109,6 +112,9 @@ Public Class FrmLogin
             Me.DialogResult = DialogResult.OK
             Me.Close()
         Catch ex As Exception
+            ' Si falla la carga de permisos después de validar la contraseña,
+            ' no debe quedar una sesión parcialmente inicializada en memoria.
+            Sesion.Limpiar()
             RegistroErrores.Escribir("Inicio de sesión", ex)
             lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
         End Try
