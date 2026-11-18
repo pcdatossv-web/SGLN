@@ -74,7 +74,14 @@ Public Class FrmDocumentos
             _cargando = False
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
-            If actual IsNot Nothing Then CargarDetalle(actual)
+            If actual IsNot Nothing Then
+                CargarDetalle(actual)
+            Else
+                ' No conservar el ID anterior cuando un filtro deja la lista vacía.
+                ' De lo contrario, Abrir/Verificar podría operar sobre un documento
+                ' que ya no está seleccionado ni aparece en los resultados.
+                Limpiar()
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Documentos - cargar", ex)
