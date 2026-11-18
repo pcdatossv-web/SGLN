@@ -311,19 +311,47 @@ Public Class UsuarioRepositorio
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                    Dim estadoActual As Object
+                    Dim estadoActual As Object = Nothing
+                    Dim rolActualProtegido As Boolean = False
                     Using comandoEstado As New MySqlCommand(
-                        "SELECT Activo FROM Usuarios WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                        "SELECT u.Activo, r.Protegido FROM Usuarios u " &
+                        "INNER JOIN Roles r ON r.ID = u.ID_Rol WHERE u.ID = @id FOR UPDATE",
+                        conexion, transaccion)
                         Parametro(comandoEstado, "@id", id)
-                        estadoActual = comandoEstado.ExecuteScalar()
+                        Using lector As MySqlDataReader = comandoEstado.ExecuteReader()
+                            If lector.Read() Then
+                                estadoActual = lector("Activo")
+                                rolActualProtegido = Convert.ToInt32(lector("Protegido")) = 1
+                            End If
+                        End Using
                     End Using
 
                     If estadoActual Is Nothing OrElse estadoActual Is DBNull.Value Then Return 0
                     If Convert.ToBoolean(estadoActual) <> activo Then Return -1
 
-                    ' La validez del rol se comprueba bajo bloqueo en la misma
-                    ' transacción que asigna el usuario. Evita que una carrera
-                    ' permita asignar un rol que otra estación acaba de desactivar.
+                    ' Si se retira el rol Administrador, la comprobación del
+                    ' último administrador también debe ser transaccional.
+                    If rolActualProtegido Then
+                        Using comandoBloqueoAdmin As New MySqlCommand(
+                            "SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE", conexion, transaccion)
+                            comandoBloqueoAdmin.ExecuteScalar()
+                        End Using
+                        If Not rolProtegidoActual Then
+                            Dim administradoresRestantes As Integer
+                            Using comandoAdmin As New MySqlCommand(
+                                "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                                "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id", conexion, transaccion)
+                                Parametro(comandoAdmin, "@id", id)
+                                administradoresRestantes = Convert.ToInt32(comandoAdmin.ExecuteScalar())
+                            End Using
+                            If administradoresRestantes = 0 Then
+                                Throw New InvalidOperationException("Debe quedar al menos un usuario administrador activo.")
+                            End If
+                        End If
+                    End If
+
+                    ' La validez del nuevo rol se comprueba bajo bloqueo en la
+                    ' misma transacción que asigna el usuario.
                     Dim rolProtegidoActual As Boolean = False
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
