@@ -2472,7 +2472,7 @@ Module PruebaFuncional
         End Try
         Verificar("Un documento alterado no puede abrirse desde el sistema", aperturaAlteradaBloqueada)
 
-        Dim rMeta As Respuesta = documentos.ActualizarMetadatos(idDocumento, "Escritura pública", Nothing, idInstrumento1)
+        Dim rMeta As Respuesta = documentos.ActualizarMetadatos(idDocumento, "Escritura", Nothing, idInstrumento1)
         Verificar("Actualizar metadatos del documento", rMeta.Exito, rMeta.Mensaje)
         Dim tablaDoc2 As DataTable = documentos.Obtener(idDocumento)
         Verificar("El documento queda vinculado a la escritura 1",
