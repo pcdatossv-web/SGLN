@@ -175,7 +175,7 @@ jobs:
             throw 'Faltan validaciones de fechas y manejo de errores en cumplimiento ARCO.'
           }
           if ($servicioDocumentos -notmatch 'ValidarReferencias' -or
-              $servicioDocumentos -notmatch 'El tipo de documento no puede superar 60 caracteres') {
+              $servicioDocumentos -notmatch 'TipoDocumentoValido\(tipoDocumento\)') {
             throw 'Faltan validaciones de referencias y metadatos documentales.'
           }
           if ($documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.ver"\)' -or
