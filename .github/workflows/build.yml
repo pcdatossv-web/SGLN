@@ -57,6 +57,11 @@ jobs:
               $bloqueCifrar -match 'DataProtectionScope\.LocalMachine') {
             throw 'Las nuevas credenciales deben cifrarse exclusivamente con DPAPI CurrentUser.'
           }
+          if ($conexionSource -match 'datos\.Password\s*=\s*constructor\.Password' -or
+              $conexionSource -match 'Respaldos_Clave' -or
+              $configRepo -match 'Respaldos_Clave') {
+            throw 'Las contraseñas MySQL y de respaldo no deben tener fallback en texto plano desde App.config.'
+          }
           if ($conexionSource -notmatch 'LeerRegistro\(RegistryHive\.LocalMachine, False\)') {
             throw 'La configuración compartida HKLM no debe descifrar credenciales.'
           }

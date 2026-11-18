@@ -487,10 +487,10 @@ Public Class ConfiguracionConexion
             datos.Puerto = If(constructor.Port = 0UI, 3306, CInt(constructor.Port))
             datos.BaseDatos = If(String.IsNullOrWhiteSpace(constructor.Database), "sgln_sv", constructor.Database)
             datos.Usuario = constructor.UserID
-            datos.Password = constructor.Password
+            datos.Password = ""
             datos.UsuarioRespaldo = If(String.IsNullOrWhiteSpace(ConfigurationManager.AppSettings("Respaldos_Usuario")),
                                        "sgln_backup", ConfigurationManager.AppSettings("Respaldos_Usuario"))
-            datos.PasswordRespaldo = If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
+            datos.PasswordRespaldo = ""
             datos.ModoSsl = constructor.SslMode.ToString()
             datos.CertificadoCa = If(constructor.ContainsKey("SslCa"), Convert.ToString(constructor("SslCa")), "")
             Return datos

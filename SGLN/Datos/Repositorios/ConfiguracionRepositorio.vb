@@ -564,11 +564,9 @@ Public Class ConfiguracionRepositorio
     End Function
 
     Private Function ClaveRespaldo() As String
-        Dim clave As String = ConfiguracionConexion.Actual.PasswordRespaldo
-        If String.IsNullOrEmpty(clave) Then
-            clave = If(ConfigurationManager.AppSettings("Respaldos_Clave"), "")
-        End If
-        Return clave
+        ' Las claves nunca se leen desde App.config: se guardan cifradas
+        ' por usuario Windows (DPAPI CurrentUser) en HKCU.
+        Return ConfiguracionConexion.Actual.PasswordRespaldo
     End Function
 
     ''' <summary>
