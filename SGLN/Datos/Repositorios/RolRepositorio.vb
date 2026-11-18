@@ -292,6 +292,8 @@ Public Class RolRepositorio
             End Using
         End Using
 
+        Dim conjuntoActuales As New HashSet(Of String)(actuales, StringComparer.OrdinalIgnoreCase)
+
         For Each codigo As String In actuales
             If nuevos.Contains(codigo) Then Continue For
 
@@ -305,6 +307,10 @@ Public Class RolRepositorio
         Next
 
         For Each codigo As String In nuevos
+            ' Los permisos que ya estaban asignados se conservan; insertarlos
+            ' otra vez provocaba una violación de clave única al editar un rol.
+            If conjuntoActuales.Contains(codigo) Then Continue For
+
             Using comando As New MySqlCommand(
                 "INSERT INTO Rol_Permiso (ID_Rol, Codigo) VALUES (@rol, @codigo)",
                 conexion, transaccion)
