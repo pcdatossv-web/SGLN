@@ -631,11 +631,22 @@ Module PruebaFuncional
             Verificar("El repositorio impide desactivar usuarios desde la edición general",
                       Not edicionEstadoDirecta.Exito AndAlso estadoTrasEdicionDirecta.Rows.Count = 1 AndAlso
                       UtileriasUI.Booleano(estadoTrasEdicionDirecta.Rows(0), "Activo"))
+            Dim sesionAntesDesactivar As UsuarioSesion = usuarios.ObtenerEstadoSesion(idUsuarioPrueba)
             Dim desactivacionDedicada As Respuesta = servicioUsuarios.Desactivar(idUsuarioPrueba)
             Dim estadoTrasDesactivar As DataTable = usuarios.Obtener(idUsuarioPrueba)
             Verificar("La acción dedicada desactiva y conserva la cuenta para trazabilidad",
                       desactivacionDedicada.Exito AndAlso estadoTrasDesactivar.Rows.Count = 1 AndAlso
                       Not UtileriasUI.Booleano(estadoTrasDesactivar.Rows(0), "Activo"))
+
+            ' Simula que una estación conserva una sesión abierta mientras un
+            ' administrador desactiva esa cuenta desde otra estación.
+            Sesion.UsuarioActual = sesionAntesDesactivar
+            Dim sesionDesactivadaRechazada As Boolean =
+                Not Permisos.RevalidarSesion() AndAlso Sesion.UsuarioActual Is Nothing
+            Verificar("Una cuenta desactivada pierde la sesión y sus permisos al revalidarse",
+                      sesionDesactivadaRechazada)
+            Sesion.UsuarioActual = admin
+            Sesion.CargarPermisos()
         End If
 
         ' Un rol ordinario no puede recibir permisos administrativos ni por SQL directo.
