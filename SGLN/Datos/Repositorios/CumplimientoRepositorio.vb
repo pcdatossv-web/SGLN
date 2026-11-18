@@ -138,7 +138,9 @@ Public Class CumplimientoRepositorio
             "SELECT a.ID, a.ID_Cliente, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente, " &
             "       a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "       a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
-            "       CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "       CASE WHEN a.Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL " &
+            "         THEN 'Revisar prórroga' " &
+            "         WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
             "         AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < @hoy " &
             "         THEN 'Vencida' ELSE a.Estado END AS Estado, " &
             "       a.Fecha_Respuesta, a.Detalle " &
@@ -159,7 +161,9 @@ Public Class CumplimientoRepositorio
         Return Consultar(
             "SELECT a.ID, a.ID_Cliente, a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
-            "CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "CASE WHEN a.Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL " &
+            "  THEN 'Revisar prórroga' " &
+            "  WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
             "  AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < @hoy " &
             "  THEN 'Vencida' ELSE a.Estado END AS Estado, " &
             "a.Fecha_Respuesta, a.Detalle " &

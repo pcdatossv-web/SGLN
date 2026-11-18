@@ -80,6 +80,7 @@ jobs:
           $servicioCasos = Get-Content 'SGLN\\Servicios\\ServicioCasos.vb' -Raw
           $servicioPlazos = Get-Content 'SGLN\\Servicios\\ServicioPlazos.vb' -Raw
           $servicioCumplimiento = Get-Content 'SGLN\\Servicios\\ServicioCumplimiento.vb' -Raw
+          $frmCumplimiento = Get-Content 'SGLN\\UI\\FrmCumplimiento.vb' -Raw
           $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
           $calculadoraDias = Get-Content 'SGLN\\Servicios\\CalculadoraDiasHabiles.vb' -Raw
           $servicioProtocolo = Get-Content 'SGLN\\Servicios\\ServicioProtocolo.vb' -Raw
@@ -168,6 +169,11 @@ jobs:
               $servicioPlazos -notmatch 'FechaNotificacion = Date.MinValue' -or
               $casoRepo -notmatch 'CONFIRMAR PLAZO') {
             throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
+          }
+          if ($cumplimientoRepo -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL" -or
+              $cumplimientoRepo -notmatch "THEN 'Revisar prórroga'" -or
+              $frmCumplimiento -notmatch '"Revisar prórroga"') {
+            throw 'Las solicitudes con prórroga sin fecha deben identificarse para revisión y nunca figurar como vencidas.'
           }
           if ($servicioCumplimiento -notmatch 'fecha de solicitud no es válida' -or
               $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO' -or
