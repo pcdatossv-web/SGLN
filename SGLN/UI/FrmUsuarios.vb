@@ -47,8 +47,15 @@ Public Class FrmUsuarios
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - listar", ex)
             Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
+            dgvUsuarios.DataSource = Nothing
         Finally
             _cargando = False
+            Dim actual As DataRow = UtileriasUI.FilaActual(dgvUsuarios)
+            If actual Is Nothing Then
+                Nuevo()
+            Else
+                dgvUsuarios_SelectionChanged(dgvUsuarios, EventArgs.Empty)
+            End If
         End Try
     End Sub
 
