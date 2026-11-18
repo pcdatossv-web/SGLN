@@ -193,9 +193,12 @@ Public Class ServicioDocumentos
                         File.Delete(rutaLimpieza)
                     End If
                 End If
-            Catch
+            Catch exLimpieza As Exception
                 ' La limpieza es best-effort; ante una ruta insegura se conserva
                 ' el archivo para evitar borrar datos ajenos fuera del almacén.
+                ' Registrar el fallo para que un posible archivo huérfano no quede
+                ' oculto durante la investigación de incidencias.
+                RegistroErrores.Escribir("Documentos - limpieza tras importación fallida", exLimpieza)
             End Try
 
             RegistroErrores.Escribir("Documentos - importar", ex)
