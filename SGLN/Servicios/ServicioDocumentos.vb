@@ -86,14 +86,19 @@ Public Class ServicioDocumentos
         Dim rutaTemporal As String = ""
         Try
             Dim carpeta As String = RutaBaseDocumentos()
+
+            ' Validar antes de crear: Directory.CreateDirectory puede seguir un
+            ' enlace situado en cualquier directorio padre y crear fuera del
+            ' almacén autorizado. La validación recorre la ruta desde la raíz.
+            Dim rutaPrevalidacion As String = Path.Combine(
+                carpeta, "validacion_" & Guid.NewGuid().ToString("N") & ".tmp")
+            RutaCompleta(rutaPrevalidacion)
+
             Directory.CreateDirectory(carpeta)
 
-            ' Validar también antes de escribir: comprobar los enlaces únicamente
-            ' al abrir el documento deja una ventana en la que una carpeta
-            ' documental sustituida por un junction/symlink recibe archivos.
-            ' RutaCompleta verifica la raíz y cada segmento existente.
-            Dim rutaDestinoValidada As String = RutaCompleta(
-                Path.Combine(carpeta, "validacion_" & Guid.NewGuid().ToString("N") & ".tmp"))
+            ' Revalidar después de crear la carpeta para detectar sustituciones
+            ' concurrentes antes de escribir el archivo temporal.
+            Dim rutaDestinoValidada As String = RutaCompleta(rutaPrevalidacion)
 
             Dim nombreDestino As String = DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" &
                 Guid.NewGuid().ToString("N").Substring(0, 8) & extension.ToLowerInvariant()
