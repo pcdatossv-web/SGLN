@@ -165,13 +165,16 @@ Public Class CasoRepositorio
                 ' Bloquear y comprobar la existencia antes de actualizar. Sin esta
                 ' comprobación, un ID inexistente podía devolverse como exitoso.
                 Dim casoActual As Integer
+                Dim estadoActual As String = ""
                 Using comandoExiste As New MySqlCommand(
-                    "SELECT ID_Caso FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
+                    "SELECT ID_Caso, Estado FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
                     Parametro(comandoExiste, "@id", actuacion.ID)
-                    Dim valorCaso As Object = comandoExiste.ExecuteScalar()
-                    If valorCaso Is Nothing OrElse valorCaso Is DBNull.Value Then Return 0
-                    casoActual = Convert.ToInt32(valorCaso)
+                    Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        casoActual = Convert.ToInt32(lector("ID_Caso"))
+                        estadoActual = Convert.ToString(lector("Estado"))
+                    End Using
                 End Using
 
                 ' El ID de actuación no basta para identificar el contexto que
@@ -183,7 +186,15 @@ Public Class CasoRepositorio
                         "La actuación seleccionada no pertenece al caso indicado. Actualice la lista e inténtelo de nuevo.")
                 End If
 
-                Dim filas As Integer = Ejecutar(conexion, transaccion,
+                ' El bloqueo anterior permite comprobar el estado antes de escribir.
+                ' MySQL puede devolver 0 filas afectadas cuando los valores no cambian;
+                ' eso no significa que la confirmación no haya ocurrido.
+                If Not String.Equals(estadoActual, "Pendiente", StringComparison.Ordinal) AndAlso
+                   Not String.Equals(estadoActual, "Vencido", StringComparison.Ordinal) Then
+                    Return 0
+                End If
+
+                Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &
                     "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, " &
                     "Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, Observaciones = @observaciones " &
@@ -192,12 +203,9 @@ Public Class CasoRepositorio
                         AgregarParametrosActuacion(comando, actuacion)
                         Parametro(comando, "@id", actuacion.ID)
                     End Sub)
-                ' Solo se audita y confirma cuando la actuación sigue pendiente o vencida.
-                ' Una actuación cumplida no puede modificarse ni reportarse como confirmada.
-                If filas <= 0 Then Return 0
 
-                ' La confirmación es un evento de negocio y debe quedar auditada
-                ' incluso si los datos calculados coinciden con los ya almacenados.
+                ' La confirmación es un evento de negocio: se audita aun si MySQL
+                ' informa cero filas modificadas porque los valores ya coincidían.
                 AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
                     actuacion.ID, "Vencimiento " & If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D"))
                 Return actuacion.ID

@@ -182,6 +182,12 @@ jobs:
               $casoRepo -notmatch 'no pertenece al caso indicado') {
             throw 'La actualización de una actuación debe comprobar que pertenece al expediente indicado.'
           }
+          if ($casoRepo -notmatch 'SELECT ID_Caso, Estado FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE' -or
+              $casoRepo -notmatch 'estadoActual' -or
+              $casoRepo -notmatch 'MySQL puede devolver 0 filas afectadas' -or
+              $casoRepo -notmatch 'AuditarEnTransaccion\(conexion, transaccion, "CONFIRMAR PLAZO"') {
+            throw 'La confirmación debe validar el estado bajo bloqueo y auditar aunque MySQL reporte cero filas modificadas.'
+          }
           if ($cumplimientoRepo -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL" -or
               $cumplimientoRepo -notmatch "THEN 'Revisar prórroga'" -or
               $frmCumplimiento -notmatch '"Revisar prórroga"') {
