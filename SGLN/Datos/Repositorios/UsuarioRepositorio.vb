@@ -329,27 +329,6 @@ Public Class UsuarioRepositorio
                     If estadoActual Is Nothing OrElse estadoActual Is DBNull.Value Then Return 0
                     If Convert.ToBoolean(estadoActual) <> activo Then Return -1
 
-                    ' Si se retira el rol Administrador, la comprobación del
-                    ' último administrador también debe ser transaccional.
-                    If rolActualProtegido Then
-                        Using comandoBloqueoAdmin As New MySqlCommand(
-                            "SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE", conexion, transaccion)
-                            comandoBloqueoAdmin.ExecuteScalar()
-                        End Using
-                        If Not rolProtegidoActual Then
-                            Dim administradoresRestantes As Integer
-                            Using comandoAdmin As New MySqlCommand(
-                                "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
-                                "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id", conexion, transaccion)
-                                Parametro(comandoAdmin, "@id", id)
-                                administradoresRestantes = Convert.ToInt32(comandoAdmin.ExecuteScalar())
-                            End Using
-                            If administradoresRestantes = 0 Then
-                                Throw New InvalidOperationException("Debe quedar al menos un usuario administrador activo.")
-                            End If
-                        End If
-                    End If
-
                     ' La validez del nuevo rol se comprueba bajo bloqueo en la
                     ' misma transacción que asigna el usuario.
                     Dim rolProtegidoActual As Boolean = False
@@ -358,6 +337,25 @@ Public Class UsuarioRepositorio
                     End If
                     If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
+                    End If
+
+                    ' Si se retira el rol Administrador, serializar el conteo
+                    ' impide que dos cambios concurrentes dejen cero admins.
+                    If rolActualProtegido AndAlso Not rolProtegidoActual Then
+                        Using comandoBloqueoAdmin As New MySqlCommand(
+                            "SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE", conexion, transaccion)
+                            comandoBloqueoAdmin.ExecuteScalar()
+                        End Using
+                        Dim administradoresRestantes As Integer
+                        Using comandoAdmin As New MySqlCommand(
+                            "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                            "WHERE r.Protegido = 1 AND u.Activo = 1 AND u.ID <> @id", conexion, transaccion)
+                            Parametro(comandoAdmin, "@id", id)
+                            administradoresRestantes = Convert.ToInt32(comandoAdmin.ExecuteScalar())
+                        End Using
+                        If administradoresRestantes = 0 Then
+                            Throw New InvalidOperationException("Debe quedar al menos un usuario administrador activo.")
+                        End If
                     End If
 
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
