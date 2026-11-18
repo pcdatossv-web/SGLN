@@ -35,7 +35,7 @@ Public Class AuditoriaRepositorio
                 Parametro(comando, "@likeUsuario", "%" & If(usuario, "").Trim() & "%")
                 Parametro(comando, "@tabla", If(tabla, "").Trim())
                 Parametro(comando, "@likeTabla", "%" & If(tabla, "").Trim() & "%")
-                Parametro(comando, "@accion", If(accion, "").Trim())
+                Parametro(comando, "@accion", If(String.IsNullOrWhiteSpace(accion), CType(DBNull.Value, Object), accion.Trim()))
                 Parametro(comando, "@desde", desde.Date)
                 Parametro(comando, "@hasta",
                           If(limiteMaximo, Date.MaxValue, hasta.Date.AddDays(1)))

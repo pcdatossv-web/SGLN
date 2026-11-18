@@ -70,6 +70,7 @@ jobs:
           $entidadRepo = Get-Content 'SGLN\\Datos\\Repositorios\\EntidadRepositorio.vb' -Raw
           $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $cumplimientoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CumplimientoRepositorio.vb' -Raw
+          $auditoriaRepo = Get-Content 'SGLN\\Datos\\Repositorios\\AuditoriaRepositorio.vb' -Raw
           $protocoloRepoDatos = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           $seguridadClave = Get-Content 'SGLN\\Servicios\\SeguridadClave.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
@@ -178,6 +179,10 @@ jobs:
           if ($servicioAlertas -notmatch "ARCO revisar prórroga" -or
               $servicioAlertas -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL") {
             throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
+          }
+          if ($auditoriaRepo -notmatch 'String.IsNullOrWhiteSpace\(accion\)' -or
+              $auditoriaRepo -notmatch 'CType\(DBNull.Value, Object\)') {
+            throw 'El filtro (Todos) de auditoría debe tratar la acción vacía como filtro opcional.'
           }
           if ($servicioCumplimiento -notmatch 'fecha de solicitud no es válida' -or
               $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO' -or
