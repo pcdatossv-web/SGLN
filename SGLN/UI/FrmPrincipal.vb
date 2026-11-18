@@ -30,9 +30,25 @@ Public Class FrmPrincipal
     Private Function AplicarPermisosItem(item As ToolStripItem) As Boolean
         If TypeOf item Is ToolStripSeparator Then Return False
 
-        Dim autorizado As Boolean =
-            item.Tag Is Nothing OrElse
-            Permisos.Puede(Convert.ToString(item.Tag))
+        Dim autorizado As Boolean
+        Select Case item.Name
+            Case "mnuDocumentos"
+                autorizado =
+                    Permisos.TieneAcceso("documentos.ver") OrElse
+                    Permisos.TieneAcceso("documentos.importar") OrElse
+                    Permisos.TieneAcceso("documentos.verificar") OrElse
+                    Permisos.TieneAcceso("documentos.metadatos")
+            Case "mnuCumplimiento"
+                autorizado =
+                    Permisos.TieneAcceso("cumplimiento.ver") OrElse
+                    Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
+                    Permisos.TieneAcceso("cumplimiento.reportar_uif") OrElse
+                    Permisos.TieneAcceso("cumplimiento.arco")
+            Case Else
+                autorizado =
+                    item.Tag Is Nothing OrElse
+                    Permisos.Puede(Convert.ToString(item.Tag))
+        End Select
 
         Dim desplegable As ToolStripDropDownItem =
             TryCast(item, ToolStripDropDownItem)
