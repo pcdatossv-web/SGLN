@@ -527,6 +527,33 @@ Public Class ConfiguracionRepositorio
                 ' no deja el formulario esperando indefinidamente.
                 Dim copiaSalida As Task = Task.Run(Sub() proceso.StandardOutput.BaseStream.CopyTo(salida))
                 Dim lecturaErrores As Task(Of String) = Task.Run(Function() proceso.StandardError.ReadToEnd())
+
+                ' Si el destino se queda sin espacio, se revoca el acceso al
+                ' archivo o falla cualquiera de las tuberías, cerrar la tarea
+                ' lectora sin detener mysqldump puede llenar el pipe y dejar
+                ' WaitForExit bloqueado hasta agotar el timeout de dos horas.
+                ' Ante un fallo de lectura se termina el proceso inmediatamente.
+                Dim vigilarSalida As Task = copiaSalida.ContinueWith(
+                    Sub(tarea As Task)
+                        If tarea.IsFaulted OrElse tarea.IsCanceled Then
+                            Try
+                                proceso.Kill()
+                            Catch
+                                ' El proceso puede haber terminado entre tanto.
+                            End Try
+                        End If
+                    End Sub, TaskContinuationOptions.NotOnRanToCompletion)
+                Dim vigilarErrores As Task = lecturaErrores.ContinueWith(
+                    Sub(tarea As Task)
+                        If tarea.IsFaulted OrElse tarea.IsCanceled Then
+                            Try
+                                proceso.Kill()
+                            Catch
+                                ' El proceso puede haber terminado entre tanto.
+                            End Try
+                        End If
+                    End Sub, TaskContinuationOptions.NotOnRanToCompletion)
+
                 Dim termino As Boolean = proceso.WaitForExit(CInt(TimeSpan.FromHours(2).TotalMilliseconds))
 
                 If Not termino Then

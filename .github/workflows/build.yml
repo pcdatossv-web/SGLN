@@ -313,6 +313,12 @@ jobs:
           if ($usuarioRepo -notmatch 'UPDATE Intentos_Acceso SET Intentos = 0') {
             throw 'El restablecimiento de contraseña debe retirar el bloqueo de acceso en la misma transacción.'
           }
+          if ($configRepo -notmatch 'vigilarSalida' -or
+              $configRepo -notmatch 'vigilarErrores' -or
+              $configRepo -notmatch 'TaskContinuationOptions.NotOnRanToCompletion' -or
+              ([regex]::Matches($configRepo, 'proceso\.Kill\(\)').Count -lt 3)) {
+            throw 'El respaldo debe terminar mysqldump si falla la lectura de cualquiera de sus tuberías para evitar bloqueos prolongados.'
+          }
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
