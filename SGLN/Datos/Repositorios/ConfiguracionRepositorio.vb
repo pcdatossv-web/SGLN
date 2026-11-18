@@ -355,7 +355,7 @@ Public Class ConfiguracionRepositorio
     ''' Rechaza puntos de reanálisis en todos los segmentos de la carpeta
     ''' autorizada, incluso cuando se invoca directamente el repositorio.
     ''' </summary>
-    Private Shared Sub ValidarCarpetaSinEnlaces(rutaCompleta As String)(rutaCompleta As String)
+    Private Shared Sub ValidarCarpetaSinEnlaces(rutaCompleta As String)
         ' Recorrer todos los segmentos desde la raíz para detectar enlaces
         ' también en directorios padres de la carpeta configurada.
         Dim rutaAbsoluta As String = Path.GetFullPath(rutaCompleta)

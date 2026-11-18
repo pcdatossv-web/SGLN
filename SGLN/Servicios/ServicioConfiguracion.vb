@@ -193,7 +193,7 @@ Public Class ServicioConfiguracion
     ''' Impide que una carpeta de respaldos aparentemente local redirija la
     ''' escritura de copias sensibles fuera de la ubicación autorizada.
     ''' </summary>
-    Private Shared Sub ValidarCarpetaRespaldosSinEnlaces(rutaCompleta As String)(rutaCompleta As String)
+    Private Shared Sub ValidarCarpetaRespaldosSinEnlaces(rutaCompleta As String)
         ' Recorrer todos los segmentos desde la raíz para detectar enlaces
         ' también en directorios padres de la carpeta configurada.
         Dim rutaAbsoluta As String = Path.GetFullPath(rutaCompleta)
