@@ -83,6 +83,7 @@ Public Class ServicioDocumentos
         End Try
 
         Dim rutaDestino As String = ""
+        Dim rutaTemporal As String = ""
         Try
             Dim carpeta As String = RutaBaseDocumentos()
             Directory.CreateDirectory(carpeta)
@@ -103,35 +104,48 @@ Public Class ServicioDocumentos
             ' Volver a comprobar el nombre exacto que se va a crear. La validación
             ' del archivo temporal anterior solo cubre la carpeta y sus segmentos.
             rutaDestino = RutaCompleta(rutaDestino)
+            rutaTemporal = RutaCompleta(rutaDestino & ".tmp")
 
-            ' Se calcula el hash sobre la copia final, no sobre el origen:
-            ' evita registrar un hash distinto si el archivo cambia durante la copia.
-            File.Copy(rutaOrigen, rutaDestino)
+            ' Copiar primero a un temporal dentro de la misma carpeta. Si la
+            ' aplicación se interrumpe durante la copia, nunca queda un archivo
+            ' parcial con nombre definitivo ni visible como documento importado.
+            File.Copy(rutaOrigen, rutaTemporal)
 
-            ' Comprobar otra vez la ruta después de crear el archivo para detectar
-            ' cambios de directorio o puntos de reanálisis durante la importación.
-            Dim rutaCopiaValidada As String = RutaCompleta(rutaDestino)
-            If Not String.Equals(Path.GetFullPath(rutaCopiaValidada),
-                                 Path.GetFullPath(rutaDestino),
+            ' Revalidar la ruta y el tamaño de la copia temporal: el origen puede
+            ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite se aplica al
+            ' contenido que realmente se almacenará.
+            Dim rutaTemporalValidada As String = RutaCompleta(rutaTemporal)
+            If Not String.Equals(Path.GetFullPath(rutaTemporalValidada),
+                                 Path.GetFullPath(rutaTemporal),
                                  StringComparison.OrdinalIgnoreCase) Then
                 Throw New InvalidOperationException("La ruta del archivo cambió durante la importación.")
             End If
 
-            ' Revalidar el tamaño de la copia final: el archivo de origen puede
-            ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite debe
-            ' aplicarse al contenido que realmente se almacenará.
-            Dim informacionCopia As New FileInfo(rutaDestino)
+            Dim informacionCopia As New FileInfo(rutaTemporal)
             If informacionCopia.Length <= 0 OrElse
                informacionCopia.Length > TamanoMaximoMb * 1024L * 1024L Then
                 Throw New InvalidDataException(
                     "El archivo copiado está vacío o supera el límite de " & TamanoMaximoMb & " MB.")
             End If
 
-            If Not ValidarContenidoArchivo(rutaDestino, extension) Then
+            If Not ValidarContenidoArchivo(rutaTemporal, extension) Then
                 Throw New InvalidDataException(
                     "El contenido del archivo no corresponde a su extensión o el documento está dañado.")
             End If
-            Dim hash As String = CalcularHashSha256(rutaDestino)
+            Dim hash As String = CalcularHashSha256(rutaTemporal)
+
+            ' Publicar el archivo con un movimiento dentro del mismo volumen.
+            ' File.Move no sobrescribe un destino existente y evita exponer
+            ' documentos parcialmente copiados.
+            File.Move(rutaTemporal, rutaDestino)
+            rutaTemporal = ""
+
+            Dim rutaCopiaValidada As String = RutaCompleta(rutaDestino)
+            If Not String.Equals(Path.GetFullPath(rutaCopiaValidada),
+                                 Path.GetFullPath(rutaDestino),
+                                 StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException("La ruta del archivo cambió durante la importación.")
+            End If
 
             Dim documento As New Documento With {
                 .TipoDocumento = tipoDocumento.Trim(),
@@ -152,6 +166,17 @@ Public Class ServicioDocumentos
         Catch ex As Exception
             ' Si falla el registro, no se deja una copia huérfana en disco.
             Try
+                ' El temporal nunca se registra en la base. Se limpia incluso si
+                ' falla la validación o el movimiento de publicación.
+                If Not String.IsNullOrWhiteSpace(rutaTemporal) AndAlso File.Exists(rutaTemporal) Then
+                    Dim rutaLimpiezaTemporal As String = RutaCompleta(rutaTemporal)
+                    If String.Equals(Path.GetFullPath(rutaLimpiezaTemporal),
+                                     Path.GetFullPath(rutaTemporal),
+                                     StringComparison.OrdinalIgnoreCase) Then
+                        File.Delete(rutaLimpiezaTemporal)
+                    End If
+                End If
+
                 If File.Exists(rutaDestino) Then
                     ' No borrar a través de una ruta que ahora resuelva mediante
                     ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
