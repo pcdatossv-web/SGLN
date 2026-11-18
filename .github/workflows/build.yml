@@ -181,6 +181,10 @@ jobs:
               $servicioAlertas -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL") {
             throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
           }
+          if ($usuarioRepo -notmatch 'SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE' -or
+              $usuarioRepo -notmatch 'Serializa la desactivación de cuentas Administrador') {
+            throw 'La desactivación concurrente de administradores debe serializarse para conservar al menos una cuenta activa.'
+          }
           if ($usuarioRepo -notmatch 'BloquearYValidarRolActivo\(conexion, transaccion, idRol, rolProtegidoActual\)' -or
               $usuarioRepo -notmatch 'SELECT Protegido FROM Roles WHERE ID = @id AND Activo = 1 FOR UPDATE') {
             throw 'El alta y la asignación de usuarios deben bloquear y validar el rol activo dentro de la transacción.'
