@@ -302,7 +302,10 @@ Public Class FrmProtocolo
     Private Sub CargarInstrumento(id As Integer)
         Try
             Dim tabla As DataTable = _servicio.ObtenerInstrumento(id)
-            If tabla.Rows.Count = 0 Then Return
+            If tabla.Rows.Count = 0 Then
+                LimpiarInstrumento()
+                Return
+            End If
 
             Dim fila As DataRow = tabla.Rows(0)
             _idInstrumento = id

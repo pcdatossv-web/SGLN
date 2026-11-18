@@ -59,7 +59,11 @@ Public Class FrmClientes
     Private Sub CargarCliente(id As Integer)
         Try
             Dim tabla As DataTable = _servicio.Obtener(id)
-            If tabla.Rows.Count = 0 Then Return
+            If tabla.Rows.Count = 0 Then
+                ' Evita conservar el ID de otro cliente si el registro desapareció.
+                Limpiar()
+                Return
+            End If
 
             Dim fila As DataRow = tabla.Rows(0)
             _idCliente = id
