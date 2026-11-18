@@ -324,6 +324,13 @@ jobs:
               ([regex]::Matches($configRepo, 'proceso\.Kill\(\)').Count -lt 3)) {
             throw 'El respaldo debe terminar mysqldump si falla la lectura de cualquiera de sus tuberías para evitar bloqueos prolongados.'
           }
+          if ($configRepo -notmatch 'CitarArgumentoWindows\(servidor\)' -or
+              $configRepo -notmatch 'CitarArgumentoWindows\(certificadoCa\)' -or
+              $configRepo -notmatch 'CitarArgumentoWindows\(credenciales\)' -or
+              $configRepo -notmatch 'CitarArgumentoWindows\(baseDatos\)' -or
+              $configRepo -notmatch 'Private Shared Function CitarArgumentoWindows') {
+            throw 'Los argumentos variables de mysqldump deben escaparse para evitar inyección de argumentos en Windows.'
+          }
 
       - name: Build .NET Framework 4.8 solution
         shell: pwsh

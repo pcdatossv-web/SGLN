@@ -271,22 +271,22 @@ Public Class ConfiguracionRepositorio
                     sslArgumentos = "--disable-ssl "
                 Else
                     ' Verifica CA e identidad del servidor; es más estricto que VerifyCA.
-                    sslArgumentos = "--ssl --ssl-ca=""" & certificadoCa & """ --ssl-verify-server-cert "
+                    sslArgumentos = "--ssl --ssl-ca=" & CitarArgumentoWindows(certificadoCa) & " --ssl-verify-server-cert "
                 End If
             Else
                 sslArgumentos = "--ssl-mode=" & modoSslDump
                 If requiereCertificadoCa Then
-                    sslArgumentos &= " --ssl-ca=""" & certificadoCa & """"
+                    sslArgumentos &= " --ssl-ca=" & CitarArgumentoWindows(certificadoCa)
                 End If
                 sslArgumentos &= " "
             End If
             Dim argumentos As String =
-                "--defaults-extra-file=""" & credenciales & """ " &
+                "--defaults-extra-file=" & CitarArgumentoWindows(credenciales) & " " &
                 sslArgumentos &
-                "--host=""" & servidor & """ --port=" & constructor.Port & " " &
+                "--host=" & CitarArgumentoWindows(servidor) & " --port=" & constructor.Port & " " &
                 "--single-transaction --skip-lock-tables --no-tablespaces --triggers " &
                 "--default-character-set=utf8mb4 " &
-                "--databases """ & baseDatos & """"
+                "--databases " & CitarArgumentoWindows(baseDatos)
 
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
             ValidarArchivoRespaldo(temporalSalida, baseDatos)
@@ -467,6 +467,45 @@ Public Class ConfiguracionRepositorio
             New SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, Nothing),
             FileSystemRights.FullControl, AccessControlType.Allow))
         Return seguridad
+    End Function
+
+    ''' <summary>
+    ''' Encierra un argumento para CreateProcess en Windows y duplica las
+    ''' barras invertidas necesarias antes de comillas y al final del valor.
+    ''' ProcessStartInfo no escapa automáticamente la cadena Arguments.
+    ''' </summary>
+    Private Shared Function CitarArgumentoWindows(valor As String) As String
+        Dim barra As Char = Convert.ToChar(92)
+        Dim comilla As Char = Convert.ToChar(34)
+        Dim resultado As New StringBuilder()
+        resultado.Append(comilla)
+
+        Dim barrasPendientes As Integer = 0
+        For Each caracter As Char In If(valor, "")
+            If caracter = barra Then
+                barrasPendientes += 1
+            ElseIf caracter = comilla Then
+                If barrasPendientes > 0 Then
+                    resultado.Append(New String(barra, barrasPendientes * 2 + 1))
+                Else
+                    resultado.Append(barra)
+                End If
+                resultado.Append(comilla)
+                barrasPendientes = 0
+            Else
+                If barrasPendientes > 0 Then
+                    resultado.Append(New String(barra, barrasPendientes))
+                    barrasPendientes = 0
+                End If
+                resultado.Append(caracter)
+            End If
+        Next
+
+        If barrasPendientes > 0 Then
+            resultado.Append(New String(barra, barrasPendientes * 2))
+        End If
+        resultado.Append(comilla)
+        Return resultado.ToString()
     End Function
 
     Private Shared Function EscaparOpcionMySQL(valor As String) As String
