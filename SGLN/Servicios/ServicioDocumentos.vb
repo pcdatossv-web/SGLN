@@ -351,10 +351,19 @@ Public Class ServicioDocumentos
     ''' archivos externos mediante junctions o symlinks de Windows.
     ''' </summary>
     Private Sub ValidarRutaSinEnlaces(base As String, destino As String)
-        If Directory.Exists(base) AndAlso
-           (File.GetAttributes(base) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
-            Throw New InvalidOperationException("La carpeta documental no puede ser un enlace o punto de reanálisis.")
-        End If
+        ' Consultar atributos directamente en vez de depender de Exists:
+        ' File.Exists/Directory.Exists pueden devolver False para un enlace
+        ' simbólico cuyo destino ya no existe.
+        Try
+            Dim atributosBase As FileAttributes = File.GetAttributes(base)
+            If (atributosBase And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+                Throw New InvalidOperationException("La carpeta documental no puede ser un enlace o punto de reanálisis.")
+            End If
+        Catch ex As FileNotFoundException
+            ' La carpeta todavía no existe; se validarán los segmentos existentes.
+        Catch ex As DirectoryNotFoundException
+            ' La carpeta todavía no existe; se validarán los segmentos existentes.
+        End Try
 
         Dim relativo As String = destino.Substring(base.TrimEnd(Path.DirectorySeparatorChar,
             Path.AltDirectorySeparatorChar).Length).TrimStart(Path.DirectorySeparatorChar,
@@ -367,11 +376,16 @@ Public Class ServicioDocumentos
         Dim actual As String = base
         For Each segmento As String In segmentos
             actual = Path.Combine(actual, segmento)
-            If File.Exists(actual) OrElse Directory.Exists(actual) Then
-                If (File.GetAttributes(actual) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+            Try
+                Dim atributos As FileAttributes = File.GetAttributes(actual)
+                If (atributos And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
                     Throw New InvalidOperationException("La ruta documental contiene un enlace o punto de reanálisis no permitido.")
                 End If
-            End If
+            Catch ex As FileNotFoundException
+                ' El último segmento puede no existir todavía al importar.
+            Catch ex As DirectoryNotFoundException
+                ' Un segmento padre puede no existir todavía.
+            End Try
         Next
     End Sub
 
