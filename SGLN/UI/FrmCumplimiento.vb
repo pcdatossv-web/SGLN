@@ -358,6 +358,12 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub ActualizarFechasArco()
+        If Not Permisos.TieneAcceso("cumplimiento.arco") Then
+            txtVencimientoArco.Clear()
+            txtVencimientoProrroga.Clear()
+            Return
+        End If
+
         Try
             Dim vencimiento As Date = _servicio.CalcularVencimientoArco(dtpFechaSolicitud.Value.Date)
             txtVencimientoArco.Text = vencimiento.ToString("dd/MM/yyyy")
