@@ -234,13 +234,13 @@ jobs:
           }
           $inicioPrepararIndice = $servicioProtocolo.IndexOf('Public Function GenerarIndice(')
           $finPrepararIndice = $servicioProtocolo.IndexOf('Public Function ConfirmarIndiceGenerado(', $inicioPrepararIndice)
-          if ($protocoloRepo -notmatch "Estado IN \\('Cerrado', 'Entregado'\\)" -or
+          if ($protocoloRepo -notmatch "Estado IN \('Cerrado', 'Entregado'\)" -or
               $protocoloRepo -notmatch 'Indice_Generado = 0' -or
               $inicioPrepararIndice -lt 0 -or $finPrepararIndice -le $inicioPrepararIndice -or
               $servicioProtocolo.Substring($inicioPrepararIndice, $finPrepararIndice - $inicioPrepararIndice) -match 'MarcarIndiceGenerado' -or
-              $servicioProtocolo -notmatch 'Public Function ConfirmarIndiceGenerado\\(' -or
-              $frmProtocolo -notmatch 'ExportarIndice\\(True\\)' -or
-              $frmProtocolo -notmatch 'ConfirmarIndiceGenerado\\(_idLibro\\)') {
+              $servicioProtocolo -notmatch 'Public Function ConfirmarIndiceGenerado\(' -or
+              $frmProtocolo -notmatch 'ExportarIndice\(True\)' -or
+              $frmProtocolo -notmatch 'ConfirmarIndiceGenerado\(_idLibro\)') {
             throw 'El índice notarial solo debe marcarse después de exportar el CSV y con control de concurrencia.'
           }
           if ($servicioAlertas -notmatch 'FechaLimiteEntrega' -or
