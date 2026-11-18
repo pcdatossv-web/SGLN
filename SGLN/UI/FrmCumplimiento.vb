@@ -12,7 +12,29 @@ Public Class FrmCumplimiento
     Private _umbral As Decimal
 
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        If Not Permisos.Exigir("cumplimiento.ver", Me) Then Return
+        Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
+        Dim puedeOperaciones As Boolean = Permisos.TieneAcceso("cumplimiento.operaciones")
+        Dim puedeReportar As Boolean = Permisos.TieneAcceso("cumplimiento.reportar_uif")
+        Dim puedeArco As Boolean = Permisos.TieneAcceso("cumplimiento.arco")
+        Dim puedeVerOperaciones As Boolean = puedeVer OrElse puedeOperaciones OrElse puedeReportar
+        Dim puedeVerArco As Boolean = puedeVer OrElse puedeArco
+
+        If Not (puedeVerOperaciones OrElse puedeVerArco) Then
+            If Not Permisos.Exigir("cumplimiento.ver", Me) Then Return
+        End If
+
+        btnBuscarOp.Enabled = puedeVerOperaciones
+        btnRefrescarOp.Enabled = puedeVerOperaciones
+        btnNuevoOp.Enabled = puedeOperaciones
+        btnGuardarOp.Enabled = puedeOperaciones
+        btnDescartarOp.Enabled = puedeOperaciones
+        btnReportarOp.Enabled = puedeReportar
+
+        btnBuscarArco.Enabled = puedeVerArco
+        btnRefrescarArco.Enabled = puedeVerArco
+        btnNuevoArco.Enabled = puedeArco
+        btnGuardarArco.Enabled = puedeArco
+        btnResponderArco.Enabled = puedeArco
 
         UtileriasUI.ConfigurarGrid(dgvOperaciones)
         UtileriasUI.ConfigurarGrid(dgvArco)
