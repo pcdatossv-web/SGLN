@@ -346,6 +346,9 @@ Public Class FrmCumplimiento
                 txtVencimientoProrroga.Text = ""
             End If
         Catch ex As Exception
+            ' No mostrar fechas calculadas anteriormente si el nuevo cálculo falla.
+            txtVencimientoArco.Clear()
+            txtVencimientoProrroga.Clear()
             RegistroErrores.Escribir("Cumplimiento - fechas ARCO", ex)
         End Try
     End Sub
