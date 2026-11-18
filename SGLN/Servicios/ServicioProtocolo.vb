@@ -416,27 +416,56 @@ Public Class ServicioProtocolo
 
     Public Function GenerarIndice(idLibro As Integer) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar el protocolo.")
-
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
+
         Try
             Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
             If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
-            If Convert.ToString(libro.Rows(0)("Estado")) = "Vigente" Then
-                Return Respuesta.Fallo("El índice solo se puede generar después del cierre del libro.")
+            Dim estado As String = Convert.ToString(libro.Rows(0)("Estado"))
+            If estado <> "Cerrado" AndAlso estado <> "Entregado" Then
+                Return Respuesta.Fallo("El índice solo se puede preparar después del cierre del libro.")
             End If
-            If Convert.ToBoolean(libro.Rows(0)("Indice_Generado")) Then
-                Return Respuesta.Ok("El índice de este libro ya fue generado.")
-            End If
+
             Dim indice As DataTable = _repositorio.IndiceLibro(idLibro)
             If indice.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
 
-            If _repositorio.MarcarIndiceGenerado(idLibro) = 0 Then
-                Return Respuesta.Fallo("El libro cambió de estado y no se pudo marcar el índice como generado.")
-            End If
-            Return Respuesta.Ok("Índice generado con " & indice.Rows.Count & " instrumento(s).")
+            ' Preparar los datos no equivale a generar el archivo. La marca
+            ' persistente se registra únicamente después de exportar el CSV.
+            Return Respuesta.Ok("Índice listo para exportar con " & indice.Rows.Count & " instrumento(s).")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - GenerarIndice", ex)
-            Return Respuesta.Fallo("No se pudo generar el índice. Verifique la conexión y vuelva a intentarlo.")
+            Return Respuesta.Fallo("No se pudo preparar el índice. Verifique la conexión y vuelva a intentarlo.")
+        End Try
+    End Function
+
+    Public Function ConfirmarIndiceGenerado(idLibro As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para registrar la generación del índice.")
+        If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
+
+        Try
+            Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
+            If libro.Rows.Count = 0 Then Return Respuesta.Fallo("El libro no existe.")
+            Dim estado As String = Convert.ToString(libro.Rows(0)("Estado"))
+            If estado <> "Cerrado" AndAlso estado <> "Entregado" Then
+                Return Respuesta.Fallo("El libro debe estar cerrado o entregado para registrar su índice.")
+            End If
+            If Convert.ToBoolean(libro.Rows(0)("Indice_Generado")) Then
+                Return Respuesta.Ok("La generación del índice ya estaba registrada.")
+            End If
+            If _repositorio.IndiceLibro(idLibro).Rows.Count = 0 Then
+                Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
+            End If
+            If _repositorio.MarcarIndiceGenerado(idLibro) = 0 Then
+                Dim actualizado As DataTable = _repositorio.ObtenerLibro(idLibro)
+                If actualizado.Rows.Count > 0 AndAlso Convert.ToBoolean(actualizado.Rows(0)("Indice_Generado")) Then
+                    Return Respuesta.Ok("La generación del índice ya estaba registrada.")
+                End If
+                Return Respuesta.Fallo("El libro cambió de estado y no se pudo registrar la generación del índice.")
+            End If
+            Return Respuesta.Ok("Generación del índice registrada correctamente.")
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - ConfirmarIndiceGenerado", ex)
+            Return Respuesta.Fallo("El CSV se exportó, pero no se pudo registrar la generación del índice. Verifique la conexión.")
         End Try
     End Function
 
