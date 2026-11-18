@@ -88,9 +88,15 @@ Public Class FrmPrincipal
                 formulario.ShowDialog(Me)
             End Using
 
-            ' El administrador pudo cambiar el rol o los permisos del usuario
-            ' actual mientras el formulario estaba abierto.
-            Sesion.CargarPermisos()
+            ' La cuenta o el rol pudieron desactivarse mientras el módulo
+            ' estaba abierto. Si no se puede revalidar, se fuerza el cierre
+            ' de sesión en lugar de restaurar permisos desde el rol en memoria.
+            If Not Permisos.RevalidarSesion() Then
+                Sesion.CerrarSesionSolicitado = True
+                Me.Close()
+                Return
+            End If
+
             AplicarPermisos()
             CargarPanel()
         Catch ex As Exception

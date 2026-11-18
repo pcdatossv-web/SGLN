@@ -92,14 +92,15 @@ Public NotInheritable Class Permisos
         End SyncLock
     End Sub
 
-    ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
-    Public Shared Function TieneAcceso(codigo As String) As Boolean
+    ''' <summary>
+    ''' Revalida que la cuenta y su rol sigan activos y actualiza los permisos
+    ''' de la sesión. También se usa al volver de formularios modales.
+    ''' </summary>
+    Public Shared Function RevalidarSesion() As Boolean
         Dim usuarioSesion As UsuarioSesion = Sesion.UsuarioActual
         If usuarioSesion Is Nothing OrElse usuarioSesion.ID <= 0 Then Return False
 
         Try
-            ' Revalidar estado y rol en la base evita conservar permisos de una
-            ' cuenta desactivada o de un rol cuyos permisos fueron modificados.
             Dim estado As UsuarioSesion = New UsuarioRepositorio().ObtenerEstadoSesion(usuarioSesion.ID)
             If estado Is Nothing Then
                 Sesion.Limpiar()
@@ -113,14 +114,20 @@ Public NotInheritable Class Permisos
             usuarioSesion.RolProtegido = estado.RolProtegido
 
             Cargar(estado.IDRol, estado.RolProtegido)
-            Return Puede(codigo)
+            Return True
         Catch ex As Exception
-            ' Si falla la revalidación, retirar también los permisos en memoria:
-            ' no dejar menús ni comprobaciones locales usando una sesión obsoleta.
+            ' Si no se puede comprobar el estado actual, se retira la sesión:
+            ' nunca se mantienen permisos de una cuenta que no pudo verificarse.
             Limpiar()
             RegistroErrores.Escribir("Permisos - validar sesión", ex)
             Return False
         End Try
+    End Function
+
+    ''' <summary>Autoriza operaciones de servicio solo con una sesión autenticada y permiso explícito.</summary>
+    Public Shared Function TieneAcceso(codigo As String) As Boolean
+        If Not RevalidarSesion() Then Return False
+        Return Puede(codigo)
     End Function
 
     Public Shared Function Puede(codigo As String) As Boolean
