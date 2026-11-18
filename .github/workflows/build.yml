@@ -287,6 +287,12 @@ jobs:
               $servicioUsuarios -notmatch 'Para cambiar su propia clave') {
             throw 'El mantenimiento de usuarios debe impedir cambios de rol propios y restablecimientos sin clave actual.'
           }
+          if ($rolRepo -notmatch 'SELECT COUNT\(\*\) FROM Usuarios WHERE ID_Rol = @id' -or
+              $rolRepo -notmatch 'SELECT Protegido FROM Roles WHERE ID = @id FOR UPDATE' -or
+              $rolRepo -notmatch 'No se puede desactivar un rol con usuarios asignados' -or
+              $rolRepo -notmatch 'No se puede eliminar un rol con usuarios asignados') {
+            throw 'La desactivación y eliminación de roles deben revalidar usuarios asignados dentro de la transacción.'
+          }
           if (-not $servicioRoles.Contains('descripcion.Trim().Length > 200') -or
               -not $servicioRoles.Contains('If id <= 0 Then Return Respuesta.Fallo')) {
             throw 'El servicio de roles debe validar la longitud de descripción y el identificador.'
