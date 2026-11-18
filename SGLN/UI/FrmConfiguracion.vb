@@ -14,7 +14,6 @@ Public Class FrmConfiguracion
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim puedeAcceder As Boolean =
             Permisos.TieneAcceso("config.ver") OrElse
-            Permisos.TieneAcceso("config.editar") OrElse
             Permisos.TieneAcceso("config.feriados") OrElse
             Permisos.TieneAcceso("config.seguridad") OrElse
             Permisos.TieneAcceso("config.respaldos")

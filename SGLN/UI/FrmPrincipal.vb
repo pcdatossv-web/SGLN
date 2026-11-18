@@ -47,7 +47,6 @@ Public Class FrmPrincipal
             Case "mnuConfiguracion"
                 autorizado =
                     Permisos.TieneAcceso("config.ver") OrElse
-                    Permisos.TieneAcceso("config.editar") OrElse
                     Permisos.TieneAcceso("config.feriados") OrElse
                     Permisos.TieneAcceso("config.seguridad") OrElse
                     Permisos.TieneAcceso("config.respaldos")
