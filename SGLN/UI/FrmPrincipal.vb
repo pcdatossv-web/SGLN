@@ -44,6 +44,13 @@ Public Class FrmPrincipal
                     Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
                     Permisos.TieneAcceso("cumplimiento.reportar_uif") OrElse
                     Permisos.TieneAcceso("cumplimiento.arco")
+            Case "mnuConfiguracion"
+                autorizado =
+                    Permisos.TieneAcceso("config.ver") OrElse
+                    Permisos.TieneAcceso("config.editar") OrElse
+                    Permisos.TieneAcceso("config.feriados") OrElse
+                    Permisos.TieneAcceso("config.seguridad") OrElse
+                    Permisos.TieneAcceso("config.respaldos")
             Case Else
                 autorizado =
                     item.Tag Is Nothing OrElse

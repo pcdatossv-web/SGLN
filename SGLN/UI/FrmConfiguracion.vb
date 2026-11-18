@@ -12,7 +12,15 @@ Public Class FrmConfiguracion
     Private _cargando As Boolean
 
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        If Not Permisos.Exigir("config.ver", Me) Then Return
+        Dim puedeAcceder As Boolean =
+            Permisos.TieneAcceso("config.ver") OrElse
+            Permisos.TieneAcceso("config.editar") OrElse
+            Permisos.TieneAcceso("config.feriados") OrElse
+            Permisos.TieneAcceso("config.seguridad") OrElse
+            Permisos.TieneAcceso("config.respaldos")
+        If Not puedeAcceder Then
+            If Not Permisos.Exigir("config.ver", Me) Then Return
+        End If
 
         UtileriasUI.ConfigurarGrid(dgvConfig)
         UtileriasUI.ConfigurarGrid(dgvFeriados)
