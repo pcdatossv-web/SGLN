@@ -25,9 +25,11 @@ Public Class FrmLogin
         RegistroErrores.Anotar("Conexión al iniciar", mensaje)
 
         Dim respuesta As DialogResult = MessageBox.Show(
-            "No se pudo conectar al servidor de base de datos." & Environment.NewLine & Environment.NewLine &
-            mensaje & Environment.NewLine & Environment.NewLine &
-            "Servidor configurado: " & ConfiguracionConexion.Actual.DescripcionCorta() & Environment.NewLine & Environment.NewLine &
+            "No se pudo establecer o validar la conexión con la base de datos." &
+            Environment.NewLine & Environment.NewLine &
+            "Revise la disponibilidad de MySQL y la configuración del servidor, " &
+            "las credenciales y TLS. El detalle técnico quedó registrado localmente." &
+            Environment.NewLine & Environment.NewLine &
             "¿Desea revisar la configuración de la conexión?",
             "Conexión a la base de datos", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
 
