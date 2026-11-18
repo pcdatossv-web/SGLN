@@ -24,6 +24,32 @@ Module PruebaFuncional
         Console.WriteLine("=====================================================")
         Console.WriteLine()
 
+        ' El escape de argumentos de CreateProcess debe preservar comillas y
+        ' barras invertidas finales; probarlo sin requerir conexión MySQL.
+        Dim metodoCitarArgumento As System.Reflection.MethodInfo =
+            GetType(ConfiguracionRepositorio).GetMethod(
+                "CitarArgumentoWindows",
+                System.Reflection.BindingFlags.NonPublic Or System.Reflection.BindingFlags.Static)
+        Dim barraArgumento As String = ChrW(92).ToString()
+        Dim comillaArgumento As String = ChrW(34).ToString()
+        Dim escapeArgumentosCorrecto As Boolean = False
+        If metodoCitarArgumento IsNot Nothing Then
+            Dim conEspaciosYBarraFinal As String = Convert.ToString(
+                metodoCitarArgumento.Invoke(Nothing, New Object() {"C:\ruta con espacio\"}))
+            Dim conComilla As String = Convert.ToString(
+                metodoCitarArgumento.Invoke(Nothing, New Object() {"servidor" & comillaArgumento & "prueba"}))
+            Dim vacio As String = Convert.ToString(
+                metodoCitarArgumento.Invoke(Nothing, New Object() {""}))
+            escapeArgumentosCorrecto =
+                conEspaciosYBarraFinal = comillaArgumento & "C:\ruta con espacio" &
+                    barraArgumento & barraArgumento & comillaArgumento AndAlso
+                conComilla = comillaArgumento & "servidor" & barraArgumento &
+                    comillaArgumento & "prueba" & comillaArgumento AndAlso
+                vacio = comillaArgumento & comillaArgumento
+        End If
+        Verificar("El escape de argumentos Windows preserva espacios, comillas y barras finales",
+                  escapeArgumentosCorrecto)
+
         Dim repositorioClientesDirecto As New ClienteRepositorio()
         Dim repositorioEntidadesDirecto As New EntidadRepositorio()
         Dim repositorioCasosDirecto As New CasoRepositorio()
