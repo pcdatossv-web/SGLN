@@ -2406,6 +2406,29 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio documental rechaza hashes que no son SHA-256",
                   hashDirectoInvalidoRechazado)
+
+        Dim tipoDocumentoInventadoRechazado As Boolean = False
+        Try
+            repositorioDocumentosDirecto.Insertar(New Documento With {
+                .TipoDocumento = "Categoría inventada",
+                .RutaArchivo = "Documentos/tipo_invalido.pdf",
+                .Hash = New String("A"c, 64)})
+        Catch ex As ArgumentException
+            tipoDocumentoInventadoRechazado = True
+        End Try
+        Verificar("El repositorio documental rechaza categorías no incluidas en el catálogo",
+                  tipoDocumentoInventadoRechazado)
+
+        Dim tipoMetadatoInventadoRechazado As Boolean = False
+        Try
+            repositorioDocumentosDirecto.ActualizarMetadatos(New Documento With {
+                .ID = Integer.MaxValue,
+                .TipoDocumento = "Categoría inventada"})
+        Catch ex As ArgumentException
+            tipoMetadatoInventadoRechazado = True
+        End Try
+        Verificar("La actualización directa de metadatos rechaza categorías inventadas",
+                  tipoMetadatoInventadoRechazado)
         Dim rutaPdfFalso As String = Path.Combine(carpetaTrabajo, "archivo_falso.pdf")
         File.WriteAllText(rutaPdfFalso, "Este contenido no es un PDF.")
         Verificar("Un archivo con extensión PDF pero firma incorrecta se rechaza",
