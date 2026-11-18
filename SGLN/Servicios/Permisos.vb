@@ -98,7 +98,11 @@ Public NotInheritable Class Permisos
     ''' </summary>
     Public Shared Function RevalidarSesion() As Boolean
         Dim usuarioSesion As UsuarioSesion = Sesion.UsuarioActual
-        If usuarioSesion Is Nothing OrElse usuarioSesion.ID <= 0 Then Return False
+        If usuarioSesion Is Nothing OrElse usuarioSesion.ID <= 0 Then
+            ' Una sesión ausente nunca debe dejar permisos de una sesión anterior.
+            Limpiar()
+            Return False
+        End If
 
         Try
             Dim estado As UsuarioSesion = New UsuarioRepositorio().ObtenerEstadoSesion(usuarioSesion.ID)

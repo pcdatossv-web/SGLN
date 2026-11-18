@@ -516,6 +516,17 @@ Module PruebaFuncional
         Sesion.CargarPermisos()
         Verificar("Al recargar la sesión del administrador vuelve el acceso total", Permisos.AccesoTotal)
 
+        ' Simula un estado inconsistente en el que la referencia de sesión se
+        ' pierde sin limpiar la colección de permisos en memoria.
+        Sesion.UsuarioActual = Nothing
+        Permisos.Cargar(admin.IDRol, True)
+        Dim sesionAusenteLimpiaPermisos As Boolean =
+            Not Permisos.RevalidarSesion() AndAlso Not Permisos.Puede("config.usuarios")
+        Verificar("Una sesión ausente limpia los permisos que pudieran quedar en memoria",
+                  sesionAusenteLimpiaPermisos)
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+
         Dim rRolNuevo As Respuesta = roles.Crear("Rol de prueba", "Rol temporal de la batería",
             New List(Of String) From {"clientes.ver", "clientes.gestionar"})
         Verificar("Crear un rol nuevo con permisos", rRolNuevo.Exito, rRolNuevo.Mensaje)
