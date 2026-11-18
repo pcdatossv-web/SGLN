@@ -83,6 +83,7 @@ jobs:
           $servicioDocumentos = Get-Content 'SGLN\\Servicios\\ServicioDocumentos.vb' -Raw
           $calculadoraDias = Get-Content 'SGLN\\Servicios\\CalculadoraDiasHabiles.vb' -Raw
           $servicioProtocolo = Get-Content 'SGLN\\Servicios\\ServicioProtocolo.vb' -Raw
+          $frmProtocolo = Get-Content 'SGLN\\UI\\FrmProtocolo.vb' -Raw
           $protocoloRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           $servicioAlertas = Get-Content 'SGLN\\Servicios\\ServicioAlertas.vb' -Raw
           $programa = Get-Content 'SGLN\\Program.vb' -Raw
@@ -231,11 +232,16 @@ jobs:
               $servicioProtocolo -notmatch 'validar referencias de escritura') {
             throw 'El protocolo debe validar fechas obligatorias y controlar errores al consultar referencias.'
           }
-          if ($protocoloRepo -notmatch "Estado IN \('Cerrado', 'Entregado'\)" -or
+          $inicioPrepararIndice = $servicioProtocolo.IndexOf('Public Function GenerarIndice(')
+          $finPrepararIndice = $servicioProtocolo.IndexOf('Public Function ConfirmarIndiceGenerado(', $inicioPrepararIndice)
+          if ($protocoloRepo -notmatch "Estado IN \\('Cerrado', 'Entregado'\\)" -or
               $protocoloRepo -notmatch 'Indice_Generado = 0' -or
-              $servicioProtocolo -notmatch 'cambió de estado y no se pudo marcar el índice' -or
-              $servicioProtocolo -notmatch 'El índice de este libro ya fue generado') {
-            throw 'El índice notarial solo puede marcarse después del cierre y debe detectar cambios concurrentes.'
+              $inicioPrepararIndice -lt 0 -or $finPrepararIndice -le $inicioPrepararIndice -or
+              $servicioProtocolo.Substring($inicioPrepararIndice, $finPrepararIndice - $inicioPrepararIndice) -match 'MarcarIndiceGenerado' -or
+              $servicioProtocolo -notmatch 'Public Function ConfirmarIndiceGenerado\\(' -or
+              $frmProtocolo -notmatch 'ExportarIndice\\(True\\)' -or
+              $frmProtocolo -notmatch 'ConfirmarIndiceGenerado\\(_idLibro\\)') {
+            throw 'El índice notarial solo debe marcarse después de exportar el CSV y con control de concurrencia.'
           }
           if ($servicioAlertas -notmatch 'FechaLimiteEntrega' -or
               $servicioAlertas -match 'INTERVAL 15 DAY') {
