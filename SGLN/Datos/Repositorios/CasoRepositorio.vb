@@ -164,12 +164,24 @@ Public Class CasoRepositorio
 
                 ' Bloquear y comprobar la existencia antes de actualizar. Sin esta
                 ' comprobación, un ID inexistente podía devolverse como exitoso.
+                Dim casoActual As Integer
                 Using comandoExiste As New MySqlCommand(
-                    "SELECT ID FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
+                    "SELECT ID_Caso FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
                     Parametro(comandoExiste, "@id", actuacion.ID)
-                    If comandoExiste.ExecuteScalar() Is Nothing Then Return 0
+                    Dim valorCaso As Object = comandoExiste.ExecuteScalar()
+                    If valorCaso Is Nothing OrElse valorCaso Is DBNull.Value Then Return 0
+                    casoActual = Convert.ToInt32(valorCaso)
                 End Using
+
+                ' El ID de actuación no basta para identificar el contexto que
+                ' la interfaz cree estar editando. Rechazar una petición cuyo
+                ' caso no coincide evita aplicar datos de un expediente a otro
+                ' por formularios obsoletos o identificadores manipulados.
+                If casoActual <> actuacion.IDCaso Then
+                    Throw New InvalidOperationException(
+                        "La actuación seleccionada no pertenece al caso indicado. Actualice la lista e inténtelo de nuevo.")
+                End If
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &

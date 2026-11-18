@@ -177,6 +177,11 @@ jobs:
               $casoRepo -notmatch 'CONFIRMAR PLAZO') {
             throw 'Los cálculos y confirmaciones de plazos deben estar protegidos y auditados.'
           }
+          if ($casoRepo -notmatch 'SELECT ID_Caso FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE' -or
+              $casoRepo -notmatch 'casoActual <> actuacion.IDCaso' -or
+              $casoRepo -notmatch 'no pertenece al caso indicado') {
+            throw 'La actualización de una actuación debe comprobar que pertenece al expediente indicado.'
+          }
           if ($cumplimientoRepo -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL" -or
               $cumplimientoRepo -notmatch "THEN 'Revisar prórroga'" -or
               $frmCumplimiento -notmatch '"Revisar prórroga"') {
