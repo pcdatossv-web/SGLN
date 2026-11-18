@@ -88,7 +88,13 @@ Public Class FrmCasos
     Private Sub CargarCaso(id As Integer)
         Try
             Dim tabla As DataTable = _servicio.Obtener(id)
-            If tabla.Rows.Count = 0 Then Return
+            If tabla.Rows.Count = 0 Then
+                ' El registro pudo desaparecer entre la carga de la lista y
+                ' la consulta del detalle. No conservar el ID anterior:
+                ' Guardar podría modificar otro expediente por selección obsoleta.
+                Limpiar()
+                Return
+            End If
 
             Dim fila As DataRow = tabla.Rows(0)
             _idCaso = id
