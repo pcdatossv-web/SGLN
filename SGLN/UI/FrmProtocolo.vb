@@ -83,6 +83,7 @@ Public Class FrmProtocolo
             _cargando = False
             dgvLibros.DataSource = Nothing
             cboLibro.DataSource = Nothing
+            cboInstrumentoTest.DataSource = Nothing
             dgvInstrumentos.DataSource = Nothing
             dgvComparecientes.DataSource = Nothing
             dgvTestimonios.DataSource = Nothing
