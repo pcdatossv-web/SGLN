@@ -237,7 +237,7 @@ Public Class UsuarioRepositorio
         If idRol <= 0 OrElse Not RolActivo(idRol) Then Return Respuesta.Fallo("El rol seleccionado no existe o está desactivado.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
-        If EsRolProtegido(idRol) AndAlso Not EsAdministradorAutenticado() Then
+        If EsRolProtegido(idRol) AndAlso Not administradorAutenticado Then
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
@@ -292,6 +292,7 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo("El nombre completo debe contener entre 1 y 150 caracteres.")
         End If
         If idRol <= 0 OrElse Not RolActivo(idRol) Then Return Respuesta.Fallo("El rol seleccionado no existe o está desactivado.")
+        Dim administradorAutenticado As Boolean = EsAdministradorAutenticado()
         If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id AndAlso
            (idRol <> Sesion.UsuarioActual.IDRol OrElse Not activo) Then
             Return Respuesta.Fallo("No puede cambiar su propio rol ni desactivar su cuenta desde esta sesión.")
@@ -300,7 +301,7 @@ Public Class UsuarioRepositorio
            ContarAdministradoresActivos(id) = 0 Then
             Return Respuesta.Fallo("Debe quedar al menos un usuario administrador activo.")
         End If
-        If EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+        If EsAdministrador(id) AndAlso Not administradorAutenticado Then
             Return Respuesta.Fallo("Solo un administrador puede modificar otra cuenta Administrador.")
         End If
         If EsRolProtegido(idRol) AndAlso Not EsAdministradorAutenticado() Then
@@ -327,7 +328,7 @@ Public Class UsuarioRepositorio
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
                     End If
-                    If rolProtegidoActual AndAlso Not EsAdministradorAutenticado() Then
+                    If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
                     End If
 
