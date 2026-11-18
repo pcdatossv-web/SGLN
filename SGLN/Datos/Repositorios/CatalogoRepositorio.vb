@@ -33,7 +33,11 @@ Public Class CatalogoRepositorio
             Permisos.TieneAcceso("casos.confirmar_plazo") OrElse
             Permisos.TieneAcceso("protocolo.ver") OrElse
             Permisos.TieneAcceso("protocolo.entregar") OrElse
-            Permisos.TieneAcceso("protocolo.gestionar")
+            Permisos.TieneAcceso("protocolo.gestionar") OrElse
+            Permisos.TieneAcceso("cumplimiento.ver") OrElse
+            Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
+            Permisos.TieneAcceso("cumplimiento.arco") OrElse
+            Permisos.TieneAcceso("cumplimiento.reportar_uif")
         If Not puedeConsultar Then Return New List(Of Date)()
 
         Dim fechas As New List(Of Date)()
