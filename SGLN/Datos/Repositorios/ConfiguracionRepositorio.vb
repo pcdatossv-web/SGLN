@@ -313,7 +313,42 @@ Public Class ConfiguracionRepositorio
             End Try
         End Try
 
-        AuditarObligatorio("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+        Try
+            AuditarObligatorio("RESPALDO", "BaseDatos", Nothing, "Respaldo en " & destinoFinal)
+        Catch exAuditoria As Exception
+            ' El archivo ya fue publicado, pero el respaldo no debe considerarse
+            ' exitoso si no queda constancia obligatoria en Audit_Log. Intentar
+            ' retirar únicamente el archivo de esta operación; nunca seguir una
+            ' ruta que haya sido sustituida por un punto de reanálisis.
+            Dim eliminado As Boolean = False
+            Try
+                ValidarCarpetaSinEnlaces(carpetaConfigurada)
+                If File.Exists(destinoFinal) Then
+                    Dim atributos As FileAttributes = File.GetAttributes(destinoFinal)
+                    If (atributos And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+                        Throw New InvalidOperationException(
+                            "El archivo de respaldo fue sustituido por un punto de reanálisis; no se eliminará.")
+                    End If
+                    File.Delete(destinoFinal)
+                    eliminado = True
+                End If
+            Catch exLimpieza As Exception
+                RegistroErrores.Escribir(
+                    "Respaldos - falló la limpieza tras un error de auditoría; revisar archivo " & destinoFinal,
+                    exLimpieza)
+            End Try
+
+            If eliminado Then
+                Throw New InvalidOperationException(
+                    "No se pudo registrar el respaldo en la bitácora. El archivo generado se eliminó para evitar un respaldo sin trazabilidad.",
+                    exAuditoria)
+            End If
+
+            Throw New InvalidOperationException(
+                "No se pudo registrar el respaldo en la bitácora y no fue posible confirmar su eliminación. Revise manualmente el archivo: " &
+                destinoFinal,
+                exAuditoria)
+        End Try
     End Sub
 
     ''' <summary>
