@@ -586,13 +586,12 @@ Public Class FrmProtocolo
             Return
         End If
 
-        _cargando = True
-        CargarLibros(_idLibro)
-        _cargando = False
-        MostrarMensaje(respuesta.Mensaje, True)
+        ' La marca "Indice_Generado" solo se confirma después de que el CSV
+        ' se haya escrito correctamente en la ubicación elegida.
+        ExportarIndice(True)
     End Sub
 
-    Private Sub ExportarIndice()
+    Private Sub ExportarIndice(Optional confirmarGeneracion As Boolean = False)
         Dim tabla As DataTable = TryCast(dgvIndice.DataSource, DataTable)
         If tabla Is Nothing OrElse tabla.Rows.Count = 0 Then
             UtileriasUI.MostrarError("No hay índice para exportar.")
@@ -606,7 +605,24 @@ Public Class FrmProtocolo
 
             Try
                 UtileriasUI.ExportarCsv(tabla, dialogo.FileName)
-                MostrarMensaje("Índice exportado en " & dialogo.FileName, True)
+
+                If confirmarGeneracion Then
+                    Dim confirmacion As Respuesta = _servicio.ConfirmarIndiceGenerado(_idLibro)
+                    If Not confirmacion.Exito Then
+                        MostrarMensaje("El CSV se exportó en " & dialogo.FileName &
+                                       ", pero no se pudo registrar la generación: " &
+                                       confirmacion.Mensaje, False)
+                        Return
+                    End If
+
+                    _cargando = True
+                    CargarLibros(_idLibro)
+                    _cargando = False
+                    MostrarMensaje("Índice exportado y generación registrada en " &
+                                   dialogo.FileName, True)
+                Else
+                    MostrarMensaje("Índice exportado en " & dialogo.FileName, True)
+                End If
             Catch ex As Exception
                 RegistroErrores.Escribir("Protocolo - exportar índice", ex)
                 MostrarMensaje("No se pudo exportar el índice. Verifique la ruta y los permisos de escritura.", False)
