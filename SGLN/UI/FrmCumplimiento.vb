@@ -91,7 +91,11 @@ Public Class FrmCumplimiento
             _cargando = False
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvOperaciones)
-            If actual IsNot Nothing Then CargarOperacion(actual)
+            If actual IsNot Nothing Then
+                CargarOperacion(actual)
+            Else
+                LimpiarOperacion()
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Cumplimiento - operaciones", ex)
@@ -257,7 +261,11 @@ Public Class FrmCumplimiento
             _cargando = False
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvArco)
-            If actual IsNot Nothing Then CargarSolicitud(actual)
+            If actual IsNot Nothing Then
+                CargarSolicitud(actual)
+            Else
+                LimpiarSolicitud()
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Cumplimiento - ARCO", ex)

@@ -266,6 +266,7 @@ Public Class FrmProtocolo
             dgvInstrumentos.DataSource = tabla
             OcultarColumnas(dgvInstrumentos, "ID")
             _cargando = False
+            If UtileriasUI.FilaActual(dgvInstrumentos) Is Nothing Then LimpiarInstrumento()
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Protocolo - instrumentos", ex)

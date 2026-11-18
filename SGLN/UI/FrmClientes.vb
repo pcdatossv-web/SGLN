@@ -34,6 +34,7 @@ Public Class FrmClientes
                 dgvClientes.Columns("ID").Visible = False
             End If
             _cargando = False
+            If UtileriasUI.FilaActual(dgvClientes) Is Nothing Then Limpiar()
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Clientes - cargar", ex)
