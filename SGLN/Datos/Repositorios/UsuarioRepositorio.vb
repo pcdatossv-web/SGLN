@@ -385,6 +385,14 @@ Public Class UsuarioRepositorio
                     If estado Is Nothing OrElse estado Is DBNull.Value Then Return 0
                     If Not Convert.ToBoolean(estado) Then Return 2
 
+                    ' Serializa la desactivación de cuentas Administrador.
+                    ' Sin este bloqueo, dos transacciones podrían contar a la
+                    ' otra cuenta como último administrador y desactivarse a la vez.
+                    Using comandoBloqueoAdmin As New MySqlCommand(
+                        "SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE", conexion, transaccion)
+                        comandoBloqueoAdmin.ExecuteScalar()
+                    End Using
+
                     Dim administradoresRestantes As Integer
                     Using comandoAdmin As New MySqlCommand(
                         "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
