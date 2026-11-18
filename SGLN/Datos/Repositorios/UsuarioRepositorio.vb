@@ -237,11 +237,11 @@ Public Class UsuarioRepositorio
         If idRol <= 0 OrElse Not RolActivo(idRol) Then Return Respuesta.Fallo("El rol seleccionado no existe o está desactivado.")
         Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(clave)
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
+        Dim administradorAutenticado As Boolean = EsAdministradorAutenticado()
         If EsRolProtegido(idRol) AndAlso Not administradorAutenticado Then
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
-        Dim administradorAutenticado As Boolean = EsAdministradorAutenticado()
         Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
 
         Try
