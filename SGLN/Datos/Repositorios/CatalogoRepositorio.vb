@@ -65,6 +65,12 @@ Public Class CatalogoRepositorio
                     Permisos.TieneAcceso("protocolo.ver") OrElse
                     Permisos.TieneAcceso("protocolo.entregar") OrElse
                     Permisos.TieneAcceso("protocolo.gestionar")
+            Case "Carpeta_Documentos"
+                permisoLectura =
+                    Permisos.TieneAcceso("documentos.ver") OrElse
+                    Permisos.TieneAcceso("documentos.importar") OrElse
+                    Permisos.TieneAcceso("documentos.verificar") OrElse
+                    Permisos.TieneAcceso("documentos.metadatos")
             Case Else
                 permisoLectura = Permisos.TieneAcceso("config.ver")
         End Select
