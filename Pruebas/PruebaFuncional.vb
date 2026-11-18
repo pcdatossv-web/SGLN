@@ -1849,6 +1849,17 @@ Module PruebaFuncional
         Dim rPlazo As Respuesta = plazos.Confirmar(actuacion)
         Verificar("Confirmar plazo guarda la actuación", rPlazo.Exito, rPlazo.Mensaje)
         Dim idActuacion As Integer = actuacion.ID
+        Dim actuacionOtroExpediente As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .ID = idActuacion, .IDCaso = Integer.MaxValue,
+            .IDTipoActuacion = actuacion.IDTipoActuacion,
+            .FechaNotificacion = actuacion.FechaNotificacion,
+            .PlazoLegalDias = actuacion.PlazoLegalDias,
+            .Observaciones = "Intento de cambiar expediente"
+        })
+        Verificar("Una actuación no puede actualizarse desde otro expediente y muestra el motivo",
+                  Not actuacionOtroExpediente.Exito AndAlso
+                  actuacionOtroExpediente.Mensaje.IndexOf("no pertenece al caso indicado",
+                      StringComparison.OrdinalIgnoreCase) >= 0)
         Dim actuacionDirectaForzadaPendiente As New ActuacionProcesal With {
             .IDCaso = idCaso, .IDTipoActuacion = UtileriasUI.Entero(tipoContestacion, "ID"),
             .FechaNotificacion = Date.Today, .PlazoLegalDias = 10,

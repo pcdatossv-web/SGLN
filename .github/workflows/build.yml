@@ -188,6 +188,10 @@ jobs:
               $casoRepo -notmatch 'AuditarEnTransaccion\(conexion, transaccion, "CONFIRMAR PLAZO"') {
             throw 'La confirmación debe validar el estado bajo bloqueo y auditar aunque MySQL reporte cero filas modificadas.'
           }
+          if ($servicioPlazos -notmatch 'Catch ex As InvalidOperationException' -or
+              $servicioPlazos -notmatch 'Return Respuesta.Fallo\(ex.Message\)') {
+            throw 'El servicio de plazos debe conservar los mensajes de integridad del repositorio.'
+          }
           if ($cumplimientoRepo -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL" -or
               $cumplimientoRepo -notmatch "THEN 'Revisar prórroga'" -or
               $frmCumplimiento -notmatch '"Revisar prórroga"') {

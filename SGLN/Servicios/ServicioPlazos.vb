@@ -59,6 +59,11 @@ Public Class ServicioPlazos
             Return Respuesta.Ok(
                 "Vencimiento confirmado para el " & actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy") &
                 ". El cálculo quedó registrado en la auditoría.")
+        Catch ex As InvalidOperationException
+            ' Las reglas de integridad del repositorio (por ejemplo, actuación
+            ' asociada a otro expediente o estado ya cerrado) deben llegar a la
+            ' interfaz como mensajes de negocio, no ocultarse como error técnico.
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Confirmar plazo", ex)
             Return Respuesta.Fallo("No se pudo confirmar el plazo. Verifique los datos y la conexión con la base de datos.")
