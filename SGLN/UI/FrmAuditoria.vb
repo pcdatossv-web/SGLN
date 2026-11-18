@@ -28,6 +28,8 @@ Public Class FrmAuditoria
             UtileriasUI.CargarCombo(cboTabla, ConTodos(_servicio.TablasAfectadas(), "Tabla_Afectada"), "Nombre", "Valor")
             UtileriasUI.CargarCombo(cboAccion, ConTodos(_servicio.Acciones(), "Accion"), "Nombre", "Valor")
         Catch ex As Exception
+            cboTabla.DataSource = Nothing
+            cboAccion.DataSource = Nothing
             RegistroErrores.Escribir("Auditoría - filtros", ex)
             MostrarMensaje("No se pudieron cargar los filtros de auditoría. Verifique la conexión con la base de datos.", False)
         End Try
@@ -72,6 +74,8 @@ Public Class FrmAuditoria
             lblResumen.Text = "Registros encontrados: " & dgvAuditoria.Rows.Count.ToString("N0")
         Catch ex As Exception
             _cargando = False
+            dgvAuditoria.DataSource = Nothing
+            lblResumen.Text = "No se pudo cargar la bitácora."
             RegistroErrores.Escribir("Auditoría - buscar", ex)
             MostrarMensaje("No se pudo consultar la bitácora de auditoría. Verifique los filtros y la conexión con la base de datos.", False)
         End Try

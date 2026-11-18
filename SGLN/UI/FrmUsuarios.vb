@@ -27,6 +27,7 @@ Public Class FrmUsuarios
         Try
             UtileriasUI.CargarCombo(cboRol, _servicio.RolesDisponibles(), "Nombre", "ID")
         Catch ex As Exception
+            cboRol.DataSource = Nothing
             RegistroErrores.Escribir("Usuarios - roles", ex)
             Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
         End Try

@@ -57,6 +57,7 @@ Public Class FrmProtocolo
         Try
             UtileriasUI.CargarCombo(cboClienteComp, _servicio.ClientesCombo(), "Nombre", "ID")
         Catch ex As Exception
+            cboClienteComp.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - clientes", ex)
         End Try
     End Sub
@@ -80,6 +81,14 @@ Public Class FrmProtocolo
             CargarLibroSeleccionado()
         Catch ex As Exception
             _cargando = False
+            dgvLibros.DataSource = Nothing
+            cboLibro.DataSource = Nothing
+            dgvInstrumentos.DataSource = Nothing
+            dgvComparecientes.DataSource = Nothing
+            dgvTestimonios.DataSource = Nothing
+            dgvIndice.DataSource = Nothing
+            LimpiarLibro()
+            LimpiarInstrumento()
             RegistroErrores.Escribir("Protocolo - libros", ex)
             MostrarMensaje("No se pudieron cargar los libros. Verifique la conexión con la base de datos.", False)
         End Try
@@ -148,6 +157,7 @@ Public Class FrmProtocolo
                     "SGLN no genera ni firma el paquete electrónico; registre la presentación ya realizada."
             End If
         Catch ex As Exception
+            LimpiarLibro()
             RegistroErrores.Escribir("Protocolo - editor de libro", ex)
             MostrarMensaje("No se pudo cargar el libro seleccionado. Verifique la conexión con la base de datos.", False)
         End Try
@@ -274,6 +284,8 @@ Public Class FrmProtocolo
             End If
         Catch ex As Exception
             _cargando = False
+            dgvInstrumentos.DataSource = Nothing
+            LimpiarInstrumento()
             RegistroErrores.Escribir("Protocolo - instrumentos", ex)
             MostrarMensaje("No se pudieron cargar los instrumentos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -304,6 +316,7 @@ Public Class FrmProtocolo
             CargarComparecientes()
             MostrarMensaje("", True)
         Catch ex As Exception
+            LimpiarInstrumento()
             RegistroErrores.Escribir("Protocolo - detalle de instrumento", ex)
             MostrarMensaje("No se pudo cargar el instrumento seleccionado. Verifique la conexión con la base de datos.", False)
         End Try
@@ -425,6 +438,7 @@ Public Class FrmProtocolo
             dgvComparecientes.DataSource = _servicio.Comparecientes(_idInstrumento)
             OcultarColumnas(dgvComparecientes, "ID", "ID_Cliente")
         Catch ex As Exception
+            dgvComparecientes.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - comparecientes", ex)
         End Try
     End Sub
@@ -493,6 +507,7 @@ Public Class FrmProtocolo
 
             UtileriasUI.CargarCombo(cboInstrumentoTest, tabla, "Descripcion", "ID")
         Catch ex As Exception
+            cboInstrumentoTest.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - combo de instrumentos", ex)
         End Try
     End Sub
@@ -513,6 +528,7 @@ Public Class FrmProtocolo
             dgvTestimonios.DataSource = _servicio.Testimonios(_idLibro)
             OcultarColumnas(dgvTestimonios, "ID")
         Catch ex As Exception
+            dgvTestimonios.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - testimonios", ex)
         End Try
     End Sub
@@ -552,6 +568,7 @@ Public Class FrmProtocolo
                 dgvIndice.Columns("Fecha_Hora_Otorgamiento").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
             End If
         Catch ex As Exception
+            dgvIndice.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - índice", ex)
         End Try
     End Sub

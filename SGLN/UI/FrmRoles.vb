@@ -55,6 +55,7 @@ Public Class FrmRoles
             clbPermisos.ValueMember = "Codigo"
             clbPermisos.CheckOnClick = True
         Catch ex As Exception
+            clbPermisos.DataSource = Nothing
             RegistroErrores.Escribir("Roles - catálogo de permisos", ex)
             Mostrar("No se pudo cargar el catálogo de permisos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -107,6 +108,7 @@ Public Class FrmRoles
             MarcarPermisos(_servicio.PermisosDeRol(_idSeleccionado))
             Mostrar("", True)
         Catch ex As Exception
+            Nuevo()
             RegistroErrores.Escribir("Roles - seleccionar", ex)
             Mostrar("No se pudieron cargar los permisos del rol. Verifique la conexión.", False)
         End Try
