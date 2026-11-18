@@ -175,6 +175,10 @@ jobs:
               $frmCumplimiento -notmatch '"Revisar prórroga"') {
             throw 'Las solicitudes con prórroga sin fecha deben identificarse para revisión y nunca figurar como vencidas.'
           }
+          if ($servicioAlertas -notmatch "ARCO revisar prórroga" -or
+              $servicioAlertas -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL") {
+            throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
+          }
           if ($servicioCumplimiento -notmatch 'fecha de solicitud no es válida' -or
               $servicioCumplimiento -notmatch 'No se pudo calcular el vencimiento ARCO' -or
               $servicioCumplimiento -notmatch 'IDCaso.Value <= 0' -or

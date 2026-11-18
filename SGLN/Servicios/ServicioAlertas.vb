@@ -103,6 +103,12 @@ Public Class ServicioAlertas
                 "WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
                 "AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < CURDATE()")
             consultas.Add(
+                "SELECT 'ARCO revisar prórroga' AS Tipo, " &
+                "CONCAT('Solicitud ARCO con prórroga sin fecha de vencimiento (ID ', CAST(a.ID AS CHAR), ')') AS Descripcion, " &
+                "a.Fecha_Vencimiento AS Fecha_Referencia, 'Alta' AS Prioridad " &
+                "FROM Solicitudes_ARCO a WHERE a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+                "AND a.Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL")
+            consultas.Add(
                 "SELECT 'ARCO por vencer' AS Tipo, " &
                 "CONCAT('Solicitud ARCO por vencer: ', a.Tipo_Derecho) AS Descripcion, " &
                 "IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) AS Fecha_Referencia, " &
