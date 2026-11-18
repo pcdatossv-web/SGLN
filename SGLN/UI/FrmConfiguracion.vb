@@ -65,8 +65,15 @@ Public Class FrmConfiguracion
             _cargando = True
             dgvConfig.DataSource = _servicio.Listar()
             _cargando = False
+            If UtileriasUI.FilaActual(dgvConfig) Is Nothing Then
+                NuevaClaveConfig()
+            Else
+                dgvConfig_SelectionChanged(dgvConfig, EventArgs.Empty)
+            End If
         Catch ex As Exception
             _cargando = False
+            dgvConfig.DataSource = Nothing
+            NuevaClaveConfig()
             RegistroErrores.Escribir("Configuración - listar", ex)
             MostrarMensaje("No se pudo cargar la configuración. Verifique la conexión con la base de datos.", False)
         End Try
