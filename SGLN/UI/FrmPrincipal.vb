@@ -74,7 +74,11 @@ Public Class FrmPrincipal
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Panel principal", ex)
-            lblResumen.Text = "No se pudieron cargar las alertas. Verifique la conexión con la base de datos."
+
+            ' No conservar alertas ni contadores de una consulta anterior:
+            ' podrían interpretarse como información actual aunque la carga falló.
+            dgvAlertas.DataSource = Nothing
+            lblResumen.Text = "No se pudieron cargar las alertas ni el resumen. Verifique la conexión con la base de datos."
         End Try
     End Sub
 
