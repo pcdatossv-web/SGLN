@@ -193,9 +193,16 @@ Public Class ServicioConfiguracion
     ''' Impide que una carpeta de respaldos aparentemente local redirija la
     ''' escritura de copias sensibles fuera de la ubicación autorizada.
     ''' </summary>
-    Private Shared Sub ValidarCarpetaRespaldosSinEnlaces(rutaCompleta As String)
-        Dim raiz As String = Path.GetPathRoot(rutaCompleta)
-        Dim relativo As String = rutaCompleta.Substring(raiz.Length)
+    Private Shared Sub ValidarCarpetaRespaldosSinEnlaces(rutaCompleta As String)(rutaCompleta As String)
+        ' Recorrer todos los segmentos desde la raíz para detectar enlaces
+        ' también en directorios padres de la carpeta configurada.
+        Dim rutaAbsoluta As String = Path.GetFullPath(rutaCompleta)
+        Dim raiz As String = Path.GetPathRoot(rutaAbsoluta)
+        If String.IsNullOrWhiteSpace(raiz) Then
+            Throw New InvalidOperationException("La ruta de respaldos no tiene una raíz válida.")
+        End If
+
+        Dim relativo As String = rutaAbsoluta.Substring(raiz.Length)
         Dim segmentos As String() = relativo.Split(
             New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar},
             StringSplitOptions.RemoveEmptyEntries)
@@ -203,8 +210,6 @@ Public Class ServicioConfiguracion
 
         For Each segmento As String In segmentos
             actual = Path.Combine(actual, segmento)
-            ' No filtrar con Exists: puede devolver False para enlaces simbólicos
-            ' rotos, cuyo destino ya no está disponible.
             Try
                 Dim atributos As FileAttributes = File.GetAttributes(actual)
                 If (atributos And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
@@ -212,9 +217,9 @@ Public Class ServicioConfiguracion
                         "La ruta de respaldos contiene un enlace simbólico o punto de reanálisis no permitido.")
                 End If
             Catch ex As FileNotFoundException
-                ' El último segmento puede no existir antes de crear la carpeta.
+                ' El archivo o directorio final puede no existir todavía.
             Catch ex As DirectoryNotFoundException
-                ' Se permiten segmentos aún no creados.
+                ' Se permiten segmentos que aún no se han creado.
             End Try
         Next
     End Sub
