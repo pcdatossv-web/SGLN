@@ -241,11 +241,19 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo("Solo un administrador puede asignar el rol protegido Administrador.")
         End If
 
+        Dim administradorAutenticado As Boolean = EsAdministradorAutenticado()
         Dim credencial As SalHash = SeguridadClave.CrearHash(clave)
 
         Try
             EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim rolProtegidoActual As Boolean = False
+                    If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
+                        Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
+                    End If
+                    If rolProtegidoActual AndAlso Not administradorAutenticado Then
+                        Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
+                    End If
                     Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                         "INSERT INTO Usuarios (Usuario, Nombre_Completo, Clave_Hash, Clave_Salt, ID_Rol, Activo) " &
                         "VALUES (@usuario, @nombre, @hash, @salt, @rol, @activo)",
@@ -266,6 +274,8 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo("Ya existe un usuario con ese nombre de acceso.")
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("El rol seleccionado ya no existe.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - crear", ex)
             Return Respuesta.Fallo("No se pudo crear el usuario. Verifique los datos y la conexión.")
@@ -310,6 +320,17 @@ Public Class UsuarioRepositorio
                     If estadoActual Is Nothing OrElse estadoActual Is DBNull.Value Then Return 0
                     If Convert.ToBoolean(estadoActual) <> activo Then Return -1
 
+                    ' La validez del rol se comprueba bajo bloqueo en la misma
+                    ' transacción que asigna el usuario. Evita que una carrera
+                    ' permita asignar un rol que otra estación acaba de desactivar.
+                    Dim rolProtegidoActual As Boolean = False
+                    If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
+                        Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
+                    End If
+                    If rolProtegidoActual AndAlso Not EsAdministradorAutenticado() Then
+                        Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
+                    End If
+
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
                         "UPDATE Usuarios SET Nombre_Completo = @nombre, ID_Rol = @rol WHERE ID = @id",
                         Sub(comando As MySqlCommand)
@@ -332,6 +353,8 @@ Public Class UsuarioRepositorio
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
             Return Respuesta.Fallo("El rol seleccionado ya no existe.")
+        Catch ex As InvalidOperationException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - actualizar", ex)
             Return Respuesta.Fallo("No se pudo actualizar el usuario. Verifique los datos y la conexión.")
@@ -597,6 +620,26 @@ Public Class UsuarioRepositorio
         Return Sesion.UsuarioActual IsNot Nothing AndAlso
                Sesion.UsuarioActual.RolProtegido AndAlso
                Permisos.TieneAcceso("config.usuarios") AndAlso Permisos.AccesoTotal
+    End Function
+
+    ''' <summary>
+    ''' Bloquea el rol mientras se valida su estado y se crea/asigna el usuario.
+    ''' La fila bloqueada serializa esta operación con la desactivación del rol.
+    ''' </summary>
+    Private Function BloquearYValidarRolActivo(conexion As MySqlConnection,
+                                               transaccion As MySqlTransaction,
+                                               idRol As Integer,
+                                               ByRef protegido As Boolean) As Boolean
+        protegido = False
+        Using comando As New MySqlCommand(
+            "SELECT Protegido FROM Roles WHERE ID = @id AND Activo = 1 FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@id", idRol)
+            Dim valor As Object = comando.ExecuteScalar()
+            If valor Is Nothing OrElse valor Is DBNull.Value Then Return False
+            protegido = Convert.ToInt32(valor) = 1
+            Return True
+        End Using
     End Function
 
     Private Function RolActivo(idRol As Integer) As Boolean

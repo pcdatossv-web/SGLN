@@ -71,6 +71,7 @@ jobs:
           $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $cumplimientoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CumplimientoRepositorio.vb' -Raw
           $auditoriaRepo = Get-Content 'SGLN\\Datos\\Repositorios\\AuditoriaRepositorio.vb' -Raw
+          $usuarioRepo = Get-Content 'SGLN\\Datos\\Repositorios\\UsuarioRepositorio.vb' -Raw
           $protocoloRepoDatos = Get-Content 'SGLN\\Datos\\Repositorios\\ProtocoloRepositorio.vb' -Raw
           $seguridadClave = Get-Content 'SGLN\\Servicios\\SeguridadClave.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
@@ -179,6 +180,10 @@ jobs:
           if ($servicioAlertas -notmatch "ARCO revisar prórroga" -or
               $servicioAlertas -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL") {
             throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
+          }
+          if ($usuarioRepo -notmatch 'BloquearYValidarRolActivo\(conexion, transaccion, idRol, rolProtegidoActual\)' -or
+              $usuarioRepo -notmatch 'SELECT Protegido FROM Roles WHERE ID = @id AND Activo = 1 FOR UPDATE') {
+            throw 'El alta y la asignación de usuarios deben bloquear y validar el rol activo dentro de la transacción.'
           }
           if ($auditoriaRepo -notmatch 'String.IsNullOrWhiteSpace\(accion\)' -or
               $auditoriaRepo -notmatch 'CType\(DBNull.Value, Object\)') {
