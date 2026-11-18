@@ -373,11 +373,18 @@ Public Class ConfiguracionRepositorio
         Dim actual As String = raiz
         For Each segmento As String In segmentos
             actual = Path.Combine(actual, segmento)
-            If Directory.Exists(actual) OrElse File.Exists(actual) Then
-                If (File.GetAttributes(actual) And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
+            ' No usar Exists como filtro: puede ocultar enlaces simbólicos
+            ' rotos, cuyo destino ya no está disponible.
+            Try
+                Dim atributos As FileAttributes = File.GetAttributes(actual)
+                If (atributos And FileAttributes.ReparsePoint) = FileAttributes.ReparsePoint Then
                     Throw New InvalidOperationException("La ruta de respaldos contiene un enlace simbólico o punto de reanálisis.")
                 End If
-            End If
+            Catch ex As FileNotFoundException
+                ' El último segmento puede no existir antes de crear la carpeta.
+            Catch ex As DirectoryNotFoundException
+                ' Se permiten segmentos aún no creados, pero no enlaces detectables.
+            End Try
         Next
     End Sub
 
