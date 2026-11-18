@@ -38,7 +38,12 @@ Public Class FrmEntidades
             dgvEntidades.DataSource = _servicio.Buscar(filtro)
             If dgvEntidades.Columns.Contains("ID") Then dgvEntidades.Columns("ID").Visible = False
             _cargando = False
-            If UtileriasUI.FilaActual(dgvEntidades) Is Nothing Then Limpiar()
+            Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvEntidades)
+            If filaActual Is Nothing Then
+                Limpiar()
+            Else
+                CargarEntidad(UtileriasUI.Entero(filaActual, "ID"))
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Entidades - cargar", ex)

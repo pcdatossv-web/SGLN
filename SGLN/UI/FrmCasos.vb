@@ -60,7 +60,12 @@ Public Class FrmCasos
             dgvCasos.DataSource = _servicio.Buscar(filtro)
             If dgvCasos.Columns.Contains("ID") Then dgvCasos.Columns("ID").Visible = False
             _cargando = False
-            If UtileriasUI.FilaActual(dgvCasos) Is Nothing Then Limpiar()
+            Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvCasos)
+            If filaActual Is Nothing Then
+                Limpiar()
+            Else
+                CargarCaso(UtileriasUI.Entero(filaActual, "ID"))
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Casos - cargar", ex)

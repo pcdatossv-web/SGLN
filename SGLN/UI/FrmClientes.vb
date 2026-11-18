@@ -34,7 +34,12 @@ Public Class FrmClientes
                 dgvClientes.Columns("ID").Visible = False
             End If
             _cargando = False
-            If UtileriasUI.FilaActual(dgvClientes) Is Nothing Then Limpiar()
+            Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvClientes)
+            If filaActual Is Nothing Then
+                Limpiar()
+            Else
+                CargarCliente(UtileriasUI.Entero(filaActual, "ID"))
+            End If
         Catch ex As Exception
             _cargando = False
             RegistroErrores.Escribir("Clientes - cargar", ex)
