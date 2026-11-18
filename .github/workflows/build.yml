@@ -182,8 +182,10 @@ jobs:
             throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
           }
           if ($usuarioRepo -notmatch 'SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE' -or
-              $usuarioRepo -notmatch 'Serializa la desactivación de cuentas Administrador') {
-            throw 'La desactivación concurrente de administradores debe serializarse para conservar al menos una cuenta activa.'
+              $usuarioRepo -notmatch 'Serializa la desactivación de cuentas Administrador' -or
+              $usuarioRepo -notmatch 'rolActualProtegido AndAlso Not rolProtegidoActual' -or
+              $usuarioRepo -notmatch 'Debe quedar al menos un usuario administrador activo') {
+            throw 'Las desactivaciones y cambios de rol concurrentes deben conservar al menos una cuenta Administrador activa.'
           }
           if ($usuarioRepo -notmatch 'BloquearYValidarRolActivo\(conexion, transaccion, idRol, rolProtegidoActual\)' -or
               $usuarioRepo -notmatch 'SELECT Protegido FROM Roles WHERE ID = @id AND Activo = 1 FOR UPDATE') {
