@@ -109,7 +109,8 @@ Public Class ServicioDocumentos
             ' Copiar primero a un temporal dentro de la misma carpeta. Si la
             ' aplicación se interrumpe durante la copia, nunca queda un archivo
             ' parcial con nombre definitivo ni visible como documento importado.
-            File.Copy(rutaOrigen, rutaTemporal)
+            CopiarArchivoLimitado(rutaOrigen, rutaTemporal,
+                TamanoMaximoMb * 1024L * 1024L)
 
             ' Revalidar la ruta y el tamaño de la copia temporal: el origen puede
             ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite se aplica al
@@ -451,6 +452,32 @@ Public Class ServicioDocumentos
 
         Return False
     End Function
+
+    ''' <summary>
+    ''' Copia el origen en bloques y aplica el límite durante la lectura.
+    ''' FileInfo previo no basta: otro proceso podría aumentar el archivo entre
+    ''' la comprobación inicial y la copia, agotando el almacenamiento temporal.
+    ''' </summary>
+    Private Shared Sub CopiarArchivoLimitado(origen As String, destino As String, limiteBytes As Long)
+        Using entrada As New FileStream(origen, FileMode.Open, FileAccess.Read, FileShare.Read)
+            Using salida As New FileStream(destino, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                Dim buffer(81919) As Byte
+                Dim total As Long = 0
+                Dim leidos As Integer
+                Do
+                    leidos = entrada.Read(buffer, 0, buffer.Length)
+                    If leidos <= 0 Then Exit Do
+                    total += leidos
+                    If total > limiteBytes Then
+                        Throw New InvalidDataException(
+                            "El archivo supera el límite de " & TamanoMaximoMb & " MB durante la copia.")
+                    End If
+                    salida.Write(buffer, 0, leidos)
+                Loop
+                salida.Flush()
+            End Using
+        End Using
+    End Sub
 
     Private Function RutaRelativa(rutaAbsoluta As String) As String
         Dim base As String = Application.StartupPath.TrimEnd(Path.DirectorySeparatorChar) & Path.DirectorySeparatorChar
