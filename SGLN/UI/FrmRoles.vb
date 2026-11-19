@@ -96,7 +96,10 @@ Public Class FrmRoles
         Try
 
             Dim fila As DataRow = UtileriasUI.FilaActual(dgvRoles)
-            If fila Is Nothing Then Return
+            If fila Is Nothing Then
+                Nuevo()
+                Return
+            End If
 
             _idSeleccionado = UtileriasUI.Entero(fila, "ID")
             _esProtegido = UtileriasUI.Booleano(fila, "Protegido")
