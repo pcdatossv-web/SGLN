@@ -74,7 +74,13 @@ Public Class FrmUsuarios
         chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
         chkActivo.Enabled = False
         btnDesactivar.Enabled = chkActivo.Checked
-        btnEliminar.Enabled = EsAdministradorActual() AndAlso _idSeleccionado > 0
+        ' No ofrecer la eliminación de la cuenta que mantiene abierta la sesión.
+        ' El servicio conserva la misma restricción como control definitivo.
+        btnEliminar.Enabled =
+            EsAdministradorActual() AndAlso
+            _idSeleccionado > 0 AndAlso
+            Sesion.UsuarioActual IsNot Nothing AndAlso
+            _idSeleccionado <> Sesion.UsuarioActual.ID
         Mostrar("", True)
     End Sub
 
