@@ -96,9 +96,12 @@ Public Class FrmEntidades
     Private Sub CargarClientesCombo()
         Try
             UtileriasUI.CargarCombo(cboRepCliente, _servicio.ClientesCombo(), "Nombre", "ID")
+            btnAgregarRep.Enabled = Permisos.Puede("entidades.gestionar") AndAlso cboRepCliente.Items.Count > 0
         Catch ex As Exception
             cboRepCliente.DataSource = Nothing
+            btnAgregarRep.Enabled = False
             RegistroErrores.Escribir("Entidades - clientes", ex)
+            MostrarMensaje("No se pudo cargar la lista de clientes para representantes. No se puede asignar un representante hasta actualizar la lista.", False)
         End Try
     End Sub
 
