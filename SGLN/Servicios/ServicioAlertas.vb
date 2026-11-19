@@ -75,6 +75,8 @@ Public Class ServicioAlertas
                 "AND l.Fecha_Cierre IS NOT NULL")
         End If
 
+        ' Las alertas UIF y ARCO se agregan por separado para no exponer
+        ' datos de una categoría a usuarios con permisos exclusivos de la otra.
         If Permisos.TieneAcceso("cumplimiento.ver") OrElse
            Permisos.TieneAcceso("cumplimiento.reportar_uif") Then
             consultas.Add(
