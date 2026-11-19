@@ -13,6 +13,9 @@ Public Class FrmCumplimiento
     Private _puedeGestionarOperaciones As Boolean
     Private _puedeReportar As Boolean
     Private _puedeArco As Boolean
+    Private _estadoOperacion As String = ""
+    Private _operacionReportada As Boolean
+    Private _solicitudRespondida As Boolean
 
     ''' <summary>Solicitud ARCO que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDSolicitudInicial As Integer
@@ -192,6 +195,8 @@ Public Class FrmCumplimiento
 
     Private Sub CargarOperacion(fila As DataRow)
         _idOperacion = UtileriasUI.Entero(fila, "ID")
+        _estadoOperacion = UtileriasUI.Texto(fila, "Estado")
+        _operacionReportada = UtileriasUI.Booleano(fila, "Reportado_UIF")
 
         SeleccionarTexto(cboTipoOperacion, UtileriasUI.Texto(fila, "Tipo_Operacion"))
         nudMonto.Value = Math.Min(UtileriasUI.DecimalDesde(fila, "Monto"), nudMonto.Maximum)
@@ -216,6 +221,8 @@ Public Class FrmCumplimiento
 
     Private Sub LimpiarOperacion()
         _idOperacion = 0
+        _estadoOperacion = ""
+        _operacionReportada = False
         cboTipoOperacion.SelectedIndex = 0
         nudMonto.Value = 0
         cboMoneda.SelectedIndex = 0
@@ -235,9 +242,12 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub ActualizarAccionesOperacion()
-        Dim haySeleccion As Boolean = _idOperacion > 0
-        btnReportarOp.Enabled = _puedeReportar AndAlso haySeleccion
-        btnDescartarOp.Enabled = _puedeGestionarOperaciones AndAlso haySeleccion
+        Dim estadoPermiteAccion As Boolean = _idOperacion > 0 AndAlso
+            Not _operacionReportada AndAlso
+            Not String.Equals(_estadoOperacion, "Reportada", StringComparison.OrdinalIgnoreCase) AndAlso
+            Not String.Equals(_estadoOperacion, "Descartada", StringComparison.OrdinalIgnoreCase)
+        btnReportarOp.Enabled = _puedeReportar AndAlso estadoPermiteAccion
+        btnDescartarOp.Enabled = _puedeGestionarOperaciones AndAlso estadoPermiteAccion
     End Sub
 
     Private Sub GuardarOperacion()
@@ -379,6 +389,8 @@ Public Class FrmCumplimiento
 
     Private Sub CargarSolicitud(fila As DataRow)
         _idSolicitud = UtileriasUI.Entero(fila, "ID")
+        _solicitudRespondida = Not fila.IsNull("Fecha_Respuesta") OrElse
+            String.Equals(UtileriasUI.Texto(fila, "Estado"), "Respondida", StringComparison.OrdinalIgnoreCase)
 
         ' La identidad del titular, el derecho y la fecha de recepción son
         ' datos históricos inmutables una vez registrada la solicitud.
@@ -409,6 +421,7 @@ Public Class FrmCumplimiento
 
     Private Sub LimpiarSolicitud()
         _idSolicitud = 0
+        _solicitudRespondida = False
         cboClienteArco.Enabled = True
         cboTipoDerecho.Enabled = True
         dtpFechaSolicitud.Enabled = True
@@ -428,7 +441,7 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub ActualizarAccionesSolicitud()
-        btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0
+        btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0 AndAlso Not _solicitudRespondida
     End Sub
 
     Private Sub ActualizarFechasArco()
