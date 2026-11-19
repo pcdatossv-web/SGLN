@@ -201,6 +201,11 @@ jobs:
               $servicioAlertas -notmatch "Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL") {
             throw 'El panel de alertas debe advertir las solicitudes ARCO con prórrogas inconsistentes.'
           }
+          if ($servicioAlertas -notmatch 'cumplimiento.reportar_uif' -or
+              $servicioAlertas -notmatch 'cumplimiento.arco' -or
+              $servicioAlertas -notmatch 'Las alertas UIF y ARCO se agregan por separado') {
+            throw 'Las alertas UIF y ARCO deben agregarse por separado y respetar permisos exclusivos de cada categoría.'
+          }
           if ($usuarioRepo -notmatch 'SELECT ID FROM Roles WHERE Protegido = 1 FOR UPDATE' -or
               $usuarioRepo -notmatch 'Serializa la desactivación de cuentas Administrador' -or
               $usuarioRepo -notmatch 'rolActualProtegido AndAlso Not rolProtegidoActual' -or
