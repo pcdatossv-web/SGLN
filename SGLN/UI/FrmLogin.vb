@@ -9,6 +9,8 @@ Public Class FrmLogin
         ConfiguracionConexion.Inicializar()
         VerificarConexionAlInicio()
 
+        txtUsuario.MaxLength = 50
+        txtClave.MaxLength = 128
         txtUsuario.Clear()
         txtClave.Clear()
         txtUsuario.Focus()
@@ -115,6 +117,7 @@ Public Class FrmLogin
             ' Si falla la carga de permisos después de validar la contraseña,
             ' no debe quedar una sesión parcialmente inicializada en memoria.
             Sesion.Limpiar()
+            txtClave.Clear()
             RegistroErrores.Escribir("Inicio de sesión", ex)
             lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
         End Try
