@@ -115,7 +115,6 @@ Public Class FrmClientes
 
             Dim fila As DataRow = tabla.Rows(0)
             _idCliente = id
-            btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar")
 
             txtNombres.Text = UtileriasUI.Texto(fila, "Nombres")
             txtApellidos.Text = UtileriasUI.Texto(fila, "Apellidos")
@@ -128,6 +127,7 @@ Public Class FrmClientes
             txtTelefono.Text = UtileriasUI.Texto(fila, "Telefono")
             txtEmail.Text = UtileriasUI.Texto(fila, "Email")
             chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
+            btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar") AndAlso chkActivo.Checked
 
             Dim riesgo As String = UtileriasUI.Texto(fila, "Nivel_Riesgo")
             If riesgo = "" Then riesgo = "Bajo"

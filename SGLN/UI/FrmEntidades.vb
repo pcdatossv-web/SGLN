@@ -120,13 +120,13 @@ Public Class FrmEntidades
 
             Dim fila As DataRow = tabla.Rows(0)
             _idEntidad = id
-            btnDesactivar.Enabled = Permisos.Puede("entidades.gestionar")
 
             txtRazonSocial.Text = UtileriasUI.Texto(fila, "Razon_Social")
             txtNIT.Text = UtileriasUI.Texto(fila, "NIT")
             txtNRC.Text = UtileriasUI.Texto(fila, "NRC")
             txtDomicilio.Text = UtileriasUI.Texto(fila, "Domicilio")
             chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
+            btnDesactivar.Enabled = Permisos.Puede("entidades.gestionar") AndAlso chkActivo.Checked
 
             Dim riesgo As String = UtileriasUI.Texto(fila, "Nivel_Riesgo")
             If riesgo = "" Then riesgo = "Bajo"
