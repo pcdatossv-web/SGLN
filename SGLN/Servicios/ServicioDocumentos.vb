@@ -209,19 +209,23 @@ Public Class ServicioDocumentos
                                         idCaso As Integer?, idInstrumento As Integer?) As Respuesta
         If Not Permisos.TieneAcceso("documentos.metadatos") Then Return Respuesta.Fallo("No tiene permiso para modificar metadatos de documentos.")
 
-        If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
-        If Not TipoDocumentoValido(tipoDocumento) Then Return Respuesta.Fallo("Seleccione un tipo de documento válido.")
-        Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
-        If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
-
-        Dim documento As New Documento With {
-            .ID = id,
-            .TipoDocumento = tipoDocumento.Trim(),
-            .IDCaso = idCaso,
-            .IDInstrumento = idInstrumento
-        }
-
         Try
+            If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
+            If Not TipoDocumentoValido(tipoDocumento) Then Return Respuesta.Fallo("Seleccione un tipo de documento válido.")
+
+            ' La validación de vínculos consulta los repositorios y puede fallar
+            ' por causas de acceso a datos. Mantenerla dentro del límite de
+            ' errores del servicio evita excepciones sin traducir en la interfaz.
+            Dim errorVinculos As String = ValidarReferencias(idCaso, idInstrumento)
+            If errorVinculos <> "" Then Return Respuesta.Fallo(errorVinculos)
+
+            Dim documento As New Documento With {
+                .ID = id,
+                .TipoDocumento = tipoDocumento.Trim(),
+                .IDCaso = idCaso,
+                .IDInstrumento = idInstrumento
+            }
+
             Dim filas As Integer = _repositorio.ActualizarMetadatos(documento)
             If filas = 0 AndAlso _repositorio.Obtener(id).Rows.Count = 0 Then
                 Return Respuesta.Fallo("El documento ya no existe o fue eliminado.")
@@ -229,7 +233,7 @@ Public Class ServicioDocumentos
             Return Respuesta.Ok("Metadatos del documento actualizados.")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - actualizar metadatos", ex)
-            Return Respuesta.Fallo("No se pudieron actualizar los metadatos. Verifique la conexión y los datos.")
+            Return Respuesta.Fallo("No se pudieron actualizar los metadatos. Verifique los vínculos, la conexión y los datos.")
         End Try
     End Function
 
