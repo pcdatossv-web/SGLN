@@ -172,41 +172,67 @@ Public Class ClienteRepositorio
                     perfil.IDEntidad = Nothing
 
                     Dim accionPerfil As String = "CREAR"
+                    Dim perfilExiste As Boolean = False
+                    Dim riesgoActual As String = Nothing
+                    Dim origenActual As Boolean = False
+                    Dim detalleActual As String = Nothing
+                    Dim fechaActual As Date? = Nothing
+                    Dim observacionesActual As String = Nothing
                     Using comandoPerfilExiste As New MySqlCommand(
-                        "SELECT COUNT(*) FROM Perfil_LDAFT WHERE ID_Cliente = @idCliente",
+                        "SELECT Nivel_Riesgo, Origen_Fondos_Verificado, Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones FROM Perfil_LDAFT WHERE ID_Cliente = @idCliente FOR UPDATE",
                         conexion, transaccion)
                         Parametro(comandoPerfilExiste, "@idCliente", idCliente)
-                        If Convert.ToInt32(comandoPerfilExiste.ExecuteScalar()) > 0 Then
-                            accionPerfil = "MODIFICAR"
-                        End If
+                        Using lectorPerfil As MySqlDataReader = comandoPerfilExiste.ExecuteReader()
+                            If lectorPerfil.Read() Then
+                                perfilExiste = True
+                                riesgoActual = Convert.ToString(lectorPerfil("Nivel_Riesgo"))
+                                origenActual = Convert.ToBoolean(lectorPerfil("Origen_Fondos_Verificado"))
+                                detalleActual = Convert.ToString(lectorPerfil("Detalle_Origen_Fondos"))
+                                observacionesActual = Convert.ToString(lectorPerfil("Observaciones"))
+                                If Not lectorPerfil.IsDBNull(lectorPerfil.GetOrdinal("Fecha_Verificacion_Listas")) Then
+                                    fechaActual = Convert.ToDateTime(lectorPerfil("Fecha_Verificacion_Listas")).Date
+                                End If
+                            End If
+                        End Using
                     End Using
 
-                    Ejecutar(conexion, transaccion,
-                        "INSERT INTO Perfil_LDAFT (ID_Cliente, ID_Entidad, Nivel_Riesgo, Origen_Fondos_Verificado, " &
-                        "       Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones) " &
-                        "VALUES (@idCliente, NULL, @riesgo, @origen, @detalle, @fecha, @observaciones) " &
-                        "ON DUPLICATE KEY UPDATE Nivel_Riesgo = VALUES(Nivel_Riesgo), " &
-                        "       Origen_Fondos_Verificado = VALUES(Origen_Fondos_Verificado), " &
-                        "       Detalle_Origen_Fondos = VALUES(Detalle_Origen_Fondos), " &
-                        "       Fecha_Verificacion_Listas = VALUES(Fecha_Verificacion_Listas), " &
-                        "       Fecha_Actualizacion = NOW(), " &
-                        "       Observaciones = VALUES(Observaciones)",
-                        Sub(comando As MySqlCommand)
-                            Parametro(comando, "@idCliente", idCliente)
-                            Parametro(comando, "@riesgo", perfil.NivelRiesgo)
-                            Parametro(comando, "@origen", perfil.OrigenFondosVerificado)
-                            Parametro(comando, "@detalle", perfil.DetalleOrigenFondos)
-                            Parametro(comando, "@fecha", If(perfil.FechaVerificacionListas.HasValue,
-                                                             CObj(perfil.FechaVerificacionListas.Value), DBNull.Value))
-                            Parametro(comando, "@observaciones", perfil.Observaciones)
-                        End Sub)
+                    If perfilExiste Then accionPerfil = "MODIFICAR"
+                    Dim perfilModificado As Boolean =
+                        Not perfilExiste OrElse
+                        Not String.Equals(perfil.NivelRiesgo, riesgoActual, StringComparison.Ordinal) OrElse
+                        perfil.OrigenFondosVerificado <> origenActual OrElse
+                        Not TextoIgual(perfil.DetalleOrigenFondos, detalleActual) OrElse
+                        Not TextoIgual(perfil.Observaciones, observacionesActual) OrElse
+                        (perfil.FechaVerificacionListas.HasValue <> fechaActual.HasValue) OrElse
+                        (perfil.FechaVerificacionListas.HasValue AndAlso fechaActual.HasValue AndAlso
+                         perfil.FechaVerificacionListas.Value.Date <> fechaActual.Value.Date)
 
+                    If perfilModificado Then
+                        Ejecutar(conexion, transaccion,
+                            "INSERT INTO Perfil_LDAFT (ID_Cliente, ID_Entidad, Nivel_Riesgo, Origen_Fondos_Verificado, " &
+                            "       Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones) " &
+                            "VALUES (@idCliente, NULL, @riesgo, @origen, @detalle, @fecha, @observaciones) " &
+                            "ON DUPLICATE KEY UPDATE Nivel_Riesgo = VALUES(Nivel_Riesgo), " &
+                            "       Origen_Fondos_Verificado = VALUES(Origen_Fondos_Verificado), " &
+                            "       Detalle_Origen_Fondos = VALUES(Detalle_Origen_Fondos), " &
+                            "       Fecha_Verificacion_Listas = VALUES(Fecha_Verificacion_Listas), " &
+                            "       Fecha_Actualizacion = NOW(), " &
+                            "       Observaciones = VALUES(Observaciones)",
+                            Sub(comando As MySqlCommand)
+                                Parametro(comando, "@idCliente", idCliente)
+                                Parametro(comando, "@riesgo", perfil.NivelRiesgo)
+                                Parametro(comando, "@origen", perfil.OrigenFondosVerificado)
+                                Parametro(comando, "@detalle", perfil.DetalleOrigenFondos)
+                                Parametro(comando, "@fecha", If(perfil.FechaVerificacionListas.HasValue,
+                                                                 CObj(perfil.FechaVerificacionListas.Value), DBNull.Value))
+                                Parametro(comando, "@observaciones", perfil.Observaciones)
+                            End Sub)
 
-
-                    AuditarEnTransaccion(conexion, transaccion, accionPerfil, "Perfil_LDAFT",
-                                         idCliente, If(accionPerfil = "CREAR",
-                                                       "Perfil LDA/FT del cliente creado",
-                                                       "Perfil LDA/FT del cliente actualizado"))
+                        AuditarEnTransaccion(conexion, transaccion, accionPerfil, "Perfil_LDAFT",
+                                             idCliente, If(accionPerfil = "CREAR",
+                                                               "Perfil LDA/FT del cliente creado",
+                                                               "Perfil LDA/FT del cliente actualizado"))
+                    End If
                 End If
 
                 Return idCliente
