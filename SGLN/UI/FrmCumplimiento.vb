@@ -61,6 +61,11 @@ Public Class FrmCumplimiento
         UtileriasUI.ConfigurarGrid(dgvOperaciones)
         UtileriasUI.ConfigurarGrid(dgvArco)
 
+        ' Limitar la captura en pantalla a los mismos máximos que valida el servicio.
+        txtDescripcionOp.MaxLength = 1000
+        txtObservacionesOp.MaxLength = 500
+        txtDetalleArco.MaxLength = 1000
+
         cboTipoOperacion.Items.Clear()
         cboTipoOperacion.Items.AddRange(New Object() {"Regulada", "Inusual", "Sospechosa"})
         cboTipoOperacion.SelectedIndex = 0
