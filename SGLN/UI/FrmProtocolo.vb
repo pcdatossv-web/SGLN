@@ -90,8 +90,18 @@ Public Class FrmProtocolo
             If _idLibro = IDLibroInicial Then
                 MostrarMensaje("", True)
             Else
+                _cargando = True
+                cboLibro.SelectedIndex = -1
+                dgvLibros.CurrentCell = Nothing
+                _cargando = False
+                _idLibro = 0
                 LimpiarLibro()
                 LimpiarInstrumento()
+                cboInstrumentoTest.DataSource = Nothing
+                dgvInstrumentos.DataSource = Nothing
+                dgvComparecientes.DataSource = Nothing
+                dgvTestimonios.DataSource = Nothing
+                dgvIndice.DataSource = Nothing
                 MostrarMensaje("El libro asociado a la alerta ya no está disponible.", False)
             End If
         Else
