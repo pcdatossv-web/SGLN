@@ -23,6 +23,19 @@ Public Class FrmEntidades
         btnAgregarRep.Enabled = puedeGestionar
         btnQuitarRep.Enabled = puedeGestionar
 
+        ' Mantener visibles los datos para consulta, pero bloquear su edición.
+        txtRazonSocial.ReadOnly = Not puedeGestionar
+        txtNIT.ReadOnly = Not puedeGestionar
+        txtNRC.ReadOnly = Not puedeGestionar
+        txtDomicilio.ReadOnly = Not puedeGestionar
+        cboNivelRiesgo.Enabled = puedeGestionar
+        chkOrigenVerificado.Enabled = puedeGestionar
+        txtDetalleOrigen.ReadOnly = Not puedeGestionar
+        dtpVerificacionListas.Enabled = puedeGestionar
+        cboRepCliente.Enabled = puedeGestionar
+        txtCargo.ReadOnly = Not puedeGestionar
+        cboTipoRepresentacion.Enabled = puedeGestionar
+
         UtileriasUI.ConfigurarGrid(dgvEntidades)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
         UtileriasUI.ConfigurarGrid(dgvRepresentantes)

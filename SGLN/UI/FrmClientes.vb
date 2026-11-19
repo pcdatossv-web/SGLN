@@ -16,10 +16,28 @@ Public Class FrmClientes
     Private Sub FrmClientes_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("clientes.ver", Me) Then Return
 
-        btnNuevo.Enabled = Permisos.Puede("clientes.gestionar")
-        btnGuardar.Enabled = Permisos.Puede("clientes.gestionar")
+        Dim puedeGestionar As Boolean = Permisos.Puede("clientes.gestionar")
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardar.Enabled = puedeGestionar
         btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar")
         btnEntidades.Enabled = Permisos.Puede("entidades.ver")
+
+        ' Permitir consultar y copiar los datos sin habilitar su modificación.
+        txtNombres.ReadOnly = Not puedeGestionar
+        txtApellidos.ReadOnly = Not puedeGestionar
+        txtDUI.ReadOnly = Not puedeGestionar
+        txtNIT.ReadOnly = Not puedeGestionar
+        txtNacionalidad.ReadOnly = Not puedeGestionar
+        txtProfesion.ReadOnly = Not puedeGestionar
+        txtDireccion.ReadOnly = Not puedeGestionar
+        txtTelefono.ReadOnly = Not puedeGestionar
+        txtEmail.ReadOnly = Not puedeGestionar
+        txtDetalleOrigen.ReadOnly = Not puedeGestionar
+        txtObservaciones.ReadOnly = Not puedeGestionar
+        cboNivelRiesgo.Enabled = puedeGestionar
+        chkOrigenVerificado.Enabled = puedeGestionar
+        dtpNacimiento.Enabled = puedeGestionar
+        dtpVerificacionListas.Enabled = puedeGestionar
 
         UtileriasUI.ConfigurarGrid(dgvClientes)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
