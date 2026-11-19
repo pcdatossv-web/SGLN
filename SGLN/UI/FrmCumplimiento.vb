@@ -13,6 +13,8 @@ Public Class FrmCumplimiento
 
     ''' <summary>Solicitud ARCO que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDSolicitudInicial As Integer
+    ''' <summary>Operación UIF que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDOperacionInicial As Integer
 
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
@@ -83,7 +85,16 @@ Public Class FrmCumplimiento
 
         LimpiarOperacion()
         LimpiarSolicitud()
-        If IDSolicitudInicial > 0 AndAlso puedeVerArco Then
+        If IDOperacionInicial > 0 AndAlso puedeVerOperaciones Then
+            tabPrincipal.SelectedTab = tabOperaciones
+            SeleccionarOperacion(IDOperacionInicial)
+            If _idOperacion <> IDOperacionInicial Then
+                LimpiarOperacion()
+                MostrarMensaje("La operación UIF asociada a la alerta ya no está disponible.", False)
+            Else
+                MostrarMensaje("", True)
+            End If
+        ElseIf IDSolicitudInicial > 0 AndAlso puedeVerArco Then
             tabPrincipal.SelectedTab = tabArco
             If SeleccionarSolicitud(IDSolicitudInicial) Then
                 Dim filaInicial As DataRow = UtileriasUI.FilaActual(dgvArco)
@@ -92,8 +103,9 @@ Public Class FrmCumplimiento
                 LimpiarSolicitud()
                 MostrarMensaje("La solicitud ARCO asociada a la alerta ya no está disponible.", False)
             End If
+        Else
+            MostrarMensaje("", True)
         End If
-        If IDSolicitudInicial <= 0 Then MostrarMensaje("", True)
     End Sub
 
     Private Sub CargarCombos()
@@ -287,10 +299,17 @@ Public Class FrmCumplimiento
     Private Sub SeleccionarOperacion(id As Integer)
         For Each fila As DataGridViewRow In dgvOperaciones.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                dgvOperaciones.CurrentCell = fila.Cells(0)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' La columna ID está oculta; seleccionar una celda visible y cargar el registro explícitamente.
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvOperaciones.CurrentCell = celda
+                    CargarOperacion(vista.Row)
+                    Return
+                End If
+            Next
+            Return
         Next
     End Sub
 

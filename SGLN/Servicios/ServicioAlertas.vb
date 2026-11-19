@@ -82,14 +82,14 @@ Public Class ServicioAlertas
             consultas.Add(
                 "SELECT 'UIF vencido' AS Tipo, " &
                 "CONCAT('Reporte UIF vencido desde ', DATE_FORMAT(o.Fecha_Vencimiento_Reporte, '%d/%m/%Y')) AS Descripcion, " &
-                "o.Fecha_Vencimiento_Reporte AS Fecha_Referencia, NULL AS ID_Referencia, 'Alta' AS Prioridad " &
+                "o.Fecha_Vencimiento_Reporte AS Fecha_Referencia, o.ID AS ID_Referencia, 'Alta' AS Prioridad " &
                 "FROM Operaciones_LDAFT o WHERE o.Reportado_UIF = 0 " &
                 "AND o.Estado IN ('Registrada', 'En análisis') AND o.Fecha_Vencimiento_Reporte IS NOT NULL " &
                 "AND o.Fecha_Vencimiento_Reporte < CURDATE()")
             consultas.Add(
                 "SELECT 'UIF por vencer' AS Tipo, " &
                 "CONCAT('Reporte UIF pendiente (vence ', DATE_FORMAT(o.Fecha_Vencimiento_Reporte, '%d/%m/%Y'), ')') AS Descripcion, " &
-                "o.Fecha_Vencimiento_Reporte AS Fecha_Referencia, NULL AS ID_Referencia, 'Alta' AS Prioridad " &
+                "o.Fecha_Vencimiento_Reporte AS Fecha_Referencia, o.ID AS ID_Referencia, 'Alta' AS Prioridad " &
                 "FROM Operaciones_LDAFT o WHERE o.Reportado_UIF = 0 " &
                 "AND o.Estado IN ('Registrada', 'En análisis') " &
                 "AND o.Fecha_Vencimiento_Reporte BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)")

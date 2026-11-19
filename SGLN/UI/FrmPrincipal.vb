@@ -232,6 +232,27 @@ Public Class FrmPrincipal
         End Try
     End Sub
 
+    Private Sub AbrirOperacionDesdeAlerta(idOperacion As Integer)
+        Try
+            Using formulario As New FrmCumplimiento()
+                formulario.IDOperacionInicial = idOperacion
+                formulario.ShowDialog(Me)
+            End Using
+
+            If Not Permisos.RevalidarSesion() Then
+                Sesion.CerrarSesionSolicitado = True
+                Me.Close()
+                Return
+            End If
+
+            AplicarPermisos()
+            CargarPanel()
+        Catch ex As Exception
+            RegistroErrores.Escribir("Abrir operación UIF desde alerta", ex)
+            UtileriasUI.MostrarError("No se pudo abrir la operación asociada a la alerta.")
+        End Try
+    End Sub
+
     Private Sub ModuloPendiente(nombre As String)
         UtileriasUI.MostrarInfo("El módulo '" & nombre & "' se encuentra en construcción.")
     End Sub
@@ -291,7 +312,15 @@ Public Class FrmPrincipal
                     Abrir(Of FrmProtocolo)()
                 End If
             Case "UIF vencido", "UIF por vencer"
-                Abrir(Of FrmCumplimiento)()
+                Dim idOperacion As Integer = 0
+                If Not vista.Row.IsNull("ID_Referencia") Then
+                    Integer.TryParse(Convert.ToString(vista.Row("ID_Referencia")), idOperacion)
+                End If
+                If idOperacion > 0 Then
+                    AbrirOperacionDesdeAlerta(idOperacion)
+                Else
+                    Abrir(Of FrmCumplimiento)()
+                End If
             Case "ARCO vencida", "ARCO revisar prórroga", "ARCO por vencer"
                 Dim idSolicitud As Integer = 0
                 If Not vista.Row.IsNull("ID_Referencia") Then
