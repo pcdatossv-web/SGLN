@@ -342,6 +342,7 @@ Partial Class FrmConfiguracion
         Me.txtClaveActual.Size = New System.Drawing.Size(385, 23)
         Me.txtClaveActual.TabIndex = 1
         Me.txtClaveActual.UseSystemPasswordChar = True
+        Me.txtClaveActual.MaxLength = 128
         '
         ' lblClaveNueva
         '
@@ -359,6 +360,7 @@ Partial Class FrmConfiguracion
         Me.txtClaveNueva.Size = New System.Drawing.Size(385, 23)
         Me.txtClaveNueva.TabIndex = 2
         Me.txtClaveNueva.UseSystemPasswordChar = True
+        Me.txtClaveNueva.MaxLength = 128
         '
         ' lblConfirmarClave
         '
@@ -376,6 +378,7 @@ Partial Class FrmConfiguracion
         Me.txtConfirmarClave.Size = New System.Drawing.Size(385, 23)
         Me.txtConfirmarClave.TabIndex = 3
         Me.txtConfirmarClave.UseSystemPasswordChar = True
+        Me.txtConfirmarClave.MaxLength = 128
         '
         ' btnCambiarClave
         '
@@ -394,7 +397,7 @@ Partial Class FrmConfiguracion
         Me.lblNotaSeguridad.Name = "lblNotaSeguridad"
         Me.lblNotaSeguridad.Size = New System.Drawing.Size(180, 45)
         Me.lblNotaSeguridad.TabIndex = 9
-        Me.lblNotaSeguridad.Text = "Mínimo 8 caracteres."
+        Me.lblNotaSeguridad.Text = "Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos."
         '
         ' tabRespaldos
         '
