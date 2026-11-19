@@ -74,7 +74,12 @@ Public Class FrmUsuarios
         If _cargando Then Return
 
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvUsuarios)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' No conservar un usuario operativo cuando la selección se limpia.
+            ' Evita que las acciones actúen sobre un registro que ya no está visible.
+            Nuevo()
+            Return
+        End If
 
         _idSeleccionado = UtileriasUI.Entero(fila, "ID")
         txtUsuario.Text = UtileriasUI.Texto(fila, "Usuario")
