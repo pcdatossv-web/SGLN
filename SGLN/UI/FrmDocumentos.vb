@@ -190,6 +190,22 @@ Public Class FrmDocumentos
     Private Sub Importar()
         If Not Permisos.ExigirAccion("documentos.importar") Then Return
 
+        ' La selección de un documento existente bloquea sus metadatos.
+        ' Al iniciar una nueva importación, separar explícitamente el contexto
+        ' del documento seleccionado para que el usuario pueda asignar los
+        ' metadatos del nuevo archivo sin modificar accidentalmente el anterior.
+        _cargando = True
+        _idDocumento = 0
+        dgvDocumentos.ClearSelection()
+        dgvDocumentos.CurrentCell = Nothing
+        _cargando = False
+
+        If cboTipoDocumento.Items.Count > 0 Then cboTipoDocumento.SelectedIndex = 0
+        If cboCaso.Items.Count > 0 Then cboCaso.SelectedIndex = 0
+        If cboInstrumento.Items.Count > 0 Then cboInstrumento.SelectedIndex = 0
+        ActualizarEdicionMetadatos(True)
+        ActualizarAccionesDocumento()
+
         Using dialogo As New OpenFileDialog()
             dialogo.Title = "Seleccione el documento a importar"
             dialogo.Filter = "Documentos (*.pdf;*.doc;*.docx;*.jpg;*.jpeg;*.png;*.tif;*.tiff)|*.pdf;*.doc;*.docx;*.jpg;*.jpeg;*.png;*.tif;*.tiff"
