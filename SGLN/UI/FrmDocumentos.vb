@@ -11,12 +11,14 @@ Public Class FrmDocumentos
     Private _cargando As Boolean
     Private _idDocumento As Integer
     Private _puedeVer As Boolean
+    Private _puedeImportar As Boolean
     Private _puedeMetadatos As Boolean
     Private _puedeVerificar As Boolean
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         _puedeVer = Permisos.TieneAcceso("documentos.ver")
-        Dim puedeImportar As Boolean = Permisos.TieneAcceso("documentos.importar")
+        _puedeImportar = Permisos.TieneAcceso("documentos.importar")
+        Dim puedeImportar As Boolean = _puedeImportar
         _puedeVerificar = Permisos.TieneAcceso("documentos.verificar")
         _puedeMetadatos = Permisos.TieneAcceso("documentos.metadatos")
         Dim puedeVer As Boolean = _puedeVer
@@ -144,6 +146,7 @@ Public Class FrmDocumentos
         Dim fecha As Date? = UtileriasUI.Fecha(fila, "Fecha_Carga")
         txtFechaCarga.Text = If(fecha.HasValue, fecha.Value.ToString("dd/MM/yyyy HH:mm"), "")
 
+        ActualizarEdicionMetadatos(False)
         ActualizarAccionesDocumento()
         MostrarMensaje("", True)
     End Sub
@@ -156,12 +159,25 @@ Public Class FrmDocumentos
         txtHash.Clear()
         txtEstadoIA.Clear()
         txtFechaCarga.Clear()
+        ActualizarEdicionMetadatos(True)
         MostrarMensaje("", True)
 
         _cargando = True
         dgvDocumentos.CurrentCell = Nothing
         _cargando = False
         ActualizarAccionesDocumento()
+    End Sub
+
+    ''' <summary>
+    ''' En modo de importación, el usuario puede preparar los metadatos del
+    ''' nuevo archivo. Al seleccionar un documento existente, solo quien tiene
+    ''' el permiso específico puede editar sus metadatos.
+    ''' </summary>
+    Private Sub ActualizarEdicionMetadatos(paraNuevoDocumento As Boolean)
+        Dim puedeEditar As Boolean = _puedeMetadatos OrElse (paraNuevoDocumento AndAlso _puedeImportar)
+        cboTipoDocumento.Enabled = puedeEditar
+        cboCaso.Enabled = puedeEditar
+        cboInstrumento.Enabled = puedeEditar
     End Sub
 
     Private Sub ActualizarAccionesDocumento()
