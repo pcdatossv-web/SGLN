@@ -365,7 +365,11 @@ Public Class FrmProtocolo
     Private Sub dgvInstrumentos_SelectionChanged(sender As Object, e As EventArgs) Handles dgvInstrumentos.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvInstrumentos)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' No mantener el instrumento anterior si la selección queda vacía.
+            LimpiarInstrumento()
+            Return
+        End If
         CargarInstrumento(UtileriasUI.Entero(fila, "ID"))
     End Sub
 
