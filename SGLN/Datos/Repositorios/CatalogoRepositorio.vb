@@ -111,8 +111,12 @@ Public Class CatalogoRepositorio
                         Parametro(comando, "@clave", clave)
                         Parametro(comando, "@valor", valor)
                     End Sub)
-                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing,
-                    "Clave actualizada: " & clave.Trim())
+                ' GUARDAR no presupone si la clave fue creada o modificada.
+                ' Evita atribuir una modificación cuando la clave se inserta por primera vez.
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "GUARDAR", "Configuracion",
+                        Nothing, "Clave guardada: " & clave.Trim())
+                End If
                 Return filas
             End Function)
         Return Respuesta.Ok("Configuración guardada.")

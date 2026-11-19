@@ -65,7 +65,12 @@ Public Class ConfiguracionRepositorio
                         Parametro(comando, "@clave", clave)
                         Parametro(comando, "@valor", valor)
                     End Sub)
-                AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Configuracion", Nothing, "Clave actualizada: " & clave)
+                ' GUARDAR describe con precisión tanto altas como cambios de configuración.
+                ' No registrar auditoría si MySQL informa que el valor ya era idéntico.
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "GUARDAR", "Configuracion",
+                        Nothing, "Clave guardada: " & clave.Trim())
+                End If
                 Return filas
             End Function)
     End Sub
