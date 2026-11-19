@@ -25,6 +25,10 @@ Public Class ServicioPlazos
             Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
                 "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
         End If
+        If fechaNotificacion.Date > Date.Today Then
+            Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
+                "La fecha de notificación no puede ser futura.")
+        End If
         If diasHabiles <= 0 OrElse diasHabiles > CalculadoraDiasHabiles.MaxDiasHabilesPermitidos Then
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
                 "El plazo debe estar entre 1 y " & CalculadoraDiasHabiles.MaxDiasHabilesPermitidos.ToString() & " días hábiles.")

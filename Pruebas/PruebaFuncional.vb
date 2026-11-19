@@ -1864,6 +1864,15 @@ Module PruebaFuncional
         End Try
         Verificar("Plazo de cero días lanza error de argumento", excepcionPlazo <> "")
 
+        Dim excepcionNotificacionFutura As String = ""
+        Try
+            plazos.CalcularVencimiento(Date.Today.AddDays(1), 5)
+        Catch ex As ArgumentOutOfRangeException
+            excepcionNotificacionFutura = ex.Message
+        End Try
+        Verificar("El cálculo de plazo rechaza una fecha de notificación futura",
+                  excepcionNotificacionFutura <> "")
+
         Dim actuacion As New ActuacionProcesal With {
             .IDCaso = idCaso,
             .IDTipoActuacion = UtileriasUI.Entero(tipoContestacion, "ID"),
