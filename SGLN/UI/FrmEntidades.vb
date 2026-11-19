@@ -10,6 +10,9 @@ Public Class FrmEntidades
     Private _cargando As Boolean
     Private _idEntidad As Integer
 
+    ''' <summary>Registro que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDEntidadInicial As Integer
+
     Private Sub FrmEntidades_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("entidades.ver", Me) Then Return
 
@@ -29,7 +32,17 @@ Public Class FrmEntidades
         CargarGrid("")
         _cargando = False
         CargarClientesCombo()
-        Limpiar()
+        If IDEntidadInicial > 0 Then
+            SeleccionarEntidad(IDEntidadInicial)
+            If _idEntidad = IDEntidadInicial Then
+                CargarEntidad(IDEntidadInicial)
+            Else
+                Limpiar()
+                MostrarMensaje("La entidad asociada a la alerta ya no está disponible.", False)
+            End If
+        Else
+            Limpiar()
+        End If
     End Sub
 
     Private Sub CargarGrid(filtro As String)

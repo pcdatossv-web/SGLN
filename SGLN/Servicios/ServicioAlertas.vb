@@ -39,7 +39,7 @@ Public Class ServicioAlertas
             consultas.Add(
                 "SELECT 'LDA/FT' AS Tipo, " &
                 "CONCAT('Perfil de alto riesgo incompleto: ', c.Nombres, ' ', c.Apellidos) AS Descripcion, " &
-                "NULL AS Fecha_Referencia, NULL AS ID_Referencia, 'Media' AS Prioridad " &
+                "NULL AS Fecha_Referencia, c.ID AS ID_Referencia, 'Media' AS Prioridad " &
                 "FROM Clientes c INNER JOIN Perfil_LDAFT p ON p.ID_Cliente = c.ID " &
                 "WHERE p.Nivel_Riesgo = 'Alto' AND (p.Origen_Fondos_Verificado = 0 " &
                 "OR p.Fecha_Verificacion_Listas IS NULL OR p.Fecha_Verificacion_Listas < DATE_SUB(CURDATE(), INTERVAL 1 YEAR))")
@@ -49,7 +49,7 @@ Public Class ServicioAlertas
             consultas.Add(
                 "SELECT 'LDA/FT' AS Tipo, " &
                 "CONCAT('Perfil de alto riesgo incompleto (entidad): ', e.Razon_Social) AS Descripcion, " &
-                "NULL AS Fecha_Referencia, NULL AS ID_Referencia, 'Media' AS Prioridad " &
+                "NULL AS Fecha_Referencia, e.ID AS ID_Referencia, 'Media' AS Prioridad " &
                 "FROM Entidades_Legales e INNER JOIN Perfil_LDAFT p ON p.ID_Entidad = e.ID " &
                 "WHERE p.Nivel_Riesgo = 'Alto' AND (p.Origen_Fondos_Verificado = 0 " &
                 "OR p.Fecha_Verificacion_Listas IS NULL OR p.Fecha_Verificacion_Listas < DATE_SUB(CURDATE(), INTERVAL 1 YEAR))")

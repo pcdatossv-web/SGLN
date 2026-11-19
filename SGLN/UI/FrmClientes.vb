@@ -10,6 +10,9 @@ Public Class FrmClientes
     Private _cargando As Boolean
     Private _idCliente As Integer
 
+    ''' <summary>Registro que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDClienteInicial As Integer
+
     Private Sub FrmClientes_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("clientes.ver", Me) Then Return
 
@@ -23,7 +26,17 @@ Public Class FrmClientes
         _cargando = True
         CargarGrid("")
         _cargando = False
-        Limpiar()
+        If IDClienteInicial > 0 Then
+            SeleccionarCliente(IDClienteInicial)
+            If _idCliente = IDClienteInicial Then
+                CargarCliente(IDClienteInicial)
+            Else
+                Limpiar()
+                MostrarMensaje("El cliente asociado a la alerta ya no está disponible.", False)
+            End If
+        Else
+            Limpiar()
+        End If
     End Sub
 
     Private Sub CargarGrid(filtro As String)
