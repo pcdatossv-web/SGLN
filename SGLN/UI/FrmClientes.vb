@@ -16,6 +16,11 @@ Public Class FrmClientes
     Private Sub FrmClientes_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("clientes.ver", Me) Then Return
 
+        btnNuevo.Enabled = Permisos.Puede("clientes.gestionar")
+        btnGuardar.Enabled = Permisos.Puede("clientes.gestionar")
+        btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar")
+        btnEntidades.Enabled = Permisos.Puede("entidades.ver")
+
         UtileriasUI.ConfigurarGrid(dgvClientes)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
 
@@ -80,6 +85,7 @@ Public Class FrmClientes
 
             Dim fila As DataRow = tabla.Rows(0)
             _idCliente = id
+            btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar")
 
             txtNombres.Text = UtileriasUI.Texto(fila, "Nombres")
             txtApellidos.Text = UtileriasUI.Texto(fila, "Apellidos")
@@ -112,6 +118,7 @@ Public Class FrmClientes
 
     Private Sub Limpiar()
         _idCliente = 0
+        btnDesactivar.Enabled = False
         txtNombres.Clear()
         txtApellidos.Clear()
         txtDUI.Clear()

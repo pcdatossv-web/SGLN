@@ -16,6 +16,13 @@ Public Class FrmEntidades
     Private Sub FrmEntidades_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("entidades.ver", Me) Then Return
 
+        Dim puedeGestionar As Boolean = Permisos.Puede("entidades.gestionar")
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardar.Enabled = puedeGestionar
+        btnDesactivar.Enabled = puedeGestionar
+        btnAgregarRep.Enabled = puedeGestionar
+        btnQuitarRep.Enabled = puedeGestionar
+
         UtileriasUI.ConfigurarGrid(dgvEntidades)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
         UtileriasUI.ConfigurarGrid(dgvRepresentantes)
@@ -93,6 +100,7 @@ Public Class FrmEntidades
 
             Dim fila As DataRow = tabla.Rows(0)
             _idEntidad = id
+            btnDesactivar.Enabled = Permisos.Puede("entidades.gestionar")
 
             txtRazonSocial.Text = UtileriasUI.Texto(fila, "Razon_Social")
             txtNIT.Text = UtileriasUI.Texto(fila, "NIT")
@@ -135,6 +143,7 @@ Public Class FrmEntidades
 
     Private Sub Limpiar()
         _idEntidad = 0
+        btnDesactivar.Enabled = False
         txtRazonSocial.Clear()
         txtNIT.Clear()
         txtNRC.Clear()
