@@ -144,21 +144,25 @@ Public Class RolRepositorio
                         Dim nombreActual As String = Nothing
                         Dim descripcionActual As String = Nothing
                         Dim activoActual As Boolean = False
+                        Dim existeRol As Boolean = False
                         Using comandoExiste As New MySqlCommand(
                             "SELECT Nombre, Descripcion, Activo, Protegido FROM Roles WHERE ID = @id FOR UPDATE",
                             conexion, transaccion)
                             Parametro(comandoExiste, "@id", id)
                             Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
-                                If Not lector.Read() Then
-                                    Revertir(transaccion)
-                                    Return Respuesta.Fallo("El rol ya no existe.")
+                                If lector.Read() Then
+                                    existeRol = True
+                                    nombreActual = Convert.ToString(lector("Nombre"))
+                                    descripcionActual = Convert.ToString(lector("Descripcion"))
+                                    activoActual = Convert.ToInt32(lector("Activo")) = 1
+                                    rolProtegido = Convert.ToInt32(lector("Protegido")) = 1
                                 End If
-                                nombreActual = Convert.ToString(lector("Nombre"))
-                                descripcionActual = Convert.ToString(lector("Descripcion"))
-                                activoActual = Convert.ToInt32(lector("Activo")) = 1
-                                rolProtegido = Convert.ToInt32(lector("Protegido")) = 1
                             End Using
                         End Using
+                        If Not existeRol Then
+                            Revertir(transaccion)
+                            Return Respuesta.Fallo("El rol ya no existe.")
+                        End If
 
                         If rolProtegido AndAlso Not activo Then
                             Throw New InvalidOperationException("El rol Administrador protegido no se puede desactivar.")
