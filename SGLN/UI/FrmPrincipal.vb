@@ -131,6 +131,38 @@ Public Class FrmPrincipal
         UtileriasUI.MostrarInfo("El módulo '" & nombre & "' se encuentra en construcción.")
     End Sub
 
+    ''' <summary>
+    ''' Permite abrir el módulo relacionado con una alerta del panel.
+    ''' El detalle se localiza dentro del módulo, ya que las alertas no
+    ''' transportan identificadores operativos ni exponen datos adicionales.
+    ''' </summary>
+    Private Sub dgvAlertas_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvAlertas.CellDoubleClick
+        If e.RowIndex < 0 OrElse e.RowIndex >= dgvAlertas.Rows.Count Then Return
+
+        Dim vista As DataRowView =
+            TryCast(dgvAlertas.Rows(e.RowIndex).DataBoundItem, DataRowView)
+        If vista Is Nothing Then Return
+
+        Dim tipo As String = Convert.ToString(vista.Row("Tipo"))
+        Dim descripcion As String = Convert.ToString(vista.Row("Descripcion"))
+
+        Select Case tipo
+            Case "Plazo vencido", "Plazo por vencer"
+                Abrir(Of FrmCasos)()
+            Case "LDA/FT"
+                If descripcion.IndexOf("(entidad)", StringComparison.OrdinalIgnoreCase) >= 0 Then
+                    Abrir(Of FrmEntidades)()
+                Else
+                    Abrir(Of FrmClientes)()
+                End If
+            Case "Protocolo"
+                Abrir(Of FrmProtocolo)()
+            Case "UIF vencido", "UIF por vencer", "ARCO vencida",
+                 "ARCO revisar prórroga", "ARCO por vencer"
+                Abrir(Of FrmCumplimiento)()
+        End Select
+    End Sub
+
     Private Sub btnActualizar_Click(sender As Object, e As EventArgs) Handles btnActualizar.Click
         CargarPanel()
     End Sub
