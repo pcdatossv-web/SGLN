@@ -11,6 +11,9 @@ Public Class FrmCasos
     Private _idCaso As Integer
     Private _fechaPropuesta As Date?
 
+    ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDCasoInicial As Integer
+
     Private Sub FrmCasos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("casos.ver", Me) Then Return
 
@@ -32,7 +35,16 @@ Public Class FrmCasos
         _cargando = False
 
         ActualizarVencidas()
-        Limpiar()
+        If IDCasoInicial > 0 Then
+            If SeleccionarCaso(IDCasoInicial) Then
+                CargarCaso(IDCasoInicial)
+            Else
+                Limpiar()
+                MostrarMensaje("El expediente asociado a la alerta ya no está disponible.", False)
+            End If
+        Else
+            Limpiar()
+        End If
     End Sub
 
     Private Sub CargarCombos()
@@ -307,15 +319,16 @@ Public Class FrmCasos
         End Try
     End Sub
 
-    Private Sub SeleccionarCaso(id As Integer)
+    Private Function SeleccionarCaso(id As Integer) As Boolean
         For Each fila As DataGridViewRow In dgvCasos.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
             If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                dgvCasos.CurrentCell = fila.Cells(0)
-                Return
+                If fila.Cells.Count > 0 Then dgvCasos.CurrentCell = fila.Cells(0)
+                Return True
             End If
         Next
-    End Sub
+        Return False
+    End Function
 
     Private Sub SeleccionarTexto(combo As ComboBox, valor As String)
         If String.IsNullOrWhiteSpace(valor) Then Return

@@ -127,6 +127,27 @@ Public Class FrmPrincipal
         End Try
     End Sub
 
+    Private Sub AbrirCasoDesdeAlerta(idCaso As Integer)
+        Try
+            Using formulario As New FrmCasos()
+                formulario.IDCasoInicial = idCaso
+                formulario.ShowDialog(Me)
+            End Using
+
+            If Not Permisos.RevalidarSesion() Then
+                Sesion.CerrarSesionSolicitado = True
+                Me.Close()
+                Return
+            End If
+
+            AplicarPermisos()
+            CargarPanel()
+        Catch ex As Exception
+            RegistroErrores.Escribir("Abrir caso desde alerta", ex)
+            UtileriasUI.MostrarError("No se pudo abrir el expediente asociado a la alerta.")
+        End Try
+    End Sub
+
     Private Sub ModuloPendiente(nombre As String)
         UtileriasUI.MostrarInfo("El módulo '" & nombre & "' se encuentra en construcción.")
     End Sub
@@ -148,7 +169,15 @@ Public Class FrmPrincipal
 
         Select Case tipo
             Case "Plazo vencido", "Plazo por vencer"
-                Abrir(Of FrmCasos)()
+                Dim idCaso As Integer = 0
+                If Not vista.Row.IsNull("ID_Referencia") Then
+                    Integer.TryParse(Convert.ToString(vista.Row("ID_Referencia")), idCaso)
+                End If
+                If idCaso > 0 Then
+                    AbrirCasoDesdeAlerta(idCaso)
+                Else
+                    Abrir(Of FrmCasos)()
+                End If
             Case "LDA/FT"
                 If descripcion.IndexOf("(entidad)", StringComparison.OrdinalIgnoreCase) >= 0 Then
                     Abrir(Of FrmEntidades)()
