@@ -1205,8 +1205,13 @@ Module PruebaFuncional
         Next
         Verificar("Crear cuenta temporal para probar eliminación segura",
                   altaBorrable.Exito AndAlso idBorrable > 0, altaBorrable.Mensaje)
-        Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable, "TemporalClave99!")
-        Verificar("El administrador puede eliminar una cuenta sin historial",
+        Dim eliminacionClaveIncorrecta As Respuesta =
+            servicioUsuarios.EliminarDefinitivamente(idBorrable, "ClaveIncorrecta99!")
+        Verificar("La eliminación definitiva rechaza una clave actual incorrecta",
+                  Not eliminacionClaveIncorrecta.Exito, eliminacionClaveIncorrecta.Mensaje)
+        Dim eliminacionBorrable As Respuesta =
+            servicioUsuarios.EliminarDefinitivamente(idBorrable, "TemporalClave99!")
+        Verificar("El administrador reautenticado puede eliminar una cuenta sin historial",
                   eliminacionBorrable.Exito, eliminacionBorrable.Mensaje)
         Verificar("La bitácora conserva los eventos de alta y eliminación de la cuenta",
                   ContarSqlDirecto("SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Usuarios' " &
