@@ -39,6 +39,18 @@ Public Class FrmClientes
         dtpNacimiento.Enabled = puedeGestionar
         dtpVerificacionListas.Enabled = puedeGestionar
 
+        txtNombres.MaxLength = 120
+        txtApellidos.MaxLength = 120
+        txtDUI.MaxLength = 10
+        txtNIT.MaxLength = 14
+        txtNacionalidad.MaxLength = 60
+        txtProfesion.MaxLength = 120
+        txtDireccion.MaxLength = 300
+        txtTelefono.MaxLength = 40
+        txtEmail.MaxLength = 120
+        txtDetalleOrigen.MaxLength = 500
+        txtObservaciones.MaxLength = 500
+
         UtileriasUI.ConfigurarGrid(dgvClientes)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
 

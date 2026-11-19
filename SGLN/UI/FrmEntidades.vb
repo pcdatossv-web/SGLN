@@ -36,6 +36,13 @@ Public Class FrmEntidades
         txtCargo.ReadOnly = Not puedeGestionar
         cboTipoRepresentacion.Enabled = puedeGestionar
 
+        txtRazonSocial.MaxLength = 200
+        txtNIT.MaxLength = 20
+        txtNRC.MaxLength = 30
+        txtDomicilio.MaxLength = 300
+        txtDetalleOrigen.MaxLength = 500
+        txtCargo.MaxLength = 120
+
         UtileriasUI.ConfigurarGrid(dgvEntidades)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
         UtileriasUI.ConfigurarGrid(dgvRepresentantes)
