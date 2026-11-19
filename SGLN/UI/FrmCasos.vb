@@ -35,6 +35,10 @@ Public Class FrmCasos
         btnConfirmarPlazo.Enabled = puedeConfirmarPlazo
         btnMarcarCumplida.Enabled = puedeCumplirPlazo
 
+        txtExpediente.MaxLength = 80
+        txtResponsable.MaxLength = 120
+        txtDescripcion.MaxLength = 1000
+
         UtileriasUI.ConfigurarGrid(dgvCasos)
         UtileriasUI.ConfigurarGrid(dgvActuaciones)
 
