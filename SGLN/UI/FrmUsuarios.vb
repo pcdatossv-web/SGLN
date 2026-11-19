@@ -17,6 +17,11 @@ Public Class FrmUsuarios
     Private Sub FrmUsuarios_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.usuarios", Me) Then Return
 
+        txtUsuario.MaxLength = 50
+        txtNombre.MaxLength = 150
+        txtClaveNueva.MaxLength = 128
+        txtClaveConfirmar.MaxLength = 128
+
         UtileriasUI.ConfigurarGrid(dgvUsuarios)
         CargarRoles()
         CargarUsuarios()
