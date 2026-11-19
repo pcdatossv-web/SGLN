@@ -77,7 +77,7 @@ BEGIN
                 SET MESSAGE_TEXT = 'No se puede desactivar un rol que tiene usuarios asignados.';
         END IF;
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_roles_protegido_bd BEFORE DELETE ON Roles
 FOR EACH ROW
@@ -97,7 +97,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'No se puede asignar un usuario a un rol inexistente o desactivado.';
     END IF;
-END$
+END$$
 
 CREATE TRIGGER trg_usuarios_admin_bu BEFORE UPDATE ON Usuarios
 FOR EACH ROW
@@ -413,6 +413,6 @@ BEGIN
     SET @sgln_delete_nombre = NULL;
 
     COMMIT;
-END$
+END$$
 
 DELIMITER ;
