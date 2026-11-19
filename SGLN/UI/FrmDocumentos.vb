@@ -10,12 +10,18 @@ Public Class FrmDocumentos
     Private ReadOnly _servicioIA As New ServicioIA()
     Private _cargando As Boolean
     Private _idDocumento As Integer
+    Private _puedeVer As Boolean
+    Private _puedeMetadatos As Boolean
+    Private _puedeVerificar As Boolean
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim puedeVer As Boolean = Permisos.TieneAcceso("documentos.ver")
+        _puedeVer = Permisos.TieneAcceso("documentos.ver")
         Dim puedeImportar As Boolean = Permisos.TieneAcceso("documentos.importar")
-        Dim puedeVerificar As Boolean = Permisos.TieneAcceso("documentos.verificar")
-        Dim puedeMetadatos As Boolean = Permisos.TieneAcceso("documentos.metadatos")
+        _puedeVerificar = Permisos.TieneAcceso("documentos.verificar")
+        _puedeMetadatos = Permisos.TieneAcceso("documentos.metadatos")
+        Dim puedeVer As Boolean = _puedeVer
+        Dim puedeVerificar As Boolean = _puedeVerificar
+        Dim puedeMetadatos As Boolean = _puedeMetadatos
 
         If Not (puedeVer OrElse puedeImportar OrElse puedeVerificar OrElse puedeMetadatos) Then
             If Not Permisos.Exigir("documentos.ver", Me) Then Return
@@ -24,10 +30,8 @@ Public Class FrmDocumentos
         Dim puedeConsultar As Boolean = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
         btnBuscar.Enabled = puedeConsultar
         btnRefrescar.Enabled = puedeConsultar
-        btnAbrir.Enabled = puedeVer
         btnImportar.Enabled = puedeImportar
-        btnActualizar.Enabled = puedeMetadatos
-        btnVerificar.Enabled = puedeVerificar
+        ActualizarAccionesDocumento()
         txtFiltro.Enabled = puedeConsultar
         cboFiltroTipo.Enabled = puedeConsultar
 
@@ -136,6 +140,7 @@ Public Class FrmDocumentos
         Dim fecha As Date? = UtileriasUI.Fecha(fila, "Fecha_Carga")
         txtFechaCarga.Text = If(fecha.HasValue, fecha.Value.ToString("dd/MM/yyyy HH:mm"), "")
 
+        ActualizarAccionesDocumento()
         MostrarMensaje("", True)
     End Sub
 
@@ -152,6 +157,14 @@ Public Class FrmDocumentos
         _cargando = True
         dgvDocumentos.CurrentCell = Nothing
         _cargando = False
+        ActualizarAccionesDocumento()
+    End Sub
+
+    Private Sub ActualizarAccionesDocumento()
+        Dim haySeleccion As Boolean = _idDocumento > 0
+        btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
+        btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
+        btnVerificar.Enabled = _puedeVerificar AndAlso haySeleccion
     End Sub
 
     Private Sub Importar()
