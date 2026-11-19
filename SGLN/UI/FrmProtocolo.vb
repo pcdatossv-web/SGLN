@@ -483,10 +483,16 @@ Public Class FrmProtocolo
     Private Sub SeleccionarInstrumento(id As Integer)
         For Each fila As DataGridViewRow In dgvInstrumentos.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                dgvInstrumentos.CurrentCell = fila.Cells(0)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' El ID está oculto; seleccionar una celda visible evita errores al restaurar el foco.
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvInstrumentos.CurrentCell = celda
+                    Return
+                End If
+            Next
+            Return
         Next
     End Sub
 

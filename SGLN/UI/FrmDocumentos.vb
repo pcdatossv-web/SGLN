@@ -246,10 +246,16 @@ Public Class FrmDocumentos
     Private Sub SeleccionarDocumento(id As Integer)
         For Each fila As DataGridViewRow In dgvDocumentos.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                dgvDocumentos.CurrentCell = fila.Cells(0)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' La primera columna puede estar oculta por configuración o reordenamiento.
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvDocumentos.CurrentCell = celda
+                    Return
+                End If
+            Next
+            Return
         Next
     End Sub
 
