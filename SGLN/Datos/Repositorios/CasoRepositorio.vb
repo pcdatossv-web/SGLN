@@ -121,8 +121,15 @@ Public Class CasoRepositorio
                         AgregarParametros(comando, caso)
                         Parametro(comando, "@id", caso.ID)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
-                Return filas
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
+                    Return filas
+                End If
+
+                ' La fila ya fue localizada y bloqueada con SELECT ... FOR UPDATE.
+                ' Cero filas afectadas significa que los valores no cambiaron,
+                ' no que el caso haya desaparecido. No generar auditoría ficticia.
+                Return 1
             End Function)
     End Function
 
