@@ -54,6 +54,13 @@ Public Class FrmAuditoria
     End Function
 
     Private Sub Buscar()
+        If dtpDesde.Value.Date > dtpHasta.Value.Date Then
+            dgvAuditoria.DataSource = Nothing
+            lblResumen.Text = "Rango de fechas no válido."
+            MostrarMensaje("La fecha inicial no puede ser posterior a la fecha final.", False)
+            Return
+        End If
+
         Try
             _cargando = True
             dgvAuditoria.DataSource = _servicio.Buscar(
