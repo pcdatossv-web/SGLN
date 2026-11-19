@@ -54,6 +54,10 @@ Public Class ServicioEntidades
         entidad.RazonSocial = entidad.RazonSocial.Trim()
         entidad.NRC = If(entidad.NRC, "").Trim()
         entidad.Domicilio = If(entidad.Domicilio, "").Trim()
+        If perfil IsNot Nothing Then
+            perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
+            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+        End If
         If Not String.IsNullOrWhiteSpace(entidad.NIT) Then
             entidad.NIT = ValidadorIdentidad.FormatearNit(entidad.NIT)
         End If
