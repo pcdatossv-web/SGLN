@@ -36,6 +36,11 @@ Public Class FrmCumplimiento
         btnGuardarArco.Enabled = puedeArco
         btnResponderArco.Enabled = puedeArco
 
+        ' No mostrar pestañas que el usuario no puede consultar.
+        ' La autorización real sigue validándose en ServicioCumplimiento.
+        If Not puedeVerOperaciones Then tabPrincipal.TabPages.Remove(tabOperaciones)
+        If Not puedeVerArco Then tabPrincipal.TabPages.Remove(tabArco)
+
         UtileriasUI.ConfigurarGrid(dgvOperaciones)
         UtileriasUI.ConfigurarGrid(dgvArco)
 
@@ -65,8 +70,8 @@ Public Class FrmCumplimiento
 
         _cargando = True
         CargarCombos()
-        CargarOperaciones()
-        CargarSolicitudes()
+        If puedeVerOperaciones Then CargarOperaciones()
+        If puedeVerArco Then CargarSolicitudes()
         _cargando = False
 
         _umbral = _servicio.UmbralEfectivo()
