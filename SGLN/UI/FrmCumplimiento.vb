@@ -35,11 +35,23 @@ Public Class FrmCumplimiento
         btnDescartarOp.Enabled = puedeOperaciones
         btnReportarOp.Enabled = puedeReportar
 
+        ' Un rol de consulta no debe poder modificar campos aunque el servicio
+        ' vuelva a validar la autorización al guardar.
+        cboTipoOperacion.Enabled = puedeOperaciones
+        nudMonto.Enabled = puedeOperaciones
+        cboMoneda.Enabled = puedeOperaciones
+        dtpFechaOperacion.Enabled = puedeOperaciones
+        cboCasoOp.Enabled = puedeOperaciones
+        cboInstrumentoOp.Enabled = puedeOperaciones
+        txtDescripcionOp.ReadOnly = Not puedeOperaciones
+        txtObservacionesOp.ReadOnly = Not puedeOperaciones
+
         btnBuscarArco.Enabled = puedeVerArco
         btnRefrescarArco.Enabled = puedeVerArco
         btnNuevoArco.Enabled = puedeArco
         btnGuardarArco.Enabled = puedeArco
         btnResponderArco.Enabled = puedeArco
+        grpArco.Enabled = puedeArco
 
         ' No mostrar pestañas que el usuario no puede consultar.
         ' La autorización real sigue validándose en ServicioCumplimiento.
