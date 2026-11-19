@@ -84,6 +84,15 @@ Public Class ConfiguracionRepositorio
         If Not Permisos.TieneAcceso("config.feriados") Then
             Throw New UnauthorizedAccessException("No tiene permiso para administrar feriados.")
         End If
+        ' El repositorio también protege sus invariantes: no depender únicamente
+        ' de que todas las llamadas futuras pasen por ServicioConfiguracion.
+        If fecha = Date.MinValue OrElse fecha.Date.Year < 2000 OrElse fecha.Date.Year > 2100 Then
+            Throw New ArgumentOutOfRangeException(NameOf(fecha), "El año del feriado debe estar entre 2000 y 2100.")
+        End If
+        If String.IsNullOrWhiteSpace(descripcion) OrElse descripcion.Trim().Length > 120 Then
+            Throw New ArgumentException("La descripción del feriado debe contener entre 1 y 120 caracteres.", NameOf(descripcion))
+        End If
+        descripcion = descripcion.Trim()
 
         EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
@@ -103,6 +112,7 @@ Public Class ConfiguracionRepositorio
         If Not Permisos.TieneAcceso("config.feriados") Then
             Throw New UnauthorizedAccessException("No tiene permiso para administrar feriados.")
         End If
+        If id <= 0 Then Throw New ArgumentOutOfRangeException(NameOf(id), "Seleccione un feriado válido.")
 
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
