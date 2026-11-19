@@ -179,8 +179,20 @@ Public Class ClienteRepositorio
                             Parametro(comando, "@observaciones", perfil.Observaciones)
                         End Sub)
 
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Perfil_LDAFT",
-                                         idCliente, "Perfil LDA/FT del cliente actualizado")
+                    Dim accionPerfil As String = "CREAR"
+                    Using comandoPerfilExiste As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Perfil_LDAFT WHERE ID_Cliente = @idCliente",
+                        conexion, transaccion)
+                        Parametro(comandoPerfilExiste, "@idCliente", idCliente)
+                        If Convert.ToInt32(comandoPerfilExiste.ExecuteScalar()) > 0 Then
+                            accionPerfil = "MODIFICAR"
+                        End If
+                    End Using
+
+                    AuditarEnTransaccion(conexion, transaccion, accionPerfil, "Perfil_LDAFT",
+                                         idCliente, If(accionPerfil = "CREAR",
+                                                       "Perfil LDA/FT del cliente creado",
+                                                       "Perfil LDA/FT del cliente actualizado"))
                 End If
 
                 Return idCliente
