@@ -250,6 +250,22 @@ Public Class FrmCumplimiento
             Not _operacionReportada AndAlso
             Not String.Equals(_estadoOperacion, "Reportada", StringComparison.OrdinalIgnoreCase) AndAlso
             Not String.Equals(_estadoOperacion, "Descartada", StringComparison.OrdinalIgnoreCase)
+        Dim estadoPermiteEdicion As Boolean = _idOperacion = 0 OrElse
+            (estadoPermiteAccion AndAlso
+             (String.Equals(_estadoOperacion, "Registrada", StringComparison.OrdinalIgnoreCase) OrElse
+              String.Equals(_estadoOperacion, "En análisis", StringComparison.OrdinalIgnoreCase)))
+        Dim puedeEditar As Boolean = _puedeGestionarOperaciones AndAlso estadoPermiteEdicion
+
+        btnGuardarOp.Enabled = puedeEditar
+        cboTipoOperacion.Enabled = puedeEditar
+        nudMonto.Enabled = puedeEditar
+        cboMoneda.Enabled = puedeEditar
+        dtpFechaOperacion.Enabled = puedeEditar
+        cboCasoOp.Enabled = puedeEditar
+        cboInstrumentoOp.Enabled = puedeEditar
+        txtDescripcionOp.ReadOnly = Not puedeEditar
+        txtObservacionesOp.ReadOnly = Not puedeEditar
+
         btnReportarOp.Enabled = _puedeReportar AndAlso estadoPermiteAccion
         btnDescartarOp.Enabled = _puedeGestionarOperaciones AndAlso estadoPermiteAccion
     End Sub
