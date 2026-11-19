@@ -7,35 +7,12 @@ Public Class FrmLogin
         ' Resuelve la conexión (registro o App.config) antes de tocar la base.
         ' Si el servidor no responde, se ofrece configurarlo en este momento.
         ConfiguracionConexion.Inicializar()
-        VerificarConexionAlInicio()
 
         txtUsuario.MaxLength = 50
         txtClave.MaxLength = 128
         txtUsuario.Clear()
         txtClave.Clear()
         txtUsuario.Focus()
-    End Sub
-
-    ''' <summary>
-    ''' Si el servidor no responde, se ofrece abrir la configuración en lugar de
-    ''' dejar al usuario con un error repetido en cada intento de ingreso.
-    ''' </summary>
-    Private Sub VerificarConexionAlInicio()
-        Dim mensaje As String = ""
-        If ConfiguracionConexion.Probar(ConfiguracionConexion.Actual, mensaje) Then Return
-
-        RegistroErrores.Anotar("Conexión al iniciar", mensaje)
-
-        Dim respuesta As DialogResult = MessageBox.Show(
-            "No se pudo establecer o validar la conexión con la base de datos." &
-            Environment.NewLine & Environment.NewLine &
-            "Revise la disponibilidad de MySQL y la configuración del servidor, " &
-            "las credenciales y TLS. El detalle técnico quedó registrado localmente." &
-            Environment.NewLine & Environment.NewLine &
-            "¿Desea revisar la configuración de la conexión?",
-            "Conexión a la base de datos", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
-
-        If respuesta = DialogResult.Yes Then AbrirConfiguracionConexion()
     End Sub
 
     Private Sub AbrirConfiguracionConexion()
