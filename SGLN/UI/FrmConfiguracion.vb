@@ -67,6 +67,7 @@ Public Class FrmConfiguracion
         Dim puedeFeriados As Boolean = Permisos.Puede("config.feriados")
         btnAgregarFeriado.Enabled = puedeFeriados
         btnEliminarFeriado.Enabled = puedeFeriados
+        grpFeriado.Enabled = puedeFeriados
 
         Dim puedeSeguridad As Boolean = Permisos.Puede("config.seguridad")
         grpClave.Enabled = puedeSeguridad
