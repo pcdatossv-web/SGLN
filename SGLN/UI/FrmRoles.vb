@@ -62,6 +62,7 @@ Public Class FrmRoles
     End Sub
 
     Private Sub CargarRoles()
+        Dim errorCarga As Boolean = False
         Try
             _cargando = True
             dgvRoles.DataSource = _servicio.Listar()
@@ -74,12 +75,16 @@ Public Class FrmRoles
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - listar", ex)
             Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
+            errorCarga = True
             dgvRoles.DataSource = Nothing
         Finally
             _cargando = False
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvRoles)
             If actual Is Nothing Then
                 Nuevo()
+                If errorCarga Then
+                    Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
+                End If
             Else
                 dgvRoles_SelectionChanged(dgvRoles, EventArgs.Empty)
             End If

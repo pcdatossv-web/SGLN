@@ -39,6 +39,7 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub CargarUsuarios()
+        Dim errorCarga As Boolean = False
         Try
             _cargando = True
             dgvUsuarios.DataSource = _servicio.Listar()
@@ -53,12 +54,16 @@ Public Class FrmUsuarios
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - listar", ex)
             Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
+            errorCarga = True
             dgvUsuarios.DataSource = Nothing
         Finally
             _cargando = False
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvUsuarios)
             If actual Is Nothing Then
                 Nuevo()
+                If errorCarga Then
+                    Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
+                End If
             Else
                 dgvUsuarios_SelectionChanged(dgvUsuarios, EventArgs.Empty)
             End If
