@@ -10,6 +10,9 @@ Public Class FrmCumplimiento
     Private _idOperacion As Integer
     Private _idSolicitud As Integer
     Private _umbral As Decimal
+    Private _puedeGestionarOperaciones As Boolean
+    Private _puedeReportar As Boolean
+    Private _puedeArco As Boolean
 
     ''' <summary>Solicitud ARCO que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDSolicitudInicial As Integer
@@ -18,9 +21,12 @@ Public Class FrmCumplimiento
 
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
-        Dim puedeOperaciones As Boolean = Permisos.TieneAcceso("cumplimiento.operaciones")
-        Dim puedeReportar As Boolean = Permisos.TieneAcceso("cumplimiento.reportar_uif")
-        Dim puedeArco As Boolean = Permisos.TieneAcceso("cumplimiento.arco")
+        _puedeGestionarOperaciones = Permisos.TieneAcceso("cumplimiento.operaciones")
+        _puedeReportar = Permisos.TieneAcceso("cumplimiento.reportar_uif")
+        _puedeArco = Permisos.TieneAcceso("cumplimiento.arco")
+        Dim puedeOperaciones As Boolean = _puedeGestionarOperaciones
+        Dim puedeReportar As Boolean = _puedeReportar
+        Dim puedeArco As Boolean = _puedeArco
         Dim puedeVerOperaciones As Boolean = puedeVer OrElse puedeOperaciones OrElse puedeReportar
         Dim puedeVerArco As Boolean = puedeVer OrElse puedeArco
 
@@ -204,6 +210,7 @@ Public Class FrmCumplimiento
         txtReporte.Text = If(reporte.HasValue, reporte.Value.ToString("dd/MM/yyyy"), "")
 
         EvaluarUmbral()
+        ActualizarAccionesOperacion()
         MostrarMensaje("", True)
     End Sub
 
@@ -224,6 +231,13 @@ Public Class FrmCumplimiento
         _cargando = True
         dgvOperaciones.CurrentCell = Nothing
         _cargando = False
+        ActualizarAccionesOperacion()
+    End Sub
+
+    Private Sub ActualizarAccionesOperacion()
+        Dim haySeleccion As Boolean = _idOperacion > 0
+        btnReportarOp.Enabled = _puedeReportar AndAlso haySeleccion
+        btnDescartarOp.Enabled = _puedeGestionarOperaciones AndAlso haySeleccion
     End Sub
 
     Private Sub GuardarOperacion()
@@ -389,6 +403,7 @@ Public Class FrmCumplimiento
         Dim respuesta As Date? = UtileriasUI.Fecha(fila, "Fecha_Respuesta")
         UtileriasUI.AsignarFecha(dtpFechaRespuesta, respuesta)
 
+        ActualizarAccionesSolicitud()
         MostrarMensaje("", True)
     End Sub
 
@@ -409,6 +424,11 @@ Public Class FrmCumplimiento
         _cargando = True
         dgvArco.CurrentCell = Nothing
         _cargando = False
+        ActualizarAccionesSolicitud()
+    End Sub
+
+    Private Sub ActualizarAccionesSolicitud()
+        btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0
     End Sub
 
     Private Sub ActualizarFechasArco()
