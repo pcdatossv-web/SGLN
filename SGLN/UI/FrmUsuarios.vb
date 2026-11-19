@@ -225,6 +225,21 @@ Public Class FrmUsuarios
 
             If Not UtileriasUI.Confirmar(aviso) Then Return
 
+            ' La confirmación visual no sustituye la reautenticación.
+            ' Se solicita la clave actual del administrador antes de una
+            ' operación física e irreversible.
+            Dim claveAdministrador As String = SolicitarClaveAdministrador()
+            If claveAdministrador Is Nothing Then Return
+
+            Dim validacionAdmin As Respuesta =
+                _servicio.VerificarCredencialAdministrador(claveAdministrador)
+            claveAdministrador = Nothing
+
+            If Not validacionAdmin.Exito Then
+                Mostrar(validacionAdmin.Mensaje, False)
+                Return
+            End If
+
             Dim respuesta As Respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado)
             Mostrar(respuesta.Mensaje, respuesta.Exito)
             If respuesta.Exito Then
@@ -236,6 +251,56 @@ Public Class FrmUsuarios
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
     End Sub
+
+    ''' <summary>
+    ''' Solicita la clave en un cuadro modal con entrada enmascarada.
+    ''' Devuelve Nothing si el usuario cancela.
+    ''' </summary>
+    Private Function SolicitarClaveAdministrador() As String
+        Using dialogo As New Form()
+            dialogo.Text = "Confirmar identidad del administrador"
+            dialogo.FormBorderStyle = FormBorderStyle.FixedDialog
+            dialogo.StartPosition = FormStartPosition.CenterParent
+            dialogo.ClientSize = New Size(390, 145)
+            dialogo.MaximizeBox = False
+            dialogo.MinimizeBox = False
+            dialogo.ShowInTaskbar = False
+
+            Dim etiqueta As New Label() With {
+                .Text = "Ingrese su clave actual para autorizar la eliminación:",
+                .AutoSize = False,
+                .Location = New Point(12, 12),
+                .Size = New Size(365, 35)
+            }
+            Dim entrada As New TextBox() With {
+                .Location = New Point(15, 51),
+                .Size = New Size(360, 23),
+                .UseSystemPasswordChar = True,
+                .MaxLength = 128
+            }
+            Dim aceptar As New Button() With {
+                .Text = "Verificar y continuar",
+                .DialogResult = DialogResult.OK,
+                .Location = New Point(180, 94),
+                .Size = New Size(125, 30)
+            }
+            Dim cancelar As New Button() With {
+                .Text = "Cancelar",
+                .DialogResult = DialogResult.Cancel,
+                .Location = New Point(310, 94),
+                .Size = New Size(65, 30)
+            }
+
+            dialogo.Controls.AddRange(New Control() {etiqueta, entrada, aceptar, cancelar})
+            dialogo.AcceptButton = aceptar
+            dialogo.CancelButton = cancelar
+            dialogo.ActiveControl = entrada
+
+            If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return Nothing
+            If String.IsNullOrEmpty(entrada.Text) Then Return ""
+            Return entrada.Text
+        End Using
+    End Function
 
     Private Function EsAdministradorActual() As Boolean
         Return Sesion.UsuarioActual IsNot Nothing AndAlso
