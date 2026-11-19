@@ -196,7 +196,12 @@ Public Class FrmProtocolo
 
         Try
             Dim tabla As DataTable = _servicio.ObtenerLibro(id)
-            If tabla.Rows.Count = 0 Then Return
+            If tabla.Rows.Count = 0 Then
+                ' El libro pudo eliminarse o quedar inaccesible tras cargar el listado.
+                ' No conservar datos anteriores ni permitir operar sobre otro libro.
+                LimpiarLibro()
+                Return
+            End If
 
             Dim fila As DataRow = tabla.Rows(0)
             nudNumeroLibro.Value = Math.Max(1, UtileriasUI.Entero(fila, "Numero_Libro"))
@@ -210,7 +215,7 @@ Public Class FrmProtocolo
             txtFechaCierre.Text = If(cierre.HasValue, cierre.Value.ToString("dd/MM/yyyy"), "Sin cerrar")
 
             Dim entrega As Date? = UtileriasUI.Fecha(fila, "Fecha_Entrega_Notariado")
-            If entrega.HasValue Then dtpFechaEntrega.Value = entrega.Value
+            dtpFechaEntrega.Value = entrega.GetValueOrDefault(Date.Today)
 
             lblLimiteEntrega.Text = ""
             If cierre.HasValue Then
