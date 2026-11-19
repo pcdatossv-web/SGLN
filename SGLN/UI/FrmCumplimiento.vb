@@ -451,7 +451,16 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub ActualizarAccionesSolicitud()
+        Dim puedeEditarSolicitud As Boolean = _puedeArco AndAlso Not _solicitudRespondida
+        btnGuardarArco.Enabled = puedeEditarSolicitud
         btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0 AndAlso Not _solicitudRespondida
+
+        ' Una prórroga ya aplicada forma parte del historial del trámite y no
+        ' se puede retirar ni modificar. Evitar ofrecer una edición que el
+        ' servicio y el repositorio necesariamente rechazarían.
+        chkProrroga.Enabled = puedeEditarSolicitud AndAlso
+            (_idSolicitud = 0 OrElse Not chkProrroga.Checked)
+        txtDetalleArco.ReadOnly = Not puedeEditarSolicitud
     End Sub
 
     Private Sub ActualizarFechasArco()
