@@ -229,12 +229,16 @@ Public Class FrmClientes
     Private Sub SeleccionarCliente(id As Integer)
         For Each fila As DataGridViewRow In dgvClientes.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                Dim indice As Integer = 1
-                If dgvClientes.Columns.Contains("Nombre") Then indice = dgvClientes.Columns("Nombre").Index
-                dgvClientes.CurrentCell = fila.Cells(indice)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' Evita asignar CurrentCell a una columna oculta o no disponible.
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvClientes.CurrentCell = celda
+                    Return
+                End If
+            Next
+            Return
         Next
     End Sub
 

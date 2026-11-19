@@ -265,12 +265,16 @@ Public Class FrmEntidades
     Private Sub SeleccionarEntidad(id As Integer)
         For Each fila As DataGridViewRow In dgvEntidades.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                Dim indice As Integer = 1
-                If dgvEntidades.Columns.Contains("Razon_Social") Then indice = dgvEntidades.Columns("Razon_Social").Index
-                dgvEntidades.CurrentCell = fila.Cells(indice)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' Evita asignar CurrentCell a una columna oculta o no disponible.
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvEntidades.CurrentCell = celda
+                    Return
+                End If
+            Next
+            Return
         Next
     End Sub
 
