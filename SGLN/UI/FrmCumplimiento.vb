@@ -290,16 +290,17 @@ Public Class FrmCumplimiento
             Return
         End If
 
+        Dim idOperacion As Integer = _idOperacion
         If Not UtileriasUI.Confirmar("¿Registrar el reporte a la UIF con fecha de hoy?") Then Return
 
-        Dim respuesta As Respuesta = _servicio.MarcarReportada(_idOperacion, Date.Today)
+        Dim respuesta As Respuesta = _servicio.MarcarReportada(idOperacion, Date.Today)
         If Not respuesta.Exito Then
             MostrarMensaje(respuesta.Mensaje, False)
             Return
         End If
 
         CargarOperaciones()
-        SeleccionarOperacion(_idOperacion)
+        SeleccionarOperacion(idOperacion)
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
@@ -311,16 +312,17 @@ Public Class FrmCumplimiento
             Return
         End If
 
+        Dim idOperacion As Integer = _idOperacion
         If Not UtileriasUI.Confirmar("¿Descartar la operación seleccionada? El registro se conserva.") Then Return
 
-        Dim respuesta As Respuesta = _servicio.Descartar(_idOperacion)
+        Dim respuesta As Respuesta = _servicio.Descartar(idOperacion)
         If Not respuesta.Exito Then
             MostrarMensaje(respuesta.Mensaje, False)
             Return
         End If
 
         CargarOperaciones()
-        SeleccionarOperacion(_idOperacion)
+        SeleccionarOperacion(idOperacion)
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
@@ -506,17 +508,18 @@ Public Class FrmCumplimiento
             Return
         End If
 
+        Dim idSolicitud As Integer = _idSolicitud
         Dim fecha As Date = If(dtpFechaRespuesta.Checked, dtpFechaRespuesta.Value.Date, Date.Today)
         If Not UtileriasUI.Confirmar("¿Marcar la solicitud como respondida el " & fecha.ToString("dd/MM/yyyy") & "?") Then Return
 
-        Dim respuesta As Respuesta = _servicio.ResponderSolicitud(_idSolicitud, fecha)
+        Dim respuesta As Respuesta = _servicio.ResponderSolicitud(idSolicitud, fecha)
         If Not respuesta.Exito Then
             MostrarMensaje(respuesta.Mensaje, False)
             Return
         End If
 
         CargarSolicitudes()
-        SeleccionarSolicitud(_idSolicitud)
+        SeleccionarSolicitud(idSolicitud)
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
