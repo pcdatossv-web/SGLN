@@ -59,18 +59,18 @@ Public Class ServicioAlertas
             consultas.Add(
                 "SELECT 'Protocolo' AS Tipo, " &
                 "CONCAT('Libro vencido sin cerrar: ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)) AS Descripcion, " &
-                "l.Fecha_Vencimiento AS Fecha_Referencia, NULL AS ID_Referencia, 'Alta' AS Prioridad " &
+                "l.Fecha_Vencimiento AS Fecha_Referencia, l.ID AS ID_Referencia, 'Alta' AS Prioridad " &
                 "FROM Libros_Protocolo l WHERE l.Estado = 'Vigente' AND l.Fecha_Vencimiento < CURDATE()")
             consultas.Add(
                 "SELECT 'Protocolo' AS Tipo, " &
                 "CONCAT('Libro por vencer: ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)) AS Descripcion, " &
-                "l.Fecha_Vencimiento AS Fecha_Referencia, NULL AS ID_Referencia, 'Media' AS Prioridad " &
+                "l.Fecha_Vencimiento AS Fecha_Referencia, l.ID AS ID_Referencia, 'Media' AS Prioridad " &
                 "FROM Libros_Protocolo l WHERE l.Estado = 'Vigente' AND l.Fecha_Vencimiento " &
                 "BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)")
             consultas.Add(
                 "SELECT 'Protocolo' AS Tipo, " &
                 "CONCAT('Entrega al Notariado pendiente: libro ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)) AS Descripcion, " &
-                "l.Fecha_Cierre AS Fecha_Referencia, NULL AS ID_Referencia, 'Media' AS Prioridad " &
+                "l.Fecha_Cierre AS Fecha_Referencia, l.ID AS ID_Referencia, 'Media' AS Prioridad " &
                 "FROM Libros_Protocolo l WHERE l.Estado = 'Cerrado' AND l.Fecha_Entrega_Notariado IS NULL " &
                 "AND l.Fecha_Cierre IS NOT NULL")
         End If

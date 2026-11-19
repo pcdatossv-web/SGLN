@@ -8,6 +8,9 @@ Public Class FrmProtocolo
     Private ReadOnly _servicio As New ServicioProtocolo()
     Private _cargando As Boolean
     Private _idLibro As Integer
+
+    ''' <summary>Libro que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDLibroInicial As Integer
     Private _idInstrumento As Integer
 
     Private Sub FrmProtocolo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -80,12 +83,23 @@ Public Class FrmProtocolo
 
         _cargando = True
         CargarClientes()
-        CargarLibros(0)
+        CargarLibros(If(IDLibroInicial > 0, IDLibroInicial, 0))
         _cargando = False
 
-        LimpiarLibro()
-        LimpiarInstrumento()
-        MostrarMensaje("", True)
+        If IDLibroInicial > 0 Then
+            If _idLibro = IDLibroInicial Then
+                CargarLibroSeleccionado()
+                MostrarMensaje("", True)
+            Else
+                LimpiarLibro()
+                LimpiarInstrumento()
+                MostrarMensaje("El libro asociado a la alerta ya no está disponible.", False)
+            End If
+        Else
+            LimpiarLibro()
+            LimpiarInstrumento()
+            MostrarMensaje("", True)
+        End If
     End Sub
 
     ' ------------------------------------------------------------------
