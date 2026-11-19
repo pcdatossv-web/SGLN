@@ -136,6 +136,15 @@ Public Class DocumentoRepositorio
         End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Bloquear primero la fila para distinguir un documento inexistente
+                ' de una edición válida cuyos metadatos ya tenían esos valores.
+                Using comandoExiste As New MySqlCommand(
+                    "SELECT ID FROM Documentos WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                    Parametro(comandoExiste, "@id", documento.ID)
+                    Dim idExistente As Object = comandoExiste.ExecuteScalar()
+                    If idExistente Is Nothing OrElse idExistente Is DBNull.Value Then Return 0
+                End Using
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Documentos SET Tipo_Documento = @tipo, ID_Caso = @caso, ID_Instrumento = @instrumento " &
                     "WHERE ID = @id",
@@ -149,8 +158,12 @@ Public Class DocumentoRepositorio
                 If filas > 0 Then
                     AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Documentos", documento.ID,
                         "Metadatos del documento actualizados")
+                    Return filas
                 End If
-                Return filas
+
+                ' La fila está bloqueada y existe; no registrar una modificación
+                ' cuando el usuario simplemente vuelve a guardar los mismos datos.
+                Return 1
             End Function)
     End Function
 
