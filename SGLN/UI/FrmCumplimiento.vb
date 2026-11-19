@@ -189,7 +189,11 @@ Public Class FrmCumplimiento
     Private Sub dgvOperaciones_SelectionChanged(sender As Object, e As EventArgs) Handles dgvOperaciones.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvOperaciones)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' No conservar una operación activa fuera de la selección visible.
+            LimpiarOperacion()
+            Return
+        End If
         CargarOperacion(fila)
     End Sub
 
@@ -385,7 +389,11 @@ Public Class FrmCumplimiento
     Private Sub dgvArco_SelectionChanged(sender As Object, e As EventArgs) Handles dgvArco.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvArco)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' Evitar responder o editar una solicitud que ya no está seleccionada.
+            LimpiarSolicitud()
+            Return
+        End If
         CargarSolicitud(fila)
     End Sub
 
