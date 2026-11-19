@@ -17,6 +17,24 @@ Public Class FrmCasos
     Private Sub FrmCasos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("casos.ver", Me) Then Return
 
+        ' Mantener la consulta disponible, pero deshabilitar la edición y las
+        ' acciones de plazo que el rol no puede ejecutar.
+        Dim puedeGestionar As Boolean = Permisos.Puede("casos.gestionar")
+        Dim puedeConfirmarPlazo As Boolean = Permisos.Puede("casos.confirmar_plazo")
+        Dim puedeCumplirPlazo As Boolean = Permisos.Puede("casos.cumplir_plazo")
+
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardarCaso.Enabled = puedeGestionar
+        grpCaso.Enabled = puedeGestionar
+
+        cboTipoActuacion.Enabled = puedeConfirmarPlazo
+        dtpFechaNotificacion.Enabled = puedeConfirmarPlazo
+        nudPlazoDias.Enabled = puedeConfirmarPlazo
+        txtObservaciones.Enabled = puedeConfirmarPlazo
+        btnCalcular.Enabled = puedeConfirmarPlazo
+        btnConfirmarPlazo.Enabled = puedeConfirmarPlazo
+        btnMarcarCumplida.Enabled = puedeCumplirPlazo
+
         UtileriasUI.ConfigurarGrid(dgvCasos)
         UtileriasUI.ConfigurarGrid(dgvActuaciones)
 
