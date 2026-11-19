@@ -36,7 +36,6 @@ Public Class FrmDocumentos
         cboTipoDocumento.Enabled = puedeEditarMetadatos
         cboCaso.Enabled = puedeEditarMetadatos
         cboInstrumento.Enabled = puedeEditarMetadatos
-        cboFiltroTipo.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
 
         UtileriasUI.ConfigurarGrid(dgvDocumentos)
 
