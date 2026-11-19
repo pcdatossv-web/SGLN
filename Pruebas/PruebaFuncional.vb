@@ -481,7 +481,7 @@ Module PruebaFuncional
                   sesionAdminTemporal IsNot Nothing AndAlso sesionAdminTemporal.RolProtegido)
         If idAdminTemporal > 0 Then
             Verificar("La eliminación segura permite retirar un administrador temporal si queda otro activo",
-                      servicioUsuarios.EliminarDefinitivamente(idAdminTemporal).Exito)
+                      servicioUsuarios.EliminarDefinitivamente(idAdminTemporal, "TemporalClave99!").Exito)
         End If
 
         Dim permisosAdmin As List(Of String) = roles.PermisosDeRol(idRolAdmin)
@@ -543,7 +543,7 @@ Module PruebaFuncional
                           restablecimientoBloqueo.Mensaje)
                 Verificar("No se elimina una cuenta que conserva historial de intentos de acceso",
                           idUsuarioBloqueo > 0 AndAlso
-                          Not servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo).Exito)
+                          Not servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo, "TemporalClave99!").Exito)
             End If
         End If
 
@@ -744,7 +744,7 @@ Module PruebaFuncional
                   restauracionClaveGestor.Exito)
         Verificar("Un rol ordinario no puede desactivar ni eliminar usuarios",
                   Not servicioUsuarios.Desactivar(idUsuarioPrueba).Exito AndAlso
-                  Not servicioUsuarios.EliminarDefinitivamente(idUsuarioPrueba).Exito)
+                  Not servicioUsuarios.EliminarDefinitivamente(idUsuarioPrueba, "").Exito)
         Verificar("El repositorio no permite verificar la clave de otra cuenta",
                   Not New UsuarioRepositorio().VerificarClave(admin.ID, "TemporalClave99!"))
         Verificar("El repositorio no expone el listado ni el estado de otros usuarios a un rol ordinario",
@@ -1143,7 +1143,7 @@ Module PruebaFuncional
         Sesion.CargarPermisos()
         If idUsuarioGestor > 0 Then
             Verificar("La cuenta temporal de gestor se limpia al terminar la prueba",
-                      servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor).Exito)
+                      servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor, "TemporalClave99!").Exito)
         End If
         If idRolGestor > 0 Then
             Verificar("El rol temporal de gestor se limpia al terminar la prueba",
@@ -1205,7 +1205,7 @@ Module PruebaFuncional
         Next
         Verificar("Crear cuenta temporal para probar eliminación segura",
                   altaBorrable.Exito AndAlso idBorrable > 0, altaBorrable.Mensaje)
-        Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable)
+        Dim eliminacionBorrable As Respuesta = servicioUsuarios.EliminarDefinitivamente(idBorrable, "TemporalClave99!")
         Verificar("El administrador puede eliminar una cuenta sin historial",
                   eliminacionBorrable.Exito, eliminacionBorrable.Mensaje)
         Verificar("La bitácora conserva los eventos de alta y eliminación de la cuenta",
@@ -1801,7 +1801,7 @@ Module PruebaFuncional
             End If
         Next
         Dim eliminacionReferenciaNombre As Respuesta =
-            servicioUsuarios.EliminarDefinitivamente(idReferenciaNombre)
+            servicioUsuarios.EliminarDefinitivamente(idReferenciaNombre, "TemporalClave99!")
         Verificar("No se elimina una cuenta cuyo nombre completo figura como responsable histórico",
                   altaReferenciaNombre.Exito AndAlso idReferenciaNombre > 0 AndAlso
                   Not eliminacionReferenciaNombre.Exito,
