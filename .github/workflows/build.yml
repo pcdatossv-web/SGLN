@@ -148,6 +148,9 @@ jobs:
               -not $triggersSql.Contains('END' + $terminadorDoble)) {
             throw 'El archivo de candados MySQL tiene delimitadores incompletos.'
           }
+          if ($triggersSql -match '(?m)^\s*END\$(?!\$)') {
+            throw 'Un trigger o procedimiento termina con END$ y puede truncar la instalación MySQL; debe usar END$.'
+          }
           if ($privilegiosSql -match '(?i)GRANT\s+DELETE\s+ON\s+sgln_sv\.Usuarios' -or
               $privilegiosSql -notmatch '(?i)GRANT EXECUTE ON PROCEDURE sgln_sv\.sp_EliminarUsuarioSeguro') {
             throw 'La cuenta sgln_app debe usar el procedimiento para eliminar usuarios y no tener DELETE directo.'
