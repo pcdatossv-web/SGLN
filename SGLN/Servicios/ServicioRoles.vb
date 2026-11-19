@@ -154,17 +154,25 @@ Public Class ServicioRoles
     ''' Rol_Permiso (la clave foránea lo impediría de todos modos).
     ''' </summary>
     Private Function NormalizarCodigos(codigos As List(Of String)) As List(Of String)
-        Dim validos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        ' Mantener los códigos canónicos del catálogo y eliminar duplicados
+        ' aunque el llamador envíe diferencias de mayúsculas o espacios.
+        Dim codigosValidos As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
         For Each fila As DataRow In _repositorio.CatalogoPermisos().Rows
-            validos.Add(Convert.ToString(fila("Codigo")))
+            Dim codigoCatalogo As String = Convert.ToString(fila("Codigo")).Trim()
+            If codigoCatalogo <> "" AndAlso Not codigosValidos.ContainsKey(codigoCatalogo) Then
+                codigosValidos.Add(codigoCatalogo, codigoCatalogo)
+            End If
         Next
 
         Dim resultado As New List(Of String)()
+        Dim agregados As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         If codigos Is Nothing Then Return resultado
 
         For Each codigo As String In codigos
-            If validos.Contains(codigo) AndAlso Not resultado.Contains(codigo) Then
-                resultado.Add(codigo)
+            If codigo Is Nothing Then Continue For
+            Dim normalizado As String = codigo.Trim()
+            If codigosValidos.ContainsKey(normalizado) AndAlso agregados.Add(normalizado) Then
+                resultado.Add(codigosValidos(normalizado))
             End If
         Next
         Return resultado
