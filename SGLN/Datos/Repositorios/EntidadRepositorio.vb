@@ -70,9 +70,10 @@ Public Class EntidadRepositorio
                     Dim razonActual As String = Nothing
                     Dim nitActual As String = Nothing
                     Dim nrcActual As String = Nothing
+                    Dim domicilioActual As String = Nothing
                     Dim activoActual As Boolean = False
                     Using comandoExiste As New MySqlCommand(
-                            "SELECT Razon_Social, NIT, NRC, Activo FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
+                            "SELECT Razon_Social, NIT, NRC, Domicilio, Activo FROM Entidades_Legales WHERE ID = @id FOR UPDATE",
                             conexion, transaccion)
                         Parametro(comandoExiste, "@id", idEntidad)
                         Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
@@ -82,6 +83,7 @@ Public Class EntidadRepositorio
                             razonActual = Convert.ToString(lector("Razon_Social"))
                             nitActual = Convert.ToString(lector("NIT"))
                             nrcActual = Convert.ToString(lector("NRC"))
+                            domicilioActual = Convert.ToString(lector("Domicilio"))
                             activoActual = Convert.ToInt32(lector("Activo")) = 1
                         End Using
                     End Using
@@ -107,6 +109,12 @@ Public Class EntidadRepositorio
                             "No se puede cambiar la razón social, NIT o NRC de una entidad que ya tiene representantes registrados. Use el procedimiento autorizado de rectificación.")
                     End If
 
+                    Dim datosEntidadModificados As Boolean =
+                        Not TextoIgual(entidad.RazonSocial, razonActual) OrElse
+                        Not TextoIgual(entidad.NIT, nitActual) OrElse
+                        Not TextoIgual(entidad.NRC, nrcActual) OrElse
+                        Not TextoIgual(entidad.Domicilio, domicilioActual)
+
                     Ejecutar(conexion, transaccion,
                         "UPDATE Entidades_Legales SET Razon_Social = @razon, NIT = @nit, NRC = @nrc, " &
                         "       Domicilio = @domicilio, Activo = @activo WHERE ID = @id",
@@ -115,8 +123,10 @@ Public Class EntidadRepositorio
                             Parametro(comando, "@id", idEntidad)
                         End Sub)
 
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Entidades_Legales",
-                                         idEntidad, entidad.RazonSocial)
+                    If datosEntidadModificados Then
+                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Entidades_Legales",
+                                             idEntidad, entidad.RazonSocial)
+                    End If
                 End If
 
                 If perfil IsNot Nothing Then

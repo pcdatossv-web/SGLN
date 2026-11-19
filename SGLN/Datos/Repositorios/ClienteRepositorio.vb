@@ -78,12 +78,14 @@ Public Class ClienteRepositorio
                     Dim nacionalidadActual As String = ""
                     Dim profesionActual As String = ""
                     Dim direccionActual As String = ""
+                    Dim telefonoActual As String = ""
+                    Dim emailActual As String = ""
                     Dim fechaNacimientoActual As Date? = Nothing
                     Dim activoActual As Boolean = False
 
                     Using comandoExiste As New MySqlCommand(
                             "SELECT Nombres, Apellidos, DUI, NIT, Nacionalidad, Profesion, " &
-                            "Fecha_Nacimiento, Direccion, Activo FROM Clientes WHERE ID = @id FOR UPDATE",
+                            "Fecha_Nacimiento, Direccion, Telefono, Email, Activo FROM Clientes WHERE ID = @id FOR UPDATE",
                             conexion, transaccion)
                         Parametro(comandoExiste, "@id", idCliente)
                         Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
@@ -97,6 +99,8 @@ Public Class ClienteRepositorio
                             nacionalidadActual = Convert.ToString(lector("Nacionalidad"))
                             profesionActual = Convert.ToString(lector("Profesion"))
                             direccionActual = Convert.ToString(lector("Direccion"))
+                            telefonoActual = Convert.ToString(lector("Telefono"))
+                            emailActual = Convert.ToString(lector("Email"))
                             activoActual = Convert.ToInt32(lector("Activo")) = 1
                             If Not lector.IsDBNull(lector.GetOrdinal("Fecha_Nacimiento")) Then
                                 fechaNacimientoActual = Convert.ToDateTime(lector("Fecha_Nacimiento")).Date
@@ -141,6 +145,11 @@ Public Class ClienteRepositorio
                             "No se puede cambiar la identidad de un cliente con historial en casos, protocolo, representaciones legales o solicitudes ARCO. Actualice solo sus datos de contacto o use el procedimiento autorizado de rectificación.")
                     End If
 
+                    Dim datosClienteModificados As Boolean =
+                        identidadModificada OrElse
+                        Not TextoIgual(cliente.Telefono, telefonoActual) OrElse
+                        Not TextoIgual(cliente.Email, emailActual)
+
                     Ejecutar(conexion, transaccion,
                         "UPDATE Clientes SET Nombres = @nombres, Apellidos = @apellidos, DUI = @dui, " &
                         "       NIT = @nit, Nacionalidad = @nacionalidad, Profesion = @profesion, " &
@@ -152,8 +161,10 @@ Public Class ClienteRepositorio
                             Parametro(comando, "@id", idCliente)
                         End Sub)
 
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Clientes",
-                                         idCliente, cliente.Nombres & " " & cliente.Apellidos)
+                    If datosClienteModificados Then
+                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Clientes",
+                                             idCliente, cliente.Nombres & " " & cliente.Apellidos)
+                    End If
                 End If
 
                 If perfil IsNot Nothing Then
