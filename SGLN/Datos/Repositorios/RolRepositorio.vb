@@ -141,15 +141,23 @@ Public Class RolRepositorio
                         ' Bloquea la fila y comprueba su existencia dentro de la
                         ' misma transacción que actualizará los permisos.
                         Dim rolProtegido As Boolean = False
+                        Dim nombreActual As String = Nothing
+                        Dim descripcionActual As String = Nothing
+                        Dim activoActual As Boolean = False
                         Using comandoExiste As New MySqlCommand(
-                            "SELECT Protegido FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                            "SELECT Nombre, Descripcion, Activo, Protegido FROM Roles WHERE ID = @id FOR UPDATE",
+                            conexion, transaccion)
                             Parametro(comandoExiste, "@id", id)
-                            Dim valorProtegido As Object = comandoExiste.ExecuteScalar()
-                            If valorProtegido Is Nothing OrElse valorProtegido Is DBNull.Value Then
-                                Revertir(transaccion)
-                                Return Respuesta.Fallo("El rol ya no existe.")
-                            End If
-                            rolProtegido = Convert.ToInt32(valorProtegido) = 1
+                            Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                                If Not lector.Read() Then
+                                    Revertir(transaccion)
+                                    Return Respuesta.Fallo("El rol ya no existe.")
+                                End If
+                                nombreActual = Convert.ToString(lector("Nombre"))
+                                descripcionActual = Convert.ToString(lector("Descripcion"))
+                                activoActual = Convert.ToInt32(lector("Activo")) = 1
+                                rolProtegido = Convert.ToInt32(lector("Protegido")) = 1
+                            End Using
                         End Using
 
                         If rolProtegido AndAlso Not activo Then
@@ -175,8 +183,15 @@ Public Class RolRepositorio
                             comando.ExecuteNonQuery()
                         End Using
 
-                        SincronizarPermisos(conexion, transaccion, id, codigos)
-                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Roles", id, "Rol " & nombre.Trim())
+                        Dim permisosModificados As Boolean = SincronizarPermisos(conexion, transaccion, id, codigos)
+                        Dim datosModificados As Boolean =
+                            Not String.Equals(nombreActual, nombre.Trim(), StringComparison.Ordinal) OrElse
+                            Not String.Equals(descripcionActual, descripcion.Trim(), StringComparison.Ordinal) OrElse
+                            activoActual <> activo
+                        If datosModificados OrElse permisosModificados Then
+                            AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Roles", id,
+                                "Rol " & nombre.Trim())
+                        End If
                         transaccion.Commit()
                     Catch
                         Revertir(transaccion)
@@ -275,9 +290,11 @@ Public Class RolRepositorio
                             Return Respuesta.Fallo("El rol ya no existe.")
                         End If
 
-                        SincronizarPermisos(conexion, transaccion, idRol, codigos)
-                        AuditarEnTransaccion(conexion, transaccion, "MODIFICAR PERMISOS", "Roles", idRol,
-                            "Matriz de permisos actualizada")
+                        Dim permisosModificados As Boolean = SincronizarPermisos(conexion, transaccion, idRol, codigos)
+                        If permisosModificados Then
+                            AuditarEnTransaccion(conexion, transaccion, "MODIFICAR PERMISOS", "Roles", idRol,
+                                "Matriz de permisos actualizada")
+                        End If
                         transaccion.Commit()
                     Catch
                         Revertir(transaccion)
@@ -302,10 +319,10 @@ Public Class RolRepositorio
     ''' Solo elimina los códigos retirados, respetando los triggers del rol
     ''' Administrador. Cualquier error revierte también el cambio del rol.
     ''' </summary>
-    Private Sub SincronizarPermisos(conexion As MySqlConnection,
-                                    transaccion As MySqlTransaction,
-                                    idRol As Integer,
-                                    codigos As List(Of String))
+    Private Function SincronizarPermisos(conexion As MySqlConnection,
+                                          transaccion As MySqlTransaction,
+                                          idRol As Integer,
+                                          codigos As List(Of String)) As Boolean
 
         Dim nuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         If codigos IsNot Nothing Then
@@ -326,6 +343,7 @@ Public Class RolRepositorio
         End Using
 
         Dim conjuntoActuales As New HashSet(Of String)(actuales, StringComparer.OrdinalIgnoreCase)
+        Dim huboCambios As Boolean = False
 
         For Each codigo As String In actuales
             If nuevos.Contains(codigo) Then Continue For
@@ -335,7 +353,7 @@ Public Class RolRepositorio
                 conexion, transaccion)
                 Parametro(comando, "@rol", idRol)
                 Parametro(comando, "@codigo", codigo)
-                comando.ExecuteNonQuery()
+                If comando.ExecuteNonQuery() > 0 Then huboCambios = True
             End Using
         Next
 
@@ -349,10 +367,12 @@ Public Class RolRepositorio
                 conexion, transaccion)
                 Parametro(comando, "@rol", idRol)
                 Parametro(comando, "@codigo", codigo)
-                comando.ExecuteNonQuery()
+                If comando.ExecuteNonQuery() > 0 Then huboCambios = True
             End Using
         Next
-    End Sub
+
+        Return huboCambios
+    End Function
 
     Private Function EsAdministradorAutenticado() As Boolean
         If Sesion.UsuarioActual Is Nothing Then Return False
