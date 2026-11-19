@@ -12,14 +12,26 @@ Public Class FrmConfiguracion
     Private _cargando As Boolean
 
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim puedeAcceder As Boolean =
-            Permisos.TieneAcceso("config.ver") OrElse
-            Permisos.TieneAcceso("config.feriados") OrElse
-            Permisos.TieneAcceso("config.seguridad") OrElse
-            Permisos.TieneAcceso("config.respaldos")
-        If Not puedeAcceder Then
+        ' Resolver permisos una vez y mostrar únicamente las áreas autorizadas.
+        Dim puedeVerConfig As Boolean = Permisos.TieneAcceso("config.ver")
+        Dim puedeEditarConfig As Boolean = Permisos.TieneAcceso("config.editar")
+        Dim puedeFeriados As Boolean = Permisos.TieneAcceso("config.feriados")
+        Dim puedeSeguridad As Boolean = Permisos.TieneAcceso("config.seguridad")
+        Dim puedeRespaldos As Boolean = Permisos.TieneAcceso("config.respaldos")
+
+        If Not (puedeVerConfig OrElse puedeEditarConfig OrElse puedeFeriados OrElse
+                puedeSeguridad OrElse puedeRespaldos) Then
             If Not Permisos.Exigir("config.ver", Me) Then Return
         End If
+
+        If Not (puedeVerConfig OrElse puedeEditarConfig) Then
+            tabPrincipal.TabPages.Remove(tabConfiguracion)
+        End If
+        If Not (puedeVerConfig OrElse puedeFeriados) Then
+            tabPrincipal.TabPages.Remove(tabFeriados)
+        End If
+        If Not puedeSeguridad Then tabPrincipal.TabPages.Remove(tabSeguridad)
+        If Not puedeRespaldos Then tabPrincipal.TabPages.Remove(tabRespaldos)
 
         UtileriasUI.ConfigurarGrid(dgvConfig)
         UtileriasUI.ConfigurarGrid(dgvFeriados)
@@ -27,12 +39,14 @@ Public Class FrmConfiguracion
         AplicarPermisos()
 
         _cargando = True
-        CargarConfiguracion()
-        CargarFeriados()
+        If puedeVerConfig OrElse puedeEditarConfig Then CargarConfiguracion()
+        If puedeVerConfig OrElse puedeFeriados Then CargarFeriados()
         _cargando = False
 
         dtpFeriado.Value = Date.Today
-        lblCarpetaRespaldos.Text = "Carpeta de respaldos: " & _servicio.CarpetaRespaldos()
+        If puedeRespaldos Then
+            lblCarpetaRespaldos.Text = "Carpeta de respaldos: " & _servicio.CarpetaRespaldos()
+        End If
 
         ' El cambio de clave es siempre del usuario que tiene la sesión abierta:
         ' nadie puede cambiar la clave de otro desde aquí (eso es FrmUsuarios).
