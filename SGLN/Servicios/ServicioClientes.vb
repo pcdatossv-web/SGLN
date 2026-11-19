@@ -1,6 +1,7 @@
 Imports System
 Imports System.Data
 Imports MySql.Data.MySqlClient
+Imports System.Net.Mail
 
 ''' <summary>
 ''' Reglas de negocio del módulo de clientes y debida diligencia (LDA/FT).
@@ -86,7 +87,7 @@ Public Class ServicioClientes
             Return "El NIT debe tener 14 dígitos."
         End If
 
-        If Not String.IsNullOrWhiteSpace(cliente.Email) AndAlso Not cliente.Email.Contains("@") Then
+        If Not String.IsNullOrWhiteSpace(cliente.Email) AndAlso Not EsCorreoValido(cliente.Email.Trim()) Then
             Return "El correo electrónico no es válido."
         End If
 
@@ -109,6 +110,18 @@ Public Class ServicioClientes
         End If
 
         Return ""
+    End Function
+
+
+    Private Function EsCorreoValido(valor As String) As Boolean
+        If String.IsNullOrWhiteSpace(valor) Then Return False
+        Try
+            Dim direccion As New MailAddress(valor)
+            ' Rechaza nombres para mostrar y caracteres añadidos fuera de la dirección.
+            Return String.Equals(direccion.Address, valor, StringComparison.OrdinalIgnoreCase)
+        Catch ex As FormatException
+            Return False
+        End Try
     End Function
 
     Private Sub Normalizar(cliente As Cliente, perfil As PerfilLdaft)
