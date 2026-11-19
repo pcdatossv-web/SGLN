@@ -123,31 +123,11 @@ Public Class ServicioUsuarios
 
 
     ''' <summary>
-    ''' Revalida la clave actual del administrador antes de permitir una
-    ''' eliminación física desde la interfaz.
+    ''' Reautentica al administrador y ejecuta la eliminación segura como una
+    ''' única operación de servicio. Ningún llamador puede omitir la clave
+    ''' actual invocando directamente este método.
     ''' </summary>
-    Public Function VerificarCredencialAdministrador(clave As String) As Respuesta
-        If Not Permisos.TieneAcceso("config.usuarios") OrElse Not Permisos.AccesoTotal OrElse
-           Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido Then
-            Return Respuesta.Fallo("Solo un administrador autenticado puede autorizar esta operación.")
-        End If
-        If String.IsNullOrEmpty(clave) OrElse clave.Length > 128 Then
-            Return Respuesta.Fallo("Ingrese la clave actual del administrador.")
-        End If
-
-        Try
-            If Not _repositorio.VerificarClave(Sesion.UsuarioActual.ID, clave) Then
-                Return Respuesta.Fallo("La clave del administrador no es correcta.")
-            End If
-            Return Respuesta.Ok("Identidad del administrador verificada.")
-        Catch ex As Exception
-            RegistroErrores.Escribir("Usuarios - reautenticación para eliminación", ex)
-            Return Respuesta.Fallo("No se pudo verificar la clave. La eliminación no se ejecutó.")
-        End Try
-    End Function
-
-    ''' <summary>Eliminación física excepcional reservada al administrador autenticado.</summary>
-    Public Function EliminarDefinitivamente(id As Integer) As Respuesta
+    Public Function EliminarDefinitivamente(id As Integer, claveAdministrador As String) As Respuesta
         If Not Permisos.TieneAcceso("config.usuarios") OrElse Not Permisos.AccesoTotal OrElse
            Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido Then
             Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
@@ -156,6 +136,19 @@ Public Class ServicioUsuarios
         If id = Sesion.UsuarioActual.ID Then
             Return Respuesta.Fallo("No puede eliminar la cuenta con la que inició sesión.")
         End If
+        If String.IsNullOrEmpty(claveAdministrador) OrElse claveAdministrador.Length > 128 Then
+            Return Respuesta.Fallo("Ingrese la clave actual del administrador.")
+        End If
+
+        Try
+            If Not _repositorio.VerificarClave(Sesion.UsuarioActual.ID, claveAdministrador) Then
+                Return Respuesta.Fallo("La clave del administrador no es correcta.")
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - reautenticación para eliminación", ex)
+            Return Respuesta.Fallo("No se pudo verificar la clave. La eliminación no se ejecutó.")
+        End Try
+
         Return _repositorio.EliminarSiNoTieneHistorial(id)
     End Function
 

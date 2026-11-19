@@ -231,16 +231,9 @@ Public Class FrmUsuarios
             Dim claveAdministrador As String = SolicitarClaveAdministrador()
             If claveAdministrador Is Nothing Then Return
 
-            Dim validacionAdmin As Respuesta =
-                _servicio.VerificarCredencialAdministrador(claveAdministrador)
+            Dim respuesta As Respuesta =
+                _servicio.EliminarDefinitivamente(_idSeleccionado, claveAdministrador)
             claveAdministrador = Nothing
-
-            If Not validacionAdmin.Exito Then
-                Mostrar(validacionAdmin.Mensaje, False)
-                Return
-            End If
-
-            Dim respuesta As Respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado)
             Mostrar(respuesta.Mensaje, respuesta.Exito)
             If respuesta.Exito Then
                 CargarUsuarios()
