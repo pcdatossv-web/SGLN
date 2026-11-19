@@ -11,6 +11,12 @@ Public Class FrmAuditoria
     Private Sub FrmAuditoria_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("auditoria.ver", Me) Then Return
 
+        ' La exportación es independiente del permiso de consulta. Mantener
+        ' el botón sincronizado con la matriz de permisos evita ofrecer una
+        ' acción que el usuario no puede ejecutar; Exportar vuelve a validar
+        ' el permiso antes de abrir el diálogo de archivo.
+        btnExportar.Enabled = Permisos.Puede("auditoria.exportar")
+
         UtileriasUI.ConfigurarGrid(dgvAuditoria)
 
         dtpDesde.Value = Date.Today.AddDays(-30)
