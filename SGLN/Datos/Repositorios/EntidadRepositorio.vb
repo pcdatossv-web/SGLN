@@ -123,6 +123,16 @@ Public Class EntidadRepositorio
                     perfil.IDCliente = Nothing
                     perfil.IDEntidad = idEntidad
 
+                    Dim accionPerfil As String = "CREAR"
+                    Using comandoPerfilExiste As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Perfil_LDAFT WHERE ID_Entidad = @idEntidad",
+                        conexion, transaccion)
+                        Parametro(comandoPerfilExiste, "@idEntidad", idEntidad)
+                        If Convert.ToInt32(comandoPerfilExiste.ExecuteScalar()) > 0 Then
+                            accionPerfil = "MODIFICAR"
+                        End If
+                    End Using
+
                     Ejecutar(conexion, transaccion,
                         "INSERT INTO Perfil_LDAFT (ID_Cliente, ID_Entidad, Nivel_Riesgo, Origen_Fondos_Verificado, " &
                         "       Detalle_Origen_Fondos, Fecha_Verificacion_Listas, Observaciones) " &
@@ -143,8 +153,10 @@ Public Class EntidadRepositorio
                             Parametro(comando, "@observaciones", perfil.Observaciones)
                         End Sub)
 
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Perfil_LDAFT",
-                                         idEntidad, "Perfil LDA/FT de entidad actualizado")
+                    AuditarEnTransaccion(conexion, transaccion, accionPerfil, "Perfil_LDAFT",
+                                         idEntidad, If(accionPerfil = "CREAR",
+                                                       "Perfil LDA/FT de entidad creado",
+                                                       "Perfil LDA/FT de entidad actualizado"))
                 End If
 
                 Return idEntidad
