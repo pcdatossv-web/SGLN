@@ -52,6 +52,9 @@ Public Class FrmProtocolo
 
         grpTestimonio.Enabled = puedeExpedirTestimonios
         btnGenerarIndice.Enabled = puedeGestionar
+        txtRazonCierre.MaxLength = 1000
+        txtObjeto.MaxLength = 500
+        txtDestinatario.MaxLength = 200
         ' Exportar el índice es una operación de consulta y queda disponible
         ' para quien ya tiene permiso de lectura del protocolo.
 
