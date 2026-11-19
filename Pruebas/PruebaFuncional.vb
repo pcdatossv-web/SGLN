@@ -50,6 +50,31 @@ Module PruebaFuncional
         Verificar("El escape de argumentos Windows preserva espacios, comillas y barras finales",
                   escapeArgumentosCorrecto)
 
+        ' El separador del esquema debe respetar delimitadores dentro de
+        ' literales, comentarios y nombres de tabla entre backticks.
+        Dim metodoDividirSql As System.Reflection.MethodInfo =
+            GetType(InicializadorBD).GetMethod(
+                "DividirSentencias",
+                System.Reflection.BindingFlags.NonPublic Or System.Reflection.BindingFlags.Static)
+        Dim separacionSqlCorrecta As Boolean = False
+        If metodoDividirSql IsNot Nothing Then
+            Dim muestraSql As String =
+                "INSERT INTO Roles (Nombre, Descripcion) VALUES ('Abogado', 'Gestión legal; sin cambios');" &
+                Environment.NewLine & "-- comentario; no es sentencia" & Environment.NewLine &
+                "INSERT INTO `Catalogo;Aux` (Valor) VALUES ('texto con ''comilla; interna''');" &
+                Environment.NewLine & "/* comentario; multilínea */ SELECT 1;"
+            Dim sentenciasSql As List(Of String) =
+                DirectCast(metodoDividirSql.Invoke(Nothing, New Object() {muestraSql}), List(Of String))
+            separacionSqlCorrecta =
+                sentenciasSql.Count = 3 AndAlso
+                sentenciasSql(0).Contains("'Gestión legal; sin cambios'") AndAlso
+                sentenciasSql(1).Contains("`Catalogo;Aux`") AndAlso
+                sentenciasSql(1).Contains("'texto con ''comilla; interna'''") AndAlso
+                sentenciasSql(2).Trim() = "SELECT 1"
+        End If
+        Verificar("El separador SQL conserva puntos y coma en literales, comentarios e identificadores",
+                  separacionSqlCorrecta)
+
         Dim repositorioClientesDirecto As New ClienteRepositorio()
         Dim repositorioEntidadesDirecto As New EntidadRepositorio()
         Dim repositorioCasosDirecto As New CasoRepositorio()

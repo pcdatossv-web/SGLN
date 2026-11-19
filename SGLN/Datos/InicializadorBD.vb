@@ -102,18 +102,124 @@ Public Module InicializadorBD
     ''' procedimientos ni triggers (esos van en Triggers_MySQL.sql).
     ''' </summary>
     Private Function DividirSentencias(guion As String) As List(Of String)
-        Dim sinBloques As String = Regex.Replace(guion, "/\*.*?\*/", " ", RegexOptions.Singleline)
-        Dim sinLineas As New StringBuilder()
+        ' No se puede dividir con String.Split: el punto y coma también puede
+        ' formar parte de literales SQL. Se reconocen cadenas, identificadores
+        ' entre backticks y comentarios antes de aceptar un delimitador.
+        Dim lista As New List(Of String)()
+        If String.IsNullOrEmpty(guion) Then Return lista
 
-        For Each linea As String In sinBloques.Split(New String() {ControlChars.CrLf, ControlChars.Lf}, StringSplitOptions.None)
-            If linea.TrimStart().StartsWith("--", StringComparison.Ordinal) Then Continue For
-            sinLineas.AppendLine(linea)
-        Next
+        Dim sentencia As New StringBuilder()
+        Dim enComillaSimple As Boolean = False
+        Dim enComillaDoble As Boolean = False
+        Dim enIdentificador As Boolean = False
+        Dim enComentarioLinea As Boolean = False
+        Dim enComentarioBloque As Boolean = False
+        Dim indice As Integer = 0
 
-        Dim lista As New List(Of String)
-        For Each parte As String In sinLineas.ToString().Split(";"c)
-            If Not String.IsNullOrWhiteSpace(parte) Then lista.Add(parte)
-        Next
+        While indice < guion.Length
+            Dim actual As Char = guion(indice)
+            Dim siguiente As Char = If(indice + 1 < guion.Length, guion(indice + 1), ChrW(0))
+
+            If enComentarioLinea Then
+                If actual = ControlChars.Cr OrElse actual = ControlChars.Lf Then
+                    enComentarioLinea = False
+                    sentencia.Append(actual)
+                End If
+                indice += 1
+                Continue While
+            End If
+
+            If enComentarioBloque Then
+                If actual = "*"c AndAlso siguiente = "/"c Then
+                    enComentarioBloque = False
+                    indice += 2
+                Else
+                    If actual = ControlChars.Cr OrElse actual = ControlChars.Lf Then sentencia.Append(actual)
+                    indice += 1
+                End If
+                Continue While
+            End If
+
+            If enComillaSimple OrElse enComillaDoble OrElse enIdentificador Then
+                sentencia.Append(actual)
+
+                If actual = Convert.ToChar(92) AndAlso indice + 1 < guion.Length Then
+                    indice += 1
+                    sentencia.Append(guion(indice))
+                ElseIf enComillaSimple AndAlso actual = "'"c Then
+                    If siguiente = "'"c Then
+                        indice += 1
+                        sentencia.Append(guion(indice))
+                    Else
+                        enComillaSimple = False
+                    End If
+                ElseIf enComillaDoble AndAlso actual = """"c Then
+                    If siguiente = """"c Then
+                        indice += 1
+                        sentencia.Append(guion(indice))
+                    Else
+                        enComillaDoble = False
+                    End If
+                ElseIf enIdentificador AndAlso actual = "`"c Then
+                    If siguiente = "`"c Then
+                        indice += 1
+                        sentencia.Append(guion(indice))
+                    Else
+                        enIdentificador = False
+                    End If
+                End If
+
+                indice += 1
+                Continue While
+            End If
+
+            If actual = "'"c Then
+                enComillaSimple = True
+                sentencia.Append(actual)
+                indice += 1
+                Continue While
+            ElseIf actual = """"c Then
+                enComillaDoble = True
+                sentencia.Append(actual)
+                indice += 1
+                Continue While
+            ElseIf actual = "`"c Then
+                enIdentificador = True
+                sentencia.Append(actual)
+                indice += 1
+                Continue While
+            ElseIf actual = "/"c AndAlso siguiente = "*"c Then
+                enComentarioBloque = True
+                indice += 2
+                Continue While
+            ElseIf actual = "#"c OrElse
+                   (actual = "-"c AndAlso siguiente = "-"c AndAlso
+                    indice + 2 < guion.Length AndAlso
+                    (Char.IsWhiteSpace(guion(indice + 2)) OrElse Char.IsControl(guion(indice + 2)))) Then
+                enComentarioLinea = True
+                indice += If(actual = "#"c, 1, 2)
+                Continue While
+            ElseIf actual = ";"c Then
+                If Not String.IsNullOrWhiteSpace(sentencia.ToString()) Then
+                    lista.Add(sentencia.ToString().Trim())
+                End If
+                sentencia.Clear()
+                indice += 1
+                Continue While
+            End If
+
+            sentencia.Append(actual)
+            indice += 1
+        End While
+
+        If enComillaSimple OrElse enComillaDoble OrElse enIdentificador OrElse enComentarioBloque Then
+            Throw New InvalidOperationException("El esquema SQL contiene una cadena, identificador o comentario sin cerrar.")
+        End If
+
+        If Not String.IsNullOrWhiteSpace(sentencia.ToString()) Then
+            lista.Add(sentencia.ToString().Trim())
+        End If
+
         Return lista
     End Function
 
