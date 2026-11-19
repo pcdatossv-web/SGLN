@@ -114,6 +114,13 @@ Public Class FrmAuditoria
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
     End Sub
 
+    Private Sub txtUsuario_KeyDown(sender As Object, e As KeyEventArgs) Handles txtUsuario.KeyDown
+        If e.KeyCode = Keys.Enter Then
+            e.SuppressKeyPress = True
+            Buscar()
+        End If
+    End Sub
+
     Private Sub btnBuscar_Click(sender As Object, e As EventArgs) Handles btnBuscar.Click
         Buscar()
     End Sub

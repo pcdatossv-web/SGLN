@@ -274,6 +274,13 @@ Public Class FrmDocumentos
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
     End Sub
 
+    Private Sub txtFiltro_KeyDown(sender As Object, e As KeyEventArgs) Handles txtFiltro.KeyDown
+        If e.KeyCode = Keys.Enter Then
+            e.SuppressKeyPress = True
+            CargarGrid()
+        End If
+    End Sub
+
     Private Sub btnBuscar_Click(sender As Object, e As EventArgs) Handles btnBuscar.Click
         CargarGrid()
     End Sub
