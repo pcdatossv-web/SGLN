@@ -9,6 +9,8 @@ Public Class FrmCasos
     Private ReadOnly _plazos As New ServicioPlazos()
     Private _cargando As Boolean
     Private _idCaso As Integer
+    Private _puedeConfirmarPlazo As Boolean
+    Private _puedeCumplirPlazo As Boolean
     Private _fechaPropuesta As Date?
 
     ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
@@ -20,8 +22,10 @@ Public Class FrmCasos
         ' Mantener la consulta disponible, pero deshabilitar la edición y las
         ' acciones de plazo que el rol no puede ejecutar.
         Dim puedeGestionar As Boolean = Permisos.Puede("casos.gestionar")
-        Dim puedeConfirmarPlazo As Boolean = Permisos.Puede("casos.confirmar_plazo")
-        Dim puedeCumplirPlazo As Boolean = Permisos.Puede("casos.cumplir_plazo")
+        _puedeConfirmarPlazo = Permisos.Puede("casos.confirmar_plazo")
+        _puedeCumplirPlazo = Permisos.Puede("casos.cumplir_plazo")
+        Dim puedeConfirmarPlazo As Boolean = _puedeConfirmarPlazo
+        Dim puedeCumplirPlazo As Boolean = _puedeCumplirPlazo
 
         btnNuevo.Enabled = puedeGestionar
         btnGuardarCaso.Enabled = puedeGestionar
@@ -32,8 +36,8 @@ Public Class FrmCasos
         nudPlazoDias.Enabled = puedeConfirmarPlazo
         txtObservaciones.Enabled = puedeConfirmarPlazo
         btnCalcular.Enabled = puedeConfirmarPlazo
-        btnConfirmarPlazo.Enabled = puedeConfirmarPlazo
-        btnMarcarCumplida.Enabled = puedeCumplirPlazo
+        btnConfirmarPlazo.Enabled = False
+        btnMarcarCumplida.Enabled = False
 
         txtExpediente.MaxLength = 80
         txtResponsable.MaxLength = 120
@@ -162,6 +166,7 @@ Public Class FrmCasos
             dgvActuaciones.DataSource = _plazos.Actuaciones(_idCaso)
             If dgvActuaciones.Columns.Contains("ID") Then dgvActuaciones.Columns("ID").Visible = False
             If dgvActuaciones.Columns.Contains("ID_Tipo_Actuacion") Then dgvActuaciones.Columns("ID_Tipo_Actuacion").Visible = False
+            ActualizarAccionesPlazo()
         Catch ex As Exception
             dgvActuaciones.DataSource = Nothing
             RegistroErrores.Escribir("Casos - actuaciones", ex)
@@ -185,6 +190,7 @@ Public Class FrmCasos
         _cargando = True
         dgvCasos.CurrentCell = Nothing
         _cargando = False
+        ActualizarAccionesPlazo()
         txtExpediente.Focus()
     End Sub
 
@@ -195,6 +201,7 @@ Public Class FrmCasos
         dtpFechaNotificacion.Value = Date.Today
         txtObservaciones.Clear()
         AplicarPlazoDelTipo()
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub AplicarPlazoDelTipo()
@@ -259,12 +266,29 @@ Public Class FrmCasos
             lblPropuesta.Text = "Cálculo referencial: " & _fechaPropuesta.Value.ToString("dd/MM/yyyy") &
                 " (" & dias & " días hábiles). Verifique el plazo legal, la notificación y los feriados aplicables antes de confirmar."
             lblPropuesta.ForeColor = Color.DarkOrange
+            ActualizarAccionesPlazo()
         Catch ex As Exception
             _fechaPropuesta = Nothing
             RegistroErrores.Escribir("Casos - calcular plazo", ex)
             lblPropuesta.Text = "No se pudo calcular el plazo propuesto. Verifique la fecha y el tipo de actuación."
             lblPropuesta.ForeColor = Color.Firebrick
+            ActualizarAccionesPlazo()
         End Try
+    End Sub
+
+    Private Sub ActualizarAccionesPlazo()
+        btnConfirmarPlazo.Enabled = _puedeConfirmarPlazo AndAlso _idCaso > 0 AndAlso _fechaPropuesta.HasValue
+
+        Dim fila As DataRow = UtileriasUI.FilaActual(dgvActuaciones)
+        Dim estado As String = If(fila Is Nothing, "", UtileriasUI.Texto(fila, "Estado"))
+        Dim puedeMarcar As Boolean = fila IsNot Nothing AndAlso
+            (String.Equals(estado, "Pendiente", StringComparison.OrdinalIgnoreCase) OrElse
+             String.Equals(estado, "Vencido", StringComparison.OrdinalIgnoreCase))
+        btnMarcarCumplida.Enabled = _puedeCumplirPlazo AndAlso puedeMarcar
+    End Sub
+
+    Private Sub dgvActuaciones_SelectionChanged(sender As Object, e As EventArgs) Handles dgvActuaciones.SelectionChanged
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub ConfirmarPlazo()
