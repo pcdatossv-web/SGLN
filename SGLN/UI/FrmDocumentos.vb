@@ -21,12 +21,21 @@ Public Class FrmDocumentos
             If Not Permisos.Exigir("documentos.ver", Me) Then Return
         End If
 
-        btnBuscar.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
+        Dim puedeConsultar As Boolean = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
+        btnBuscar.Enabled = puedeConsultar
+        btnRefrescar.Enabled = puedeConsultar
         btnAbrir.Enabled = puedeVer
         btnImportar.Enabled = puedeImportar
         btnActualizar.Enabled = puedeMetadatos
         btnVerificar.Enabled = puedeVerificar
-        txtFiltro.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
+        txtFiltro.Enabled = puedeConsultar
+        cboFiltroTipo.Enabled = puedeConsultar
+
+        ' Los metadatos solo son editables al importar o con permiso específico.
+        Dim puedeEditarMetadatos As Boolean = puedeImportar OrElse puedeMetadatos
+        cboTipoDocumento.Enabled = puedeEditarMetadatos
+        cboCaso.Enabled = puedeEditarMetadatos
+        cboInstrumento.Enabled = puedeEditarMetadatos
         cboFiltroTipo.Enabled = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
 
         UtileriasUI.ConfigurarGrid(dgvDocumentos)
