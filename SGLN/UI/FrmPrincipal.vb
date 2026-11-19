@@ -148,6 +148,27 @@ Public Class FrmPrincipal
         End Try
     End Sub
 
+    Private Sub AbrirArcoDesdeAlerta(idSolicitud As Integer)
+        Try
+            Using formulario As New FrmCumplimiento()
+                formulario.IDSolicitudInicial = idSolicitud
+                formulario.ShowDialog(Me)
+            End Using
+
+            If Not Permisos.RevalidarSesion() Then
+                Sesion.CerrarSesionSolicitado = True
+                Me.Close()
+                Return
+            End If
+
+            AplicarPermisos()
+            CargarPanel()
+        Catch ex As Exception
+            RegistroErrores.Escribir("Abrir solicitud ARCO desde alerta", ex)
+            UtileriasUI.MostrarError("No se pudo abrir la solicitud ARCO asociada a la alerta.")
+        End Try
+    End Sub
+
     Private Sub ModuloPendiente(nombre As String)
         UtileriasUI.MostrarInfo("El módulo '" & nombre & "' se encuentra en construcción.")
     End Sub
@@ -186,9 +207,18 @@ Public Class FrmPrincipal
                 End If
             Case "Protocolo"
                 Abrir(Of FrmProtocolo)()
-            Case "UIF vencido", "UIF por vencer", "ARCO vencida",
-                 "ARCO revisar prórroga", "ARCO por vencer"
+            Case "UIF vencido", "UIF por vencer"
                 Abrir(Of FrmCumplimiento)()
+            Case "ARCO vencida", "ARCO revisar prórroga", "ARCO por vencer"
+                Dim idSolicitud As Integer = 0
+                If Not vista.Row.IsNull("ID_Referencia") Then
+                    Integer.TryParse(Convert.ToString(vista.Row("ID_Referencia")), idSolicitud)
+                End If
+                If idSolicitud > 0 Then
+                    AbrirArcoDesdeAlerta(idSolicitud)
+                Else
+                    Abrir(Of FrmCumplimiento)()
+                End If
         End Select
     End Sub
 

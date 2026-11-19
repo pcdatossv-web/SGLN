@@ -11,6 +11,9 @@ Public Class FrmCumplimiento
     Private _idSolicitud As Integer
     Private _umbral As Decimal
 
+    ''' <summary>Solicitud ARCO que debe seleccionarse al abrir desde una alerta.</summary>
+    Public Property IDSolicitudInicial As Integer
+
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
         Dim puedeOperaciones As Boolean = Permisos.TieneAcceso("cumplimiento.operaciones")
@@ -80,7 +83,17 @@ Public Class FrmCumplimiento
 
         LimpiarOperacion()
         LimpiarSolicitud()
-        MostrarMensaje("", True)
+        If IDSolicitudInicial > 0 AndAlso puedeVerArco Then
+            tabPrincipal.SelectedTab = tabArco
+            If SeleccionarSolicitud(IDSolicitudInicial) Then
+                Dim filaInicial As DataRow = UtileriasUI.FilaActual(dgvArco)
+                If filaInicial IsNot Nothing Then CargarSolicitud(filaInicial)
+            Else
+                LimpiarSolicitud()
+                MostrarMensaje("La solicitud ARCO asociada a la alerta ya no está disponible.", False)
+            End If
+        End If
+        If IDSolicitudInicial <= 0 Then MostrarMensaje("", True)
     End Sub
 
     Private Sub CargarCombos()
@@ -438,15 +451,25 @@ Public Class FrmCumplimiento
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
-    Private Sub SeleccionarSolicitud(id As Integer)
+    Private Function SeleccionarSolicitud(id As Integer) As Boolean
         For Each fila As DataGridViewRow In dgvArco.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                dgvArco.CurrentCell = fila.Cells(0)
-                Return
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' La columna ID está oculta; seleccionar únicamente una celda visible.
+            _cargando = True
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvArco.CurrentCell = celda
+                    _cargando = False
+                    Return True
+                End If
+            Next
+            _cargando = False
+            Return False
         Next
-    End Sub
+        Return False
+    End Function
 
     ' ------------------------------------------------------------------
     ' Utilidades
