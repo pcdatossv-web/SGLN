@@ -24,6 +24,7 @@ Public Class FrmProtocolo
         nudAnio.Enabled = puedeGestionar
         dtpFechaAutorizacion.Enabled = puedeGestionar
         dtpFechaVencimiento.Enabled = puedeGestionar
+        cboEstadoLibro.Enabled = False
         btnNuevoLibro.Enabled = puedeGestionar
         btnGuardarLibro.Enabled = puedeGestionar
         txtRazonCierre.Enabled = puedeCerrar
