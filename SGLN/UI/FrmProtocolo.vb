@@ -747,7 +747,19 @@ Public Class FrmProtocolo
     Private Sub dgvLibros_SelectionChanged(sender As Object, e As EventArgs) Handles dgvLibros.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvLibros)
-        If fila Is Nothing Then Return
+
+        If fila Is Nothing Then
+            ' Si se pierde la selección, retirar también el libro del combo y
+            ' limpiar sus instrumentos, testimonios e índice. Así ningún botón
+            ' puede operar sobre el último libro que quedó cargado.
+            If _idLibro > 0 Then
+                _cargando = True
+                cboLibro.SelectedIndex = -1
+                _cargando = False
+                CargarLibroSeleccionado()
+            End If
+            Return
+        End If
 
         Dim id As Integer = UtileriasUI.Entero(fila, "ID")
         If id = _idLibro Then Return
