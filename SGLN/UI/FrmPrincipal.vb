@@ -154,8 +154,8 @@ Public Class FrmPrincipal
 
     ''' <summary>
     ''' Permite abrir el módulo relacionado con una alerta del panel.
-    ''' El detalle se localiza dentro del módulo, ya que las alertas no
-    ''' transportan identificadores operativos ni exponen datos adicionales.
+    ''' Las alertas de plazos transportan el ID del expediente para abrir
+    ''' directamente el registro relacionado; las demás abren su módulo.
     ''' </summary>
     Private Sub dgvAlertas_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvAlertas.CellDoubleClick
         If e.RowIndex < 0 OrElse e.RowIndex >= dgvAlertas.Rows.Count Then Return

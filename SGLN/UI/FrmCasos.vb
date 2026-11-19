@@ -322,10 +322,19 @@ Public Class FrmCasos
     Private Function SeleccionarCaso(id As Integer) As Boolean
         For Each fila As DataGridViewRow In dgvCasos.Rows
             Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
-            If vista IsNot Nothing AndAlso Convert.ToInt32(vista.Row("ID")) = id Then
-                If fila.Cells.Count > 0 Then dgvCasos.CurrentCell = fila.Cells(0)
-                Return True
-            End If
+            If vista Is Nothing OrElse Convert.ToInt32(vista.Row("ID")) <> id Then Continue For
+
+            ' La columna ID está oculta; CurrentCell debe apuntar a una celda visible.
+            _cargando = True
+            For Each celda As DataGridViewCell In fila.Cells
+                If celda.Visible Then
+                    dgvCasos.CurrentCell = celda
+                    _cargando = False
+                    Return True
+                End If
+            Next
+            _cargando = False
+            Return False
         Next
         Return False
     End Function
