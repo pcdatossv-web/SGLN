@@ -100,7 +100,10 @@ Public Class FrmClientes
     Private Sub dgvClientes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvClientes.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvClientes)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            Limpiar()
+            Return
+        End If
         CargarCliente(UtileriasUI.Entero(fila, "ID"))
     End Sub
 

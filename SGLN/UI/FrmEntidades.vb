@@ -105,7 +105,10 @@ Public Class FrmEntidades
     Private Sub dgvEntidades_SelectionChanged(sender As Object, e As EventArgs) Handles dgvEntidades.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvEntidades)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            Limpiar()
+            Return
+        End If
         CargarEntidad(UtileriasUI.Entero(fila, "ID"))
     End Sub
 
