@@ -15,6 +15,7 @@ Public Class FrmRoles
     Private _idSeleccionado As Integer
     Private _esProtegido As Boolean
     Private _cargando As Boolean
+    Private _catalogoDisponible As Boolean
 
     Private Sub FrmRoles_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.roles", Me) Then Return
@@ -54,8 +55,12 @@ Public Class FrmRoles
             clbPermisos.DisplayMember = "Texto"
             clbPermisos.ValueMember = "Codigo"
             clbPermisos.CheckOnClick = True
+            _catalogoDisponible = True
         Catch ex As Exception
             clbPermisos.DataSource = Nothing
+            _catalogoDisponible = False
+            btnNuevo.Enabled = False
+            btnGuardar.Enabled = False
             RegistroErrores.Escribir("Roles - catálogo de permisos", ex)
             Mostrar("No se pudo cargar el catálogo de permisos. Verifique la conexión con la base de datos.", False)
         End Try
@@ -172,6 +177,10 @@ Public Class FrmRoles
     End Sub
 
     Private Sub GuardarRol()
+        If Not _catalogoDisponible Then
+            Mostrar("No se puede guardar: el catálogo de permisos no está disponible. Actualice el formulario e inténtelo de nuevo.", False)
+            Return
+        End If
         If Not Permisos.ExigirAccion("config.roles") Then Return
         Try
 
