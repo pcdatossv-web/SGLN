@@ -123,7 +123,11 @@ Public Class FrmDocumentos
     Private Sub dgvDocumentos_SelectionChanged(sender As Object, e As EventArgs) Handles dgvDocumentos.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' Evitar conservar un documento operativo después de perder la selección.
+            Limpiar()
+            Return
+        End If
         CargarDetalle(fila)
     End Sub
 
