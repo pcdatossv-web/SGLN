@@ -1,5 +1,6 @@
 Imports System
 Imports System.Data
+Imports System.Net.Mail
 Imports MySql.Data.MySqlClient
 
 ''' <summary>
@@ -247,7 +248,7 @@ Public Class ClienteRepositorio
         If Not String.IsNullOrWhiteSpace(cliente.NIT) AndAlso Not ValidadorIdentidad.EsFormatoNitValido(cliente.NIT) Then
             Throw New ArgumentException("El NIT debe tener 14 dígitos.", NameOf(cliente))
         End If
-        If Not String.IsNullOrWhiteSpace(cliente.Email) AndAlso Not cliente.Email.Contains("@") Then
+        If Not String.IsNullOrWhiteSpace(cliente.Email) AndAlso Not EsCorreoValido(cliente.Email.Trim()) Then
             Throw New ArgumentException("El correo electrónico no es válido.", NameOf(cliente))
         End If
         If perfil IsNot Nothing Then
@@ -264,6 +265,17 @@ Public Class ClienteRepositorio
             End If
         End If
     End Sub
+
+    Private Shared Function EsCorreoValido(valor As String) As Boolean
+        If String.IsNullOrWhiteSpace(valor) Then Return False
+        Try
+            Dim direccion As New MailAddress(valor)
+            ' Rechaza nombres para mostrar y texto adicional fuera de la dirección.
+            Return String.Equals(direccion.Address, valor, StringComparison.OrdinalIgnoreCase)
+        Catch ex As FormatException
+            Return False
+        End Try
+    End Function
 
     Private Sub NormalizarDatosCliente(cliente As Cliente, perfil As PerfilLdaft)
         cliente.Nombres = If(cliente.Nombres, "").Trim()
