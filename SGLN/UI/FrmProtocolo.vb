@@ -13,6 +13,44 @@ Public Class FrmProtocolo
     Private Sub FrmProtocolo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("protocolo.ver", Me) Then Return
 
+        Dim puedeGestionar As Boolean = Permisos.TieneAcceso("protocolo.gestionar")
+        Dim puedeCerrar As Boolean = Permisos.TieneAcceso("protocolo.cerrar_libro")
+        Dim puedeEntregar As Boolean = Permisos.TieneAcceso("protocolo.entregar")
+        Dim puedeExpedirTestimonios As Boolean = Permisos.TieneAcceso("protocolo.testimonios")
+
+        ' Los controles de edición reflejan los permisos desde que abre el
+        ' formulario; el servicio conserva la validación obligatoria de cada acción.
+        nudNumeroLibro.Enabled = puedeGestionar
+        nudAnio.Enabled = puedeGestionar
+        dtpFechaAutorizacion.Enabled = puedeGestionar
+        dtpFechaVencimiento.Enabled = puedeGestionar
+        btnNuevoLibro.Enabled = puedeGestionar
+        btnGuardarLibro.Enabled = puedeGestionar
+        txtRazonCierre.Enabled = puedeCerrar
+        btnCerrarLibro.Enabled = puedeCerrar
+        dtpFechaEntrega.Enabled = puedeEntregar
+        btnEntregarLibro.Enabled = puedeEntregar
+
+        nudNumeroEscritura.Enabled = puedeGestionar
+        dtpFechaHoraOtorgamiento.Enabled = puedeGestionar
+        nudFolioInicio.Enabled = puedeGestionar
+        nudFolioFin.Enabled = puedeGestionar
+        txtObjeto.Enabled = puedeGestionar
+        cboEstadoInstrumento.Enabled = False
+        btnNuevoInstrumento.Enabled = puedeGestionar
+        btnGuardarInstrumento.Enabled = puedeGestionar
+        btnAnularInstrumento.Enabled = puedeGestionar
+
+        cboClienteComp.Enabled = puedeGestionar
+        cboCalidad.Enabled = puedeGestionar
+        btnAgregarComp.Enabled = puedeGestionar
+        btnQuitarComp.Enabled = puedeGestionar
+
+        grpTestimonio.Enabled = puedeExpedirTestimonios
+        btnGenerarIndice.Enabled = puedeGestionar
+        ' Exportar el índice es una operación de consulta y queda disponible
+        ' para quien ya tiene permiso de lectura del protocolo.
+
         UtileriasUI.ConfigurarGrid(dgvLibros)
         UtileriasUI.ConfigurarGrid(dgvInstrumentos)
         UtileriasUI.ConfigurarGrid(dgvComparecientes)
