@@ -119,7 +119,11 @@ Public Class FrmCasos
     Private Sub dgvCasos_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCasos.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvCasos)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            ' Evitar conservar el caso anterior al perder la selección.
+            Limpiar()
+            Return
+        End If
         CargarCaso(UtileriasUI.Entero(fila, "ID"))
     End Sub
 
