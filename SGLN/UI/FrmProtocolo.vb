@@ -88,7 +88,6 @@ Public Class FrmProtocolo
 
         If IDLibroInicial > 0 Then
             If _idLibro = IDLibroInicial Then
-                CargarLibroSeleccionado()
                 MostrarMensaje("", True)
             Else
                 LimpiarLibro()
