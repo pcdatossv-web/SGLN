@@ -81,10 +81,23 @@ Public Class CumplimientoRepositorio
                         AgregarParametrosOperacion(comando, operacion)
                         Parametro(comando, "@id", operacion.ID)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
-                    "Operaciones_LDAFT", operacion.ID,
-                    operacion.TipoOperacion & " por " & operacion.Monto.ToString("N2") & " " & operacion.Moneda)
-                Return filas
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
+                        "Operaciones_LDAFT", operacion.ID,
+                        operacion.TipoOperacion & " por " & operacion.Monto.ToString("N2") & " " & operacion.Moneda)
+                    Return filas
+                End If
+
+                ' MySQL puede devolver cero filas afectadas cuando los valores
+                ' enviados son idénticos. Distinguir ese caso de un cambio de
+                ' estado concurrente para no informar un falso error al usuario.
+                Using comprobar As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Operaciones_LDAFT " &
+                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0",
+                    conexion, transaccion)
+                    Parametro(comprobar, "@id", operacion.ID)
+                    Return If(Convert.ToInt32(comprobar.ExecuteScalar()) > 0, 1, 0)
+                End Using
             End Function)
     End Function
 
@@ -216,9 +229,27 @@ Public Class CumplimientoRepositorio
                         AgregarParametrosSolicitudEditable(comando, solicitud)
                         Parametro(comando, "@id", solicitud.ID)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
-                    "Solicitudes_ARCO", solicitud.ID, "Detalle/prórroga actualizados")
-                Return filas
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
+                        "Solicitudes_ARCO", solicitud.ID, "Detalle/prórroga actualizados")
+                    Return filas
+                End If
+
+                ' Una edición sin cambios puede producir cero filas afectadas
+                ' en MySQL. Confirmar que la solicitud sigue siendo editable y
+                ' que la prórroga solicitada continúa cumpliendo las reglas.
+                Using comprobar As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Solicitudes_ARCO " &
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencida') AND Fecha_Respuesta IS NULL " &
+                    "AND (@aplicada = 0 OR (@prorroga IS NOT NULL AND @prorroga > Fecha_Vencimiento)) " &
+                    "AND (Prorroga_Aplicada = 0 OR (@aplicada = 1 AND @prorroga = Fecha_Vencimiento_Prorroga))",
+                    conexion, transaccion)
+                    Parametro(comprobar, "@id", solicitud.ID)
+                    Parametro(comprobar, "@prorroga", If(solicitud.ProrrogaAplicada AndAlso solicitud.FechaVencimientoProrroga.HasValue,
+                                                         CObj(solicitud.FechaVencimientoProrroga.Value), DBNull.Value))
+                    Parametro(comprobar, "@aplicada", solicitud.ProrrogaAplicada)
+                    Return If(Convert.ToInt32(comprobar.ExecuteScalar()) > 0, 1, 0)
+                End Using
             End Function)
     End Function
 
