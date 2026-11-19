@@ -189,6 +189,9 @@ Public Module InicializadorBD
                 indice += 1
                 Continue While
             ElseIf actual = "/"c AndAlso siguiente = "*"c Then
+                ' En SQL, un comentario de bloque separa tokens igual que un espacio.
+                ' Evita convertir, por ejemplo, SELECT/*...*/1 en SELECT1.
+                sentencia.Append(" "c)
                 enComentarioBloque = True
                 indice += 2
                 Continue While

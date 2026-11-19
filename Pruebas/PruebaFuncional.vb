@@ -62,15 +62,17 @@ Module PruebaFuncional
                 "INSERT INTO Roles (Nombre, Descripcion) VALUES ('Abogado', 'Gestión legal; sin cambios');" &
                 Environment.NewLine & "-- comentario; no es sentencia" & Environment.NewLine &
                 "INSERT INTO `Catalogo;Aux` (Valor) VALUES ('texto con ''comilla; interna''');" &
-                Environment.NewLine & "/* comentario; multilínea */ SELECT 1;"
+                Environment.NewLine & "/* comentario; multilínea */ SELECT 1;" &
+                Environment.NewLine & "SELECT/* comentario entre tokens */1;"
             Dim sentenciasSql As List(Of String) =
                 DirectCast(metodoDividirSql.Invoke(Nothing, New Object() {muestraSql}), List(Of String))
             separacionSqlCorrecta =
-                sentenciasSql.Count = 3 AndAlso
+                sentenciasSql.Count = 4 AndAlso
                 sentenciasSql(0).Contains("'Gestión legal; sin cambios'") AndAlso
                 sentenciasSql(1).Contains("`Catalogo;Aux`") AndAlso
                 sentenciasSql(1).Contains("'texto con ''comilla; interna'''") AndAlso
-                sentenciasSql(2).Trim() = "SELECT 1"
+                sentenciasSql(2).Trim() = "SELECT 1" AndAlso
+                sentenciasSql(3).Trim() = "SELECT 1"
         End If
         Verificar("El separador SQL conserva puntos y coma en literales, comentarios e identificadores",
                   separacionSqlCorrecta)
