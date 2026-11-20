@@ -34,22 +34,22 @@ Public Class FrmPrincipal
         Select Case item.Name
             Case "mnuDocumentos"
                 autorizado =
-                    Permisos.TieneAcceso("documentos.ver") OrElse
-                    Permisos.TieneAcceso("documentos.importar") OrElse
-                    Permisos.TieneAcceso("documentos.verificar") OrElse
-                    Permisos.TieneAcceso("documentos.metadatos")
+                    Permisos.Puede("documentos.ver") OrElse
+                    Permisos.Puede("documentos.importar") OrElse
+                    Permisos.Puede("documentos.verificar") OrElse
+                    Permisos.Puede("documentos.metadatos")
             Case "mnuCumplimiento"
                 autorizado =
-                    Permisos.TieneAcceso("cumplimiento.ver") OrElse
-                    Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
-                    Permisos.TieneAcceso("cumplimiento.reportar_uif") OrElse
-                    Permisos.TieneAcceso("cumplimiento.arco")
+                    Permisos.Puede("cumplimiento.ver") OrElse
+                    Permisos.Puede("cumplimiento.operaciones") OrElse
+                    Permisos.Puede("cumplimiento.reportar_uif") OrElse
+                    Permisos.Puede("cumplimiento.arco")
             Case "mnuConfiguracion"
                 autorizado =
-                    Permisos.TieneAcceso("config.ver") OrElse
-                    Permisos.TieneAcceso("config.feriados") OrElse
-                    Permisos.TieneAcceso("config.seguridad") OrElse
-                    Permisos.TieneAcceso("config.respaldos")
+                    Permisos.Puede("config.ver") OrElse
+                    Permisos.Puede("config.feriados") OrElse
+                    Permisos.Puede("config.seguridad") OrElse
+                    Permisos.Puede("config.respaldos")
             Case Else
                 autorizado =
                     item.Tag Is Nothing OrElse
