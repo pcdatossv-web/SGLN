@@ -848,7 +848,7 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnExportarIndice_Click(sender As Object, e As EventArgs) Handles btnExportarIndice.Click
-        ExportarIndice()
+        UtileriasUI.EjecutarUnaVez(btnExportarIndice, Sub() ExportarIndice())
     End Sub
 
 End Class
