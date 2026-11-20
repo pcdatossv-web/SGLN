@@ -16,7 +16,7 @@ Partial Public Class FrmCambioClave
         txtActual.Focus()
     End Sub
 
-    Private Sub GuardarClick(sender As Object, e As EventArgs)
+    Private Sub GuardarClick(sender As Object, e As EventArgs) Handles btnGuardar.Click
         UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf Guardar)
     End Sub
 
