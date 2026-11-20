@@ -16,6 +16,17 @@ Imports MySql.Data.MySqlClient
 Public Class ConfiguracionRepositorio
     Inherits RepositorioBase
 
+    ''' <summary>
+    ''' Revalida la sesión una vez y consulta los permisos desde la matriz vigente.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     Public Function Listar() As DataTable
         If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
         Return Consultar("SELECT Clave, Valor FROM Configuracion ORDER BY Clave")
@@ -25,10 +36,11 @@ Public Class ConfiguracionRepositorio
         If String.IsNullOrWhiteSpace(clave) OrElse clave.Trim().Length > 100 Then Return ""
 
         Dim claveNormalizada As String = clave.Trim()
-        Dim puedeLeer As Boolean = Permisos.TieneAcceso("config.ver")
-        If Not puedeLeer AndAlso
-           String.Equals(claveNormalizada, "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
-            puedeLeer = Permisos.TieneAcceso("config.respaldos")
+        Dim puedeLeer As Boolean
+        If String.Equals(claveNormalizada, "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
+            puedeLeer = TieneAccesoAlguno("config.ver", "config.respaldos")
+        Else
+            puedeLeer = Permisos.TieneAcceso("config.ver")
         End If
         If Not puedeLeer Then Return ""
 
@@ -76,7 +88,7 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Public Function Feriados() As DataTable
-        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 
