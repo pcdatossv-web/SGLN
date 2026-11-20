@@ -27,6 +27,15 @@ Public Class FrmRoles
         ' para limpiarlos inmediatamente después.
         CargarRoles(False)
         Nuevo()
+
+        ' Nuevo() limpia el estado visual; restaurar cualquier error de carga
+        ' para que el usuario no confunda un catálogo vacío con uno disponible.
+        If Not _catalogoDisponible Then
+            Mostrar("No se pudo cargar el catálogo de permisos. Verifique la conexión con la base de datos.", False)
+        ElseIf dgvRoles.DataSource Is Nothing Then
+            Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
+        End If
+
         _permisosInicializados = True
     End Sub
 
