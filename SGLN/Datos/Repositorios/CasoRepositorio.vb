@@ -156,6 +156,11 @@ Public Class CasoRepositorio
         actuacion.Observaciones = If(actuacion.Observaciones, "").Trim()
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Bloquear el expediente antes de registrar o modificar actuaciones.
+                ' Así se evita confirmar plazos sobre expedientes cerrados/archivados,
+                ' incluso si otro usuario cambia el estado simultáneamente.
+                ValidarCasoAdmiteActuaciones(conexion, transaccion, actuacion.IDCaso)
+
                 If actuacion.ID = 0 Then
                     Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                         "INSERT INTO Actuaciones_Procesales (ID_Caso, ID_Tipo_Actuacion, Fecha_Notificacion, " &
@@ -238,10 +243,26 @@ Public Class CasoRepositorio
         If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Obtener el expediente asociado y bloquearlo antes de actualizar
+                ' la actuación. Se conserva el mismo orden de bloqueo que GuardarActuacion.
+                Dim idCaso As Integer = 0
+                Using comandoCaso As New MySqlCommand(
+                    "SELECT ID_Caso FROM Actuaciones_Procesales WHERE ID = @id",
+                    conexion, transaccion)
+                    Parametro(comandoCaso, "@id", id)
+                    Dim valor As Object = comandoCaso.ExecuteScalar()
+                    If valor Is Nothing OrElse Convert.IsDBNull(valor) Then Return 0
+                    idCaso = Convert.ToInt32(valor)
+                End Using
+
+                ValidarCasoAdmiteActuaciones(conexion, transaccion, idCaso)
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' " &
+                    "WHERE ID = @id AND ID_Caso = @caso AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
+                        Parametro(comando, "@caso", idCaso)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CUMPLIR PLAZO", "Actuaciones_Procesales",
                     id, "Actuación marcada como cumplida")
@@ -255,6 +276,33 @@ Public Class CasoRepositorio
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
+
+    ''' <summary>
+    ''' Bloquea el expediente y verifica que admita nuevas actuaciones procesales.
+    ''' Los expedientes suspendidos conservan sus plazos; cerrados y archivados no.
+    ''' </summary>
+    Private Sub ValidarCasoAdmiteActuaciones(conexion As MySqlConnection,
+                                             transaccion As MySqlTransaction,
+                                             idCaso As Integer)
+        If idCaso <= 0 Then Throw New InvalidOperationException("Seleccione un expediente válido.")
+
+        Using comando As New MySqlCommand(
+            "SELECT Estado FROM Casos WHERE ID = @id FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@id", idCaso)
+            Dim valor As Object = comando.ExecuteScalar()
+            If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                Throw New InvalidOperationException("El expediente asociado ya no existe.")
+            End If
+
+            Dim estado As String = Convert.ToString(valor)
+            If String.Equals(estado, "Cerrado", StringComparison.OrdinalIgnoreCase) OrElse
+               String.Equals(estado, "Archivado", StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException(
+                    "No se pueden registrar, modificar ni cumplir actuaciones en un expediente cerrado o archivado.")
+            End If
+        End Using
+    End Sub
 
     Private Sub ValidarClienteActivo(conexion As MySqlConnection,
                                     transaccion As MySqlTransaction,
