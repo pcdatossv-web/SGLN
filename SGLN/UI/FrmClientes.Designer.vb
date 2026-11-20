@@ -25,6 +25,7 @@ Partial Class FrmClientes
         Me.btnDesactivar = New System.Windows.Forms.Button()
         Me.btnEntidades = New System.Windows.Forms.Button()
         Me.btnRefrescar = New System.Windows.Forms.Button()
+        Me.btnLimpiarBusqueda = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.dgvClientes = New System.Windows.Forms.DataGridView()
         Me.tabPrincipal = New System.Windows.Forms.TabControl()
@@ -138,6 +139,16 @@ Partial Class FrmClientes
         Me.btnRefrescar.TabIndex = 7
         Me.btnRefrescar.Text = "Refrescar"
         Me.btnRefrescar.UseVisualStyleBackColor = True
+        '
+        '
+        ' btnLimpiarBusqueda
+        '
+        Me.btnLimpiarBusqueda.Location = New System.Drawing.Point(910, 12)
+        Me.btnLimpiarBusqueda.Name = "btnLimpiarBusqueda"
+        Me.btnLimpiarBusqueda.Size = New System.Drawing.Size(100, 27)
+        Me.btnLimpiarBusqueda.TabIndex = 8
+        Me.btnLimpiarBusqueda.Text = "Limpiar"
+        Me.btnLimpiarBusqueda.UseVisualStyleBackColor = True
         '
         ' lblMensaje
         '
@@ -515,6 +526,7 @@ Partial Class FrmClientes
         Me.Controls.Add(Me.dgvClientes)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnRefrescar)
+        Me.Controls.Add(Me.btnLimpiarBusqueda)
         Me.Controls.Add(Me.btnEntidades)
         Me.Controls.Add(Me.btnDesactivar)
         Me.Controls.Add(Me.btnGuardar)
@@ -545,6 +557,7 @@ Partial Class FrmClientes
     Friend WithEvents btnDesactivar As System.Windows.Forms.Button
     Friend WithEvents btnEntidades As System.Windows.Forms.Button
     Friend WithEvents btnRefrescar As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarBusqueda As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents dgvClientes As System.Windows.Forms.DataGridView
     Friend WithEvents tabPrincipal As System.Windows.Forms.TabControl
