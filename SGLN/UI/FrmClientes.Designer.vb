@@ -152,10 +152,10 @@ Partial Class FrmClientes
         '
         ' lblMensaje
         '
-        Me.lblMensaje.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblMensaje.Location = New System.Drawing.Point(918, 12)
+        Me.lblMensaje.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblMensaje.Location = New System.Drawing.Point(12, 690)
         Me.lblMensaje.Name = "lblMensaje"
-        Me.lblMensaje.Size = New System.Drawing.Size(270, 40)
+        Me.lblMensaje.Size = New System.Drawing.Size(1176, 25)
         Me.lblMensaje.TabIndex = 8
         '
         ' dgvClientes
@@ -164,7 +164,7 @@ Partial Class FrmClientes
         Me.dgvClientes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvClientes.Location = New System.Drawing.Point(12, 55)
         Me.dgvClientes.Name = "dgvClientes"
-        Me.dgvClientes.Size = New System.Drawing.Size(540, 640)
+        Me.dgvClientes.Size = New System.Drawing.Size(540, 630)
         Me.dgvClientes.TabIndex = 9
         '
         ' tabPrincipal
@@ -175,7 +175,7 @@ Partial Class FrmClientes
         Me.tabPrincipal.Location = New System.Drawing.Point(565, 55)
         Me.tabPrincipal.Name = "tabPrincipal"
         Me.tabPrincipal.SelectedIndex = 0
-        Me.tabPrincipal.Size = New System.Drawing.Size(620, 640)
+        Me.tabPrincipal.Size = New System.Drawing.Size(620, 630)
         Me.tabPrincipal.TabIndex = 10
         '
         ' tabPersonales
