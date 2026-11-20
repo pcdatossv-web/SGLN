@@ -82,9 +82,19 @@ Public Class FrmPrincipal
     Private Sub CargarPanel()
         Try
             Dim servicio As New ServicioAlertas()
-            dgvAlertas.DataSource = servicio.ObtenerAlertas()
+            Dim alertas As DataTable = servicio.ObtenerAlertas()
+            dgvAlertas.DataSource = alertas
             lblResumen.Text = servicio.ObtenerResumen()
             lblFecha.Text = "Actualizado: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
+
+            If alertas.ExtendedProperties.ContainsKey("AlertasLimitadas") AndAlso
+               Convert.ToBoolean(alertas.ExtendedProperties("AlertasLimitadas")) Then
+                lblNota.Text = "Se muestran las primeras 200 alertas prioritarias. Existen más pendientes; revise los módulos correspondientes para consultar el resto." &
+                    Environment.NewLine &
+                    "Los vencimientos deben ser confirmados por el abogado. La IA/OCR nunca fija plazos ni sustituye la revisión legal."
+            Else
+                lblNota.Text = "Los vencimientos de plazos los calcula el sistema (días hábiles + feriados) y deben ser confirmados por el abogado. La IA/OCR nunca fijará plazos ni sustituirá la revisión legal."
+            End If
 
             If dgvAlertas.Columns.Contains("Fecha_Referencia") Then
                 dgvAlertas.Columns("Fecha_Referencia").DefaultCellStyle.Format = "dd/MM/yyyy"
@@ -103,6 +113,7 @@ Public Class FrmPrincipal
             dgvAlertas.DataSource = Nothing
             lblFecha.Text = "Error de actualización: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
             lblResumen.Text = "No se pudieron cargar las alertas ni el resumen. Verifique la conexión con la base de datos."
+            lblNota.Text = "La información del panel no está actualizada. No utilice los datos anteriores para tomar decisiones."
         End Try
     End Sub
 
