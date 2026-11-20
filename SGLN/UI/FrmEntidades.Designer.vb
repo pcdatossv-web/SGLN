@@ -21,6 +21,9 @@ Partial Class FrmEntidades
         Me.btnGuardar = New System.Windows.Forms.Button()
         Me.btnDesactivar = New System.Windows.Forms.Button()
         Me.btnRefrescar = New System.Windows.Forms.Button()
+        Me.txtBuscarEntidad = New System.Windows.Forms.TextBox()
+        Me.btnBuscarEntidad = New System.Windows.Forms.Button()
+        Me.btnLimpiarBusqueda = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.dgvEntidades = New System.Windows.Forms.DataGridView()
         Me.grpDatos = New System.Windows.Forms.GroupBox()
@@ -100,14 +103,40 @@ Partial Class FrmEntidades
         Me.lblMensaje.Size = New System.Drawing.Size(500, 40)
         Me.lblMensaje.TabIndex = 4
         '
+        '
+        ' txtBuscarEntidad
+        '
+        Me.txtBuscarEntidad.Location = New System.Drawing.Point(12, 55)
+        Me.txtBuscarEntidad.Name = "txtBuscarEntidad"
+        Me.txtBuscarEntidad.Size = New System.Drawing.Size(205, 23)
+        Me.txtBuscarEntidad.TabIndex = 5
+        '
+        ' btnBuscarEntidad
+        '
+        Me.btnBuscarEntidad.Location = New System.Drawing.Point(223, 53)
+        Me.btnBuscarEntidad.Name = "btnBuscarEntidad"
+        Me.btnBuscarEntidad.Size = New System.Drawing.Size(78, 27)
+        Me.btnBuscarEntidad.TabIndex = 6
+        Me.btnBuscarEntidad.Text = "Buscar"
+        Me.btnBuscarEntidad.UseVisualStyleBackColor = True
+        '
+        ' btnLimpiarBusqueda
+        '
+        Me.btnLimpiarBusqueda.Location = New System.Drawing.Point(307, 53)
+        Me.btnLimpiarBusqueda.Name = "btnLimpiarBusqueda"
+        Me.btnLimpiarBusqueda.Size = New System.Drawing.Size(85, 27)
+        Me.btnLimpiarBusqueda.TabIndex = 7
+        Me.btnLimpiarBusqueda.Text = "Limpiar"
+        Me.btnLimpiarBusqueda.UseVisualStyleBackColor = True
+        '
         ' dgvEntidades
         '
         Me.dgvEntidades.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvEntidades.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvEntidades.Location = New System.Drawing.Point(12, 55)
+        Me.dgvEntidades.Location = New System.Drawing.Point(12, 88)
         Me.dgvEntidades.Name = "dgvEntidades"
-        Me.dgvEntidades.Size = New System.Drawing.Size(380, 580)
-        Me.dgvEntidades.TabIndex = 5
+        Me.dgvEntidades.Size = New System.Drawing.Size(380, 547)
+        Me.dgvEntidades.TabIndex = 8
         '
         ' grpDatos
         '
@@ -389,6 +418,9 @@ Partial Class FrmEntidades
         Me.ClientSize = New System.Drawing.Size(1100, 650)
         Me.Controls.Add(Me.grpRepresentantes)
         Me.Controls.Add(Me.grpDatos)
+        Me.Controls.Add(Me.txtBuscarEntidad)
+        Me.Controls.Add(Me.btnBuscarEntidad)
+        Me.Controls.Add(Me.btnLimpiarBusqueda)
         Me.Controls.Add(Me.dgvEntidades)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnRefrescar)
@@ -413,6 +445,9 @@ Partial Class FrmEntidades
     Friend WithEvents btnGuardar As System.Windows.Forms.Button
     Friend WithEvents btnDesactivar As System.Windows.Forms.Button
     Friend WithEvents btnRefrescar As System.Windows.Forms.Button
+    Friend WithEvents txtBuscarEntidad As System.Windows.Forms.TextBox
+    Friend WithEvents btnBuscarEntidad As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarBusqueda As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents dgvEntidades As System.Windows.Forms.DataGridView
     Friend WithEvents grpDatos As System.Windows.Forms.GroupBox
