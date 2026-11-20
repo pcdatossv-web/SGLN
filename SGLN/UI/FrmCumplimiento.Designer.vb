@@ -23,6 +23,7 @@ Partial Class FrmCumplimiento
         Me.txtFiltroOp = New System.Windows.Forms.TextBox()
         Me.btnBuscarOp = New System.Windows.Forms.Button()
         Me.btnRefrescarOp = New System.Windows.Forms.Button()
+        Me.btnLimpiarOp = New System.Windows.Forms.Button()
         Me.dgvOperaciones = New System.Windows.Forms.DataGridView()
         Me.grpOperacion = New System.Windows.Forms.GroupBox()
         Me.lblTipoOperacion = New System.Windows.Forms.Label()
@@ -57,6 +58,7 @@ Partial Class FrmCumplimiento
         Me.txtFiltroArco = New System.Windows.Forms.TextBox()
         Me.btnBuscarArco = New System.Windows.Forms.Button()
         Me.btnRefrescarArco = New System.Windows.Forms.Button()
+        Me.btnLimpiarArco = New System.Windows.Forms.Button()
         Me.dgvArco = New System.Windows.Forms.DataGridView()
         Me.grpArco = New System.Windows.Forms.GroupBox()
         Me.lblClienteArco = New System.Windows.Forms.Label()
@@ -113,6 +115,7 @@ Partial Class FrmCumplimiento
         Me.tabOperaciones.Controls.Add(Me.txtFiltroOp)
         Me.tabOperaciones.Controls.Add(Me.btnBuscarOp)
         Me.tabOperaciones.Controls.Add(Me.btnRefrescarOp)
+        Me.tabOperaciones.Controls.Add(Me.btnLimpiarOp)
         Me.tabOperaciones.Controls.Add(Me.dgvOperaciones)
         Me.tabOperaciones.Controls.Add(Me.grpOperacion)
         Me.tabOperaciones.Location = New System.Drawing.Point(4, 24)
@@ -147,6 +150,16 @@ Partial Class FrmCumplimiento
         Me.btnRefrescarOp.TabIndex = 2
         Me.btnRefrescarOp.Text = "Refrescar"
         Me.btnRefrescarOp.UseVisualStyleBackColor = True
+        '
+        '
+        ' btnLimpiarOp
+        '
+        Me.btnLimpiarOp.Location = New System.Drawing.Point(506, 8)
+        Me.btnLimpiarOp.Name = "btnLimpiarOp"
+        Me.btnLimpiarOp.Size = New System.Drawing.Size(85, 27)
+        Me.btnLimpiarOp.TabIndex = 3
+        Me.btnLimpiarOp.Text = "Limpiar"
+        Me.btnLimpiarOp.UseVisualStyleBackColor = True
         '
         ' dgvOperaciones
         '
@@ -453,6 +466,7 @@ Partial Class FrmCumplimiento
         Me.tabArco.Controls.Add(Me.txtFiltroArco)
         Me.tabArco.Controls.Add(Me.btnBuscarArco)
         Me.tabArco.Controls.Add(Me.btnRefrescarArco)
+        Me.tabArco.Controls.Add(Me.btnLimpiarArco)
         Me.tabArco.Controls.Add(Me.dgvArco)
         Me.tabArco.Controls.Add(Me.grpArco)
         Me.tabArco.Location = New System.Drawing.Point(4, 24)
@@ -487,6 +501,16 @@ Partial Class FrmCumplimiento
         Me.btnRefrescarArco.TabIndex = 2
         Me.btnRefrescarArco.Text = "Refrescar"
         Me.btnRefrescarArco.UseVisualStyleBackColor = True
+        '
+        '
+        ' btnLimpiarArco
+        '
+        Me.btnLimpiarArco.Location = New System.Drawing.Point(506, 8)
+        Me.btnLimpiarArco.Name = "btnLimpiarArco"
+        Me.btnLimpiarArco.Size = New System.Drawing.Size(85, 27)
+        Me.btnLimpiarArco.TabIndex = 3
+        Me.btnLimpiarArco.Text = "Limpiar"
+        Me.btnLimpiarArco.UseVisualStyleBackColor = True
         '
         ' dgvArco
         '
@@ -749,6 +773,7 @@ Partial Class FrmCumplimiento
     Friend WithEvents txtFiltroOp As System.Windows.Forms.TextBox
     Friend WithEvents btnBuscarOp As System.Windows.Forms.Button
     Friend WithEvents btnRefrescarOp As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarOp As System.Windows.Forms.Button
     Friend WithEvents dgvOperaciones As System.Windows.Forms.DataGridView
     Friend WithEvents grpOperacion As System.Windows.Forms.GroupBox
     Friend WithEvents lblTipoOperacion As System.Windows.Forms.Label
@@ -783,6 +808,7 @@ Partial Class FrmCumplimiento
     Friend WithEvents txtFiltroArco As System.Windows.Forms.TextBox
     Friend WithEvents btnBuscarArco As System.Windows.Forms.Button
     Friend WithEvents btnRefrescarArco As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarArco As System.Windows.Forms.Button
     Friend WithEvents dgvArco As System.Windows.Forms.DataGridView
     Friend WithEvents grpArco As System.Windows.Forms.GroupBox
     Friend WithEvents lblClienteArco As System.Windows.Forms.Label
