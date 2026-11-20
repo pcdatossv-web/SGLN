@@ -18,12 +18,18 @@ Public Class FrmConfiguracion
     Private _permisoRespaldos As Boolean
 
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' Resolver permisos una vez y mostrar únicamente las áreas autorizadas.
-        Dim puedeVerConfig As Boolean = Permisos.TieneAcceso("config.ver")
-        Dim puedeEditarConfig As Boolean = Permisos.TieneAcceso("config.editar")
-        Dim puedeFeriados As Boolean = Permisos.TieneAcceso("config.feriados")
-        Dim puedeSeguridad As Boolean = Permisos.TieneAcceso("config.seguridad")
-        Dim puedeRespaldos As Boolean = Permisos.TieneAcceso("config.respaldos")
+        ' Revalidar una vez y consultar la matriz actual para todas las pestañas.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        Dim puedeVerConfig As Boolean = Permisos.Puede("config.ver")
+        Dim puedeEditarConfig As Boolean = Permisos.Puede("config.editar")
+        Dim puedeFeriados As Boolean = Permisos.Puede("config.feriados")
+        Dim puedeSeguridad As Boolean = Permisos.Puede("config.seguridad")
+        Dim puedeRespaldos As Boolean = Permisos.Puede("config.respaldos")
 
         If Not (puedeVerConfig OrElse puedeEditarConfig OrElse puedeFeriados OrElse
                 puedeSeguridad OrElse puedeRespaldos) Then
