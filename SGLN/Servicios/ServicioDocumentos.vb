@@ -21,10 +21,19 @@ Public Class ServicioDocumentos
 
     Private Const TamanoMaximoMb As Integer = 50
 
+    ''' <summary>
+    ''' Revalida la sesión una sola vez y evalúa los permisos desde la matriz actual.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
-                Permisos.TieneAcceso("documentos.verificar") OrElse
-                Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.Buscar(filtro, tipo)
     End Function
 
@@ -34,7 +43,7 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not (Permisos.TieneAcceso("documentos.ver") OrElse Permisos.TieneAcceso("documentos.importar") OrElse Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
@@ -298,10 +307,7 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaBaseDocumentos() As String
-        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
-                Permisos.TieneAcceso("documentos.importar") OrElse
-                Permisos.TieneAcceso("documentos.verificar") OrElse
-                Permisos.TieneAcceso("documentos.metadatos")) Then Return ""
+        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         Dim carpeta As String = _catalogo.ObtenerConfig("Carpeta_Documentos")
         If String.IsNullOrWhiteSpace(carpeta) Then carpeta = "Documentos"
         If Not Path.IsPathRooted(carpeta) Then
@@ -326,10 +332,7 @@ Public Class ServicioDocumentos
     ''' aceptan si permanecen dentro de la carpeta documental configurada.
     ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
-        If Not (Permisos.TieneAcceso("documentos.ver") OrElse
-                Permisos.TieneAcceso("documentos.importar") OrElse
-                Permisos.TieneAcceso("documentos.verificar") OrElse
-                Permisos.TieneAcceso("documentos.metadatos")) Then Return ""
+        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         If String.IsNullOrWhiteSpace(rutaRegistrada) Then Return ""
 
         Dim base As String = Path.GetFullPath(RutaBaseDocumentos())
