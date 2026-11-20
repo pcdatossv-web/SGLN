@@ -42,8 +42,13 @@ Public Class FrmEntidades
         _cargando = True
         CargarGrid("", False)
         _cargando = False
+        Dim errorCargaLista As Boolean = dgvEntidades.DataSource Is Nothing
         CargarClientesCombo()
-        If IDEntidadInicial > 0 Then
+        Dim errorCargaClientes As Boolean = cboRepCliente.DataSource Is Nothing
+
+        If errorCargaLista Then
+            Limpiar()
+        ElseIf IDEntidadInicial > 0 Then
             SeleccionarEntidad(IDEntidadInicial)
             If _idEntidad = IDEntidadInicial Then
                 CargarEntidad(IDEntidadInicial)
@@ -53,6 +58,14 @@ Public Class FrmEntidades
             End If
         Else
             Limpiar()
+        End If
+
+        If errorCargaLista AndAlso errorCargaClientes Then
+            MostrarMensaje("No se pudieron cargar las entidades ni los clientes para representantes. Verifique la conexión con la base de datos.", False)
+        ElseIf errorCargaLista Then
+            MostrarMensaje("No se pudo cargar la lista de entidades. Verifique la conexión con la base de datos.", False)
+        ElseIf errorCargaClientes Then
+            MostrarMensaje("No se pudo cargar la lista de clientes para representantes. Verifique la conexión con la base de datos.", False)
         End If
 
         _permisosInicializados = True

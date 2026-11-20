@@ -46,8 +46,11 @@ Public Class FrmCasos
         CargarCombos()
         CargarGrid("", False)
         _cargando = False
+        Dim errorCargaLista As Boolean = dgvCasos.DataSource Is Nothing
 
-        If IDCasoInicial > 0 Then
+        If errorCargaLista Then
+            Limpiar()
+        ElseIf IDCasoInicial > 0 Then
             If SeleccionarCaso(IDCasoInicial) Then
                 CargarCaso(IDCasoInicial)
             Else
@@ -61,6 +64,9 @@ Public Class FrmCasos
         ' Ejecutar al final de la carga inicial: así el mensaje no se pierde
         ' al limpiar/seleccionar el expediente y las actuaciones se refrescan.
         ActualizarVencidas()
+        If errorCargaLista Then
+            MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
+        End If
 
         _permisosInicializados = True
     End Sub

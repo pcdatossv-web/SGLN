@@ -53,8 +53,17 @@ Public Class FrmDocumentos
         _cargando = True
         CargarGrid(False)
         _cargando = False
+        Dim errorCargaLista As Boolean = dgvDocumentos.DataSource Is Nothing
         CargarCombos()
+        Dim errorCargaCombos As Boolean =
+            cboCaso.DataSource Is Nothing OrElse cboInstrumento.DataSource Is Nothing
         Limpiar()
+
+        If errorCargaLista Then
+            MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
+        ElseIf errorCargaCombos Then
+            MostrarMensaje("No se pudieron cargar los catálogos documentales. Verifique la conexión con la base de datos.", False)
+        End If
 
         btnProcesarIA.Enabled = False ' Integración IA/OCR aún no implementada.
         ActualizarAccionesDocumento()
@@ -155,7 +164,7 @@ Public Class FrmDocumentos
         Catch ex As Exception
             _cargando = True
             dgvDocumentos.DataSource = Nothing
-            CargarCombos()
+            If cargarDetalleSeleccionado Then CargarCombos()
             _cargando = False
             Limpiar()
             RegistroErrores.Escribir("Documentos - cargar", ex)

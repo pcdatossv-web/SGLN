@@ -41,7 +41,11 @@ Public Class FrmClientes
         _cargando = True
         CargarGrid("", False)
         _cargando = False
-        If IDClienteInicial > 0 Then
+        Dim errorCargaLista As Boolean = dgvClientes.DataSource Is Nothing
+
+        If errorCargaLista Then
+            Limpiar()
+        ElseIf IDClienteInicial > 0 Then
             SeleccionarCliente(IDClienteInicial)
             If _idCliente = IDClienteInicial Then
                 CargarCliente(IDClienteInicial)
@@ -51,6 +55,10 @@ Public Class FrmClientes
             End If
         Else
             Limpiar()
+        End If
+
+        If errorCargaLista Then
+            MostrarMensaje("No se pudo cargar la lista de clientes. Verifique la conexión con la base de datos.", False)
         End If
 
         _permisosInicializados = True
