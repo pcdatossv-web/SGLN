@@ -166,8 +166,12 @@ Public Class CumplimientoRepositorio
             "       a.Fecha_Respuesta, a.Detalle " &
             "FROM Solicitudes_ARCO a " &
             "INNER JOIN Clientes cl ON cl.ID = a.ID_Cliente " &
-            "WHERE (@filtro IS NULL OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like " &
-            "       OR a.Tipo_Derecho LIKE @like OR a.Detalle LIKE @like) " &
+            "WHERE (@filtro IS NULL OR @filtro = '' " &
+            "       OR CAST(a.ID AS CHAR) LIKE @like " &
+            "       OR CONCAT(cl.Nombres, ' ', cl.Apellidos) LIKE @like " &
+            "       OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like " &
+            "       OR a.Tipo_Derecho LIKE @like OR a.Estado LIKE @like " &
+            "       OR a.Detalle LIKE @like) " &
             "ORDER BY a.Fecha_Solicitud DESC, a.ID DESC",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@filtro", texto)
