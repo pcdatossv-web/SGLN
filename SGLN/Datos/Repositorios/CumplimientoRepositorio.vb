@@ -171,6 +171,12 @@ Public Class CumplimientoRepositorio
             "       OR CONCAT(cl.Nombres, ' ', cl.Apellidos) LIKE @like " &
             "       OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like " &
             "       OR a.Tipo_Derecho LIKE @like OR a.Estado LIKE @like " &
+            "       OR (CASE WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "         AND a.Prorroga_Aplicada = 1 AND a.Fecha_Vencimiento_Prorroga IS NULL " &
+            "         THEN 'Revisar prórroga' " &
+            "         WHEN a.Estado = 'Pendiente' AND a.Fecha_Respuesta IS NULL " &
+            "         AND IF(a.Prorroga_Aplicada = 1, a.Fecha_Vencimiento_Prorroga, a.Fecha_Vencimiento) < @hoy " &
+            "         THEN 'Vencida' ELSE a.Estado END) LIKE @like " &
             "       OR a.Detalle LIKE @like) " &
             "ORDER BY a.Fecha_Solicitud DESC, a.ID DESC",
             Sub(comando As MySqlCommand)
