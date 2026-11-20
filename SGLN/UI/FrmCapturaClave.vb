@@ -17,15 +17,9 @@ Partial Public Class FrmCapturaClave
         If modoCambioInicial Then
             lblClave.Text = "Nueva clave:"
             btnAceptar.Text = "Guardar clave"
-            ClientSize = New System.Drawing.Size(424, 235)
         Else
             lblClave.Text = "Clave actual:"
             btnAceptar.Text = "Verificar y continuar"
-            lblClave.Location = New System.Drawing.Point(18, 58)
-            txtClave.Location = New System.Drawing.Point(18, 78)
-            btnAceptar.Location = New System.Drawing.Point(160, 112)
-            btnCancelar.Location = New System.Drawing.Point(286, 112)
-            ClientSize = New System.Drawing.Size(424, 160)
         End If
         ActiveControl = txtClave
     End Sub
