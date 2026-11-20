@@ -175,12 +175,17 @@ Public Class DocumentoRepositorio
             "ORDER BY c.Numero_Expediente")
     End Function
 
-    Public Function InstrumentosCombo() As DataTable
+    Public Function InstrumentosCombo(Optional idInstrumentoActual As Integer? = Nothing) As DataTable
         If Not PuedeCargarCombosDocumentos() Then Return New DataTable()
         Return Consultar(
-            "SELECT i.ID, CONCAT('Libro ', l.Numero_Libro, ' - Escritura ', i.Numero_Escritura) AS Nombre " &
+            "SELECT i.ID, CONCAT('Libro ', l.Numero_Libro, ' - Escritura ', i.Numero_Escritura, " &
+            "' (', i.Estado, ')') AS Nombre " &
             "FROM Instrumentos i INNER JOIN Libros_Protocolo l ON l.ID = i.ID_Libro " &
-            "WHERE i.Estado = 'Vigente' ORDER BY l.Anio_Vigencia DESC, l.Numero_Libro, i.Numero_Escritura")
+            "WHERE i.Estado = 'Vigente' OR i.ID = @idActual " &
+            "ORDER BY l.Anio_Vigencia DESC, l.Numero_Libro, i.Numero_Escritura",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@idActual", If(idInstrumentoActual.HasValue, CObj(idInstrumentoActual.Value), DBNull.Value))
+            End Sub)
     End Function
 
 End Class
