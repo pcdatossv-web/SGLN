@@ -122,8 +122,10 @@ Public Class ServicioAlertas
 
         If consultas.Count = 0 Then Return New DataTable()
 
+        ' Limitar el volumen que se transfiere y enlaza al panel. Se consulta
+        ' un registro adicional para poder advertir si existen más alertas.
         Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
-            " ORDER BY Prioridad, Fecha_Referencia")
+            " ORDER BY Prioridad, Fecha_Referencia LIMIT 201")
 
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
@@ -149,6 +151,15 @@ Public Class ServicioAlertas
                 End If
             Next
             resultado.AcceptChanges()
+        End If
+
+        ' El panel muestra como máximo 200 alertas para evitar enlazar miles
+        ' de filas históricas en cada actualización. La fila 201 solo indica
+        ' que el resultado fue truncado; no se presenta al usuario.
+        If resultado.Rows.Count > 200 Then
+            For indice As Integer = resultado.Rows.Count - 1 To 200 Step -1
+                resultado.Rows.RemoveAt(indice)
+            Next
         End If
 
         Return resultado
