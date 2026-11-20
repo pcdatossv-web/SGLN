@@ -11,6 +11,8 @@ Public Class FrmPrimerAdministrador
     Private ReadOnly txtClave As New TextBox()
     Private ReadOnly txtConfirmar As New TextBox()
     Private ReadOnly lblEstado As New Label()
+    Private ReadOnly btnCrear As New Button()
+    Private _creando As Boolean
 
     Public Sub New()
         Text = "Configuración inicial de SGLN"
@@ -39,7 +41,9 @@ Public Class FrmPrimerAdministrador
         lblEstado.Size = New Size(465, 25)
         lblEstado.ForeColor = Color.Firebrick
 
-        Dim btnCrear As New Button With {.Text = "Crear administrador", .Location = New Point(215, 315), .Size = New Size(160, 32)}
+        btnCrear.Text = "Crear administrador"
+        btnCrear.Location = New Point(215, 315)
+        btnCrear.Size = New Size(160, 32)
         Dim btnSalir As New Button With {.Text = "Salir", .Location = New Point(385, 315), .Size = New Size(100, 32), .DialogResult = DialogResult.Cancel}
         AddHandler btnCrear.Click, AddressOf CrearAdministrador
         Controls.AddRange(New Control() {titulo, ayuda, lblEstado, btnCrear, btnSalir})
@@ -55,24 +59,31 @@ Public Class FrmPrimerAdministrador
     End Sub
 
     Private Sub CrearAdministrador(sender As Object, e As EventArgs)
+        If _creando Then Return
+
         lblEstado.Text = ""
         If Not String.Equals(txtClave.Text, txtConfirmar.Text, StringComparison.Ordinal) Then
             lblEstado.Text = "La confirmación de la clave no coincide."
             txtConfirmar.Focus()
             Return
         End If
+
+        _creando = True
+        btnCrear.Enabled = False
+        Cursor = Cursors.WaitCursor
         Try
-            Cursor = Cursors.WaitCursor
             InicializadorBD.CrearAdministradorInicial(txtUsuario.Text, txtNombre.Text, txtClave.Text)
-            Cursor = Cursors.Default
             MessageBox.Show("La cuenta fue creada y registrada en la bitácora. Ya puede iniciar sesión.",
                 "Configuración completada", MessageBoxButtons.OK, MessageBoxIcon.Information)
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            Cursor = Cursors.Default
             RegistroErrores.Escribir("Creación del primer administrador", ex)
             lblEstado.Text = "No se pudo completar la creación del primer administrador. Revise los datos y el registro local de errores."
+        Finally
+            Cursor = Cursors.Default
+            _creando = False
+            If Not IsDisposed Then btnCrear.Enabled = True
         End Try
     End Sub
 End Class
