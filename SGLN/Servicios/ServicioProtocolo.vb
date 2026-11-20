@@ -11,6 +11,17 @@ Public Class ServicioProtocolo
     Private ReadOnly _repositorio As New ProtocoloRepositorio()
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
+    ''' <summary>
+    ''' Revalida la sesión una sola vez cuando una operación admite permisos alternativos.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     ' ------------------------------------------------------------------
     ' Libros
     ' ------------------------------------------------------------------
@@ -124,7 +135,7 @@ Public Class ServicioProtocolo
     ''' Se toman los días configurados (15 por defecto) en días hábiles.
     ''' </summary>
     Public Function FechaLimiteEntrega(fechaCierre As Date) As Date
-        If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.entregar") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then
+        If Not TieneAccesoAlguno("protocolo.ver", "protocolo.entregar", "protocolo.gestionar") Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos del protocolo.")
         End If
         If fechaCierre = Date.MinValue OrElse fechaCierre.Date.Year < 1000 Then
@@ -362,7 +373,7 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
