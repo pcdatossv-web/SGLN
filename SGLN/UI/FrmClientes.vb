@@ -343,7 +343,20 @@ Public Class FrmClientes
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             CargarGrid(txtBuscar.Text.Trim())
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarBusqueda()
         End If
+    End Sub
+
+    Private Sub LimpiarBusqueda()
+        txtBuscar.Clear()
+        CargarGrid("")
+        txtBuscar.Focus()
+    End Sub
+
+    Private Sub btnLimpiarBusqueda_Click(sender As Object, e As EventArgs) Handles btnLimpiarBusqueda.Click
+        LimpiarBusqueda()
     End Sub
 
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
