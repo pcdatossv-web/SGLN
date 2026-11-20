@@ -533,6 +533,12 @@ Public Class FrmCumplimiento
         btnGuardarArco.Enabled = puedeEditarSolicitud
         btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0 AndAlso Not _solicitudRespondida
 
+        ' La fecha solo se captura al preparar la respuesta de una solicitud
+        ' existente y pendiente. Un registro nuevo o ya respondido no admite
+        ' una fecha de respuesta independiente.
+        dtpFechaRespuesta.Enabled = _puedeArco AndAlso
+            _idSolicitud > 0 AndAlso Not _solicitudRespondida
+
         ' Una prórroga ya aplicada forma parte del historial del trámite y no
         ' se puede retirar ni modificar. Evitar ofrecer una edición que el
         ' servicio y el repositorio necesariamente rechazarían.
