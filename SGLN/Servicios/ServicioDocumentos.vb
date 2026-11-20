@@ -93,20 +93,20 @@ Public Class ServicioDocumentos
         Dim rutaDestino As String = ""
         Dim rutaTemporal As String = ""
         Try
-            Dim carpeta As String = RutaBaseDocumentos()
+            Dim carpeta As String = RutaBaseDocumentosInterna()
 
             ' Validar antes de crear: Directory.CreateDirectory puede seguir un
             ' enlace situado en cualquier directorio padre y crear fuera del
             ' almacén autorizado. La validación recorre la ruta desde la raíz.
             Dim rutaPrevalidacion As String = Path.Combine(
                 carpeta, "validacion_" & Guid.NewGuid().ToString("N") & ".tmp")
-            RutaCompleta(rutaPrevalidacion)
+            RutaCompletaInterna(rutaPrevalidacion)
 
             Directory.CreateDirectory(carpeta)
 
             ' Revalidar después de crear la carpeta para detectar sustituciones
             ' concurrentes antes de escribir el archivo temporal.
-            Dim rutaDestinoValidada As String = RutaCompleta(rutaPrevalidacion)
+            Dim rutaDestinoValidada As String = RutaCompletaInterna(rutaPrevalidacion)
 
             Dim nombreDestino As String = DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" &
                 Guid.NewGuid().ToString("N").Substring(0, 8) & extension.ToLowerInvariant()
@@ -116,8 +116,8 @@ Public Class ServicioDocumentos
 
             ' Volver a comprobar el nombre exacto que se va a crear. La validación
             ' del archivo temporal anterior solo cubre la carpeta y sus segmentos.
-            rutaDestino = RutaCompleta(rutaDestino)
-            rutaTemporal = RutaCompleta(rutaDestino & ".tmp")
+            rutaDestino = RutaCompletaInterna(rutaDestino)
+            rutaTemporal = RutaCompletaInterna(rutaDestino & ".tmp")
 
             ' Copiar primero a un temporal dentro de la misma carpeta. Si la
             ' aplicación se interrumpe durante la copia, nunca queda un archivo
@@ -128,7 +128,7 @@ Public Class ServicioDocumentos
             ' Revalidar la ruta y el tamaño de la copia temporal: el origen puede
             ' cambiar entre FileInfo y File.Copy (TOCTOU). El límite se aplica al
             ' contenido que realmente se almacenará.
-            Dim rutaTemporalValidada As String = RutaCompleta(rutaTemporal)
+            Dim rutaTemporalValidada As String = RutaCompletaInterna(rutaTemporal)
             If Not String.Equals(Path.GetFullPath(rutaTemporalValidada),
                                  Path.GetFullPath(rutaTemporal),
                                  StringComparison.OrdinalIgnoreCase) Then
@@ -154,7 +154,7 @@ Public Class ServicioDocumentos
             File.Move(rutaTemporal, rutaDestino)
             rutaTemporal = ""
 
-            Dim rutaCopiaValidada As String = RutaCompleta(rutaDestino)
+            Dim rutaCopiaValidada As String = RutaCompletaInterna(rutaDestino)
             If Not String.Equals(Path.GetFullPath(rutaCopiaValidada),
                                  Path.GetFullPath(rutaDestino),
                                  StringComparison.OrdinalIgnoreCase) Then
@@ -183,7 +183,7 @@ Public Class ServicioDocumentos
                 ' El temporal nunca se registra en la base. Se limpia incluso si
                 ' falla la validación o el movimiento de publicación.
                 If Not String.IsNullOrWhiteSpace(rutaTemporal) AndAlso File.Exists(rutaTemporal) Then
-                    Dim rutaLimpiezaTemporal As String = RutaCompleta(rutaTemporal)
+                    Dim rutaLimpiezaTemporal As String = RutaCompletaInterna(rutaTemporal)
                     If String.Equals(Path.GetFullPath(rutaLimpiezaTemporal),
                                      Path.GetFullPath(rutaTemporal),
                                      StringComparison.OrdinalIgnoreCase) Then
@@ -194,7 +194,7 @@ Public Class ServicioDocumentos
                 If File.Exists(rutaDestino) Then
                     ' No borrar a través de una ruta que ahora resuelva mediante
                     ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
-                    Dim rutaLimpieza As String = RutaCompleta(rutaDestino)
+                    Dim rutaLimpieza As String = RutaCompletaInterna(rutaDestino)
                     If String.Equals(Path.GetFullPath(rutaLimpieza),
                                      Path.GetFullPath(rutaDestino),
                                      StringComparison.OrdinalIgnoreCase) Then
@@ -258,7 +258,7 @@ Public Class ServicioDocumentos
             If tabla.Rows.Count = 0 Then Return Respuesta.Fallo("El documento no existe.")
 
             Dim fila As DataRow = tabla.Rows(0)
-            Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
+            Dim ruta As String = RutaCompletaInterna(Convert.ToString(fila("Ruta_Archivo")))
             If Not File.Exists(ruta) Then
                 Return Respuesta.Fallo("El archivo no se encuentra en la ruta registrada.")
             End If
@@ -289,7 +289,7 @@ Public Class ServicioDocumentos
         If tabla.Rows.Count = 0 Then Return ""
 
         Dim fila As DataRow = tabla.Rows(0)
-        Dim ruta As String = RutaCompleta(Convert.ToString(fila("Ruta_Archivo")))
+        Dim ruta As String = RutaCompletaInterna(Convert.ToString(fila("Ruta_Archivo")))
         If Not File.Exists(ruta) Then Return ""
         If Not ValidarContenidoArchivo(ruta, Path.GetExtension(ruta)) Then
             Throw New InvalidDataException(
@@ -308,6 +308,10 @@ Public Class ServicioDocumentos
 
     Public Function RutaBaseDocumentos() As String
         If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        Return RutaBaseDocumentosInterna()
+    End Function
+
+    Private Function RutaBaseDocumentosInterna() As String
         Dim carpeta As String = _catalogo.ObtenerConfig("Carpeta_Documentos")
         If String.IsNullOrWhiteSpace(carpeta) Then carpeta = "Documentos"
         If Not Path.IsPathRooted(carpeta) Then
@@ -333,9 +337,13 @@ Public Class ServicioDocumentos
     ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
         If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        Return RutaCompletaInterna(rutaRegistrada)
+    End Function
+
+    Private Function RutaCompletaInterna(rutaRegistrada As String) As String
         If String.IsNullOrWhiteSpace(rutaRegistrada) Then Return ""
 
-        Dim base As String = Path.GetFullPath(RutaBaseDocumentos())
+        Dim base As String = Path.GetFullPath(RutaBaseDocumentosInterna())
         Dim raiz As String = Path.GetPathRoot(base)
         ' No quitar el separador de una raíz (C:\ o una raíz UNC):
         ' hacerlo convertiría, por ejemplo, C:\ en la ruta relativa C:.
