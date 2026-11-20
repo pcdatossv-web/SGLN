@@ -472,7 +472,6 @@ Public Class FrmCasos
         Select Case estado.Trim().ToUpperInvariant()
             Case "VENCIDO"
                 e.CellStyle.ForeColor = Color.Firebrick
-                e.CellStyle.Font = New Font(dgvActuaciones.Font, FontStyle.Bold)
             Case "CUMPLIDO"
                 e.CellStyle.ForeColor = Color.DarkGreen
             Case "PENDIENTE"
