@@ -63,6 +63,7 @@ Partial Class FrmLogin
         ' txtUsuario
         '
         Me.txtUsuario.Location = New System.Drawing.Point(42, 120)
+        Me.txtUsuario.MaxLength = 50
         Me.txtUsuario.Name = "txtUsuario"
         Me.txtUsuario.Size = New System.Drawing.Size(210, 23)
         Me.txtUsuario.TabIndex = 0
@@ -79,6 +80,7 @@ Partial Class FrmLogin
         ' txtClave
         '
         Me.txtClave.Location = New System.Drawing.Point(42, 175)
+        Me.txtClave.MaxLength = 128
         Me.txtClave.Name = "txtClave"
         Me.txtClave.Size = New System.Drawing.Size(210, 23)
         Me.txtClave.TabIndex = 1
