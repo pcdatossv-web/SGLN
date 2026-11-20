@@ -430,6 +430,14 @@ Public Class FrmProtocolo
             " OR [Estado] LIKE " & patron
     End Sub
 
+    Private Sub txtBuscarInstrumento_KeyDown(sender As Object, e As KeyEventArgs) Handles txtBuscarInstrumento.KeyDown
+        If e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            txtBuscarInstrumento.Clear()
+            txtBuscarInstrumento.Focus()
+        End If
+    End Sub
+
     Private Sub txtBuscarInstrumento_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarInstrumento.TextChanged
         If _cargando OrElse _vistaInstrumentos Is Nothing Then Return
 
@@ -744,6 +752,14 @@ Public Class FrmProtocolo
             " OR [Tipo_Testimonio] LIKE " & patron &
             " OR [Destinatario] LIKE " & patron &
             " OR [Usuario] LIKE " & patron
+    End Sub
+
+    Private Sub txtBuscarTestimonio_KeyDown(sender As Object, e As KeyEventArgs) Handles txtBuscarTestimonio.KeyDown
+        If e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            txtBuscarTestimonio.Clear()
+            txtBuscarTestimonio.Focus()
+        End If
     End Sub
 
     Private Sub txtBuscarTestimonio_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarTestimonio.TextChanged
