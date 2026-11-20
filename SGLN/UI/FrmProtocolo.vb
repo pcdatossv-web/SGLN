@@ -384,6 +384,7 @@ Public Class FrmProtocolo
         Try
             Dim tabla As DataTable = _servicio.Instrumentos(_idLibro)
             _cargando = True
+            txtBuscarInstrumento.Clear()
             _vistaInstrumentos = New DataView(tabla)
             dgvInstrumentos.DataSource = _vistaInstrumentos
             AplicarFiltroInstrumentosInterno()
