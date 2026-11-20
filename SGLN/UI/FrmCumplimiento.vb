@@ -75,9 +75,6 @@ Public Class FrmCumplimiento
         UtileriasUI.ConfigurarGrid(dgvArco)
 
         ' Limitar la captura en pantalla a los mismos máximos que valida el servicio.
-        txtDescripcionOp.MaxLength = 1000
-        txtObservacionesOp.MaxLength = 500
-        txtDetalleArco.MaxLength = 1000
 
         ' Las operaciones registradas no pueden tener fecha futura.
         ' El servicio vuelve a validar esta regla antes de guardar.
