@@ -627,6 +627,7 @@ Public Class FrmProtocolo
             ActualizarEstadoAccionesContextuales()
         Catch ex As Exception
             cboInstrumentoTest.DataSource = Nothing
+            ActualizarEstadoAccionesContextuales()
             RegistroErrores.Escribir("Protocolo - combo de instrumentos", ex)
         End Try
     End Sub
@@ -878,7 +879,23 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnNuevoLibro_Click(sender As Object, e As EventArgs) Handles btnNuevoLibro.Click
+        ' Iniciar un libro nuevo también debe retirar todo el contexto del libro
+        ' anterior para evitar que queden escrituras, comparecientes o testimonios
+        ' visibles y parezcan pertenecer al registro que se está creando.
+        _cargando = True
+        cboLibro.SelectedIndex = -1
+        dgvLibros.CurrentCell = Nothing
+        _cargando = False
+
         LimpiarLibro()
+        LimpiarInstrumento()
+        cboInstrumentoTest.DataSource = Nothing
+        dgvInstrumentos.DataSource = Nothing
+        dgvComparecientes.DataSource = Nothing
+        dgvTestimonios.DataSource = Nothing
+        dgvIndice.DataSource = Nothing
+
+        ActualizarEstadoAccionesContextuales()
         nudNumeroLibro.Focus()
     End Sub
 
