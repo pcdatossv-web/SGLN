@@ -22,9 +22,6 @@ Public Class FrmCasos
 
         AplicarPermisosInterfaz()
 
-        txtExpediente.MaxLength = 80
-        txtResponsable.MaxLength = 120
-        txtDescripcion.MaxLength = 1000
 
         ' La fecha futura no es válida para una notificación ya practicada.
         ' El servicio mantiene la misma regla como validación definitiva.
