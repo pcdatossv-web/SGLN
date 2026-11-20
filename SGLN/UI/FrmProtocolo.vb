@@ -843,7 +843,9 @@ Public Class FrmProtocolo
         txtObjeto.Enabled = puedeGestionar AndAlso libroVigente
         btnNuevoInstrumento.Enabled = puedeGestionar AndAlso libroVigente
         btnGuardarInstrumento.Enabled = puedeGestionar AndAlso libroVigente
-        btnAnularInstrumento.Enabled = puedeGestionar AndAlso libroVigente AndAlso instrumentoVigente
+        ' La anulación se permite hasta antes de registrar la entrega del libro.
+        btnAnularInstrumento.Enabled = puedeGestionar AndAlso
+            (libroVigente OrElse libroCerrado) AndAlso instrumentoVigente
 
         cboClienteComp.Enabled = puedeGestionar AndAlso instrumentoVigente
         cboCalidad.Enabled = puedeGestionar AndAlso instrumentoVigente
