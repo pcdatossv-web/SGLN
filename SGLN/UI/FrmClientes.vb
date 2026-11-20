@@ -9,6 +9,7 @@ Public Class FrmClientes
     Private ReadOnly _servicio As New ServicioClientes()
     Private _cargando As Boolean
     Private _idCliente As Integer
+    Private _permisosInicializados As Boolean
 
     ''' <summary>Registro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDClienteInicial As Integer
@@ -51,6 +52,8 @@ Public Class FrmClientes
         Else
             Limpiar()
         End If
+
+        _permisosInicializados = True
     End Sub
 
     ''' <summary>
@@ -81,6 +84,23 @@ Public Class FrmClientes
         chkOrigenVerificado.Enabled = puedeGestionar
         dtpNacimiento.Enabled = puedeGestionar
         dtpVerificacionListas.Enabled = puedeGestionar
+    End Sub
+
+    Private Sub FrmClientes_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("clientes.ver") Then
+            Close()
+            Return
+        End If
+
+        AplicarPermisosInterfaz()
     End Sub
 
     Private Sub CargarGrid(filtro As String)
