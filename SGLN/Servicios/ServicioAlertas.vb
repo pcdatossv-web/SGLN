@@ -156,7 +156,9 @@ Public Class ServicioAlertas
         ' El panel muestra como máximo 200 alertas para evitar enlazar miles
         ' de filas históricas en cada actualización. La fila 201 solo indica
         ' que el resultado fue truncado; no se presenta al usuario.
-        If resultado.Rows.Count > 200 Then
+        Dim alertasLimitadas As Boolean = resultado.Rows.Count > 200
+        resultado.ExtendedProperties("AlertasLimitadas") = alertasLimitadas
+        If alertasLimitadas Then
             For indice As Integer = resultado.Rows.Count - 1 To 200 Step -1
                 resultado.Rows.RemoveAt(indice)
             Next
