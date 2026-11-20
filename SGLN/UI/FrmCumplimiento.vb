@@ -632,6 +632,10 @@ Public Class FrmCumplimiento
                 If celda.Visible Then
                     dgvArco.CurrentCell = celda
                     _cargando = False
+                    ' SelectionChanged se suprime durante el cambio programático;
+                    ' cargar aquí el detalle evita que la tabla y el formulario
+                    ' queden apuntando a solicitudes distintas.
+                    CargarSolicitud(vista.Row)
                     Return True
                 End If
             Next
