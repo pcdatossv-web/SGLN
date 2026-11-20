@@ -121,6 +121,7 @@ Public Class FrmProtocolo
 
         grpTestimonio.Enabled = puedeExpedirTestimonios
         btnGenerarIndice.Enabled = puedeGestionar
+        ActualizarEstadoAccionesContextuales()
     End Sub
 
     Private Sub FrmProtocolo_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
@@ -215,6 +216,7 @@ Public Class FrmProtocolo
         CargarInstrumentosCombo()
         CargarTestimonios()
         CargarIndice()
+        ActualizarEstadoAccionesContextuales()
     End Sub
 
     Private Sub CargarLibroEditor(id As Integer)
@@ -418,6 +420,7 @@ Public Class FrmProtocolo
             SeleccionarTexto(cboEstadoInstrumento, UtileriasUI.Texto(fila, "Estado"))
 
             CargarComparecientes()
+            ActualizarEstadoAccionesContextuales()
             MostrarMensaje("", True)
         Catch ex As Exception
             LimpiarInstrumento()
@@ -436,6 +439,7 @@ Public Class FrmProtocolo
         cboEstadoInstrumento.SelectedIndex = 0
         dgvComparecientes.DataSource = Nothing
         SugerirSiguienteInstrumento()
+        ActualizarEstadoAccionesContextuales()
     End Sub
 
     ''' <summary>
@@ -572,6 +576,7 @@ Public Class FrmProtocolo
         End If
 
         CargarComparecientes()
+        ActualizarEstadoAccionesContextuales()
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
@@ -593,6 +598,7 @@ Public Class FrmProtocolo
         End If
 
         CargarComparecientes()
+        ActualizarEstadoAccionesContextuales()
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
@@ -606,8 +612,10 @@ Public Class FrmProtocolo
             tabla.Columns.Add("ID", GetType(Integer))
             tabla.Columns.Add("Descripcion", GetType(String))
 
-            If _idLibro > 0 Then
+            If _idLibro > 0 AndAlso Not String.Equals(Convert.ToString(cboEstadoLibro.SelectedItem), "Entregado", StringComparison.OrdinalIgnoreCase) Then
                 For Each fila As DataRow In _servicio.Instrumentos(_idLibro).Rows
+                    ' Solo las escrituras vigentes pueden recibir testimonios.
+                    If Not String.Equals(UtileriasUI.Texto(fila, "Estado"), "Vigente", StringComparison.OrdinalIgnoreCase) Then Continue For
                     tabla.Rows.Add(
                         Convert.ToInt32(fila("ID")),
                         "Escritura " & Convert.ToString(fila("Numero_Escritura")) & " - " &
@@ -616,6 +624,7 @@ Public Class FrmProtocolo
             End If
 
             UtileriasUI.CargarCombo(cboInstrumentoTest, tabla, "Descripcion", "ID")
+            ActualizarEstadoAccionesContextuales()
         Catch ex As Exception
             cboInstrumentoTest.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - combo de instrumentos", ex)
@@ -794,6 +803,71 @@ Public Class FrmProtocolo
         UtileriasUI.SeleccionarValor(cboLibro, id)
         _cargando = False
         CargarLibroSeleccionado()
+    End Sub
+
+    ''' <summary>
+    ''' Sincroniza la disponibilidad de acciones con el contexto real de la
+    ''' selección. La validación definitiva permanece en ServicioProtocolo.
+    ''' </summary>
+    Private Sub ActualizarEstadoAccionesContextuales()
+        If Not _permisosInicializados AndAlso Not Permisos.Puede("protocolo.ver") Then Return
+
+        Dim puedeGestionar As Boolean = Permisos.Puede("protocolo.gestionar")
+        Dim puedeCerrar As Boolean = Permisos.Puede("protocolo.cerrar_libro")
+        Dim puedeEntregar As Boolean = Permisos.Puede("protocolo.entregar")
+        Dim puedeTestimonios As Boolean = Permisos.Puede("protocolo.testimonios")
+
+        Dim estadoLibro As String = Convert.ToString(cboEstadoLibro.SelectedItem)
+        Dim libroSeleccionado As Boolean = _idLibro > 0
+        Dim libroVigente As Boolean = libroSeleccionado AndAlso String.Equals(estadoLibro, "Vigente", StringComparison.OrdinalIgnoreCase)
+        Dim libroCerrado As Boolean = libroSeleccionado AndAlso String.Equals(estadoLibro, "Cerrado", StringComparison.OrdinalIgnoreCase)
+        Dim libroEntregado As Boolean = libroSeleccionado AndAlso String.Equals(estadoLibro, "Entregado", StringComparison.OrdinalIgnoreCase)
+
+        Dim instrumentoSeleccionado As Boolean = _idInstrumento > 0
+        Dim instrumentoVigente As Boolean = instrumentoSeleccionado AndAlso
+            String.Equals(Convert.ToString(cboEstadoInstrumento.SelectedItem), "Vigente", StringComparison.OrdinalIgnoreCase)
+        Dim comparecienteSeleccionado As Boolean = UtileriasUI.FilaActual(dgvComparecientes) IsNot Nothing
+        Dim testimonioSeleccionado As Boolean = UtileriasUI.ValorCombo(cboInstrumentoTest) > 0
+        Dim tablaIndice As DataTable = TryCast(dgvIndice.DataSource, DataTable)
+        Dim indiceDisponible As Boolean = tablaIndice IsNot Nothing AndAlso tablaIndice.Rows.Count > 0
+
+        txtRazonCierre.Enabled = puedeCerrar AndAlso libroVigente
+        btnCerrarLibro.Enabled = puedeCerrar AndAlso libroVigente
+        dtpFechaEntrega.Enabled = puedeEntregar AndAlso libroCerrado
+        btnEntregarLibro.Enabled = puedeEntregar AndAlso libroCerrado
+
+        nudNumeroEscritura.Enabled = puedeGestionar AndAlso libroVigente
+        dtpFechaHoraOtorgamiento.Enabled = puedeGestionar AndAlso libroVigente
+        nudFolioInicio.Enabled = puedeGestionar AndAlso libroVigente
+        nudFolioFin.Enabled = puedeGestionar AndAlso libroVigente
+        txtObjeto.Enabled = puedeGestionar AndAlso libroVigente
+        btnNuevoInstrumento.Enabled = puedeGestionar AndAlso libroVigente
+        btnGuardarInstrumento.Enabled = puedeGestionar AndAlso libroVigente
+        btnAnularInstrumento.Enabled = puedeGestionar AndAlso libroVigente AndAlso instrumentoVigente
+
+        cboClienteComp.Enabled = puedeGestionar AndAlso instrumentoVigente
+        cboCalidad.Enabled = puedeGestionar AndAlso instrumentoVigente
+        btnAgregarComp.Enabled = puedeGestionar AndAlso instrumentoVigente
+        btnQuitarComp.Enabled = puedeGestionar AndAlso instrumentoVigente AndAlso comparecienteSeleccionado
+
+        grpTestimonio.Enabled = puedeTestimonios AndAlso
+            (libroVigente OrElse libroCerrado) AndAlso cboInstrumentoTest.Items.Count > 0
+        btnExpedirTestimonio.Enabled = puedeTestimonios AndAlso
+            (libroVigente OrElse libroCerrado) AndAlso testimonioSeleccionado
+
+        btnGenerarIndice.Enabled = puedeGestionar AndAlso (libroCerrado OrElse libroEntregado) AndAlso indiceDisponible
+        btnExportarIndice.Enabled = indiceDisponible AndAlso
+            (Permisos.Puede("protocolo.ver") OrElse puedeGestionar)
+    End Sub
+
+    Private Sub dgvComparecientes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvComparecientes.SelectionChanged
+        If _cargando Then Return
+        ActualizarEstadoAccionesContextuales()
+    End Sub
+
+    Private Sub cboInstrumentoTest_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboInstrumentoTest.SelectedIndexChanged
+        If _cargando Then Return
+        ActualizarEstadoAccionesContextuales()
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
