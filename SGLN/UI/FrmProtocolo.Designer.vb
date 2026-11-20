@@ -76,6 +76,8 @@ Partial Class FrmProtocolo
         Me.btnQuitarComp = New System.Windows.Forms.Button()
         Me.tabTestimonios = New System.Windows.Forms.TabPage()
         Me.dgvTestimonios = New System.Windows.Forms.DataGridView()
+        Me.lblBuscarTestimonio = New System.Windows.Forms.Label()
+        Me.txtBuscarTestimonio = New System.Windows.Forms.TextBox()
         Me.grpTestimonio = New System.Windows.Forms.GroupBox()
         Me.lblInstrumentoTest = New System.Windows.Forms.Label()
         Me.cboInstrumentoTest = New System.Windows.Forms.ComboBox()
@@ -688,6 +690,8 @@ Partial Class FrmProtocolo
         '
         ' tabTestimonios
         '
+        Me.tabTestimonios.Controls.Add(Me.lblBuscarTestimonio)
+        Me.tabTestimonios.Controls.Add(Me.txtBuscarTestimonio)
         Me.tabTestimonios.Controls.Add(Me.dgvTestimonios)
         Me.tabTestimonios.Controls.Add(Me.grpTestimonio)
         Me.tabTestimonios.Location = New System.Drawing.Point(4, 24)
@@ -702,10 +706,27 @@ Partial Class FrmProtocolo
         '
         Me.dgvTestimonios.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvTestimonios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvTestimonios.Location = New System.Drawing.Point(10, 10)
+        Me.dgvTestimonios.Location = New System.Drawing.Point(10, 42)
         Me.dgvTestimonios.Name = "dgvTestimonios"
-        Me.dgvTestimonios.Size = New System.Drawing.Size(760, 605)
-        Me.dgvTestimonios.TabIndex = 0
+        Me.dgvTestimonios.Size = New System.Drawing.Size(760, 573)
+        Me.dgvTestimonios.TabIndex = 2
+        '
+        ' lblBuscarTestimonio
+        '
+        Me.lblBuscarTestimonio.AutoSize = True
+        Me.lblBuscarTestimonio.Location = New System.Drawing.Point(10, 15)
+        Me.lblBuscarTestimonio.Name = "lblBuscarTestimonio"
+        Me.lblBuscarTestimonio.Size = New System.Drawing.Size(43, 15)
+        Me.lblBuscarTestimonio.TabIndex = 0
+        Me.lblBuscarTestimonio.Text = "Buscar:"
+        '
+        ' txtBuscarTestimonio
+        '
+        Me.txtBuscarTestimonio.Location = New System.Drawing.Point(62, 11)
+        Me.txtBuscarTestimonio.Name = "txtBuscarTestimonio"
+        Me.txtBuscarTestimonio.Size = New System.Drawing.Size(708, 23)
+        Me.txtBuscarTestimonio.TabIndex = 1
+        Me.txtBuscarTestimonio.MaxLength = 120
         '
         ' grpTestimonio
         '
@@ -954,6 +975,8 @@ Partial Class FrmProtocolo
     Friend WithEvents btnQuitarComp As System.Windows.Forms.Button
     Friend WithEvents tabTestimonios As System.Windows.Forms.TabPage
     Friend WithEvents dgvTestimonios As System.Windows.Forms.DataGridView
+    Friend WithEvents lblBuscarTestimonio As System.Windows.Forms.Label
+    Friend WithEvents txtBuscarTestimonio As System.Windows.Forms.TextBox
     Friend WithEvents grpTestimonio As System.Windows.Forms.GroupBox
     Friend WithEvents lblInstrumentoTest As System.Windows.Forms.Label
     Friend WithEvents cboInstrumentoTest As System.Windows.Forms.ComboBox
