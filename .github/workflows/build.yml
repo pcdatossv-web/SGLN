@@ -124,9 +124,10 @@ jobs:
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
-              -not $catalogoRepo.Contains('TieneAccesoAlguno(ParamArray codigos As String())') -or
-              -not $catalogoRepo.Contains('Permisos.RevalidarSesion()') -or
-              -not $catalogoRepo.Contains('Permisos.Puede(codigo)') -or
+              -not $catalogoRepo.Contains('Permisos.TieneAccesoAlguno(') -or
+              -not $permisosSource.Contains('Public Shared Function TieneAccesoAlguno(ParamArray codigos As String())') -or
+              -not $permisosSource.Contains('RevalidarSesion()') -or
+              -not $permisosSource.Contains('Puede(codigo)') -or
               -not $catalogoRepo.Contains('"cumplimiento.operaciones"') -or
               -not $catalogoRepo.Contains('"protocolo.entregar"') -or
               -not $catalogoRepo.Contains('"casos.ver"') -or
