@@ -26,6 +26,13 @@ Public Class FrmCasos
         txtResponsable.MaxLength = 120
         txtDescripcion.MaxLength = 1000
 
+        ' La fecha futura no es válida para una notificación ya practicada.
+        ' El servicio mantiene la misma regla como validación definitiva.
+        If dtpFechaNotificacion.Value.Date > Date.Today Then
+            dtpFechaNotificacion.Value = Date.Today
+        End If
+        dtpFechaNotificacion.MaxDate = Date.Today
+
         UtileriasUI.ConfigurarGrid(dgvCasos)
         UtileriasUI.ConfigurarGrid(dgvActuaciones)
 
