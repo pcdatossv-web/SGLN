@@ -260,11 +260,6 @@ Public Class FrmPrincipal
     End Sub
 
     ''' <summary>
-    ''' Permite abrir el módulo relacionado con una alerta del panel.
-    ''' Las alertas de plazos transportan el ID del expediente para abrir
-    ''' directamente el registro relacionado; las demás abren su módulo.
-    ''' </summary>
-    ''' <summary>
     ''' Destaca la prioridad y proximidad de los vencimientos sin alterar
     ''' los datos enlazados ni crear recursos GDI durante el repintado.
     ''' </summary>
@@ -308,6 +303,11 @@ Public Class FrmPrincipal
         End If
     End Sub
 
+    ''' <summary>
+    ''' Permite abrir el módulo relacionado con una alerta del panel.
+    ''' Las alertas de plazos transportan el ID del expediente para abrir
+    ''' directamente el registro relacionado; las demás abren su módulo.
+    ''' </summary>
     Private Sub dgvAlertas_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvAlertas.CellDoubleClick
         If e.RowIndex < 0 OrElse e.RowIndex >= dgvAlertas.Rows.Count Then Return
 
