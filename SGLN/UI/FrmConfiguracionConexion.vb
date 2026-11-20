@@ -155,6 +155,10 @@ Public Class FrmConfiguracionConexion
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
+        UtileriasUI.EjecutarUnaVez(btnGuardar, AddressOf GuardarConfiguracion)
+    End Sub
+
+    Private Sub GuardarConfiguracion()
         Dim datos As DatosConexion = LeerFormulario()
         If datos Is Nothing Then Return
 
