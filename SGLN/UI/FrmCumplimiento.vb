@@ -61,7 +61,10 @@ Public Class FrmCumplimiento
         btnNuevoArco.Enabled = puedeArco
         btnGuardarArco.Enabled = puedeArco
         btnResponderArco.Enabled = puedeArco
-        grpArco.Enabled = puedeArco
+
+        ' La sección debe permanecer consultable con permiso de lectura.
+        ' Los controles de captura se gobiernan individualmente más abajo.
+        grpArco.Enabled = True
 
         ' No mostrar pestañas que el usuario no puede consultar.
         ' La autorización real sigue validándose en ServicioCumplimiento.
@@ -496,6 +499,17 @@ Public Class FrmCumplimiento
 
     Private Sub ActualizarAccionesSolicitud()
         Dim puedeEditarSolicitud As Boolean = _puedeArco AndAlso Not _solicitudRespondida
+
+        ' En una solicitud nueva se permite capturar titular, derecho y fecha
+        ' solo a quien puede gestionar. En registros existentes son inmutables.
+        Dim puedeCrearSolicitud As Boolean = _puedeArco AndAlso _idSolicitud = 0
+        cboClienteArco.Enabled = puedeCrearSolicitud
+        cboTipoDerecho.Enabled = puedeCrearSolicitud
+        dtpFechaSolicitud.Enabled = puedeCrearSolicitud
+
+        ' No deshabilitar el contenedor: impediría consultar solicitudes a
+        ' usuarios con permiso de lectura, aunque las acciones estén protegidas.
+        grpArco.Enabled = True
         btnGuardarArco.Enabled = puedeEditarSolicitud
         btnResponderArco.Enabled = _puedeArco AndAlso _idSolicitud > 0 AndAlso Not _solicitudRespondida
 
