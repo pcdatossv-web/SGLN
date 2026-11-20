@@ -449,6 +449,38 @@ Public Class FrmCasos
         Next
     End Sub
 
+    ''' <summary>
+    ''' Resalta visualmente estados de expediente y actuaciones sin alterar los datos.
+    ''' </summary>
+    Private Sub dgvCasos_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvCasos.CellFormatting
+        If e.RowIndex < 0 OrElse Not dgvCasos.Columns.Contains("Estado") Then Return
+        Dim estado As String = Convert.ToString(dgvCasos.Rows(e.RowIndex).Cells("Estado").Value)
+        Select Case estado.Trim().ToUpperInvariant()
+            Case "ACTIVO"
+                e.CellStyle.ForeColor = Color.DarkGreen
+            Case "SUSPENDIDO"
+                e.CellStyle.ForeColor = Color.DarkOrange
+            Case "CERRADO", "ARCHIVADO"
+                e.CellStyle.ForeColor = Color.DimGray
+        End Select
+    End Sub
+
+
+    Private Sub dgvActuaciones_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvActuaciones.CellFormatting
+        If e.RowIndex < 0 OrElse Not dgvActuaciones.Columns.Contains("Estado") Then Return
+        Dim estado As String = Convert.ToString(dgvActuaciones.Rows(e.RowIndex).Cells("Estado").Value)
+        Select Case estado.Trim().ToUpperInvariant()
+            Case "VENCIDO"
+                e.CellStyle.ForeColor = Color.Firebrick
+                e.CellStyle.Font = New Font(dgvActuaciones.Font, FontStyle.Bold)
+            Case "CUMPLIDO"
+                e.CellStyle.ForeColor = Color.DarkGreen
+            Case "PENDIENTE"
+                e.CellStyle.ForeColor = Color.DarkOrange
+        End Select
+    End Sub
+
+
     Private Sub MostrarMensaje(texto As String, exito As Boolean)
         lblMensaje.Text = texto
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
