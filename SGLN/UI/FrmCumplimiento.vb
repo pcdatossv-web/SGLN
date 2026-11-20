@@ -476,7 +476,10 @@ Public Class FrmCumplimiento
 
         UtileriasUI.SeleccionarValor(cboClienteArco, fila("ID_Cliente"))
         SeleccionarTexto(cboTipoDerecho, UtileriasUI.Texto(fila, "Tipo_Derecho"))
-        dtpFechaSolicitud.Value = UtileriasUI.Fecha(fila, "Fecha_Solicitud").GetValueOrDefault(Date.Today)
+        Dim fechaSolicitud As Date = UtileriasUI.Fecha(fila, "Fecha_Solicitud").GetValueOrDefault(Date.Today).Date
+        dtpFechaSolicitud.Value = fechaSolicitud
+        ' La respuesta no puede anteceder a la recepción de esta solicitud.
+        dtpFechaRespuesta.MinDate = fechaSolicitud
         SeleccionarTexto(cboEstadoArco, UtileriasUI.Texto(fila, "Estado"))
 
         Dim vencimiento As Date? = UtileriasUI.Fecha(fila, "Fecha_Vencimiento")
@@ -504,6 +507,7 @@ Public Class FrmCumplimiento
         If cboClienteArco.Items.Count > 0 Then cboClienteArco.SelectedIndex = 0
         cboTipoDerecho.SelectedIndex = 0
         dtpFechaSolicitud.Value = Date.Today
+        dtpFechaRespuesta.MinDate = DateTimePicker.MinimumDateTime
         cboEstadoArco.SelectedIndex = 0
         chkProrroga.Checked = False
         dtpFechaRespuesta.Checked = False
