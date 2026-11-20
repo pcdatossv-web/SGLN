@@ -8,8 +8,6 @@ Public Class FrmLogin
         ' Si el servidor no responde, se ofrece configurarlo en este momento.
         ConfiguracionConexion.Inicializar()
 
-        txtUsuario.MaxLength = 50
-        txtClave.MaxLength = 128
         txtUsuario.Clear()
         txtClave.Clear()
         txtUsuario.Focus()
