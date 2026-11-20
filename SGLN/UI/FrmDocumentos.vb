@@ -17,10 +17,18 @@ Public Class FrmDocumentos
     Private _permisosInicializados As Boolean
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        _puedeVer = Permisos.TieneAcceso("documentos.ver")
-        _puedeImportar = Permisos.TieneAcceso("documentos.importar")
-        _puedeVerificar = Permisos.TieneAcceso("documentos.verificar")
-        _puedeMetadatos = Permisos.TieneAcceso("documentos.metadatos")
+        ' Revalidar la sesión una vez al abrir y evaluar la matriz recién cargada.
+        ' Cada acción crítica vuelve a comprobar su permiso en el servicio.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        _puedeVer = Permisos.Puede("documentos.ver")
+        _puedeImportar = Permisos.Puede("documentos.importar")
+        _puedeVerificar = Permisos.Puede("documentos.verificar")
+        _puedeMetadatos = Permisos.Puede("documentos.metadatos")
 
         If Not (_puedeVer OrElse _puedeImportar OrElse _puedeVerificar OrElse _puedeMetadatos) Then
             If Not Permisos.Exigir("documentos.ver", Me) Then Return
