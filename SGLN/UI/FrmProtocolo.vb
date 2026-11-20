@@ -8,6 +8,7 @@ Public Class FrmProtocolo
     Private ReadOnly _servicio As New ServicioProtocolo()
     Private _cargando As Boolean
     Private _idLibro As Integer
+    Private _vistaInstrumentos As DataView
 
     ''' <summary>Libro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDLibroInicial As Integer
@@ -374,6 +375,8 @@ Public Class FrmProtocolo
     Private Sub CargarInstrumentos()
         If _idLibro <= 0 Then
             dgvInstrumentos.DataSource = Nothing
+            _vistaInstrumentos = Nothing
+            txtBuscarInstrumento.Clear()
             LimpiarInstrumento()
             Return
         End If
@@ -381,7 +384,9 @@ Public Class FrmProtocolo
         Try
             Dim tabla As DataTable = _servicio.Instrumentos(_idLibro)
             _cargando = True
-            dgvInstrumentos.DataSource = tabla
+            _vistaInstrumentos = New DataView(tabla)
+            dgvInstrumentos.DataSource = _vistaInstrumentos
+            AplicarFiltroInstrumentosInterno()
             OcultarColumnas(dgvInstrumentos, "ID")
             _cargando = False
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvInstrumentos)
@@ -393,9 +398,54 @@ Public Class FrmProtocolo
         Catch ex As Exception
             _cargando = False
             dgvInstrumentos.DataSource = Nothing
+            _vistaInstrumentos = Nothing
             LimpiarInstrumento()
             RegistroErrores.Escribir("Protocolo - instrumentos", ex)
             MostrarMensaje("No se pudieron cargar los instrumentos. Verifique la conexión con la base de datos.", False)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Filtra localmente las escrituras del libro seleccionado sin volver a
+    ''' consultar la base de datos en cada pulsación.
+    ''' </summary>
+    Private Sub AplicarFiltroInstrumentosInterno()
+        If _vistaInstrumentos Is Nothing Then Return
+
+        Dim filtro As String = If(txtBuscarInstrumento.Text, "").Trim()
+        If filtro.Length = 0 Then
+            _vistaInstrumentos.RowFilter = ""
+            Return
+        End If
+
+        Dim valor As String = filtro.Replace("[", "[[]").Replace("%", "[%]").Replace("*", "[*]").Replace("'", "''")
+        Dim patron As String = "'%" & valor & "%'"
+        _vistaInstrumentos.RowFilter =
+            "CONVERT([Numero_Escritura], 'System.String') LIKE " & patron &
+            " OR CONVERT([Folio_Inicio], 'System.String') LIKE " & patron &
+            " OR CONVERT([Folio_Fin], 'System.String') LIKE " & patron &
+            " OR [Objeto_Acto] LIKE " & patron &
+            " OR [Estado] LIKE " & patron
+    End Sub
+
+    Private Sub txtBuscarInstrumento_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarInstrumento.TextChanged
+        If _cargando OrElse _vistaInstrumentos Is Nothing Then Return
+
+        Try
+            _cargando = True
+            AplicarFiltroInstrumentosInterno()
+            _cargando = False
+
+            Dim actual As DataRow = UtileriasUI.FilaActual(dgvInstrumentos)
+            If actual Is Nothing Then
+                LimpiarInstrumento()
+            Else
+                CargarInstrumento(UtileriasUI.Entero(actual, "ID"))
+            End If
+        Catch ex As Exception
+            _cargando = False
+            RegistroErrores.Escribir("Protocolo - filtro de instrumentos", ex)
+            MostrarMensaje("No se pudo aplicar el filtro de escrituras.", False)
         End Try
     End Sub
 
