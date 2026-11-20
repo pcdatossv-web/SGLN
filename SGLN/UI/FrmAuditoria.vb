@@ -7,6 +7,7 @@ Public Class FrmAuditoria
 
     Private ReadOnly _servicio As New ServicioAuditoria()
     Private _cargando As Boolean
+    Private _permisosInicializados As Boolean
 
     Private Sub FrmAuditoria_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("auditoria.ver", Me) Then Return
@@ -27,6 +28,24 @@ Public Class FrmAuditoria
         _cargando = False
 
         Buscar()
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub FrmAuditoria_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("auditoria.ver") Then
+            Close()
+            Return
+        End If
+
+        btnExportar.Enabled = Permisos.Puede("auditoria.exportar")
     End Sub
 
     Private Sub CargarFiltros()
