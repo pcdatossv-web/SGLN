@@ -23,6 +23,7 @@ Partial Class FrmCasos
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.txtFiltro = New System.Windows.Forms.TextBox()
         Me.btnBuscar = New System.Windows.Forms.Button()
+        Me.btnLimpiarFiltro = New System.Windows.Forms.Button()
         Me.dgvCasos = New System.Windows.Forms.DataGridView()
         Me.grpCaso = New System.Windows.Forms.GroupBox()
         Me.lblCliente = New System.Windows.Forms.Label()
@@ -102,6 +103,15 @@ Partial Class FrmCasos
         Me.txtFiltro.Name = "txtFiltro"
         Me.txtFiltro.Size = New System.Drawing.Size(300, 23)
         Me.txtFiltro.TabIndex = 4
+        '
+        ' btnLimpiarFiltro
+        '
+        Me.btnLimpiarFiltro.Location = New System.Drawing.Point(398, 53)
+        Me.btnLimpiarFiltro.Name = "btnLimpiarFiltro"
+        Me.btnLimpiarFiltro.Size = New System.Drawing.Size(85, 27)
+        Me.btnLimpiarFiltro.TabIndex = 8
+        Me.btnLimpiarFiltro.Text = "Limpiar"
+        Me.btnLimpiarFiltro.UseVisualStyleBackColor = True
         '
         ' btnBuscar
         '
@@ -439,6 +449,7 @@ Partial Class FrmCasos
         Me.Controls.Add(Me.grpCaso)
         Me.Controls.Add(Me.dgvCasos)
         Me.Controls.Add(Me.btnBuscar)
+        Me.Controls.Add(Me.btnLimpiarFiltro)
         Me.Controls.Add(Me.txtFiltro)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnRefrescar)
@@ -465,6 +476,7 @@ Partial Class FrmCasos
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents txtFiltro As System.Windows.Forms.TextBox
     Friend WithEvents btnBuscar As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarFiltro As System.Windows.Forms.Button
     Friend WithEvents dgvCasos As System.Windows.Forms.DataGridView
     Friend WithEvents grpCaso As System.Windows.Forms.GroupBox
     Friend WithEvents lblCliente As System.Windows.Forms.Label
