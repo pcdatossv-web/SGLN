@@ -347,6 +347,7 @@ Partial Class FrmProtocolo
         Me.txtRazonCierre.Location = New System.Drawing.Point(15, 155)
         Me.txtRazonCierre.Multiline = True
         Me.txtRazonCierre.Name = "txtRazonCierre"
+        Me.txtRazonCierre.MaxLength = 1000
         Me.txtRazonCierre.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtRazonCierre.Size = New System.Drawing.Size(555, 55)
         Me.txtRazonCierre.TabIndex = 7
@@ -533,6 +534,7 @@ Partial Class FrmProtocolo
         Me.txtObjeto.Location = New System.Drawing.Point(15, 98)
         Me.txtObjeto.Multiline = True
         Me.txtObjeto.Name = "txtObjeto"
+        Me.txtObjeto.MaxLength = 500
         Me.txtObjeto.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtObjeto.Size = New System.Drawing.Size(555, 55)
         Me.txtObjeto.TabIndex = 4
@@ -768,6 +770,7 @@ Partial Class FrmProtocolo
         '
         Me.txtDestinatario.Location = New System.Drawing.Point(15, 155)
         Me.txtDestinatario.Name = "txtDestinatario"
+        Me.txtDestinatario.MaxLength = 200
         Me.txtDestinatario.Size = New System.Drawing.Size(365, 23)
         Me.txtDestinatario.TabIndex = 3
         '
