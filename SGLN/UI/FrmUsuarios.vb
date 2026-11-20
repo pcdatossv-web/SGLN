@@ -51,7 +51,14 @@ Public Class FrmUsuarios
             Return
         End If
 
-        If Not Permisos.Puede("config.usuarios") Then Close()
+        If Not Permisos.Puede("config.usuarios") Then
+            Close()
+            Return
+        End If
+
+        ' La sesión puede conservar el permiso de gestión y perder el acceso
+        ' total; sincronizar las acciones sensibles con la matriz vigente.
+        ActualizarEstadoAccionesUsuario()
     End Sub
 
     Private Sub CargarRoles()
@@ -165,6 +172,7 @@ Public Class FrmUsuarios
 
         btnDesactivar.Text = If(chkActivo.Checked, "Desactivar usuario", "Reactivar usuario")
         btnDesactivar.Enabled = esOtroUsuario
+        btnEliminar.Enabled = EsAdministradorActual() AndAlso esOtroUsuario
     End Sub
 
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
