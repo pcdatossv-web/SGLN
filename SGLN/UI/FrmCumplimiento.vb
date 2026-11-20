@@ -24,6 +24,8 @@ Public Class FrmCumplimiento
     Public Property IDOperacionInicial As Integer
 
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        AddHandler btnLimpiarOp.Click, AddressOf btnLimpiarOp_Click
+        AddHandler btnLimpiarArco.Click, AddressOf btnLimpiarArco_Click
         Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
         _puedeGestionarOperaciones = Permisos.TieneAcceso("cumplimiento.operaciones")
         _puedeReportar = Permisos.TieneAcceso("cumplimiento.reportar_uif")
@@ -693,7 +695,7 @@ Public Class FrmCumplimiento
         txtFiltroOp.Focus()
     End Sub
 
-    Private Sub btnLimpiarOp_Click(sender As Object, e As EventArgs) Handles btnLimpiarOp.Click
+    Private Sub btnLimpiarOp_Click(sender As Object, e As EventArgs)
         LimpiarFiltroOperaciones()
     End Sub
 
@@ -713,7 +715,7 @@ Public Class FrmCumplimiento
         txtFiltroArco.Focus()
     End Sub
 
-    Private Sub btnLimpiarArco_Click(sender As Object, e As EventArgs) Handles btnLimpiarArco.Click
+    Private Sub btnLimpiarArco_Click(sender As Object, e As EventArgs)
         LimpiarFiltroArco()
     End Sub
 
