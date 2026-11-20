@@ -84,6 +84,7 @@ Public Class FrmPrincipal
             Dim servicio As New ServicioAlertas()
             dgvAlertas.DataSource = servicio.ObtenerAlertas()
             lblResumen.Text = servicio.ObtenerResumen()
+            lblFecha.Text = "Actualizado: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
 
             If dgvAlertas.Columns.Contains("Fecha_Referencia") Then
                 dgvAlertas.Columns("Fecha_Referencia").DefaultCellStyle.Format = "dd/MM/yyyy"
@@ -100,6 +101,7 @@ Public Class FrmPrincipal
             ' No conservar alertas ni contadores de una consulta anterior:
             ' podrían interpretarse como información actual aunque la carga falló.
             dgvAlertas.DataSource = Nothing
+            lblFecha.Text = "Error de actualización: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
             lblResumen.Text = "No se pudieron cargar las alertas ni el resumen. Verifique la conexión con la base de datos."
         End Try
     End Sub
