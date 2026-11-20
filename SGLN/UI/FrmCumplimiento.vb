@@ -126,13 +126,37 @@ Public Class FrmCumplimiento
         cboEstadoArco.Items.AddRange(New Object() {"Pendiente", "Vencida", "Respondida", "Revisar prórroga"})
         cboEstadoArco.SelectedIndex = 0
 
+        Dim errorCatalogos As Boolean = False
+        Dim errorOperaciones As Boolean = False
+        Dim errorArco As Boolean = False
+        Dim errorUmbral As Boolean = False
+
         _cargando = True
         CargarCombos()
-        If puedeVerOperaciones Then CargarOperaciones()
-        If puedeVerArco Then CargarSolicitudes()
+        errorCatalogos = cboCasoOp.DataSource Is Nothing OrElse
+                         cboInstrumentoOp.DataSource Is Nothing OrElse
+                         cboClienteArco.DataSource Is Nothing
+
+        If puedeVerOperaciones Then
+            CargarOperaciones()
+            errorOperaciones = dgvOperaciones.DataSource Is Nothing
+        End If
+
+        If puedeVerArco Then
+            CargarSolicitudes()
+            errorArco = dgvArco.DataSource Is Nothing
+        End If
         _cargando = False
 
-        _umbral = _servicio.UmbralEfectivo()
+        Try
+            _umbral = _servicio.UmbralEfectivo()
+        Catch ex As Exception
+            ' La pantalla debe seguir disponible para consulta aunque no pueda
+            ' recuperar el umbral configurado. El valor alternativo se informa.
+            _umbral = 10000D
+            errorUmbral = True
+            RegistroErrores.Escribir("Cumplimiento - cargar umbral inicial", ex)
+        End Try
         lblNotaUmbral.Text = "Umbral de efectivo configurado: $" & _umbral.ToString("N2") &
             ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
 
@@ -158,6 +182,16 @@ Public Class FrmCumplimiento
             End If
         Else
             MostrarMensaje("", True)
+        End If
+
+        Dim mensajeErrorInicial As String = ""
+        If errorCatalogos Then mensajeErrorInicial &= "No se pudieron cargar los catálogos. "
+        If errorOperaciones Then mensajeErrorInicial &= "No se pudieron cargar las operaciones de cumplimiento. "
+        If errorArco Then mensajeErrorInicial &= "No se pudieron cargar las solicitudes ARCO. "
+        If errorUmbral Then mensajeErrorInicial &= "No se pudo recuperar el umbral configurado; se aplicó temporalmente el valor predeterminado de $10,000.00. "
+
+        If mensajeErrorInicial.Length > 0 Then
+            MostrarMensaje(mensajeErrorInicial.Trim(), False)
         End If
 
         _permisosInicializados = True
