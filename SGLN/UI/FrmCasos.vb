@@ -453,7 +453,8 @@ Public Class FrmCasos
     ''' Resalta visualmente estados de expediente y actuaciones sin alterar los datos.
     ''' </summary>
     Private Sub dgvCasos_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvCasos.CellFormatting
-        If e.RowIndex < 0 OrElse Not dgvCasos.Columns.Contains("Estado") Then Return
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
+           dgvCasos.Columns(e.ColumnIndex).Name <> "Estado" Then Return
         Dim estado As String = Convert.ToString(dgvCasos.Rows(e.RowIndex).Cells("Estado").Value)
         Select Case estado.Trim().ToUpperInvariant()
             Case "ACTIVO"
@@ -467,7 +468,8 @@ Public Class FrmCasos
 
 
     Private Sub dgvActuaciones_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvActuaciones.CellFormatting
-        If e.RowIndex < 0 OrElse Not dgvActuaciones.Columns.Contains("Estado") Then Return
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
+           dgvActuaciones.Columns(e.ColumnIndex).Name <> "Estado" Then Return
         Dim estado As String = Convert.ToString(dgvActuaciones.Rows(e.RowIndex).Cells("Estado").Value)
         Select Case estado.Trim().ToUpperInvariant()
             Case "VENCIDO"
