@@ -25,8 +25,14 @@ Public Class CumplimientoRepositorio
             "FROM Operaciones_LDAFT o " &
             "LEFT JOIN Casos c ON c.ID = o.ID_Caso " &
             "LEFT JOIN Instrumentos i ON i.ID = o.ID_Instrumento " &
-            "WHERE (@filtro IS NULL OR o.Descripcion LIKE @like OR o.Tipo_Operacion LIKE @like " &
-            "       OR IFNULL(c.Numero_Expediente, '') LIKE @like) " &
+            "WHERE (@filtro IS NULL OR @filtro = '' " &
+            "       OR o.Descripcion LIKE @like " &
+            "       OR o.Tipo_Operacion LIKE @like " &
+            "       OR o.Moneda LIKE @like " &
+            "       OR o.Estado LIKE @like " &
+            "       OR o.Observaciones LIKE @like " &
+            "       OR IFNULL(c.Numero_Expediente, '') LIKE @like " &
+            "       OR CAST(IFNULL(i.Numero_Escritura, 0) AS CHAR) LIKE @like) " &
             "ORDER BY o.Fecha_Operacion DESC, o.ID DESC",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@filtro", texto)
