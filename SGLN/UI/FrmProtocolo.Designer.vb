@@ -434,7 +434,7 @@ Partial Class FrmProtocolo
         '
         ' txtBuscarInstrumento
         '
-        Me.txtBuscarInstrumento.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtBuscarInstrumento.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.txtBuscarInstrumento.Location = New System.Drawing.Point(62, 11)
         Me.txtBuscarInstrumento.Name = "txtBuscarInstrumento"
         Me.txtBuscarInstrumento.Size = New System.Drawing.Size(508, 23)
