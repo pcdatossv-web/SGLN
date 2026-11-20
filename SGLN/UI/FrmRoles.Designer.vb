@@ -178,7 +178,7 @@ Partial Class FrmRoles
         Me.Controls.Add(Me.grpEditor)
         Me.Controls.Add(Me.dgvRoles)
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
-        Me.MinimumSize = New System.Drawing.Size(1150, 680)
+        Me.MinimumSize = New System.Drawing.Size(1220, 740)
         Me.Name = "FrmRoles"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Text = "Roles y permisos"
