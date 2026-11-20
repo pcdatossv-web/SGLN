@@ -392,6 +392,75 @@ Public Class UsuarioRepositorio
     ''' Desactiva una cuenta mediante una operación separada de la edición
     ''' general. Mantiene la protección del último administrador activo.
     ''' </summary>
+    ''' <summary>
+    ''' Reactiva una cuenta únicamente si su rol continúa activo.
+    ''' La operación y su auditoría se confirman en una sola transacción.
+    ''' </summary>
+    Public Function Activar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id Then
+            Return Respuesta.Fallo("No puede reactivar la cuenta con la que inició sesión.")
+        End If
+
+        Try
+            Dim resultado As Integer = EnTransaccion(
+                Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    Dim idRol As Integer
+                    Dim activo As Boolean
+                    Using comandoEstado As New MySqlCommand(
+                        "SELECT u.ID_Rol, u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(comandoEstado, "@id", id)
+                        Using lector As MySqlDataReader = comandoEstado.ExecuteReader()
+                            If Not lector.Read() Then Return 0
+                            idRol = Convert.ToInt32(lector("ID_Rol"))
+                            activo = Convert.ToBoolean(lector("Activo"))
+                        End Using
+                    End Using
+                    If activo Then Return 2
+
+                    Dim rolActivo As Boolean = False
+                    Dim esAdministrador As Boolean = False
+                    Using comandoRol As New MySqlCommand(
+                        "SELECT Activo, Protegido FROM Roles WHERE ID = @id FOR UPDATE",
+                        conexion, transaccion)
+                        Parametro(comandoRol, "@id", idRol)
+                        Using lector As MySqlDataReader = comandoRol.ExecuteReader()
+                            If lector.Read() Then
+                                rolActivo = Convert.ToBoolean(lector("Activo"))
+                                esAdministrador = Convert.ToBoolean(lector("Protegido"))
+                            End If
+                        End Using
+                    End Using
+                    If Not rolActivo Then Return -3
+                    If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
+
+                    Dim afectadas As Integer = Ejecutar(conexion, transaccion,
+                        "UPDATE Usuarios SET Activo = 1 WHERE ID = @id AND Activo = 0",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", id)
+                        End Sub)
+                    If afectadas > 0 Then
+                        AuditarEnTransaccion(conexion, transaccion, "ACTIVAR", "Usuarios", id,
+                            "Cuenta reactivada por administrador")
+                    End If
+                    Return afectadas
+                End Function)
+
+            If resultado = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
+            If resultado = -2 Then Return Respuesta.Fallo("Solo un administrador puede reactivar otra cuenta Administrador.")
+            If resultado = -3 Then Return Respuesta.Fallo("No se puede reactivar el usuario porque su rol está desactivado. Active primero el rol correspondiente.")
+            If resultado = 2 Then Return Respuesta.Ok("El usuario ya estaba activo.")
+            Return Respuesta.Ok("Usuario reactivado correctamente.")
+        Catch ex As MySqlException When ex.Number = 1644
+            Return Respuesta.Fallo(ex.Message)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - reactivar", ex)
+            Return Respuesta.Fallo("No se pudo reactivar el usuario. Verifique la conexión y vuelva a intentarlo.")
+        End Try
+    End Function
+
     Public Function Desactivar(id As Integer) As Respuesta
         If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
