@@ -113,7 +113,12 @@
     <Compile Include="Servicios\ServicioUsuarios.vb" />
     <Compile Include="Servicios\ServicioRoles.vb" />
     <Compile Include="UI\UtileriasUI.vb" />
-    <Compile Include="UI\FrmPrimerAdministrador.vb" />
+    <Compile Include="UI\FrmPrimerAdministrador.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmPrimerAdministrador.Designer.vb">
+      <DependentUpon>FrmPrimerAdministrador.vb</DependentUpon>
+    </Compile>
     <Compile Include="UI\FrmCambioClave.vb">
       <SubType>Form</SubType>
     </Compile>
