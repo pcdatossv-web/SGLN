@@ -668,7 +668,6 @@ Public Class FrmCumplimiento
 
         e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
         e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
-        e.CellStyle.Font = New Font(dgvOperaciones.Font, FontStyle.Bold)
         e.FormattingApplied = True
     End Sub
 
@@ -696,7 +695,6 @@ Public Class FrmCumplimiento
 
         e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
         e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
-        e.CellStyle.Font = New Font(dgvArco.Font, FontStyle.Bold)
         e.FormattingApplied = True
     End Sub
 
