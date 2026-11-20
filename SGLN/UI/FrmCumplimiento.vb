@@ -79,6 +79,13 @@ Public Class FrmCumplimiento
         txtObservacionesOp.MaxLength = 500
         txtDetalleArco.MaxLength = 1000
 
+        ' Las operaciones registradas no pueden tener fecha futura.
+        ' El servicio vuelve a validar esta regla antes de guardar.
+        If dtpFechaOperacion.Value.Date > Date.Today Then
+            dtpFechaOperacion.Value = Date.Today
+        End If
+        dtpFechaOperacion.MaxDate = Date.Today
+
         cboTipoOperacion.Items.Clear()
         cboTipoOperacion.Items.AddRange(New Object() {"Regulada", "Inusual", "Sospechosa"})
         cboTipoOperacion.SelectedIndex = 0
