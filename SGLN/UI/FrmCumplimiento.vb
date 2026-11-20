@@ -157,8 +157,13 @@ Public Class FrmCumplimiento
             errorUmbral = True
             RegistroErrores.Escribir("Cumplimiento - cargar umbral inicial", ex)
         End Try
-        lblNotaUmbral.Text = "Umbral de efectivo configurado: $" & _umbral.ToString("N2") &
-            ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
+        If errorUmbral Then
+            lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. Se usa temporalmente el valor predeterminado de $" &
+                _umbral.ToString("N2") & "; confirme la configuración antes de evaluar operaciones."
+        Else
+            lblNotaUmbral.Text = "Umbral de efectivo configurado: $" & _umbral.ToString("N2") &
+                ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
+        End If
 
         LimpiarOperacion()
         LimpiarSolicitud()
