@@ -387,7 +387,21 @@ Public Class FrmDocumentos
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             CargarGrid()
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarFiltro()
         End If
+    End Sub
+
+    Private Sub LimpiarFiltro()
+        txtFiltro.Clear()
+        If cboFiltroTipo.Items.Count > 0 Then cboFiltroTipo.SelectedIndex = 0
+        CargarGrid()
+        txtFiltro.Focus()
+    End Sub
+
+    Private Sub btnLimpiarFiltro_Click(sender As Object, e As EventArgs) Handles btnLimpiarFiltro.Click
+        LimpiarFiltro()
     End Sub
 
     Private Sub btnBuscar_Click(sender As Object, e As EventArgs) Handles btnBuscar.Click
