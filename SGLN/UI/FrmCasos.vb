@@ -245,9 +245,14 @@ Public Class FrmCasos
 
     Private Sub AplicarPlazoDelTipo()
         Dim vista As DataRowView = TryCast(cboTipoActuacion.SelectedItem, DataRowView)
-        If vista Is Nothing Then Return
-        If Not vista.Row.Table.Columns.Contains("Plazo_Dias_Default") Then Return
-        If vista.Row.IsNull("Plazo_Dias_Default") Then Return
+        If vista Is Nothing OrElse
+           Not vista.Row.Table.Columns.Contains("Plazo_Dias_Default") OrElse
+           vista.Row.IsNull("Plazo_Dias_Default") Then
+            ' No conservar el plazo del tipo anterior cuando el nuevo catálogo
+            ' no tenga un valor referencial definido.
+            nudPlazoDias.Value = nudPlazoDias.Minimum
+            Return
+        End If
 
         Dim dias As Integer = Convert.ToInt32(vista.Row("Plazo_Dias_Default"))
         If dias > 0 Then
@@ -255,6 +260,8 @@ Public Class FrmCasos
             lblPropuesta.Text = "Plazo referencial del catálogo: " & dias.ToString() &
                 " días. Verifique el plazo legal aplicable antes de calcular."
             lblPropuesta.ForeColor = Color.DarkOrange
+        Else
+            nudPlazoDias.Value = nudPlazoDias.Minimum
         End If
     End Sub
 
