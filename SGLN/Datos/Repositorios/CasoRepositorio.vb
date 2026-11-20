@@ -11,14 +11,6 @@ Public Class CasoRepositorio
     ''' <summary>
     ''' Revalida la sesión una vez y consulta los permisos desde la matriz vigente.
     ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Buscar(filtro As String) As DataTable
         If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
@@ -43,7 +35,7 @@ Public Class CasoRepositorio
     ''' Solo se usa al vincular documentos y no devuelve datos del caso.
     ''' </summary>
     Public Function ExisteParaVinculoDocumento(id As Integer) As Boolean
-        If id <= 0 OrElse Not TieneAccesoAlguno("documentos.importar", "documentos.metadatos") Then Return False
+        If id <= 0 OrElse Not Permisos.TieneAccesoAlguno("documentos.importar", "documentos.metadatos") Then Return False
         Return Consultar("SELECT ID FROM Casos WHERE ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
@@ -285,7 +277,7 @@ Public Class CasoRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")

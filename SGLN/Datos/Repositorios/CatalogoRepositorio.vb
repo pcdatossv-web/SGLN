@@ -12,35 +12,27 @@ Public Class CatalogoRepositorio
     ''' <summary>
     ''' Revalida una vez por consulta y evalúa los permisos desde la matriz actual.
     ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Juzgados() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' (', Materia, ')') AS Nombre FROM Juzgados " &
             "WHERE Activo = 1 ORDER BY Nombre")
     End Function
 
     Public Function TiposActuacion() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' - ', Plazo_Dias_Default, ' días') AS Nombre, " &
             "Plazo_Dias_Default FROM Tipos_Actuacion WHERE Activo = 1 ORDER BY Nombre")
     End Function
 
     Public Function Feriados() As DataTable
-        If Not TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 
     Public Function FechasFeriadas() As List(Of Date)
-        Dim puedeConsultar As Boolean = TieneAccesoAlguno(
+        Dim puedeConsultar As Boolean = Permisos.TieneAccesoAlguno(
             "casos.confirmar_plazo",
             "protocolo.ver", "protocolo.entregar", "protocolo.gestionar",
             "cumplimiento.ver", "cumplimiento.operaciones",
@@ -62,14 +54,14 @@ Public Class CatalogoRepositorio
         Select Case claveNormalizada
             Case "Umbral_Efectivo", "LDA_Analisis_Dias", "LDA_Reporte_Dias",
                  "ARCO_Dias_Respuesta", "ARCO_Dias_Prorroga"
-                permisoLectura = TieneAccesoAlguno(
+                permisoLectura = Permisos.TieneAccesoAlguno(
                     "cumplimiento.ver", "cumplimiento.operaciones",
                     "cumplimiento.arco", "cumplimiento.reportar_uif")
             Case "Protocolo_Dias_Entrega"
-                permisoLectura = TieneAccesoAlguno(
+                permisoLectura = Permisos.TieneAccesoAlguno(
                     "protocolo.ver", "protocolo.entregar", "protocolo.gestionar")
             Case "Carpeta_Documentos"
-                permisoLectura = TieneAccesoAlguno(
+                permisoLectura = Permisos.TieneAccesoAlguno(
                     "documentos.ver", "documentos.importar",
                     "documentos.verificar", "documentos.metadatos")
             Case Else

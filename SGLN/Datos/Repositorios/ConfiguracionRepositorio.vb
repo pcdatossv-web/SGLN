@@ -19,14 +19,6 @@ Public Class ConfiguracionRepositorio
     ''' <summary>
     ''' Revalida la sesión una vez y consulta los permisos desde la matriz vigente.
     ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Listar() As DataTable
         If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
         Return Consultar("SELECT Clave, Valor FROM Configuracion ORDER BY Clave")
@@ -38,7 +30,7 @@ Public Class ConfiguracionRepositorio
         Dim claveNormalizada As String = clave.Trim()
         Dim puedeLeer As Boolean
         If String.Equals(claveNormalizada, "Carpeta_Respaldos", StringComparison.OrdinalIgnoreCase) Then
-            puedeLeer = TieneAccesoAlguno("config.ver", "config.respaldos")
+            puedeLeer = Permisos.TieneAccesoAlguno("config.ver", "config.respaldos")
         Else
             puedeLeer = Permisos.TieneAcceso("config.ver")
         End If
@@ -88,7 +80,7 @@ Public Class ConfiguracionRepositorio
     End Sub
 
     Public Function Feriados() As DataTable
-        If Not TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 

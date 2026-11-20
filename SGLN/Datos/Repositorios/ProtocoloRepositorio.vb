@@ -12,14 +12,6 @@ Public Class ProtocoloRepositorio
     ''' <summary>
     ''' Revalida la sesión una vez y consulta los permisos desde la matriz vigente.
     ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     ' ------------------------------------------------------------------
     ' Libros
     ' ------------------------------------------------------------------
@@ -33,7 +25,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
-        If id <= 0 OrElse Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar",
+        If id <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar",
                                                  "protocolo.cerrar_libro", "protocolo.entregar",
                                                  "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
@@ -259,7 +251,7 @@ Public Class ProtocoloRepositorio
     ''' los datos del instrumento a usuarios sin permiso de consulta del protocolo.
     ''' </summary>
     Public Function ExisteInstrumentoParaVinculoDocumento(id As Integer) As Boolean
-        If id <= 0 OrElse Not TieneAccesoAlguno("documentos.importar", "documentos.metadatos") Then Return False
+        If id <= 0 OrElse Not Permisos.TieneAccesoAlguno("documentos.importar", "documentos.metadatos") Then Return False
         Return Consultar("SELECT ID FROM Instrumentos WHERE ID = @id",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", id)
@@ -267,7 +259,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ObtenerInstrumento(id As Integer) As DataTable
-        If id <= 0 OrElse Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar",
+        If id <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar",
                                                  "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Instrumentos WHERE ID = @id",
@@ -371,7 +363,7 @@ Public Class ProtocoloRepositorio
     ''' una anulación conserva el asiento y nunca libera sus folios para reutilización.
     ''' </summary>
     Public Function FoliosOcupados(idLibro As Integer, idExcluir As Integer) As DataTable
-        If idLibro <= 0 OrElse Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT Numero_Escritura, Folio_Inicio, Folio_Fin FROM Instrumentos " &
             "WHERE ID_Libro = @libro AND ID <> @excluir",
@@ -535,7 +527,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function InstrumentosSinOtorgante(idLibro As Integer) As Integer
-        If idLibro <= 0 OrElse Not TieneAccesoAlguno("protocolo.gestionar", "protocolo.cerrar_libro") Then Return 0
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.gestionar", "protocolo.cerrar_libro") Then Return 0
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Instrumentos i " &
             "WHERE i.ID_Libro = @libro AND i.Estado = 'Vigente' " &
@@ -664,7 +656,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Testimonios(idLibro As Integer) As DataTable
-        If idLibro <= 0 OrElse Not TieneAccesoAlguno("protocolo.ver", "protocolo.testimonios") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT t.ID, i.Numero_Escritura, t.Tipo_Testimonio, t.Fecha_Expedicion, " &
             "       t.Destinatario, IFNULL(t.Usuario, '') AS Usuario " &
@@ -782,7 +774,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
-        If idLibro <= 0 OrElse Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
         ' GROUP_CONCAT reemplaza el STUFF/FOR XML de SQL Server: agrupa los
         ' otorgantes de cada escritura en una sola celda.
         Return Consultar(
@@ -800,7 +792,7 @@ Public Class ProtocoloRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos, IFNULL(CONCAT(' (', DUI, ')'), '')) AS Nombre " &
             "FROM Clientes WHERE Activo = 1 ORDER BY Apellidos, Nombres")

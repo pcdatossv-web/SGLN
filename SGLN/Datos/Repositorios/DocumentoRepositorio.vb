@@ -25,26 +25,18 @@ Public Class DocumentoRepositorio
     ''' Revalida la sesión una vez y consulta la matriz de permisos vigente.
     ''' El repositorio mantiene esta barrera aunque se invoque sin pasar por el servicio.
     ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Private Function PuedeConsultarDocumentos() As Boolean
-        Return TieneAccesoAlguno("documentos.ver", "documentos.verificar",
+        Return Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar",
                                  "documentos.metadatos", "documentos.importar")
     End Function
 
     Private Function PuedeCargarCombosDocumentos() As Boolean
-        Return TieneAccesoAlguno("documentos.ver", "documentos.importar",
+        Return Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar",
                                  "documentos.metadatos")
     End Function
 
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
 
