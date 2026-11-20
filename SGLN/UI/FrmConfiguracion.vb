@@ -10,6 +10,12 @@ Public Class FrmConfiguracion
     Private ReadOnly _servicio As New ServicioConfiguracion()
     Private _respaldando As Boolean
     Private _cargando As Boolean
+    Private _permisosInicializados As Boolean
+    Private _permisoConfigVer As Boolean
+    Private _permisoConfigEditar As Boolean
+    Private _permisoFeriados As Boolean
+    Private _permisoSeguridad As Boolean
+    Private _permisoRespaldos As Boolean
 
     Private Sub FrmConfiguracion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Resolver permisos una vez y mostrar únicamente las áreas autorizadas.
@@ -57,6 +63,33 @@ Public Class FrmConfiguracion
         End If
 
         MostrarMensaje("", True)
+
+        _permisoConfigVer = puedeVerConfig
+        _permisoConfigEditar = puedeEditarConfig
+        _permisoFeriados = puedeFeriados
+        _permisoSeguridad = puedeSeguridad
+        _permisoRespaldos = puedeRespaldos
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub FrmConfiguracion_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        ' Las pestañas se filtran al abrir. Si cambia cualquier permiso,
+        ' cerrar evita conservar datos de una sección cuyo acceso fue revocado.
+        If Permisos.Puede("config.ver") <> _permisoConfigVer OrElse
+           Permisos.Puede("config.editar") <> _permisoConfigEditar OrElse
+           Permisos.Puede("config.feriados") <> _permisoFeriados OrElse
+           Permisos.Puede("config.seguridad") <> _permisoSeguridad OrElse
+           Permisos.Puede("config.respaldos") <> _permisoRespaldos Then
+            Close()
+        End If
     End Sub
 
     ''' <summary>
