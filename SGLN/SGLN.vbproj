@@ -119,6 +119,12 @@
     <Compile Include="UI\FrmPrimerAdministrador.Designer.vb">
       <DependentUpon>FrmPrimerAdministrador.vb</DependentUpon>
     </Compile>
+    <Compile Include="UI\FrmCapturaClave.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FrmCapturaClave.Designer.vb">
+      <DependentUpon>FrmCapturaClave.vb</DependentUpon>
+    </Compile>
     <Compile Include="UI\FrmCambioClave.vb">
       <SubType>Form</SubType>
     </Compile>
