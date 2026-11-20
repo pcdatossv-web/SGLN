@@ -178,7 +178,7 @@ Partial Class FrmUsuarios
         ' txtClaveNueva
         '
         Me.txtClaveNueva.Location = New System.Drawing.Point(20, 46)
-        Me.txtClaveNueva.MaxLength = 100
+        Me.txtClaveNueva.MaxLength = 128
         Me.txtClaveNueva.Name = "txtClaveNueva"
         Me.txtClaveNueva.Size = New System.Drawing.Size(200, 23)
         Me.txtClaveNueva.TabIndex = 1
@@ -196,7 +196,7 @@ Partial Class FrmUsuarios
         ' txtClaveConfirmar
         '
         Me.txtClaveConfirmar.Location = New System.Drawing.Point(235, 46)
-        Me.txtClaveConfirmar.MaxLength = 100
+        Me.txtClaveConfirmar.MaxLength = 128
         Me.txtClaveConfirmar.Name = "txtClaveConfirmar"
         Me.txtClaveConfirmar.Size = New System.Drawing.Size(203, 23)
         Me.txtClaveConfirmar.TabIndex = 3
