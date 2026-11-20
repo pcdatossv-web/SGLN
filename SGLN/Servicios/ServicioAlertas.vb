@@ -122,10 +122,11 @@ Public Class ServicioAlertas
 
         If consultas.Count = 0 Then Return New DataTable()
 
-        ' Limitar el volumen que se transfiere y enlaza al panel. Se consulta
-        ' un registro adicional para poder advertir si existen más alertas.
+        ' Se ordena antes de calcular los plazos hábiles de entrega al
+        ' Notariado. El límite visual se aplica después de ese cálculo para
+        ' no descartar alertas válidas por una fecha de cierre aún no vencida.
         Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
-            " ORDER BY Prioridad, Fecha_Referencia LIMIT 201")
+            " ORDER BY Prioridad, Fecha_Referencia")
 
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
@@ -153,9 +154,9 @@ Public Class ServicioAlertas
             resultado.AcceptChanges()
         End If
 
-        ' El panel muestra como máximo 200 alertas para evitar enlazar miles
-        ' de filas históricas en cada actualización. La fila 201 solo indica
-        ' que el resultado fue truncado; no se presenta al usuario.
+        ' El panel presenta como máximo 200 alertas para mantener una
+        ' interfaz manejable. El cálculo de vencimientos se completa antes
+        ' de truncar, para no ocultar alertas válidas de plazos hábiles.
         Dim alertasLimitadas As Boolean = resultado.Rows.Count > 200
         resultado.ExtendedProperties("AlertasLimitadas") = alertasLimitadas
         If alertasLimitadas Then
