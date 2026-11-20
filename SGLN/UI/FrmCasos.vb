@@ -446,18 +446,21 @@ Public Class FrmCasos
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
         AplicarPlazoDelTipo()
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub dtpFechaNotificacion_ValueChanged(sender As Object, e As EventArgs) Handles dtpFechaNotificacion.ValueChanged
         _fechaPropuesta = Nothing
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub nudPlazoDias_ValueChanged(sender As Object, e As EventArgs) Handles nudPlazoDias.ValueChanged
         _fechaPropuesta = Nothing
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
+        ActualizarAccionesPlazo()
     End Sub
 
 End Class
