@@ -44,6 +44,10 @@ Public Class FrmCasos
 
         _cargando = True
         CargarCombos()
+        Dim errorCargaCombos As Boolean =
+            cboCliente.DataSource Is Nothing OrElse
+            cboJuzgado.DataSource Is Nothing OrElse
+            cboTipoActuacion.DataSource Is Nothing
         CargarGrid("", False)
         _cargando = False
         Dim errorCargaLista As Boolean = dgvCasos.DataSource Is Nothing
@@ -66,6 +70,8 @@ Public Class FrmCasos
         ActualizarVencidas()
         If errorCargaLista Then
             MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
+        ElseIf errorCargaCombos Then
+            MostrarMensaje("No se pudieron cargar los catálogos de casos. Verifique la conexión con la base de datos.", False)
         End If
 
         _permisosInicializados = True
