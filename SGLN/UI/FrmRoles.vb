@@ -23,7 +23,9 @@ Public Class FrmRoles
 
         UtileriasUI.ConfigurarGrid(dgvRoles)
         CargarCatalogoPermisos()
-        CargarRoles()
+        ' La pantalla inicia en modo alta; no consultar los permisos del primer rol
+        ' para limpiarlos inmediatamente después.
+        CargarRoles(False)
         Nuevo()
         _permisosInicializados = True
     End Sub
@@ -80,7 +82,7 @@ Public Class FrmRoles
         End Try
     End Sub
 
-    Private Sub CargarRoles()
+    Private Sub CargarRoles(Optional cargarDetalleSeleccionado As Boolean = True)
         Dim errorCarga As Boolean = False
         Try
             _cargando = True
@@ -98,14 +100,16 @@ Public Class FrmRoles
             dgvRoles.DataSource = Nothing
         Finally
             _cargando = False
-            Dim actual As DataRow = UtileriasUI.FilaActual(dgvRoles)
-            If actual Is Nothing Then
-                Nuevo()
-                If errorCarga Then
-                    Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
+            If cargarDetalleSeleccionado Then
+                Dim actual As DataRow = UtileriasUI.FilaActual(dgvRoles)
+                If actual Is Nothing Then
+                    Nuevo()
+                    If errorCarga Then
+                        Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
+                    End If
+                Else
+                    dgvRoles_SelectionChanged(dgvRoles, EventArgs.Empty)
                 End If
-            Else
-                dgvRoles_SelectionChanged(dgvRoles, EventArgs.Empty)
             End If
         End Try
     End Sub
