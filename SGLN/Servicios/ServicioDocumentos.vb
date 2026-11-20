@@ -38,9 +38,9 @@ Public Class ServicioDocumentos
         Return _repositorio.CasosCombo()
     End Function
 
-    Public Function InstrumentosCombo() As DataTable
+    Public Function InstrumentosCombo(Optional idInstrumentoActual As Integer? = Nothing) As DataTable
         If Not (Permisos.TieneAcceso("documentos.ver") OrElse Permisos.TieneAcceso("documentos.importar") OrElse Permisos.TieneAcceso("documentos.metadatos")) Then Return New DataTable()
-        Return _repositorio.InstrumentosCombo()
+        Return _repositorio.InstrumentosCombo(idInstrumentoActual)
     End Function
 
     ''' <summary>
