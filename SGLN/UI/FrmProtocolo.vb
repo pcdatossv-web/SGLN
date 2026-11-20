@@ -126,8 +126,13 @@ Public Class FrmProtocolo
     Private Sub FrmProtocolo_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
         If Not _permisosInicializados OrElse IsDisposed Then Return
 
-        If Not Permisos.RevalidarSesion() OrElse Not Permisos.Puede("protocolo.ver") Then
+        If Not Permisos.RevalidarSesion() Then
             Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("protocolo.ver") Then
             Close()
             Return
         End If
