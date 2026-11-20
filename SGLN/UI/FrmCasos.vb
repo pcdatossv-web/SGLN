@@ -89,6 +89,11 @@ Public Class FrmCasos
             Return
         End If
 
+        If Not Permisos.Puede("casos.ver") Then
+            Close()
+            Return
+        End If
+
         AplicarPermisosInterfaz()
     End Sub
 
