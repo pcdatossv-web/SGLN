@@ -1,0 +1,57 @@
+Imports System
+Imports System.Windows.Forms
+
+''' <summary>Diálogo reutilizable para capturar y confirmar claves.</summary>
+Partial Public Class FrmCapturaClave
+
+    Private ReadOnly _modoCambioInicial As Boolean
+    Public Property ClaveCapturada As String
+
+    Public Sub New(modoCambioInicial As Boolean, titulo As String, instruccion As String)
+        InitializeComponent()
+        _modoCambioInicial = modoCambioInicial
+        Text = titulo
+        lblInstruccion.Text = instruccion
+        lblConfirmar.Visible = modoCambioInicial
+        txtConfirmar.Visible = modoCambioInicial
+        If modoCambioInicial Then
+            lblClave.Text = "Nueva clave:"
+            btnAceptar.Text = "Guardar clave"
+            ClientSize = New System.Drawing.Size(424, 235)
+        Else
+            lblClave.Text = "Clave actual:"
+            btnAceptar.Text = "Verificar y continuar"
+            ClientSize = New System.Drawing.Size(424, 145)
+            btnAceptar.Location = New System.Drawing.Point(160, 100)
+            btnCancelar.Location = New System.Drawing.Point(286, 100)
+        End If
+        ActiveControl = txtClave
+    End Sub
+
+    Private Sub btnAceptar_Click(sender As Object, e As EventArgs) Handles btnAceptar.Click
+        If _modoCambioInicial Then
+            Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(txtClave.Text)
+            If errorClave <> "" Then
+                MessageBox.Show(errorClave, "Clave no válida", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                txtClave.Focus()
+                Return
+            End If
+            If Not String.Equals(txtClave.Text, txtConfirmar.Text, StringComparison.Ordinal) Then
+                MessageBox.Show("La confirmación no coincide con la nueva clave.",
+                                "Clave no válida", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                txtConfirmar.Clear()
+                txtConfirmar.Focus()
+                Return
+            End If
+        ElseIf String.IsNullOrEmpty(txtClave.Text) Then
+            MessageBox.Show("Ingrese su clave actual.", "Dato requerido",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtClave.Focus()
+            Return
+        End If
+
+        ClaveCapturada = txtClave.Text
+        DialogResult = DialogResult.OK
+        Close()
+    End Sub
+End Class
