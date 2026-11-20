@@ -19,7 +19,7 @@ Public Class CasoRepositorio
             "LEFT JOIN Juzgados j ON j.ID = c.ID_Juzgado " &
             "WHERE (@filtro IS NULL OR c.Numero_Expediente LIKE @like " &
             "       OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like " &
-            "       OR c.Materia LIKE @like OR IFNULL(j.Nombre, '') LIKE @like) " &
+            "       OR c.Materia LIKE @like OR IFNULL(j.Nombre, '') LIKE @like OR IFNULL(c.Responsable, '') LIKE @like OR IFNULL(c.Descripcion, '') LIKE @like) " &
             "ORDER BY c.Fecha_Apertura DESC, c.Numero_Expediente",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@filtro", texto)
