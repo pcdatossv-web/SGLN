@@ -70,7 +70,11 @@ Public Class FrmProtocolo
                 dgvComparecientes.DataSource = Nothing
                 dgvTestimonios.DataSource = Nothing
                 dgvIndice.DataSource = Nothing
-                MostrarMensaje("El libro asociado a la alerta ya no está disponible.", False)
+                If dgvLibros.DataSource Is Nothing Then
+                    MostrarMensaje("No se pudieron cargar los libros. Verifique la conexión con la base de datos.", False)
+                Else
+                    MostrarMensaje("El libro asociado a la alerta ya no está disponible.", False)
+                End If
             End If
         Else
             ' No cargar automáticamente el primer libro y luego descartar sus datos.
@@ -85,7 +89,11 @@ Public Class FrmProtocolo
             _cargando = False
             LimpiarLibro()
             LimpiarInstrumento()
-            MostrarMensaje("", True)
+            If dgvLibros.DataSource Is Nothing Then
+                MostrarMensaje("No se pudieron cargar los libros. Verifique la conexión con la base de datos.", False)
+            Else
+                MostrarMensaje("", True)
+            End If
         End If
 
         _permisosInicializados = True
