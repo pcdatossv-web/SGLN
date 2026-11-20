@@ -26,10 +26,19 @@ Public Class FrmCumplimiento
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler btnLimpiarOp.Click, AddressOf btnLimpiarOp_Click
         AddHandler btnLimpiarArco.Click, AddressOf btnLimpiarArco_Click
-        Dim puedeVer As Boolean = Permisos.TieneAcceso("cumplimiento.ver")
-        _puedeGestionarOperaciones = Permisos.TieneAcceso("cumplimiento.operaciones")
-        _puedeReportar = Permisos.TieneAcceso("cumplimiento.reportar_uif")
-        _puedeArco = Permisos.TieneAcceso("cumplimiento.arco")
+        ' La pantalla puede exponer dos secciones independientes. Validar la
+        ' sesión una vez y consultar la matriz ya cargada evita cuatro viajes
+        ' redundantes a MySQL durante la apertura del formulario.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Me.Close()
+            Return
+        End If
+
+        Dim puedeVer As Boolean = Permisos.Puede("cumplimiento.ver")
+        _puedeGestionarOperaciones = Permisos.Puede("cumplimiento.operaciones")
+        _puedeReportar = Permisos.Puede("cumplimiento.reportar_uif")
+        _puedeArco = Permisos.Puede("cumplimiento.arco")
         Dim puedeOperaciones As Boolean = _puedeGestionarOperaciones
         Dim puedeReportar As Boolean = _puedeReportar
         Dim puedeArco As Boolean = _puedeArco
