@@ -117,6 +117,9 @@
     <Compile Include="UI\FrmCambioClave.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\FrmCambioClave.Designer.vb">
+      <DependentUpon>FrmCambioClave.vb</DependentUpon>
+    </Compile>
     <Compile Include="UI\FrmLogin.vb">
       <SubType>Form</SubType>
     </Compile>
