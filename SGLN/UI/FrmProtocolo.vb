@@ -245,8 +245,17 @@ Public Class FrmProtocolo
             Dim cierre As Date? = UtileriasUI.Fecha(fila, "Fecha_Cierre")
             txtFechaCierre.Text = If(cierre.HasValue, cierre.Value.ToString("dd/MM/yyyy"), "Sin cerrar")
 
+            ' La fecha de entrega solo puede registrarse desde el cierre del libro
+            ' y hasta hoy. Reflejar ambas reglas en el selector evita errores de captura.
+            dtpFechaEntrega.MaxDate = Date.Today
+            dtpFechaEntrega.MinDate = If(cierre.HasValue AndAlso cierre.Value.Date > DateTimePicker.MinimumDateTime.Date,
+                                        cierre.Value.Date, DateTimePicker.MinimumDateTime)
+
             Dim entrega As Date? = UtileriasUI.Fecha(fila, "Fecha_Entrega_Notariado")
-            dtpFechaEntrega.Value = entrega.GetValueOrDefault(Date.Today)
+            Dim fechaEntrega As Date = entrega.GetValueOrDefault(Date.Today)
+            If fechaEntrega < dtpFechaEntrega.MinDate Then fechaEntrega = dtpFechaEntrega.MinDate
+            If fechaEntrega > dtpFechaEntrega.MaxDate Then fechaEntrega = dtpFechaEntrega.MaxDate
+            dtpFechaEntrega.Value = fechaEntrega
 
             lblLimiteEntrega.Text = ""
             If cierre.HasValue Then
@@ -275,6 +284,8 @@ Public Class FrmProtocolo
         cboEstadoLibro.SelectedIndex = 0
         txtRazonCierre.Clear()
         txtFechaCierre.Text = "Sin cerrar"
+        dtpFechaEntrega.MaxDate = Date.Today
+        dtpFechaEntrega.MinDate = DateTimePicker.MinimumDateTime
         dtpFechaEntrega.Value = Date.Today
         lblLimiteEntrega.Text = ""
     End Sub
