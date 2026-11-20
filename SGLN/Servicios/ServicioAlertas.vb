@@ -10,11 +10,14 @@ Public Class ServicioAlertas
     Inherits RepositorioBase
 
     Public Function ObtenerAlertas() As DataTable
-        If Sesion.UsuarioActual Is Nothing Then Return New DataTable()
+        ' Revalidar una sola vez por consulta. Las comprobaciones posteriores
+        ' usan la instantánea recién cargada y evitan repetir lecturas de sesión
+        ' y matriz de permisos por cada bloque de alertas.
+        If Not Permisos.RevalidarSesion() Then Return New DataTable()
 
         Dim consultas As New List(Of String)()
 
-        If Permisos.TieneAcceso("casos.ver") Then
+        If Permisos.Puede("casos.ver") Then
             consultas.Add(
                 "SELECT 'Plazo vencido' AS Tipo, " &
                 "CONCAT('Actuación vencida: ', t.Nombre, ' - Exp. ', c.Numero_Expediente) AS Descripcion, " &
@@ -35,7 +38,7 @@ Public Class ServicioAlertas
                 "BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)")
         End If
 
-        If Permisos.TieneAcceso("clientes.ver") Then
+        If Permisos.Puede("clientes.ver") Then
             consultas.Add(
                 "SELECT 'LDA/FT' AS Tipo, " &
                 "CONCAT('Perfil de alto riesgo incompleto: ', c.Nombres, ' ', c.Apellidos) AS Descripcion, " &
@@ -45,7 +48,7 @@ Public Class ServicioAlertas
                 "OR p.Fecha_Verificacion_Listas IS NULL OR p.Fecha_Verificacion_Listas < DATE_SUB(CURDATE(), INTERVAL 1 YEAR))")
         End If
 
-        If Permisos.TieneAcceso("entidades.ver") Then
+        If Permisos.Puede("entidades.ver") Then
             consultas.Add(
                 "SELECT 'LDA/FT' AS Tipo, " &
                 "CONCAT('Perfil de alto riesgo incompleto (entidad): ', e.Razon_Social) AS Descripcion, " &
@@ -55,7 +58,7 @@ Public Class ServicioAlertas
                 "OR p.Fecha_Verificacion_Listas IS NULL OR p.Fecha_Verificacion_Listas < DATE_SUB(CURDATE(), INTERVAL 1 YEAR))")
         End If
 
-        If Permisos.TieneAcceso("protocolo.ver") Then
+        If Permisos.Puede("protocolo.ver") Then
             consultas.Add(
                 "SELECT 'Protocolo' AS Tipo, " &
                 "CONCAT('Libro vencido sin cerrar: ', CAST(l.Numero_Libro AS CHAR), '/', CAST(l.Anio_Vigencia AS CHAR)) AS Descripcion, " &
@@ -77,8 +80,8 @@ Public Class ServicioAlertas
 
         ' Las alertas UIF y ARCO se agregan por separado para no exponer
         ' datos de una categoría a usuarios con permisos exclusivos de la otra.
-        If Permisos.TieneAcceso("cumplimiento.ver") OrElse
-           Permisos.TieneAcceso("cumplimiento.reportar_uif") Then
+        If Permisos.Puede("cumplimiento.ver") OrElse
+           Permisos.Puede("cumplimiento.reportar_uif") Then
             consultas.Add(
                 "SELECT 'UIF vencido' AS Tipo, " &
                 "CONCAT('Reporte UIF vencido desde ', DATE_FORMAT(o.Fecha_Vencimiento_Reporte, '%d/%m/%Y')) AS Descripcion, " &
@@ -95,8 +98,8 @@ Public Class ServicioAlertas
                 "AND o.Fecha_Vencimiento_Reporte BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)")
         End If
 
-        If Permisos.TieneAcceso("cumplimiento.ver") OrElse
-           Permisos.TieneAcceso("cumplimiento.arco") Then
+        If Permisos.Puede("cumplimiento.ver") OrElse
+           Permisos.Puede("cumplimiento.arco") Then
             consultas.Add(
                 "SELECT 'ARCO vencida' AS Tipo, " &
                 "CONCAT('Solicitud ARCO vencida: ', a.Tipo_Derecho) AS Descripcion, " &
@@ -139,7 +142,7 @@ Public Class ServicioAlertas
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
         ' aproximar con DATE_ADD(..., 15 DAY), porque generaría alertas falsas.
-        If Permisos.TieneAcceso("protocolo.ver") Then
+        If Permisos.Puede("protocolo.ver") Then
             Dim protocolo As New ServicioProtocolo()
             For indice As Integer = resultado.Rows.Count - 1 To 0 Step -1
                 Dim fila As DataRow = resultado.Rows(indice)
@@ -177,28 +180,30 @@ Public Class ServicioAlertas
     End Function
 
     Public Function ObtenerResumen() As String
-        If Sesion.UsuarioActual Is Nothing Then Return ""
+        ' El resumen es una consulta independiente: valida la sesión una vez
+        ' antes de construir únicamente los contadores autorizados.
+        If Not Permisos.RevalidarSesion() Then Return ""
 
         Dim columnas As New List(Of String)()
         Dim etiquetas As New List(Of String)()
 
-        If Permisos.TieneAcceso("clientes.ver") Then
+        If Permisos.Puede("clientes.ver") Then
             columnas.Add("(SELECT COUNT(*) FROM Clientes WHERE Activo = 1) AS Clientes")
             etiquetas.Add("Clientes activos")
         End If
-        If Permisos.TieneAcceso("casos.ver") Then
+        If Permisos.Puede("casos.ver") Then
             columnas.Add("(SELECT COUNT(*) FROM Casos WHERE Estado = 'Activo') AS Casos")
             etiquetas.Add("Casos activos")
         End If
-        If Permisos.TieneAcceso("protocolo.ver") Then
+        If Permisos.Puede("protocolo.ver") Then
             columnas.Add("(SELECT COUNT(*) FROM Libros_Protocolo WHERE Estado = 'Vigente') AS Libros")
             etiquetas.Add("Libros vigentes")
         End If
-        If Permisos.TieneAcceso("documentos.ver") Then
+        If Permisos.Puede("documentos.ver") Then
             columnas.Add("(SELECT COUNT(*) FROM Documentos) AS Documentos")
             etiquetas.Add("Documentos")
         End If
-        If Permisos.TieneAcceso("auditoria.ver") Then
+        If Permisos.Puede("auditoria.ver") Then
             columnas.Add("(SELECT COUNT(*) FROM Audit_Log) AS Eventos")
             etiquetas.Add("Eventos auditados")
         End If
