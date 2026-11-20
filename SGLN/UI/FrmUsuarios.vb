@@ -105,7 +105,7 @@ Public Class FrmUsuarios
         ' El servicio vuelve a validar la regla del último administrador activo.
         chkActivo.Enabled = Sesion.UsuarioActual IsNot Nothing AndAlso
                             _idSeleccionado <> Sesion.UsuarioActual.ID
-        btnDesactivar.Enabled = chkActivo.Checked
+        ActualizarEstadoAccionesUsuario()
         ' No ofrecer la eliminación de la cuenta que mantiene abierta la sesión.
         ' El servicio conserva la misma restricción como control definitivo.
         btnEliminar.Enabled =
@@ -114,6 +114,20 @@ Public Class FrmUsuarios
             Sesion.UsuarioActual IsNot Nothing AndAlso
             _idSeleccionado <> Sesion.UsuarioActual.ID
         Mostrar("", True)
+    End Sub
+
+    Private Sub chkActivo_CheckedChanged(sender As Object, e As EventArgs) Handles chkActivo.CheckedChanged
+        If _cargando Then Return
+        ActualizarEstadoAccionesUsuario()
+    End Sub
+
+    Private Sub ActualizarEstadoAccionesUsuario()
+        Dim esOtroUsuario As Boolean =
+            _idSeleccionado > 0 AndAlso
+            Sesion.UsuarioActual IsNot Nothing AndAlso
+            _idSeleccionado <> Sesion.UsuarioActual.ID
+
+        btnDesactivar.Enabled = esOtroUsuario AndAlso chkActivo.Checked
     End Sub
 
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
