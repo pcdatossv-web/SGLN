@@ -16,6 +16,7 @@ Public Class FrmRoles
     Private _esProtegido As Boolean
     Private _cargando As Boolean
     Private _catalogoDisponible As Boolean
+    Private _permisosInicializados As Boolean
 
     Private Sub FrmRoles_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.roles", Me) Then Return
@@ -24,6 +25,19 @@ Public Class FrmRoles
         CargarCatalogoPermisos()
         CargarRoles()
         Nuevo()
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub FrmRoles_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("config.roles") Then Close()
     End Sub
 
     ''' <summary>
