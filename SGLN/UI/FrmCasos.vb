@@ -429,6 +429,10 @@ Public Class FrmCasos
                 If celda.Visible Then
                     dgvCasos.CurrentCell = celda
                     _cargando = False
+                    ' El evento SelectionChanged se omite durante la selección
+                    ' programática; cargar explícitamente el caso mantiene
+                    ' sincronizados el registro visible y el detalle editable.
+                    CargarCaso(id)
                     Return True
                 End If
             Next
