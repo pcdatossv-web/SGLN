@@ -264,6 +264,50 @@ Public Class FrmPrincipal
     ''' Las alertas de plazos transportan el ID del expediente para abrir
     ''' directamente el registro relacionado; las demás abren su módulo.
     ''' </summary>
+    ''' <summary>
+    ''' Destaca la prioridad y proximidad de los vencimientos sin alterar
+    ''' los datos enlazados ni crear recursos GDI durante el repintado.
+    ''' </summary>
+    Private Sub dgvAlertas_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvAlertas.CellFormatting
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
+           e.Value Is Nothing OrElse e.Value Is DBNull.Value Then Return
+
+        Dim nombreColumna As String = dgvAlertas.Columns(e.ColumnIndex).Name
+        If String.Equals(nombreColumna, "Prioridad", StringComparison.OrdinalIgnoreCase) Then
+            Select Case Convert.ToString(e.Value).Trim()
+                Case "Alta"
+                    e.CellStyle.BackColor = Color.MistyRose
+                    e.CellStyle.ForeColor = Color.Firebrick
+                Case "Media"
+                    e.CellStyle.BackColor = Color.LemonChiffon
+                    e.CellStyle.ForeColor = Color.DarkGoldenrod
+                Case Else
+                    Return
+            End Select
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+            e.FormattingApplied = True
+            Return
+        End If
+
+        If String.Equals(nombreColumna, "Fecha_Referencia", StringComparison.OrdinalIgnoreCase) Then
+            Dim fecha As Date
+            If Not Date.TryParse(Convert.ToString(e.Value), fecha) Then Return
+            If fecha.Date < Date.Today Then
+                e.CellStyle.BackColor = Color.MistyRose
+                e.CellStyle.ForeColor = Color.Firebrick
+            ElseIf fecha.Date <= Date.Today.AddDays(3) Then
+                e.CellStyle.BackColor = Color.LemonChiffon
+                e.CellStyle.ForeColor = Color.DarkGoldenrod
+            Else
+                Return
+            End If
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+            e.FormattingApplied = True
+        End If
+    End Sub
+
     Private Sub dgvAlertas_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvAlertas.CellDoubleClick
         If e.RowIndex < 0 OrElse e.RowIndex >= dgvAlertas.Rows.Count Then Return
 
