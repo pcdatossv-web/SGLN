@@ -60,6 +60,7 @@ Public Class FrmProtocolo
             Else
                 _cargando = True
                 cboLibro.SelectedIndex = -1
+                dgvLibros.ClearSelection()
                 dgvLibros.CurrentCell = Nothing
                 _cargando = False
                 _idLibro = 0
@@ -81,6 +82,8 @@ Public Class FrmProtocolo
             ' Sin contexto inicial, dejar el selector y las secciones dependientes vacíos.
             _cargando = True
             cboLibro.SelectedIndex = -1
+            dgvLibros.ClearSelection()
+            dgvLibros.CurrentCell = Nothing
             cboInstrumentoTest.DataSource = Nothing
             dgvInstrumentos.DataSource = Nothing
             dgvComparecientes.DataSource = Nothing
