@@ -48,10 +48,12 @@ Public Class FrmDocumentos
         cboFiltroTipo.Items.AddRange(CType(tipos, Object()))
         cboFiltroTipo.SelectedIndex = 0
 
+        ' Cargar solo la lista al iniciar; no consultar el detalle de la primera
+        ' fila para borrarlo inmediatamente. Limpiar deja los combos en modo alta.
         _cargando = True
-        CargarCombos()
-        CargarGrid()
+        CargarGrid(False)
         _cargando = False
+        CargarCombos()
         Limpiar()
 
         btnProcesarIA.Enabled = False ' Integración IA/OCR aún no implementada.
@@ -126,7 +128,7 @@ Public Class FrmDocumentos
         Return tabla
     End Function
 
-    Private Sub CargarGrid()
+    Private Sub CargarGrid(Optional cargarDetalleSeleccionado As Boolean = True)
         Try
             Dim tipo As String = ""
             If cboFiltroTipo.SelectedIndex > 0 Then tipo = Convert.ToString(cboFiltroTipo.SelectedItem)
@@ -141,16 +143,20 @@ Public Class FrmDocumentos
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
             If actual IsNot Nothing Then
-                CargarDetalle(actual)
-            Else
-                ' No conservar el ID anterior cuando un filtro deja la lista vacía.
-                ' De lo contrario, Abrir/Verificar podría operar sobre un documento
-                ' que ya no está seleccionado ni aparece en los resultados.
+                If cargarDetalleSeleccionado Then CargarDetalle(actual)
+            ElseIf cargarDetalleSeleccionado Then
+                ' Al quedar sin resultados, restablecer el catálogo base para no
+                ' conservar instrumentos históricos de la selección anterior.
+                _cargando = True
+                CargarCombos()
+                _cargando = False
                 Limpiar()
             End If
         Catch ex As Exception
-            _cargando = False
+            _cargando = True
             dgvDocumentos.DataSource = Nothing
+            CargarCombos()
+            _cargando = False
             Limpiar()
             RegistroErrores.Escribir("Documentos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
@@ -161,7 +167,11 @@ Public Class FrmDocumentos
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
         If fila Is Nothing Then
-            ' Evitar conservar un documento operativo después de perder la selección.
+            ' Evitar conservar un documento operativo y catálogos históricos
+            ' después de perder la selección.
+            _cargando = True
+            CargarCombos()
+            _cargando = False
             Limpiar()
             Return
         End If
