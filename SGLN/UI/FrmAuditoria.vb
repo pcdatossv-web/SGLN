@@ -16,7 +16,7 @@ Public Class FrmAuditoria
         ' el botón sincronizado con la matriz de permisos evita ofrecer una
         ' acción que el usuario no puede ejecutar; Exportar vuelve a validar
         ' el permiso antes de abrir el diálogo de archivo.
-        btnExportar.Enabled = Permisos.Puede("auditoria.exportar")
+        ActualizarEstadoExportacion()
 
         UtileriasUI.ConfigurarGrid(dgvAuditoria)
 
@@ -81,6 +81,7 @@ Public Class FrmAuditoria
     Private Sub Buscar()
         If dtpDesde.Value.Date > dtpHasta.Value.Date Then
             dgvAuditoria.DataSource = Nothing
+            ActualizarEstadoExportacion()
             lblResumen.Text = "Rango de fechas no válido."
             MostrarMensaje("La fecha inicial no puede ser posterior a la fecha final.", False)
             Return
@@ -104,14 +105,23 @@ Public Class FrmAuditoria
             _cargando = False
 
             lblResumen.Text = "Registros encontrados: " & dgvAuditoria.Rows.Count.ToString("N0")
+            ActualizarEstadoExportacion()
         Catch ex As Exception
             _cargando = False
             dgvAuditoria.DataSource = Nothing
+            ActualizarEstadoExportacion()
             lblResumen.Text = "No se pudo cargar la bitácora."
             RegistroErrores.Escribir("Auditoría - buscar", ex)
             MostrarMensaje("No se pudo consultar la bitácora de auditoría. Verifique los filtros y la conexión con la base de datos.", False)
         End Try
     End Sub
+
+    Private Sub ActualizarEstadoExportacion()
+        Dim tabla As DataTable = TryCast(dgvAuditoria.DataSource, DataTable)
+        btnExportar.Enabled = Permisos.Puede("auditoria.exportar") AndAlso
+                             tabla IsNot Nothing AndAlso tabla.Rows.Count > 0
+    End Sub
+
 
     Private Function ValorFiltro(combo As ComboBox) As String
         If combo.SelectedValue Is Nothing Then Return ""
