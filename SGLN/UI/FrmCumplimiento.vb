@@ -102,8 +102,6 @@ Public Class FrmCumplimiento
         cboEstadoOperacion.Items.Clear()
         cboEstadoOperacion.Items.AddRange(New Object() {"Registrada", "En análisis", "Reportada", "Descartada"})
         cboEstadoOperacion.SelectedIndex = 0
-        ' El estado cambia únicamente mediante acciones controladas (reportar/descartar).
-        cboEstadoOperacion.Enabled = False
 
         cboMoneda.Items.Clear()
         cboMoneda.Items.AddRange(New Object() {"USD"})
