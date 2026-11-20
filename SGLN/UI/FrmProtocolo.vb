@@ -12,46 +12,12 @@ Public Class FrmProtocolo
     ''' <summary>Libro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDLibroInicial As Integer
     Private _idInstrumento As Integer
+    Private _permisosInicializados As Boolean
 
     Private Sub FrmProtocolo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("protocolo.ver", Me) Then Return
 
-        Dim puedeGestionar As Boolean = Permisos.TieneAcceso("protocolo.gestionar")
-        Dim puedeCerrar As Boolean = Permisos.TieneAcceso("protocolo.cerrar_libro")
-        Dim puedeEntregar As Boolean = Permisos.TieneAcceso("protocolo.entregar")
-        Dim puedeExpedirTestimonios As Boolean = Permisos.TieneAcceso("protocolo.testimonios")
-
-        ' Los controles de edición reflejan los permisos desde que abre el
-        ' formulario; el servicio conserva la validación obligatoria de cada acción.
-        nudNumeroLibro.Enabled = puedeGestionar
-        nudAnio.Enabled = puedeGestionar
-        dtpFechaAutorizacion.Enabled = puedeGestionar
-        dtpFechaVencimiento.Enabled = puedeGestionar
-        cboEstadoLibro.Enabled = False
-        btnNuevoLibro.Enabled = puedeGestionar
-        btnGuardarLibro.Enabled = puedeGestionar
-        txtRazonCierre.Enabled = puedeCerrar
-        btnCerrarLibro.Enabled = puedeCerrar
-        dtpFechaEntrega.Enabled = puedeEntregar
-        btnEntregarLibro.Enabled = puedeEntregar
-
-        nudNumeroEscritura.Enabled = puedeGestionar
-        dtpFechaHoraOtorgamiento.Enabled = puedeGestionar
-        nudFolioInicio.Enabled = puedeGestionar
-        nudFolioFin.Enabled = puedeGestionar
-        txtObjeto.Enabled = puedeGestionar
-        cboEstadoInstrumento.Enabled = False
-        btnNuevoInstrumento.Enabled = puedeGestionar
-        btnGuardarInstrumento.Enabled = puedeGestionar
-        btnAnularInstrumento.Enabled = puedeGestionar
-
-        cboClienteComp.Enabled = puedeGestionar
-        cboCalidad.Enabled = puedeGestionar
-        btnAgregarComp.Enabled = puedeGestionar
-        btnQuitarComp.Enabled = puedeGestionar
-
-        grpTestimonio.Enabled = puedeExpedirTestimonios
-        btnGenerarIndice.Enabled = puedeGestionar
+        AplicarPermisosInterfaz()
         txtRazonCierre.MaxLength = 1000
         txtObjeto.MaxLength = 500
         txtDestinatario.MaxLength = 200
@@ -112,6 +78,61 @@ Public Class FrmProtocolo
             LimpiarInstrumento()
             MostrarMensaje("", True)
         End If
+
+        _permisosInicializados = True
+    End Sub
+
+    ''' <summary>
+    ''' Aplica la matriz vigente a los controles del protocolo. Los servicios
+    ''' mantienen su propia comprobación antes de ejecutar cada operación.
+    ''' </summary>
+    Private Sub AplicarPermisosInterfaz()
+        Dim puedeGestionar As Boolean = Permisos.Puede("protocolo.gestionar")
+        Dim puedeCerrar As Boolean = Permisos.Puede("protocolo.cerrar_libro")
+        Dim puedeEntregar As Boolean = Permisos.Puede("protocolo.entregar")
+        Dim puedeExpedirTestimonios As Boolean = Permisos.Puede("protocolo.testimonios")
+
+        nudNumeroLibro.Enabled = puedeGestionar
+        nudAnio.Enabled = puedeGestionar
+        dtpFechaAutorizacion.Enabled = puedeGestionar
+        dtpFechaVencimiento.Enabled = puedeGestionar
+        cboEstadoLibro.Enabled = False
+        btnNuevoLibro.Enabled = puedeGestionar
+        btnGuardarLibro.Enabled = puedeGestionar
+        txtRazonCierre.Enabled = puedeCerrar
+        btnCerrarLibro.Enabled = puedeCerrar
+        dtpFechaEntrega.Enabled = puedeEntregar
+        btnEntregarLibro.Enabled = puedeEntregar
+
+        nudNumeroEscritura.Enabled = puedeGestionar
+        dtpFechaHoraOtorgamiento.Enabled = puedeGestionar
+        nudFolioInicio.Enabled = puedeGestionar
+        nudFolioFin.Enabled = puedeGestionar
+        txtObjeto.Enabled = puedeGestionar
+        cboEstadoInstrumento.Enabled = False
+        btnNuevoInstrumento.Enabled = puedeGestionar
+        btnGuardarInstrumento.Enabled = puedeGestionar
+        btnAnularInstrumento.Enabled = puedeGestionar
+
+        cboClienteComp.Enabled = puedeGestionar
+        cboCalidad.Enabled = puedeGestionar
+        btnAgregarComp.Enabled = puedeGestionar
+        btnQuitarComp.Enabled = puedeGestionar
+
+        grpTestimonio.Enabled = puedeExpedirTestimonios
+        btnGenerarIndice.Enabled = puedeGestionar
+    End Sub
+
+    Private Sub FrmProtocolo_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() OrElse Not Permisos.Puede("protocolo.ver") Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        AplicarPermisosInterfaz()
     End Sub
 
     ' ------------------------------------------------------------------
