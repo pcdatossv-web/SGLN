@@ -44,7 +44,7 @@ Public Class FrmCambioClave
         _btnGuardar.Text = "Guardar"
         _btnGuardar.Location = New Point(165, 210)
         _btnGuardar.Size = New Size(120, 32)
-        AddHandler _btnGuardar.Click, AddressOf Guardar
+        AddHandler _btnGuardar.Click, AddressOf GuardarClick
         Me.Controls.Add(_btnGuardar)
 
         _btnCancelar.Text = "Cancelar"
@@ -75,8 +75,21 @@ Public Class FrmCambioClave
         Me.Controls.Add(campo)
     End Sub
 
-    Private Sub Guardar(sender As Object, e As EventArgs)
+    Private Sub GuardarClick(sender As Object, e As EventArgs)
+        UtileriasUI.EjecutarUnaVez(_btnGuardar, AddressOf Guardar)
+    End Sub
+
+    Private Sub Guardar()
         Try
+            If Not Permisos.RevalidarSesion() Then
+                Sesion.CerrarSesionSolicitado = True
+                _lblMensaje.ForeColor = Color.Firebrick
+                _lblMensaje.Text = "La sesión ya no está activa. Inicie sesión nuevamente."
+                Me.DialogResult = DialogResult.Cancel
+                Me.Close()
+                Return
+            End If
+
             If Sesion.UsuarioActual Is Nothing Then
                 _lblMensaje.ForeColor = Color.Firebrick
                 _lblMensaje.Text = "La sesión ya no está activa. Inicie sesión nuevamente."
