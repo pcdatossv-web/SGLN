@@ -165,7 +165,7 @@ Public Class FrmAuditoria
     End Sub
 
     Private Sub btnExportar_Click(sender As Object, e As EventArgs) Handles btnExportar.Click
-        Exportar()
+        UtileriasUI.EjecutarUnaVez(btnExportar, AddressOf Exportar)
     End Sub
 
 End Class
