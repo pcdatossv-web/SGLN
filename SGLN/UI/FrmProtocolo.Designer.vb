@@ -48,6 +48,8 @@ Partial Class FrmProtocolo
         Me.btnEntregarLibro = New System.Windows.Forms.Button()
         Me.tabInstrumentos = New System.Windows.Forms.TabPage()
         Me.dgvInstrumentos = New System.Windows.Forms.DataGridView()
+        Me.lblBuscarInstrumento = New System.Windows.Forms.Label()
+        Me.txtBuscarInstrumento = New System.Windows.Forms.TextBox()
         Me.grpInstrumento = New System.Windows.Forms.GroupBox()
         Me.lblNumeroEscritura = New System.Windows.Forms.Label()
         Me.nudNumeroEscritura = New System.Windows.Forms.NumericUpDown()
@@ -399,6 +401,8 @@ Partial Class FrmProtocolo
         '
         ' tabInstrumentos
         '
+        Me.tabInstrumentos.Controls.Add(Me.lblBuscarInstrumento)
+        Me.tabInstrumentos.Controls.Add(Me.txtBuscarInstrumento)
         Me.tabInstrumentos.Controls.Add(Me.dgvInstrumentos)
         Me.tabInstrumentos.Controls.Add(Me.grpInstrumento)
         Me.tabInstrumentos.Controls.Add(Me.grpComparecientes)
@@ -414,10 +418,28 @@ Partial Class FrmProtocolo
         '
         Me.dgvInstrumentos.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvInstrumentos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvInstrumentos.Location = New System.Drawing.Point(10, 10)
+        Me.dgvInstrumentos.Location = New System.Drawing.Point(10, 42)
         Me.dgvInstrumentos.Name = "dgvInstrumentos"
-        Me.dgvInstrumentos.Size = New System.Drawing.Size(560, 605)
-        Me.dgvInstrumentos.TabIndex = 0
+        Me.dgvInstrumentos.Size = New System.Drawing.Size(560, 573)
+        Me.dgvInstrumentos.TabIndex = 2
+        '
+        ' lblBuscarInstrumento
+        '
+        Me.lblBuscarInstrumento.AutoSize = True
+        Me.lblBuscarInstrumento.Location = New System.Drawing.Point(10, 15)
+        Me.lblBuscarInstrumento.Name = "lblBuscarInstrumento"
+        Me.lblBuscarInstrumento.Size = New System.Drawing.Size(43, 15)
+        Me.lblBuscarInstrumento.TabIndex = 0
+        Me.lblBuscarInstrumento.Text = "Buscar:"
+        '
+        ' txtBuscarInstrumento
+        '
+        Me.txtBuscarInstrumento.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtBuscarInstrumento.Location = New System.Drawing.Point(62, 11)
+        Me.txtBuscarInstrumento.Name = "txtBuscarInstrumento"
+        Me.txtBuscarInstrumento.Size = New System.Drawing.Size(508, 23)
+        Me.txtBuscarInstrumento.TabIndex = 1
+        Me.txtBuscarInstrumento.MaxLength = 120
         '
         ' grpInstrumento
         '
@@ -904,6 +926,8 @@ Partial Class FrmProtocolo
     Friend WithEvents btnEntregarLibro As System.Windows.Forms.Button
     Friend WithEvents tabInstrumentos As System.Windows.Forms.TabPage
     Friend WithEvents dgvInstrumentos As System.Windows.Forms.DataGridView
+    Friend WithEvents lblBuscarInstrumento As System.Windows.Forms.Label
+    Friend WithEvents txtBuscarInstrumento As System.Windows.Forms.TextBox
     Friend WithEvents grpInstrumento As System.Windows.Forms.GroupBox
     Friend WithEvents lblNumeroEscritura As System.Windows.Forms.Label
     Friend WithEvents nudNumeroEscritura As System.Windows.Forms.NumericUpDown
