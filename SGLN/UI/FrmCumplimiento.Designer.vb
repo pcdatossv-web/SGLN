@@ -335,6 +335,7 @@ Partial Class FrmCumplimiento
         Me.txtDescripcionOp.Location = New System.Drawing.Point(15, 212)
         Me.txtDescripcionOp.Multiline = True
         Me.txtDescripcionOp.Name = "txtDescripcionOp"
+        Me.txtDescripcionOp.MaxLength = 1000
         Me.txtDescripcionOp.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtDescripcionOp.Size = New System.Drawing.Size(508, 55)
         Me.txtDescripcionOp.TabIndex = 7
@@ -396,6 +397,7 @@ Partial Class FrmCumplimiento
         Me.txtObservacionesOp.Location = New System.Drawing.Point(15, 355)
         Me.txtObservacionesOp.Multiline = True
         Me.txtObservacionesOp.Name = "txtObservacionesOp"
+        Me.txtObservacionesOp.MaxLength = 500
         Me.txtObservacionesOp.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtObservacionesOp.Size = New System.Drawing.Size(508, 55)
         Me.txtObservacionesOp.TabIndex = 10
@@ -654,6 +656,7 @@ Partial Class FrmCumplimiento
         Me.txtDetalleArco.Location = New System.Drawing.Point(15, 212)
         Me.txtDetalleArco.Multiline = True
         Me.txtDetalleArco.Name = "txtDetalleArco"
+        Me.txtDetalleArco.MaxLength = 1000
         Me.txtDetalleArco.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtDetalleArco.Size = New System.Drawing.Size(508, 85)
         Me.txtDetalleArco.TabIndex = 7
