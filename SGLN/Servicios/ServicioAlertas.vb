@@ -126,7 +126,8 @@ Public Class ServicioAlertas
         ' Notariado. El límite visual se aplica después de ese cálculo para
         ' no descartar alertas válidas por una fecha de cierre aún no vencida.
         Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
-            " ORDER BY Prioridad, Fecha_Referencia")
+            " ORDER BY CASE Prioridad WHEN 'Alta' THEN 0 WHEN 'Media' THEN 1 ELSE 2 END, " &
+            "(Fecha_Referencia IS NULL), Fecha_Referencia, Tipo, ID_Referencia, Descripcion")
 
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
