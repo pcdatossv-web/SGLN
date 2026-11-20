@@ -18,9 +18,6 @@ Public Class FrmProtocolo
         If Not Permisos.Exigir("protocolo.ver", Me) Then Return
 
         AplicarPermisosInterfaz()
-        txtRazonCierre.MaxLength = 1000
-        txtObjeto.MaxLength = 500
-        txtDestinatario.MaxLength = 200
         ' Exportar el índice es una operación de consulta y queda disponible
         ' para quien ya tiene permiso de lectura del protocolo.
 
