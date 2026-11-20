@@ -146,7 +146,7 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function DiasEntregaConfigurados() As Integer
-        If Not (Permisos.TieneAcceso("protocolo.ver") OrElse Permisos.TieneAcceso("protocolo.entregar") OrElse Permisos.TieneAcceso("protocolo.gestionar")) Then
+        If Not TieneAccesoAlguno("protocolo.ver", "protocolo.entregar", "protocolo.gestionar") Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar la configuración del protocolo.")
         End If
         Dim valor As String = _catalogo.ObtenerConfig("Protocolo_Dias_Entrega")

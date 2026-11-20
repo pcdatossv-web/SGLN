@@ -14,6 +14,17 @@ Public Class ServicioConfiguracion
     Private ReadOnly _repositorio As New ConfiguracionRepositorio()
     Private ReadOnly _usuarios As New UsuarioRepositorio()
 
+    ''' <summary>
+    ''' Revalida la sesión una sola vez cuando una operación admite permisos alternativos.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     Private Const ClavesReservadas As String = "Carpeta_Documentos,Carpeta_Respaldos"
 
     Public Function Listar() As DataTable
@@ -50,7 +61,7 @@ Public Class ServicioConfiguracion
     End Function
 
     Public Function Feriados() As DataTable
-        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
         Return _repositorio.Feriados()
     End Function
 
