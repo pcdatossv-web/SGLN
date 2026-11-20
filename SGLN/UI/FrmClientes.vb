@@ -16,28 +16,7 @@ Public Class FrmClientes
     Private Sub FrmClientes_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("clientes.ver", Me) Then Return
 
-        Dim puedeGestionar As Boolean = Permisos.Puede("clientes.gestionar")
-        btnNuevo.Enabled = puedeGestionar
-        btnGuardar.Enabled = puedeGestionar
-        btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar")
-        btnEntidades.Enabled = Permisos.Puede("entidades.ver")
-
-        ' Permitir consultar y copiar los datos sin habilitar su modificación.
-        txtNombres.ReadOnly = Not puedeGestionar
-        txtApellidos.ReadOnly = Not puedeGestionar
-        txtDUI.ReadOnly = Not puedeGestionar
-        txtNIT.ReadOnly = Not puedeGestionar
-        txtNacionalidad.ReadOnly = Not puedeGestionar
-        txtProfesion.ReadOnly = Not puedeGestionar
-        txtDireccion.ReadOnly = Not puedeGestionar
-        txtTelefono.ReadOnly = Not puedeGestionar
-        txtEmail.ReadOnly = Not puedeGestionar
-        txtDetalleOrigen.ReadOnly = Not puedeGestionar
-        txtObservaciones.ReadOnly = Not puedeGestionar
-        cboNivelRiesgo.Enabled = puedeGestionar
-        chkOrigenVerificado.Enabled = puedeGestionar
-        dtpNacimiento.Enabled = puedeGestionar
-        dtpVerificacionListas.Enabled = puedeGestionar
+        AplicarPermisosInterfaz()
 
         txtNombres.MaxLength = 120
         txtApellidos.MaxLength = 120
@@ -72,6 +51,36 @@ Public Class FrmClientes
         Else
             Limpiar()
         End If
+    End Sub
+
+    ''' <summary>
+    ''' Sincroniza los controles con la matriz de permisos vigente.
+    ''' Debe repetirse al regresar de formularios modales porque el rol puede
+    ''' haber cambiado mientras este formulario permanecía abierto.
+    ''' </summary>
+    Private Sub AplicarPermisosInterfaz()
+        Dim puedeGestionar As Boolean = Permisos.Puede("clientes.gestionar")
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardar.Enabled = puedeGestionar
+        btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar") AndAlso chkActivo.Checked
+        btnEntidades.Enabled = Permisos.Puede("entidades.ver")
+
+        ' Permitir consultar y copiar los datos sin habilitar su modificación.
+        txtNombres.ReadOnly = Not puedeGestionar
+        txtApellidos.ReadOnly = Not puedeGestionar
+        txtDUI.ReadOnly = Not puedeGestionar
+        txtNIT.ReadOnly = Not puedeGestionar
+        txtNacionalidad.ReadOnly = Not puedeGestionar
+        txtProfesion.ReadOnly = Not puedeGestionar
+        txtDireccion.ReadOnly = Not puedeGestionar
+        txtTelefono.ReadOnly = Not puedeGestionar
+        txtEmail.ReadOnly = Not puedeGestionar
+        txtDetalleOrigen.ReadOnly = Not puedeGestionar
+        txtObservaciones.ReadOnly = Not puedeGestionar
+        cboNivelRiesgo.Enabled = puedeGestionar
+        chkOrigenVerificado.Enabled = puedeGestionar
+        dtpNacimiento.Enabled = puedeGestionar
+        dtpVerificacionListas.Enabled = puedeGestionar
     End Sub
 
     Private Sub CargarGrid(filtro As String)
@@ -334,9 +343,21 @@ Public Class FrmClientes
     End Sub
 
     Private Sub btnEntidades_Click(sender As Object, e As EventArgs) Handles btnEntidades.Click
+        If Not Permisos.ExigirAccion("entidades.ver") Then Return
+
         Using formulario As New FrmEntidades()
             formulario.ShowDialog(Me)
         End Using
+
+        ' Al volver del formulario hijo se revalida la cuenta y se refresca
+        ' la interfaz: el rol pudo cambiar mientras el diálogo estaba abierto.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Me.Close()
+            Return
+        End If
+
+        AplicarPermisosInterfaz()
         CargarGrid(txtBuscar.Text.Trim())
     End Sub
 
