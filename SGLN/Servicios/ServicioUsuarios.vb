@@ -104,6 +104,18 @@ Public Class ServicioUsuarios
         Return _repositorio.CambiarClavePropia(id, claveActual, claveNueva)
     End Function
 
+    Public Function Activar(id As Integer) As Respuesta
+        If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
+        If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
+        If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = id Then
+            Return Respuesta.Fallo("No puede reactivar la cuenta con la que inició sesión.")
+        End If
+        If _repositorio.EsAdministrador(id) AndAlso Not EsAdministradorAutenticado() Then
+            Return Respuesta.Fallo("Solo un administrador puede reactivar otra cuenta Administrador.")
+        End If
+        Return _repositorio.Activar(id)
+    End Function
+
     Public Function Desactivar(id As Integer) As Respuesta
         If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
 
