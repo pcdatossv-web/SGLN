@@ -70,10 +70,10 @@ Public Class FrmDocumentos
             "Contrato", "Identificación", "Comprobante", "Otro"}
     End Function
 
-    Private Sub CargarCombos()
+    Private Sub CargarCombos(Optional idInstrumentoActual As Integer? = Nothing)
         Try
             UtileriasUI.CargarCombo(cboCaso, ConOpcionNinguno(_servicio.CasosCombo()), "Nombre", "ID")
-            UtileriasUI.CargarCombo(cboInstrumento, ConOpcionNinguno(_servicio.InstrumentosCombo()), "Nombre", "ID")
+            UtileriasUI.CargarCombo(cboInstrumento, ConOpcionNinguno(_servicio.InstrumentosCombo(idInstrumentoActual)), "Nombre", "ID")
         Catch ex As Exception
             cboCaso.DataSource = Nothing
             cboInstrumento.DataSource = Nothing
@@ -134,7 +134,16 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub CargarDetalle(fila As DataRow)
+        _cargando = True
         _idDocumento = UtileriasUI.Entero(fila, "ID")
+
+        Dim idInstrumentoActual As Integer? = Nothing
+        If Not fila.IsNull("ID_Instrumento") Then
+            idInstrumentoActual = UtileriasUI.Entero(fila, "ID_Instrumento")
+            ' Incluir el instrumento histórico solo para este documento. Los
+            ' instrumentos anulados no se ofrecen como nuevas asociaciones.
+            CargarCombos(idInstrumentoActual)
+        End If
 
         SeleccionarTexto(cboTipoDocumento, UtileriasUI.Texto(fila, "Tipo_Documento"))
         UtileriasUI.SeleccionarValor(cboCaso, If(fila.IsNull("ID_Caso"), 0, fila("ID_Caso")))
@@ -146,6 +155,7 @@ Public Class FrmDocumentos
         Dim fecha As Date? = UtileriasUI.Fecha(fila, "Fecha_Carga")
         txtFechaCarga.Text = If(fecha.HasValue, fecha.Value.ToString("dd/MM/yyyy HH:mm"), "")
 
+        _cargando = False
         ActualizarEdicionMetadatos(False)
         ActualizarAccionesDocumento()
         MostrarMensaje("", True)
