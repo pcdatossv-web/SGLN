@@ -644,6 +644,62 @@ Public Class FrmCumplimiento
         Return False
     End Function
 
+    Private Sub dgvOperaciones_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvOperaciones.CellFormatting
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
+           Not String.Equals(dgvOperaciones.Columns(e.ColumnIndex).Name, "Estado", StringComparison.OrdinalIgnoreCase) OrElse
+           e.Value Is Nothing OrElse e.Value Is DBNull.Value Then Return
+
+        Select Case Convert.ToString(e.Value).Trim()
+            Case "Registrada"
+                e.CellStyle.BackColor = Color.AliceBlue
+                e.CellStyle.ForeColor = Color.DarkSlateBlue
+            Case "En análisis"
+                e.CellStyle.BackColor = Color.LemonChiffon
+                e.CellStyle.ForeColor = Color.DarkGoldenrod
+            Case "Reportada"
+                e.CellStyle.BackColor = Color.Honeydew
+                e.CellStyle.ForeColor = Color.DarkGreen
+            Case "Descartada"
+                e.CellStyle.BackColor = Color.Gainsboro
+                e.CellStyle.ForeColor = Color.DimGray
+            Case Else
+                Return
+        End Select
+
+        e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+        e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+        e.CellStyle.Font = New Font(dgvOperaciones.Font, FontStyle.Bold)
+        e.FormattingApplied = True
+    End Sub
+
+    Private Sub dgvArco_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvArco.CellFormatting
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
+           Not String.Equals(dgvArco.Columns(e.ColumnIndex).Name, "Estado", StringComparison.OrdinalIgnoreCase) OrElse
+           e.Value Is Nothing OrElse e.Value Is DBNull.Value Then Return
+
+        Select Case Convert.ToString(e.Value).Trim()
+            Case "Pendiente"
+                e.CellStyle.BackColor = Color.AliceBlue
+                e.CellStyle.ForeColor = Color.DarkSlateBlue
+            Case "Vencida"
+                e.CellStyle.BackColor = Color.MistyRose
+                e.CellStyle.ForeColor = Color.Firebrick
+            Case "Revisar prórroga"
+                e.CellStyle.BackColor = Color.LemonChiffon
+                e.CellStyle.ForeColor = Color.DarkGoldenrod
+            Case "Respondida"
+                e.CellStyle.BackColor = Color.Honeydew
+                e.CellStyle.ForeColor = Color.DarkGreen
+            Case Else
+                Return
+        End Select
+
+        e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+        e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+        e.CellStyle.Font = New Font(dgvArco.Font, FontStyle.Bold)
+        e.FormattingApplied = True
+    End Sub
+
     ' ------------------------------------------------------------------
     ' Utilidades
     ' ------------------------------------------------------------------
