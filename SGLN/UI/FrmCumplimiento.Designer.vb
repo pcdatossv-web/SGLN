@@ -279,6 +279,7 @@ Partial Class FrmCumplimiento
         ' cboEstadoOperacion
         '
         Me.cboEstadoOperacion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboEstadoOperacion.Enabled = False
         Me.cboEstadoOperacion.FormattingEnabled = True
         Me.cboEstadoOperacion.Location = New System.Drawing.Point(180, 98)
         Me.cboEstadoOperacion.Name = "cboEstadoOperacion"
