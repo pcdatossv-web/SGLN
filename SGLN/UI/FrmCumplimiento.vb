@@ -10,6 +10,7 @@ Public Class FrmCumplimiento
     Private _idOperacion As Integer
     Private _idSolicitud As Integer
     Private _umbral As Decimal
+    Private _puedeVer As Boolean
     Private _puedeGestionarOperaciones As Boolean
     Private _puedeReportar As Boolean
     Private _puedeArco As Boolean
@@ -35,7 +36,8 @@ Public Class FrmCumplimiento
             Return
         End If
 
-        Dim puedeVer As Boolean = Permisos.Puede("cumplimiento.ver")
+        _puedeVer = Permisos.Puede("cumplimiento.ver")
+        Dim puedeVer As Boolean = _puedeVer
         _puedeGestionarOperaciones = Permisos.Puede("cumplimiento.operaciones")
         _puedeReportar = Permisos.Puede("cumplimiento.reportar_uif")
         _puedeArco = Permisos.Puede("cumplimiento.arco")
@@ -220,6 +222,7 @@ Public Class FrmCumplimiento
         Dim puedeArco As Boolean = Permisos.Puede("cumplimiento.arco")
 
         If Not (puedeVer OrElse puedeOperaciones OrElse puedeReportar OrElse puedeArco) OrElse
+           puedeVer <> _puedeVer OrElse
            puedeOperaciones <> _puedeGestionarOperaciones OrElse
            puedeReportar <> _puedeReportar OrElse
            puedeArco <> _puedeArco Then
