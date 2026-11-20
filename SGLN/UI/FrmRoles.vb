@@ -184,6 +184,10 @@ Public Class FrmRoles
     Private Sub Nuevo()
         _idSeleccionado = 0
         _esProtegido = False
+        _cargando = True
+        dgvRoles.ClearSelection()
+        dgvRoles.CurrentCell = Nothing
+        _cargando = False
         txtNombre.ReadOnly = False
         txtNombre.Clear()
         txtDescripcion.Clear()

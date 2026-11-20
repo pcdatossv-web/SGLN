@@ -156,6 +156,10 @@ Public Class FrmUsuarios
 
     Private Sub Nuevo()
         _idSeleccionado = 0
+        _cargando = True
+        dgvUsuarios.ClearSelection()
+        dgvUsuarios.CurrentCell = Nothing
+        _cargando = False
         txtUsuario.ReadOnly = False
         txtUsuario.Clear()
         txtNombre.Clear()
