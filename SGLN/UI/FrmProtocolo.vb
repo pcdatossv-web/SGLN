@@ -9,6 +9,7 @@ Public Class FrmProtocolo
     Private _cargando As Boolean
     Private _idLibro As Integer
     Private _vistaInstrumentos As DataView
+    Private _vistaTestimonios As DataView
 
     ''' <summary>Libro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDLibroInicial As Integer
@@ -702,15 +703,57 @@ Public Class FrmProtocolo
     Private Sub CargarTestimonios()
         If _idLibro <= 0 Then
             dgvTestimonios.DataSource = Nothing
+            _vistaTestimonios = Nothing
+            txtBuscarTestimonio.Clear()
             Return
         End If
 
         Try
-            dgvTestimonios.DataSource = _servicio.Testimonios(_idLibro)
+            Dim tabla As DataTable = _servicio.Testimonios(_idLibro)
+            _cargando = True
+            txtBuscarTestimonio.Clear()
+            _vistaTestimonios = New DataView(tabla)
+            dgvTestimonios.DataSource = _vistaTestimonios
             OcultarColumnas(dgvTestimonios, "ID")
+            _cargando = False
         Catch ex As Exception
+            _cargando = False
             dgvTestimonios.DataSource = Nothing
+            _vistaTestimonios = Nothing
             RegistroErrores.Escribir("Protocolo - testimonios", ex)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Busca dentro del historial ya cargado, sin alterar ni consultar de nuevo
+    ''' los testimonios registrados.
+    ''' </summary>
+    Private Sub AplicarFiltroTestimoniosInterno()
+        If _vistaTestimonios Is Nothing Then Return
+
+        Dim filtro As String = If(txtBuscarTestimonio.Text, "").Trim()
+        If filtro.Length = 0 Then
+            _vistaTestimonios.RowFilter = ""
+            Return
+        End If
+
+        Dim valor As String = filtro.Replace("[", "[[]").Replace("%", "[%]").Replace("*", "[*]").Replace("'", "''")
+        Dim patron As String = "'%" & valor & "%'"
+        _vistaTestimonios.RowFilter =
+            "CONVERT([Numero_Escritura], 'System.String') LIKE " & patron &
+            " OR [Tipo_Testimonio] LIKE " & patron &
+            " OR [Destinatario] LIKE " & patron &
+            " OR [Usuario] LIKE " & patron
+    End Sub
+
+    Private Sub txtBuscarTestimonio_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarTestimonio.TextChanged
+        If _cargando OrElse _vistaTestimonios Is Nothing Then Return
+
+        Try
+            AplicarFiltroTestimoniosInterno()
+        Catch ex As Exception
+            RegistroErrores.Escribir("Protocolo - filtro de testimonios", ex)
+            MostrarMensaje("No se pudo aplicar el filtro del historial de testimonios.", False)
         End Try
     End Sub
 
