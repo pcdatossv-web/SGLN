@@ -19,9 +19,26 @@ Public Class FrmUsuarios
         If Not Permisos.Exigir("config.usuarios", Me) Then Return
 
         UtileriasUI.ConfigurarGrid(dgvUsuarios)
+
+        ' Las rutinas de carga registran y muestran sus propios errores, pero
+        ' la carga posterior o Nuevo() puede limpiar el mensaje. Conservar
+        ' el estado final de ambos orígenes para informar el fallo al usuario.
         CargarRoles()
+        Dim errorRoles As Boolean = cboRol.DataSource Is Nothing
+
         CargarUsuarios()
+        Dim errorUsuarios As Boolean = dgvUsuarios.DataSource Is Nothing
+
         Nuevo()
+
+        If errorRoles AndAlso errorUsuarios Then
+            Mostrar("No se pudieron cargar los roles ni los usuarios. Verifique la conexión con la base de datos.", False)
+        ElseIf errorRoles Then
+            Mostrar("No se pudieron cargar los roles. No será posible asignar un rol hasta recuperar la conexión.", False)
+        ElseIf errorUsuarios Then
+            Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
+        End If
+
         _permisosInicializados = True
     End Sub
 
