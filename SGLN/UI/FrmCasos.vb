@@ -11,6 +11,7 @@ Public Class FrmCasos
     Private _idCaso As Integer
     Private _puedeConfirmarPlazo As Boolean
     Private _puedeCumplirPlazo As Boolean
+    Private _permisosInicializados As Boolean
     Private _fechaPropuesta As Date?
 
     ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
@@ -19,25 +20,7 @@ Public Class FrmCasos
     Private Sub FrmCasos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("casos.ver", Me) Then Return
 
-        ' Mantener la consulta disponible, pero deshabilitar la edición y las
-        ' acciones de plazo que el rol no puede ejecutar.
-        Dim puedeGestionar As Boolean = Permisos.Puede("casos.gestionar")
-        _puedeConfirmarPlazo = Permisos.Puede("casos.confirmar_plazo")
-        _puedeCumplirPlazo = Permisos.Puede("casos.cumplir_plazo")
-        Dim puedeConfirmarPlazo As Boolean = _puedeConfirmarPlazo
-        Dim puedeCumplirPlazo As Boolean = _puedeCumplirPlazo
-
-        btnNuevo.Enabled = puedeGestionar
-        btnGuardarCaso.Enabled = puedeGestionar
-        grpCaso.Enabled = puedeGestionar
-
-        cboTipoActuacion.Enabled = puedeConfirmarPlazo
-        dtpFechaNotificacion.Enabled = puedeConfirmarPlazo
-        nudPlazoDias.Enabled = puedeConfirmarPlazo
-        txtObservaciones.Enabled = puedeConfirmarPlazo
-        btnCalcular.Enabled = puedeConfirmarPlazo
-        btnConfirmarPlazo.Enabled = False
-        btnMarcarCumplida.Enabled = False
+        AplicarPermisosInterfaz()
 
         txtExpediente.MaxLength = 80
         txtResponsable.MaxLength = 120
@@ -71,6 +54,42 @@ Public Class FrmCasos
         Else
             Limpiar()
         End If
+
+        _permisosInicializados = True
+    End Sub
+
+    ''' <summary>
+    ''' Sincroniza los controles y acciones con los permisos actuales de la
+    ''' sesión, conservando el cálculo de plazo que el usuario tenga preparado.
+    ''' </summary>
+    Private Sub AplicarPermisosInterfaz()
+        Dim puedeGestionar As Boolean = Permisos.Puede("casos.gestionar")
+        _puedeConfirmarPlazo = Permisos.Puede("casos.confirmar_plazo")
+        _puedeCumplirPlazo = Permisos.Puede("casos.cumplir_plazo")
+
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardarCaso.Enabled = puedeGestionar
+        grpCaso.Enabled = puedeGestionar
+
+        cboTipoActuacion.Enabled = _puedeConfirmarPlazo
+        dtpFechaNotificacion.Enabled = _puedeConfirmarPlazo
+        nudPlazoDias.Enabled = _puedeConfirmarPlazo
+        txtObservaciones.Enabled = _puedeConfirmarPlazo
+        btnCalcular.Enabled = _puedeConfirmarPlazo
+
+        ActualizarAccionesPlazo()
+    End Sub
+
+    Private Sub FrmCasos_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        AplicarPermisosInterfaz()
     End Sub
 
     Private Sub CargarCombos()
