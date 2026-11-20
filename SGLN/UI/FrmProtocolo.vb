@@ -859,7 +859,7 @@ Public Class FrmProtocolo
         btnExpedirTestimonio.Enabled = puedeTestimonios AndAlso
             (libroVigente OrElse libroCerrado) AndAlso testimonioSeleccionado
 
-        btnGenerarIndice.Enabled = puedeGestionar AndAlso (libroCerrado OrElse libroEntregado) AndAlso indiceDisponible
+        btnGenerarIndice.Enabled = puedeGestionar AndAlso (libroCerrado OrElse libroEntregado)
         btnExportarIndice.Enabled = indiceDisponible AndAlso
             (Permisos.Puede("protocolo.ver") OrElse puedeGestionar)
     End Sub
