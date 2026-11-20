@@ -13,6 +13,7 @@ Public Class FrmCumplimiento
     Private _puedeGestionarOperaciones As Boolean
     Private _puedeReportar As Boolean
     Private _puedeArco As Boolean
+    Private _permisosInicializados As Boolean
     Private _estadoOperacion As String = ""
     Private _operacionReportada As Boolean
     Private _solicitudRespondida As Boolean
@@ -131,6 +132,33 @@ Public Class FrmCumplimiento
             End If
         Else
             MostrarMensaje("", True)
+        End If
+
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub FrmCumplimiento_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        ' Las pestañas se filtran al iniciar. Si cambia cualquier permiso del
+        ' módulo, cerrar este formulario evita conservar pestañas o controles
+        ' visibles con autorizaciones obsoletas; al reabrir se aplica la matriz nueva.
+        Dim puedeVer As Boolean = Permisos.Puede("cumplimiento.ver")
+        Dim puedeOperaciones As Boolean = Permisos.Puede("cumplimiento.operaciones")
+        Dim puedeReportar As Boolean = Permisos.Puede("cumplimiento.reportar_uif")
+        Dim puedeArco As Boolean = Permisos.Puede("cumplimiento.arco")
+
+        If Not (puedeVer OrElse puedeOperaciones OrElse puedeReportar OrElse puedeArco) OrElse
+           puedeOperaciones <> _puedeGestionarOperaciones OrElse
+           puedeReportar <> _puedeReportar OrElse
+           puedeArco <> _puedeArco Then
+            Close()
         End If
     End Sub
 
