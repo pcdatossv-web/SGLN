@@ -238,14 +238,15 @@ jobs:
             throw 'Faltan validaciones de referencias y metadatos documentales.'
           }
           if ($documentoRepo -notmatch 'TipoDocumentoValido\(documento.TipoDocumento\)' -or
-              $documentoRepo -notmatch 'TieneAccesoAlguno\("documentos.ver"' -or
+              $documentoRepo -notmatch 'Permisos.TieneAccesoAlguno\("documentos.ver"' -or
               $documentoRepo -notmatch 'documentos.verificar' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.importar"\)' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.metadatos"\)' -or
-              $documentoRepo -notmatch 'Permisos.RevalidarSesion\(\)' -or
-              $documentoRepo -notmatch 'Permisos.Puede\(codigo\)' -or
               $documentoRepo -notmatch 'PuedeConsultarDocumentos' -or
-              $documentoRepo -notmatch 'PuedeCargarCombosDocumentos') {
+              $documentoRepo -notmatch 'PuedeCargarCombosDocumentos' -or
+              $permisosSource -notmatch 'Public Shared Function TieneAccesoAlguno\(ParamArray codigos As String\(\)\) As Boolean' -or
+              $permisosSource -notmatch 'RevalidarSesion\(\)' -or
+              $permisosSource -notmatch 'Puede\(codigo\)') {
             throw 'El repositorio documental debe validar permisos en cada operación directa.'
           }
           if ($clienteRepo -notmatch 'Permisos.TieneAcceso\("clientes.ver"\)' -or
