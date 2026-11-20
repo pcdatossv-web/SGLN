@@ -69,7 +69,18 @@ Public Class FrmCasos
 
         btnNuevo.Enabled = puedeGestionar
         btnGuardarCaso.Enabled = puedeGestionar
-        grpCaso.Enabled = puedeGestionar
+
+        ' Mantener el expediente legible para usuarios con permiso de consulta,
+        ' aunque no tengan autorización para modificar sus datos.
+        grpCaso.Enabled = True
+        txtExpediente.ReadOnly = Not puedeGestionar
+        txtResponsable.ReadOnly = Not puedeGestionar
+        txtDescripcion.ReadOnly = Not puedeGestionar
+        cboCliente.Enabled = puedeGestionar
+        cboMateria.Enabled = puedeGestionar
+        cboEstado.Enabled = puedeGestionar
+        cboJuzgado.Enabled = puedeGestionar
+        dtpFechaApertura.Enabled = puedeGestionar
 
         cboTipoActuacion.Enabled = _puedeConfirmarPlazo
         dtpFechaNotificacion.Enabled = _puedeConfirmarPlazo
