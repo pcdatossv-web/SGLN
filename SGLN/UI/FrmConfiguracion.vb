@@ -51,8 +51,18 @@ Public Class FrmConfiguracion
         AplicarPermisos()
 
         _cargando = True
-        If puedeVerConfig OrElse puedeEditarConfig Then CargarConfiguracion()
-        If puedeVerConfig OrElse puedeFeriados Then CargarFeriados()
+        Dim errorConfiguracion As Boolean = False
+        Dim errorFeriados As Boolean = False
+
+        If puedeVerConfig OrElse puedeEditarConfig Then
+            CargarConfiguracion()
+            errorConfiguracion = dgvConfig.DataSource Is Nothing
+        End If
+
+        If puedeVerConfig OrElse puedeFeriados Then
+            CargarFeriados()
+            errorFeriados = dgvFeriados.DataSource Is Nothing
+        End If
         _cargando = False
 
         dtpFeriado.Value = Date.Today
@@ -69,6 +79,13 @@ Public Class FrmConfiguracion
         End If
 
         MostrarMensaje("", True)
+        If errorConfiguracion AndAlso errorFeriados Then
+            MostrarMensaje("No se pudieron cargar la configuración ni los feriados. Verifique la conexión con la base de datos.", False)
+        ElseIf errorConfiguracion Then
+            MostrarMensaje("No se pudo cargar la configuración. Verifique la conexión con la base de datos.", False)
+        ElseIf errorFeriados Then
+            MostrarMensaje("No se pudieron cargar los feriados. Verifique la conexión con la base de datos.", False)
+        End If
 
         _permisoConfigVer = puedeVerConfig
         _permisoConfigEditar = puedeEditarConfig
