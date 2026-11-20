@@ -101,7 +101,10 @@ Public Class FrmUsuarios
         txtNombre.Text = UtileriasUI.Texto(fila, "Nombre_Completo")
         UtileriasUI.SeleccionarValor(cboRol, UtileriasUI.Entero(fila, "ID_Rol"))
         chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
-        chkActivo.Enabled = False
+        ' Permitir reactivar/desactivar desde el formulario, excepto la cuenta propia.
+        ' El servicio vuelve a validar la regla del último administrador activo.
+        chkActivo.Enabled = Sesion.UsuarioActual IsNot Nothing AndAlso
+                            _idSeleccionado <> Sesion.UsuarioActual.ID
         btnDesactivar.Enabled = chkActivo.Checked
         ' No ofrecer la eliminación de la cuenta que mantiene abierta la sesión.
         ' El servicio conserva la misma restricción como control definitivo.
