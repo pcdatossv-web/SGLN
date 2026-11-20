@@ -47,7 +47,6 @@ Public Class FrmCasos
         CargarGrid("")
         _cargando = False
 
-        ActualizarVencidas()
         If IDCasoInicial > 0 Then
             If SeleccionarCaso(IDCasoInicial) Then
                 CargarCaso(IDCasoInicial)
@@ -58,6 +57,10 @@ Public Class FrmCasos
         Else
             Limpiar()
         End If
+
+        ' Ejecutar al final de la carga inicial: así el mensaje no se pierde
+        ' al limpiar/seleccionar el expediente y las actuaciones se refrescan.
+        ActualizarVencidas()
 
         _permisosInicializados = True
     End Sub
@@ -408,6 +411,9 @@ Public Class FrmCasos
         Try
             Dim marcadas As Integer = _plazos.ActualizarVencidas()
             If marcadas > 0 Then
+                ' La actualización afecta actuaciones de todos los expedientes.
+                ' Refrescar el detalle visible para no dejar estados obsoletos.
+                If _idCaso > 0 Then CargarActuaciones()
                 MostrarMensaje(marcadas & " plazo(s) se marcaron como vencidos.", True)
             End If
         Catch ex As Exception
