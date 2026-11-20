@@ -21,9 +21,11 @@ Partial Public Class FrmCapturaClave
         Else
             lblClave.Text = "Clave actual:"
             btnAceptar.Text = "Verificar y continuar"
-            ClientSize = New System.Drawing.Size(424, 145)
-            btnAceptar.Location = New System.Drawing.Point(160, 100)
-            btnCancelar.Location = New System.Drawing.Point(286, 100)
+            lblClave.Location = New System.Drawing.Point(18, 58)
+            txtClave.Location = New System.Drawing.Point(18, 78)
+            btnAceptar.Location = New System.Drawing.Point(160, 112)
+            btnCancelar.Location = New System.Drawing.Point(286, 112)
+            ClientSize = New System.Drawing.Size(424, 160)
         End If
         ActiveControl = txtClave
     End Sub
