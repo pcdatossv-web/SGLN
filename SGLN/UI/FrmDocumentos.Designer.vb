@@ -21,6 +21,7 @@ Partial Class FrmDocumentos
         Me.cboFiltroTipo = New System.Windows.Forms.ComboBox()
         Me.btnBuscar = New System.Windows.Forms.Button()
         Me.btnRefrescar = New System.Windows.Forms.Button()
+        Me.btnLimpiarFiltro = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.dgvDocumentos = New System.Windows.Forms.DataGridView()
         Me.grpDetalle = New System.Windows.Forms.GroupBox()
@@ -80,11 +81,20 @@ Partial Class FrmDocumentos
         Me.btnRefrescar.Text = "Refrescar"
         Me.btnRefrescar.UseVisualStyleBackColor = True
         '
+        ' btnLimpiarFiltro
+        '
+        Me.btnLimpiarFiltro.Location = New System.Drawing.Point(696, 10)
+        Me.btnLimpiarFiltro.Name = "btnLimpiarFiltro"
+        Me.btnLimpiarFiltro.Size = New System.Drawing.Size(84, 27)
+        Me.btnLimpiarFiltro.TabIndex = 4
+        Me.btnLimpiarFiltro.Text = "Limpiar"
+        Me.btnLimpiarFiltro.UseVisualStyleBackColor = True
+        '
         ' lblMensaje
         '
-        Me.lblMensaje.Location = New System.Drawing.Point(700, 10)
+        Me.lblMensaje.Location = New System.Drawing.Point(790, 10)
         Me.lblMensaje.Name = "lblMensaje"
-        Me.lblMensaje.Size = New System.Drawing.Size(480, 40)
+        Me.lblMensaje.Size = New System.Drawing.Size(390, 40)
         Me.lblMensaje.TabIndex = 4
         '
         ' dgvDocumentos
@@ -298,6 +308,7 @@ Partial Class FrmDocumentos
         Me.Controls.Add(Me.grpDetalle)
         Me.Controls.Add(Me.dgvDocumentos)
         Me.Controls.Add(Me.lblMensaje)
+        Me.Controls.Add(Me.btnLimpiarFiltro)
         Me.Controls.Add(Me.btnRefrescar)
         Me.Controls.Add(Me.btnBuscar)
         Me.Controls.Add(Me.cboFiltroTipo)
@@ -317,6 +328,7 @@ Partial Class FrmDocumentos
     Friend WithEvents cboFiltroTipo As System.Windows.Forms.ComboBox
     Friend WithEvents btnBuscar As System.Windows.Forms.Button
     Friend WithEvents btnRefrescar As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiarFiltro As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents dgvDocumentos As System.Windows.Forms.DataGridView
     Friend WithEvents grpDetalle As System.Windows.Forms.GroupBox
