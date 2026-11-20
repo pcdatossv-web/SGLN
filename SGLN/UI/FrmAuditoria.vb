@@ -105,6 +105,7 @@ Public Class FrmAuditoria
             _cargando = False
 
             lblResumen.Text = "Registros encontrados: " & dgvAuditoria.Rows.Count.ToString("N0")
+            MostrarMensaje("", True)
             ActualizarEstadoExportacion()
         Catch ex As Exception
             _cargando = False
@@ -156,11 +157,28 @@ Public Class FrmAuditoria
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
     End Sub
 
-    Private Sub txtUsuario_KeyDown(sender As Object, e As KeyEventArgs) Handles txtUsuario.KeyDown
+    Private Sub txtUsuario_KeyDown(sender As Object, e As KeyEventArgs) Handles txtUsuario.KeyDown, cboTabla.KeyDown, cboAccion.KeyDown, dtpDesde.KeyDown, dtpHasta.KeyDown
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             Buscar()
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarFiltros()
         End If
+    End Sub
+
+    Private Sub LimpiarFiltros()
+        txtUsuario.Clear()
+        If cboTabla.Items.Count > 0 Then cboTabla.SelectedIndex = 0
+        If cboAccion.Items.Count > 0 Then cboAccion.SelectedIndex = 0
+        dtpDesde.Value = Date.Today.AddDays(-30)
+        dtpHasta.Value = Date.Today
+        Buscar()
+        txtUsuario.Focus()
+    End Sub
+
+    Private Sub btnLimpiar_Click(sender As Object, e As EventArgs) Handles btnLimpiar.Click
+        LimpiarFiltros()
     End Sub
 
     Private Sub btnBuscar_Click(sender As Object, e As EventArgs) Handles btnBuscar.Click
