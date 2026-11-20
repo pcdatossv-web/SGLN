@@ -92,6 +92,22 @@ Public Class CasoRepositorio
                     ValidarClienteActivo(conexion, transaccion, caso.IDCliente)
                 End If
 
+                ' No cerrar ni archivar un expediente mientras conserve plazos
+                ' pendientes o vencidos: primero deben regularizarse como cumplidos.
+                If String.Equals(caso.Estado, "Cerrado", StringComparison.OrdinalIgnoreCase) OrElse
+                   String.Equals(caso.Estado, "Archivado", StringComparison.OrdinalIgnoreCase) Then
+                    Using comandoPendientes As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Actuaciones_Procesales " &
+                        "WHERE ID_Caso = @id AND Estado IN ('Pendiente', 'Vencido')",
+                        conexion, transaccion)
+                        Parametro(comandoPendientes, "@id", caso.ID)
+                        If Convert.ToInt32(comandoPendientes.ExecuteScalar()) > 0 Then
+                            Throw New InvalidOperationException(
+                                "No se puede cerrar ni archivar el expediente mientras tenga plazos pendientes o vencidos. Regularice primero las actuaciones.")
+                        End If
+                    End Using
+                End If
+
                 Dim referenciasHistoricas As Integer
                 Using comandoReferencias As New MySqlCommand(
                     "SELECT " &
