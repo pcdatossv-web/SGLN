@@ -46,7 +46,7 @@ Public Class FrmDocumentos
         _cargando = False
         Limpiar()
 
-        btnProcesarIA.Enabled = False
+        ActualizarAccionesDocumento()
         _permisosInicializados = True
     End Sub
 
@@ -221,6 +221,7 @@ Public Class FrmDocumentos
         btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
         btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
         btnVerificar.Enabled = _puedeVerificar AndAlso haySeleccion
+        btnProcesarIA.Enabled = _puedeMetadatos AndAlso haySeleccion
     End Sub
 
     Private Sub Importar()
@@ -326,8 +327,14 @@ Public Class FrmDocumentos
     Private Sub ProcesarConIA()
         If Not Permisos.ExigirAccion("documentos.metadatos") Then Return
 
+        If _idDocumento <= 0 Then
+            UtileriasUI.MostrarError("Seleccione un documento de la lista para procesarlo.")
+            Return
+        End If
+
         Dim respuesta As Respuesta = _servicioIA.ProcesarDocumento(_idDocumento)
-        MostrarMensaje(respuesta.Mensaje, False)
+        MostrarMensaje(respuesta.Mensaje, respuesta.Exito)
+        If respuesta.Exito Then CargarGrid()
     End Sub
 
     Private Function IdOpcional(combo As ComboBox) As Integer?
@@ -406,7 +413,7 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub btnProcesarIA_Click(sender As Object, e As EventArgs) Handles btnProcesarIA.Click
-        ProcesarConIA()
+        UtileriasUI.EjecutarUnaVez(btnProcesarIA, AddressOf ProcesarConIA)
     End Sub
 
     Private Sub cboFiltroTipo_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboFiltroTipo.SelectedIndexChanged
