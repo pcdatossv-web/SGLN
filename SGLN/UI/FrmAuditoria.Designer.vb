@@ -30,6 +30,7 @@ Partial Class FrmAuditoria
         Me.btnBuscar = New System.Windows.Forms.Button()
         Me.btnRefrescar = New System.Windows.Forms.Button()
         Me.btnExportar = New System.Windows.Forms.Button()
+        Me.btnLimpiar = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.dgvAuditoria = New System.Windows.Forms.DataGridView()
         Me.lblResumen = New System.Windows.Forms.Label()
@@ -150,12 +151,22 @@ Partial Class FrmAuditoria
         Me.btnExportar.Text = "Exportar CSV"
         Me.btnExportar.UseVisualStyleBackColor = True
         '
+        '
+        ' btnLimpiar
+        '
+        Me.btnLimpiar.Location = New System.Drawing.Point(1030, 65)
+        Me.btnLimpiar.Name = "btnLimpiar"
+        Me.btnLimpiar.Size = New System.Drawing.Size(143, 27)
+        Me.btnLimpiar.TabIndex = 8
+        Me.btnLimpiar.Text = "Limpiar filtros"
+        Me.btnLimpiar.UseVisualStyleBackColor = True
+        '
         ' lblMensaje
         '
         Me.lblMensaje.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblMensaje.Location = New System.Drawing.Point(12, 62)
         Me.lblMensaje.Name = "lblMensaje"
-        Me.lblMensaje.Size = New System.Drawing.Size(1161, 35)
+        Me.lblMensaje.Size = New System.Drawing.Size(1005, 35)
         Me.lblMensaje.TabIndex = 13
         '
         ' dgvAuditoria
@@ -197,6 +208,7 @@ Partial Class FrmAuditoria
         Me.Controls.Add(Me.dgvAuditoria)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnExportar)
+        Me.Controls.Add(Me.btnLimpiar)
         Me.Controls.Add(Me.btnRefrescar)
         Me.Controls.Add(Me.btnBuscar)
         Me.Controls.Add(Me.dtpHasta)
@@ -232,6 +244,7 @@ Partial Class FrmAuditoria
     Friend WithEvents btnBuscar As System.Windows.Forms.Button
     Friend WithEvents btnRefrescar As System.Windows.Forms.Button
     Friend WithEvents btnExportar As System.Windows.Forms.Button
+    Friend WithEvents btnLimpiar As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents dgvAuditoria As System.Windows.Forms.DataGridView
     Friend WithEvents lblResumen As System.Windows.Forms.Label
