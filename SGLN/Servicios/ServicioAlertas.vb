@@ -125,9 +125,16 @@ Public Class ServicioAlertas
         ' Se ordena antes de calcular los plazos hábiles de entrega al
         ' Notariado. El límite visual se aplica después de ese cálculo para
         ' no descartar alertas válidas por una fecha de cierre aún no vencida.
-        Dim resultado As DataTable = Consultar(String.Join(" UNION ALL ", consultas) &
-            " ORDER BY CASE Prioridad WHEN 'Alta' THEN 0 WHEN 'Media' THEN 1 ELSE 2 END, " &
-            "(Fecha_Referencia IS NULL), Fecha_Referencia, Tipo, ID_Referencia, Descripcion")
+        ' MySQL limita las expresiones de ORDER BY en el resultado directo
+        ' de UNION. La consulta externa permite aplicar el orden semántico
+        ' sin modificar las columnas que consume la interfaz.
+        Dim consultaAlertas As String =
+            "SELECT * FROM (" & String.Join(" UNION ALL ", consultas) &
+            ") AS AlertasOrdenadas " &
+            "ORDER BY CASE Prioridad WHEN 'Alta' THEN 0 WHEN 'Media' THEN 1 ELSE 2 END, " &
+            "(Fecha_Referencia IS NULL), Fecha_Referencia, Tipo, ID_Referencia, Descripcion"
+
+        Dim resultado As DataTable = Consultar(consultaAlertas)
 
         ' El plazo de entrega al Notariado se calcula en días hábiles y usa
         ' la configuración vigente y el calendario de feriados. No se puede
