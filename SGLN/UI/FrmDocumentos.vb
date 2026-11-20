@@ -14,34 +14,19 @@ Public Class FrmDocumentos
     Private _puedeImportar As Boolean
     Private _puedeMetadatos As Boolean
     Private _puedeVerificar As Boolean
+    Private _permisosInicializados As Boolean
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         _puedeVer = Permisos.TieneAcceso("documentos.ver")
         _puedeImportar = Permisos.TieneAcceso("documentos.importar")
-        Dim puedeImportar As Boolean = _puedeImportar
         _puedeVerificar = Permisos.TieneAcceso("documentos.verificar")
         _puedeMetadatos = Permisos.TieneAcceso("documentos.metadatos")
-        Dim puedeVer As Boolean = _puedeVer
-        Dim puedeVerificar As Boolean = _puedeVerificar
-        Dim puedeMetadatos As Boolean = _puedeMetadatos
 
-        If Not (puedeVer OrElse puedeImportar OrElse puedeVerificar OrElse puedeMetadatos) Then
+        If Not (_puedeVer OrElse _puedeImportar OrElse _puedeVerificar OrElse _puedeMetadatos) Then
             If Not Permisos.Exigir("documentos.ver", Me) Then Return
         End If
 
-        Dim puedeConsultar As Boolean = puedeVer OrElse puedeVerificar OrElse puedeMetadatos
-        btnBuscar.Enabled = puedeConsultar
-        btnRefrescar.Enabled = puedeConsultar
-        btnImportar.Enabled = puedeImportar
-        ActualizarAccionesDocumento()
-        txtFiltro.Enabled = puedeConsultar
-        cboFiltroTipo.Enabled = puedeConsultar
-
-        ' Los metadatos solo son editables al importar o con permiso específico.
-        Dim puedeEditarMetadatos As Boolean = puedeImportar OrElse puedeMetadatos
-        cboTipoDocumento.Enabled = puedeEditarMetadatos
-        cboCaso.Enabled = puedeEditarMetadatos
-        cboInstrumento.Enabled = puedeEditarMetadatos
+        AplicarPermisosInterfaz()
 
         UtileriasUI.ConfigurarGrid(dgvDocumentos)
 
@@ -62,6 +47,41 @@ Public Class FrmDocumentos
         Limpiar()
 
         btnProcesarIA.Enabled = False
+        _permisosInicializados = True
+    End Sub
+
+    ''' <summary>
+    ''' Actualiza la interfaz con los permisos vigentes, no con los que tenía
+    ''' el usuario al abrir el formulario. Esto evita controles habilitados
+    ''' después de que un administrador cambie el rol de la sesión.
+    ''' </summary>
+    Private Sub AplicarPermisosInterfaz()
+        Dim puedeConsultar As Boolean = _puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos
+
+        btnBuscar.Enabled = puedeConsultar
+        btnRefrescar.Enabled = puedeConsultar
+        btnImportar.Enabled = _puedeImportar
+        txtFiltro.Enabled = puedeConsultar
+        cboFiltroTipo.Enabled = puedeConsultar
+
+        ActualizarEdicionMetadatos(_idDocumento <= 0)
+        ActualizarAccionesDocumento()
+    End Sub
+
+    Private Sub FrmDocumentos_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        _puedeVer = Permisos.Puede("documentos.ver")
+        _puedeImportar = Permisos.Puede("documentos.importar")
+        _puedeVerificar = Permisos.Puede("documentos.verificar")
+        _puedeMetadatos = Permisos.Puede("documentos.metadatos")
+        AplicarPermisosInterfaz()
     End Sub
 
     Private Function TiposDocumento() As String()
