@@ -13,6 +13,7 @@ Public Class FrmUsuarios
     Private ReadOnly _servicio As New ServicioUsuarios()
     Private _idSeleccionado As Integer
     Private _cargando As Boolean
+    Private _permisosInicializados As Boolean
 
     Private Sub FrmUsuarios_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.usuarios", Me) Then Return
@@ -26,6 +27,19 @@ Public Class FrmUsuarios
         CargarRoles()
         CargarUsuarios()
         Nuevo()
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub FrmUsuarios_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("config.usuarios") Then Close()
     End Sub
 
     Private Sub CargarRoles()
