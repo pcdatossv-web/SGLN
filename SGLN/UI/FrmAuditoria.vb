@@ -55,7 +55,9 @@ Public Class FrmAuditoria
             Return
         End If
 
-        btnExportar.Enabled = Permisos.Puede("auditoria.exportar")
+        ' Recalcular también la disponibilidad de datos; el permiso por sí solo
+        ' no basta para habilitar una exportación sin registros.
+        ActualizarEstadoExportacion()
     End Sub
 
     Private Sub CargarFiltros()
