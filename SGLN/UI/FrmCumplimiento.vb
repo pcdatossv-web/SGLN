@@ -92,6 +92,12 @@ Public Class FrmCumplimiento
         End If
         dtpFechaSolicitud.MaxDate = Date.Today
 
+        ' La respuesta también representa un hecho ya ocurrido; evitar fechas futuras desde la UI.
+        If dtpFechaRespuesta.Value.Date > Date.Today Then
+            dtpFechaRespuesta.Value = Date.Today
+        End If
+        dtpFechaRespuesta.MaxDate = Date.Today
+
         cboTipoOperacion.Items.Clear()
         cboTipoOperacion.Items.AddRange(New Object() {"Regulada", "Inusual", "Sospechosa"})
         cboTipoOperacion.SelectedIndex = 0
