@@ -178,6 +178,7 @@ Partial Class FrmCasos
         '
         Me.txtExpediente.Location = New System.Drawing.Point(270, 42)
         Me.txtExpediente.Name = "txtExpediente"
+        Me.txtExpediente.MaxLength = 80
         Me.txtExpediente.Size = New System.Drawing.Size(180, 23)
         Me.txtExpediente.TabIndex = 1
         '
@@ -265,6 +266,7 @@ Partial Class FrmCasos
         '
         Me.txtResponsable.Location = New System.Drawing.Point(575, 98)
         Me.txtResponsable.Name = "txtResponsable"
+        Me.txtResponsable.MaxLength = 120
         Me.txtResponsable.Size = New System.Drawing.Size(175, 23)
         Me.txtResponsable.TabIndex = 6
         '
@@ -282,6 +284,7 @@ Partial Class FrmCasos
         Me.txtDescripcion.Location = New System.Drawing.Point(15, 152)
         Me.txtDescripcion.Multiline = True
         Me.txtDescripcion.Name = "txtDescripcion"
+        Me.txtDescripcion.MaxLength = 1000
         Me.txtDescripcion.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtDescripcion.Size = New System.Drawing.Size(735, 95)
         Me.txtDescripcion.TabIndex = 7
