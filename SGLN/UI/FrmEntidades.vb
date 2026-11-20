@@ -9,6 +9,7 @@ Public Class FrmEntidades
     Private ReadOnly _servicio As New ServicioEntidades()
     Private _cargando As Boolean
     Private _idEntidad As Integer
+    Private _permisosInicializados As Boolean
 
     ''' <summary>Registro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDEntidadInicial As Integer
@@ -16,25 +17,7 @@ Public Class FrmEntidades
     Private Sub FrmEntidades_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("entidades.ver", Me) Then Return
 
-        Dim puedeGestionar As Boolean = Permisos.Puede("entidades.gestionar")
-        btnNuevo.Enabled = puedeGestionar
-        btnGuardar.Enabled = puedeGestionar
-        btnDesactivar.Enabled = puedeGestionar
-        btnAgregarRep.Enabled = puedeGestionar
-        btnQuitarRep.Enabled = puedeGestionar
-
-        ' Mantener visibles los datos para consulta, pero bloquear su edición.
-        txtRazonSocial.ReadOnly = Not puedeGestionar
-        txtNIT.ReadOnly = Not puedeGestionar
-        txtNRC.ReadOnly = Not puedeGestionar
-        txtDomicilio.ReadOnly = Not puedeGestionar
-        cboNivelRiesgo.Enabled = puedeGestionar
-        chkOrigenVerificado.Enabled = puedeGestionar
-        txtDetalleOrigen.ReadOnly = Not puedeGestionar
-        dtpVerificacionListas.Enabled = puedeGestionar
-        cboRepCliente.Enabled = puedeGestionar
-        txtCargo.ReadOnly = Not puedeGestionar
-        cboTipoRepresentacion.Enabled = puedeGestionar
+        AplicarPermisosInterfaz()
 
         txtRazonSocial.MaxLength = 200
         txtNIT.MaxLength = 20
@@ -70,6 +53,46 @@ Public Class FrmEntidades
         Else
             Limpiar()
         End If
+
+        _permisosInicializados = True
+    End Sub
+
+    Private Sub AplicarPermisosInterfaz()
+        Dim puedeGestionar As Boolean = Permisos.Puede("entidades.gestionar")
+        btnNuevo.Enabled = puedeGestionar
+        btnGuardar.Enabled = puedeGestionar
+        btnDesactivar.Enabled = puedeGestionar AndAlso chkActivo.Checked
+        btnAgregarRep.Enabled = puedeGestionar AndAlso cboRepCliente.Items.Count > 0
+        btnQuitarRep.Enabled = puedeGestionar AndAlso UtileriasUI.FilaActual(dgvRepresentantes) IsNot Nothing
+
+        txtRazonSocial.ReadOnly = Not puedeGestionar
+        txtNIT.ReadOnly = Not puedeGestionar
+        txtNRC.ReadOnly = Not puedeGestionar
+        txtDomicilio.ReadOnly = Not puedeGestionar
+        cboNivelRiesgo.Enabled = puedeGestionar
+        chkOrigenVerificado.Enabled = puedeGestionar
+        txtDetalleOrigen.ReadOnly = Not puedeGestionar
+        dtpVerificacionListas.Enabled = puedeGestionar
+        cboRepCliente.Enabled = puedeGestionar
+        txtCargo.ReadOnly = Not puedeGestionar
+        cboTipoRepresentacion.Enabled = puedeGestionar
+    End Sub
+
+    Private Sub FrmEntidades_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        If Not _permisosInicializados OrElse IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        If Not Permisos.Puede("entidades.ver") Then
+            Close()
+            Return
+        End If
+
+        AplicarPermisosInterfaz()
     End Sub
 
     Private Sub CargarGrid(filtro As String)
