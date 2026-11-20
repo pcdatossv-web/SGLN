@@ -11,7 +11,7 @@ Partial Public Class FrmPrimerAdministrador
         InitializeComponent()
     End Sub
 
-    Private Sub CrearAdministrador(sender As Object, e As EventArgs)
+    Private Sub CrearAdministrador(sender As Object, e As EventArgs) Handles btnCrear.Click
         If _creando Then Return
 
         lblEstado.Text = ""
