@@ -636,6 +636,7 @@ Public Class FrmProtocolo
             End If
 
             UtileriasUI.CargarCombo(cboInstrumentoTest, tabla, "Descripcion", "ID")
+            ActualizarLimitesFechaTestimonio()
             ActualizarEstadoAccionesContextuales()
         Catch ex As Exception
             cboInstrumentoTest.DataSource = Nothing
@@ -665,9 +666,38 @@ Public Class FrmProtocolo
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Ajusta el rango de fecha del testimonio a la fecha de otorgamiento
+    ''' de la escritura seleccionada y al día actual.
+    ''' </summary>
+    Private Sub ActualizarLimitesFechaTestimonio()
+        Try
+            dtpFechaTestimonio.MaxDate = Date.Today
+            Dim fechaMinima As Date = DateTimePicker.MinimumDateTime
+            Dim idInstrumento As Integer = UtileriasUI.ValorCombo(cboInstrumentoTest)
+            If idInstrumento > 0 Then
+                Dim instrumento As DataTable = _servicio.ObtenerInstrumento(idInstrumento)
+                If instrumento.Rows.Count > 0 AndAlso Not instrumento.Rows(0).IsNull("Fecha_Hora_Otorgamiento") Then
+                    fechaMinima = Convert.ToDateTime(instrumento.Rows(0)("Fecha_Hora_Otorgamiento")).Date
+                End If
+            End If
+            If fechaMinima > Date.Today Then fechaMinima = Date.Today
+            dtpFechaTestimonio.MinDate = fechaMinima
+            If dtpFechaTestimonio.Value.Date < fechaMinima Then
+                dtpFechaTestimonio.Value = fechaMinima
+            ElseIf dtpFechaTestimonio.Value.Date > Date.Today Then
+                dtpFechaTestimonio.Value = Date.Today
+            End If
+        Catch ex As Exception
+            dtpFechaTestimonio.MinDate = DateTimePicker.MinimumDateTime
+            If dtpFechaTestimonio.Value.Date > Date.Today Then dtpFechaTestimonio.Value = Date.Today
+            RegistroErrores.Escribir("Protocolo - límites de fecha del testimonio", ex)
+        End Try
+    End Sub
     Private Sub ExpedirTestimonio()
         If Not Permisos.ExigirAccion("protocolo.testimonios") Then Return
 
+        ActualizarLimitesFechaTestimonio()
         Dim respuesta As Respuesta = _servicio.ExpedirTestimonio(
             UtileriasUI.ValorCombo(cboInstrumentoTest),
             Convert.ToString(cboTipoTestimonio.SelectedItem),
@@ -882,6 +912,7 @@ Public Class FrmProtocolo
 
     Private Sub cboInstrumentoTest_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboInstrumentoTest.SelectedIndexChanged
         If _cargando Then Return
+        ActualizarLimitesFechaTestimonio()
         ActualizarEstadoAccionesContextuales()
     End Sub
 
@@ -902,6 +933,7 @@ Public Class FrmProtocolo
         LimpiarLibro()
         LimpiarInstrumento()
         cboInstrumentoTest.DataSource = Nothing
+        ActualizarLimitesFechaTestimonio()
         dgvInstrumentos.DataSource = Nothing
         dgvComparecientes.DataSource = Nothing
         dgvTestimonios.DataSource = Nothing
