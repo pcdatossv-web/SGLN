@@ -86,6 +86,12 @@ Public Class FrmCumplimiento
         End If
         dtpFechaOperacion.MaxDate = Date.Today
 
+        ' La recepción de una solicitud ARCO es un hecho ya ocurrido.
+        If dtpFechaSolicitud.Value.Date > Date.Today Then
+            dtpFechaSolicitud.Value = Date.Today
+        End If
+        dtpFechaSolicitud.MaxDate = Date.Today
+
         cboTipoOperacion.Items.Clear()
         cboTipoOperacion.Items.AddRange(New Object() {"Regulada", "Inusual", "Sospechosa"})
         cboTipoOperacion.SelectedIndex = 0
