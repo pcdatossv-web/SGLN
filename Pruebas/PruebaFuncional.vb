@@ -511,6 +511,12 @@ Module PruebaFuncional
                   Not eliminacionPropiaDirecta.Exito)
         Verificar("La sesión del administrador tiene acceso total", Permisos.AccesoTotal)
         Verificar("El acceso total concede cualquier permiso", Permisos.Puede("modulo.inexistente"))
+        Verificar("La comprobación centralizada acepta cualquiera de los permisos alternativos",
+                  Permisos.TieneAccesoAlguno("modulo.inexistente", "config.usuarios"))
+        Verificar("La comprobación centralizada deniega cuando ningún permiso alternativo existe",
+                  Not Permisos.TieneAccesoAlguno("modulo.inexistente", "otro.inexistente"))
+        Verificar("La comprobación centralizada deniega una lista vacía de permisos",
+                  Not Permisos.TieneAccesoAlguno())
         Verificar("El Administrador puede modificar configuración", Permisos.Puede("config.editar"))
 
         If idRolAbogado > 0 Then
