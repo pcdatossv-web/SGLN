@@ -389,10 +389,6 @@ Public Class UsuarioRepositorio
     End Function
 
     ''' <summary>
-    ''' Desactiva una cuenta mediante una operación separada de la edición
-    ''' general. Mantiene la protección del último administrador activo.
-    ''' </summary>
-    ''' <summary>
     ''' Reactiva una cuenta únicamente si su rol continúa activo.
     ''' La operación y su auditoría se confirman en una sola transacción.
     ''' </summary>
@@ -461,6 +457,10 @@ Public Class UsuarioRepositorio
         End Try
     End Function
 
+    ''' <summary>
+    ''' Desactiva una cuenta mediante una operación separada de la edición
+    ''' general. Mantiene la protección del último administrador activo.
+    ''' </summary>
     Public Function Desactivar(id As Integer) As Respuesta
         If Not Permisos.TieneAcceso("config.usuarios") Then Return Respuesta.Fallo("No tiene permiso para administrar usuarios.")
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario válido.")
