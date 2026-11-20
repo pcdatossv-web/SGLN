@@ -63,7 +63,7 @@ Public Class FrmEntidades
         btnGuardar.Enabled = puedeGestionar
         btnDesactivar.Enabled = puedeGestionar AndAlso chkActivo.Checked
         btnAgregarRep.Enabled = puedeGestionar AndAlso cboRepCliente.Items.Count > 0
-        btnQuitarRep.Enabled = puedeGestionar AndAlso UtileriasUI.FilaActual(dgvRepresentantes) IsNot Nothing
+        ActualizarEstadoRepresentantes()
 
         txtRazonSocial.ReadOnly = Not puedeGestionar
         txtNIT.ReadOnly = Not puedeGestionar
@@ -128,6 +128,18 @@ Public Class FrmEntidades
         End Try
     End Sub
 
+    Private Sub ActualizarEstadoRepresentantes()
+        btnQuitarRep.Enabled = Permisos.Puede("entidades.gestionar") AndAlso
+                              _idEntidad > 0 AndAlso
+                              UtileriasUI.FilaActual(dgvRepresentantes) IsNot Nothing
+    End Sub
+
+
+    Private Sub dgvRepresentantes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvRepresentantes.SelectionChanged
+        ActualizarEstadoRepresentantes()
+    End Sub
+
+
     Private Sub dgvEntidades_SelectionChanged(sender As Object, e As EventArgs) Handles dgvEntidades.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvEntidades)
@@ -184,6 +196,7 @@ Public Class FrmEntidades
             dgvRepresentantes.DataSource = _servicio.Representantes(_idEntidad)
             If dgvRepresentantes.Columns.Contains("ID") Then dgvRepresentantes.Columns("ID").Visible = False
             If dgvRepresentantes.Columns.Contains("ID_Cliente") Then dgvRepresentantes.Columns("ID_Cliente").Visible = False
+            ActualizarEstadoRepresentantes()
         Catch ex As Exception
             dgvRepresentantes.DataSource = Nothing
             RegistroErrores.Escribir("Entidades - representantes", ex)
