@@ -9,17 +9,6 @@ Public Class ServicioEntidades
 
     Private ReadOnly _repositorio As New EntidadRepositorio()
 
-    ''' <summary>
-    ''' Revalida la sesión una sola vez cuando una operación admite permisos alternativos.
-    ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Buscar(filtro As String) As DataTable
         If Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
@@ -110,7 +99,7 @@ Public Class ServicioEntidades
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAccesoAlguno("entidades.ver", "entidades.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("entidades.ver", "entidades.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 

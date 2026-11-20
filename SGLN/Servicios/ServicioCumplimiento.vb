@@ -8,18 +8,6 @@ Imports System.Data
 ''' </summary>
 Public Class ServicioCumplimiento
 
-    ''' <summary>
-    ''' Revalida la sesión una sola vez por operación del servicio y evalúa
-    ''' los permisos desde la matriz recién cargada. Mantiene denegación segura.
-    ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Private ReadOnly _repositorio As New CumplimientoRepositorio()
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
@@ -28,17 +16,17 @@ Public Class ServicioCumplimiento
     ' ------------------------------------------------------------------
 
     Public Function Operaciones(filtro As String) As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return New DataTable()
         Return _repositorio.Operaciones(filtro)
     End Function
 
     Public Function ObtenerOperacion(id As Integer) As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") OrElse id <= 0 Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerOperacion(id)
     End Function
 
     Public Function GuardarOperacion(operacion As OperacionLdaft) As Respuesta
-        If Not TieneAccesoAlguno("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
         If operacion Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la operación.")
         If operacion.ID < 0 Then Return Respuesta.Fallo("El identificador de la operación no es válido.")
         If operacion.IDCaso.HasValue AndAlso operacion.IDCaso.Value <= 0 Then
@@ -152,7 +140,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function MarcarReportada(id As Integer, fechaReporte As Date) As Respuesta
-        If Not TieneAccesoAlguno("cumplimiento.reportar_uif") Then Return Respuesta.Fallo("No tiene permiso para reportar operaciones a la UIF.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.reportar_uif") Then Return Respuesta.Fallo("No tiene permiso para reportar operaciones a la UIF.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
 
@@ -193,7 +181,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function Descartar(id As Integer) As Respuesta
-        If Not TieneAccesoAlguno("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.operaciones") Then Return Respuesta.Fallo("No tiene permiso para gestionar operaciones LDA/FT.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una operación.")
         Dim actual As DataTable
@@ -219,7 +207,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function UmbralEfectivo() As Decimal
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return 10000D
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return 10000D
         Dim valor As String = _catalogo.ObtenerConfig("Umbral_Efectivo")
         Dim monto As Decimal
         If Decimal.TryParse(valor, monto) AndAlso monto > 0 Then Return monto
@@ -231,17 +219,17 @@ Public Class ServicioCumplimiento
     ' ------------------------------------------------------------------
 
     Public Function SolicitudesArco(filtro As String) As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") Then Return New DataTable()
         Return _repositorio.SolicitudesArco(filtro)
     End Function
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") OrElse id <= 0 Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerSolicitud(id)
     End Function
 
     Public Function GuardarSolicitud(solicitud As SolicitudArco) As Respuesta
-        If Not TieneAccesoAlguno("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para gestionar solicitudes ARCO.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para gestionar solicitudes ARCO.")
         If solicitud Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos de la solicitud.")
         If solicitud.ID < 0 Then Return Respuesta.Fallo("El identificador de la solicitud ARCO no es válido.")
         If If(solicitud.Detalle, "").Length > 1000 Then Return Respuesta.Fallo("El detalle no puede superar 1000 caracteres.")
@@ -341,7 +329,7 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function ResponderSolicitud(id As Integer, fechaRespuesta As Date) As Respuesta
-        If Not TieneAccesoAlguno("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para responder solicitudes ARCO.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.arco") Then Return Respuesta.Fallo("No tiene permiso para responder solicitudes ARCO.")
 
         If id <= 0 Then Return Respuesta.Fallo("Seleccione una solicitud.")
 
@@ -380,29 +368,29 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.operaciones", "cumplimiento.arco") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.operaciones", "cumplimiento.arco") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
     Public Function CalcularVencimientoArco(fechaSolicitud As Date) As Date
-        If Not TieneAccesoAlguno("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
         Return NuevaCalculadora().CalcularVencimiento(
             fechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
     End Function
 
     Public Function CalcularProrrogaArco(fechaVencimiento As Date) As Date
-        If Not TieneAccesoAlguno("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para consultar plazos ARCO.")
         Return NuevaCalculadora().CalcularVencimiento(
             fechaVencimiento, DiasConfigurados("ARCO_Dias_Prorroga", 5))
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
     Public Function InstrumentosCombo() As DataTable
-        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
         Return _repositorio.InstrumentosCombo()
     End Function
 

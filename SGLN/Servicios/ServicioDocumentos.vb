@@ -21,19 +21,8 @@ Public Class ServicioDocumentos
 
     Private Const TamanoMaximoMb As Integer = 50
 
-    ''' <summary>
-    ''' Revalida la sesión una sola vez y evalúa los permisos desde la matriz actual.
-    ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.Buscar(filtro, tipo)
     End Function
 
@@ -43,12 +32,12 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
     Public Function InstrumentosCombo(Optional idInstrumentoActual As Integer? = Nothing) As DataTable
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.InstrumentosCombo(idInstrumentoActual)
     End Function
 
@@ -307,7 +296,7 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaBaseDocumentos() As String
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         Return RutaBaseDocumentosInterna()
     End Function
 
@@ -336,7 +325,7 @@ Public Class ServicioDocumentos
     ''' aceptan si permanecen dentro de la carpeta documental configurada.
     ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
-        If Not TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         Return RutaCompletaInterna(rutaRegistrada)
     End Function
 

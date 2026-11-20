@@ -10,20 +10,6 @@ Public Class ServicioCasos
     Private ReadOnly _repositorio As New CasoRepositorio()
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
-    ''' <summary>
-    ''' Revalida la sesión una sola vez cuando una operación admite varios
-    ''' permisos alternativos. Evita consultas repetidas al estado de cuenta.
-    ''' </summary>
-    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
-        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
-
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-
-        Return False
-    End Function
-
     Public Function Buscar(filtro As String) As DataTable
         If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
@@ -90,17 +76,17 @@ Public Class ServicioCasos
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
     Public Function JuzgadosCombo() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _catalogo.Juzgados()
     End Function
 
     Public Function TiposActuacionCombo() As DataTable
-        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _catalogo.TiposActuacion()
     End Function
 

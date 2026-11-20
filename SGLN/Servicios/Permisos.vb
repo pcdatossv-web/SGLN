@@ -134,6 +134,20 @@ Public NotInheritable Class Permisos
         Return Puede(codigo)
     End Function
 
+    ''' <summary>
+    ''' Revalida la sesión una sola vez y comprueba una lista de permisos alternativos.
+    ''' Se utiliza cuando una operación admite más de un perfil funcional de acceso.
+    ''' </summary>
+    Public Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not RevalidarSesion() OrElse codigos Is Nothing Then Return False
+
+        For Each codigo As String In codigos
+            If Puede(codigo) Then Return True
+        Next
+
+        Return False
+    End Function
+
     Public Shared Function Puede(codigo As String) As Boolean
         ' Un permiso sin código nunca debe conceder acceso (fail-closed).
         If String.IsNullOrWhiteSpace(codigo) Then Return False
