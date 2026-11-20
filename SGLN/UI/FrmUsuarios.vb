@@ -307,48 +307,12 @@ Public Class FrmUsuarios
     ''' Devuelve Nothing si el usuario cancela.
     ''' </summary>
     Private Function SolicitarClaveAdministrador() As String
-        Using dialogo As New Form()
-            dialogo.Text = "Confirmar identidad del administrador"
-            dialogo.FormBorderStyle = FormBorderStyle.FixedDialog
-            dialogo.StartPosition = FormStartPosition.CenterParent
-            dialogo.ClientSize = New Size(390, 145)
-            dialogo.MaximizeBox = False
-            dialogo.MinimizeBox = False
-            dialogo.ShowInTaskbar = False
-
-            Dim etiqueta As New Label() With {
-                .Text = "Ingrese su clave actual para autorizar la eliminación:",
-                .AutoSize = False,
-                .Location = New Point(12, 12),
-                .Size = New Size(365, 35)
-            }
-            Dim entrada As New TextBox() With {
-                .Location = New Point(15, 51),
-                .Size = New Size(360, 23),
-                .UseSystemPasswordChar = True,
-                .MaxLength = 128
-            }
-            Dim aceptar As New Button() With {
-                .Text = "Verificar y continuar",
-                .DialogResult = DialogResult.OK,
-                .Location = New Point(180, 94),
-                .Size = New Size(125, 30)
-            }
-            Dim cancelar As New Button() With {
-                .Text = "Cancelar",
-                .DialogResult = DialogResult.Cancel,
-                .Location = New Point(310, 94),
-                .Size = New Size(65, 30)
-            }
-
-            dialogo.Controls.AddRange(New Control() {etiqueta, entrada, aceptar, cancelar})
-            dialogo.AcceptButton = aceptar
-            dialogo.CancelButton = cancelar
-            dialogo.ActiveControl = entrada
-
+        Using dialogo As New FrmCapturaClave(
+            False,
+            "Confirmar identidad del administrador",
+            "Ingrese su clave actual para autorizar la eliminación:")
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return Nothing
-            If String.IsNullOrEmpty(entrada.Text) Then Return ""
-            Return entrada.Text
+            Return dialogo.ClaveCapturada
         End Using
     End Function
 
