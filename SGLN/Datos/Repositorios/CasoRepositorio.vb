@@ -243,26 +243,13 @@ Public Class CasoRepositorio
         If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                ' Obtener el expediente asociado y bloquearlo antes de actualizar
-                ' la actuación. Se conserva el mismo orden de bloqueo que GuardarActuacion.
-                Dim idCaso As Integer = 0
-                Using comandoCaso As New MySqlCommand(
-                    "SELECT ID_Caso FROM Actuaciones_Procesales WHERE ID = @id",
-                    conexion, transaccion)
-                    Parametro(comandoCaso, "@id", id)
-                    Dim valor As Object = comandoCaso.ExecuteScalar()
-                    If valor Is Nothing OrElse Convert.IsDBNull(valor) Then Return 0
-                    idCaso = Convert.ToInt32(valor)
-                End Using
-
-                ValidarCasoAdmiteActuaciones(conexion, transaccion, idCaso)
-
+                ' Marcar como cumplida registra un hecho que pudo ocurrir antes
+                ' del cierre del expediente; por eso se permite regularizar una
+                ' actuación pendiente aunque el expediente ya esté cerrado.
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' " &
-                    "WHERE ID = @id AND ID_Caso = @caso AND Estado IN ('Pendiente', 'Vencido')",
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
-                        Parametro(comando, "@caso", idCaso)
                     End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CUMPLIR PLAZO", "Actuaciones_Procesales",
                     id, "Actuación marcada como cumplida")
