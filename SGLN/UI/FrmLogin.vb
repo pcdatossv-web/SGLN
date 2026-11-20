@@ -105,84 +105,13 @@ Public Class FrmLogin
     ''' con la cuenta que todavía conserva la contraseña inicial.
     ''' </summary>
     Private Function SolicitarCambioClaveInicial() As String
-        Using dialogo As New Form()
-            dialogo.Text = "Cambio obligatorio de clave"
-            dialogo.StartPosition = FormStartPosition.CenterParent
-            dialogo.FormBorderStyle = FormBorderStyle.FixedDialog
-            dialogo.ClientSize = New System.Drawing.Size(430, 235)
-            dialogo.MaximizeBox = False
-            dialogo.MinimizeBox = False
-            dialogo.ShowInTaskbar = False
-
-            Dim titulo As New Label() With {
-                .Text = "Por seguridad, debe reemplazar la clave inicial.",
-                .AutoSize = False,
-                .Location = New System.Drawing.Point(18, 15),
-                .Size = New System.Drawing.Size(394, 35)
-            }
-            Dim lblNueva As New Label() With {
-                .Text = "Nueva clave:",
-                .AutoSize = True,
-                .Location = New System.Drawing.Point(20, 65)
-            }
-            Dim txtNueva As New TextBox() With {
-                .Location = New System.Drawing.Point(135, 61),
-                .Size = New System.Drawing.Size(265, 23),
-                .UseSystemPasswordChar = True,
-                .MaxLength = 128
-            }
-            Dim lblConfirmar As New Label() With {
-                .Text = "Confirmar clave:",
-                .AutoSize = True,
-                .Location = New System.Drawing.Point(20, 105)
-            }
-            Dim txtConfirmar As New TextBox() With {
-                .Location = New System.Drawing.Point(135, 101),
-                .Size = New System.Drawing.Size(265, 23),
-                .UseSystemPasswordChar = True,
-                .MaxLength = 128
-            }
-            Dim btnAceptar As New Button() With {
-                .Text = "Guardar clave",
-                .Location = New System.Drawing.Point(135, 155),
-                .Size = New System.Drawing.Size(125, 32)
-            }
-            Dim btnCancelar As New Button() With {
-                .Text = "Cancelar",
-                .Location = New System.Drawing.Point(275, 155),
-                .Size = New System.Drawing.Size(125, 32),
-                .DialogResult = DialogResult.Cancel
-            }
-
-            Dim claveAceptada As String = Nothing
-            AddHandler btnAceptar.Click,
-                Sub(sender As Object, e As EventArgs)
-                    Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(txtNueva.Text)
-                    If errorClave <> "" Then
-                        MessageBox.Show(errorClave, "Clave no válida",
-                                        MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                        txtNueva.Focus()
-                        Return
-                    End If
-                    If Not String.Equals(txtNueva.Text, txtConfirmar.Text, StringComparison.Ordinal) Then
-                        MessageBox.Show("La confirmación no coincide con la nueva clave.",
-                                        "Clave no válida", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                        txtConfirmar.Clear()
-                        txtConfirmar.Focus()
-                        Return
-                    End If
-                    claveAceptada = txtNueva.Text
-                    dialogo.DialogResult = DialogResult.OK
-                    dialogo.Close()
-                End Sub
-
-            dialogo.Controls.AddRange(New Control() {
-                titulo, lblNueva, txtNueva, lblConfirmar, txtConfirmar, btnAceptar, btnCancelar
-            })
-            dialogo.AcceptButton = btnAceptar
-            dialogo.CancelButton = btnCancelar
-
-            If dialogo.ShowDialog(Me) = DialogResult.OK Then Return claveAceptada
+        Using dialogo As New FrmCapturaClave(
+            True,
+            "Cambio obligatorio de clave",
+            "Por seguridad, debe reemplazar la clave inicial.")
+            If dialogo.ShowDialog(Me) = DialogResult.OK Then
+                Return dialogo.ClaveCapturada
+            End If
             Return Nothing
         End Using
     End Function
