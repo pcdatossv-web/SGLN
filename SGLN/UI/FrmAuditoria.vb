@@ -26,9 +26,18 @@ Public Class FrmAuditoria
 
         _cargando = True
         CargarFiltros()
+        Dim errorFiltros As Boolean =
+            cboTabla.DataSource Is Nothing OrElse cboAccion.DataSource Is Nothing
         _cargando = False
 
         Buscar()
+        If errorFiltros Then
+            MostrarMensaje(
+                If(TypeOf dgvAuditoria.DataSource Is DataTable,
+                   "No se pudieron cargar los filtros. La consulta se ejecutó sin esos filtros.",
+                   "No se pudieron cargar los filtros ni consultar la bitácora."),
+                False)
+        End If
         _permisosInicializados = True
     End Sub
 
@@ -189,8 +198,18 @@ Public Class FrmAuditoria
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
         _cargando = True
         CargarFiltros()
+        Dim errorFiltros As Boolean =
+            cboTabla.DataSource Is Nothing OrElse cboAccion.DataSource Is Nothing
         _cargando = False
+
         Buscar()
+        If errorFiltros Then
+            MostrarMensaje(
+                If(TypeOf dgvAuditoria.DataSource Is DataTable,
+                   "No se pudieron actualizar los filtros. La consulta se ejecutó sin esos filtros.",
+                   "No se pudieron actualizar los filtros ni consultar la bitácora."),
+                False)
+        End If
     End Sub
 
     Private Sub btnExportar_Click(sender As Object, e As EventArgs) Handles btnExportar.Click
