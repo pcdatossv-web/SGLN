@@ -592,6 +592,7 @@ Partial Class FrmCumplimiento
         ' cboEstadoArco
         '
         Me.cboEstadoArco.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboEstadoArco.Enabled = False
         Me.cboEstadoArco.FormattingEnabled = True
         Me.cboEstadoArco.Location = New System.Drawing.Point(375, 98)
         Me.cboEstadoArco.Name = "cboEstadoArco"
