@@ -81,6 +81,12 @@ Public Class FrmDocumentos
         _puedeImportar = Permisos.Puede("documentos.importar")
         _puedeVerificar = Permisos.Puede("documentos.verificar")
         _puedeMetadatos = Permisos.Puede("documentos.metadatos")
+
+        If Not (_puedeVer OrElse _puedeImportar OrElse _puedeVerificar OrElse _puedeMetadatos) Then
+            Close()
+            Return
+        End If
+
         AplicarPermisosInterfaz()
     End Sub
 
