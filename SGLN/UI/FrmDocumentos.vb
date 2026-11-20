@@ -46,6 +46,7 @@ Public Class FrmDocumentos
         _cargando = False
         Limpiar()
 
+        btnProcesarIA.Enabled = False ' Integración IA/OCR aún no implementada.
         ActualizarAccionesDocumento()
         _permisosInicializados = True
     End Sub
@@ -221,7 +222,7 @@ Public Class FrmDocumentos
         btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
         btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
         btnVerificar.Enabled = _puedeVerificar AndAlso haySeleccion
-        btnProcesarIA.Enabled = _puedeMetadatos AndAlso haySeleccion
+        btnProcesarIA.Enabled = False ' ServicioIA declara la integración como no disponible.
     End Sub
 
     Private Sub Importar()
