@@ -137,7 +137,11 @@ Public Class FrmConfiguracion
     Private Sub dgvConfig_SelectionChanged(sender As Object, e As EventArgs) Handles dgvConfig.SelectionChanged
         If _cargando Then Return
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvConfig)
-        If fila Is Nothing Then Return
+        If fila Is Nothing Then
+            txtClave.Clear()
+            txtValor.Clear()
+            Return
+        End If
 
         txtClave.Text = UtileriasUI.Texto(fila, "Clave")
         txtValor.Text = UtileriasUI.Texto(fila, "Valor")
@@ -163,6 +167,13 @@ Public Class FrmConfiguracion
     End Sub
 
     Private Sub NuevaClaveConfig()
+        ' Separar el editor del registro seleccionado evita que una selección
+        ' residual convierta una captura nueva en edición accidental.
+        _cargando = True
+        dgvConfig.ClearSelection()
+        dgvConfig.CurrentCell = Nothing
+        _cargando = False
+
         txtClave.Clear()
         txtValor.Clear()
         txtClave.Focus()
