@@ -366,6 +366,7 @@ Public Class FrmProtocolo
     Private Sub CargarInstrumentos()
         If _idLibro <= 0 Then
             dgvInstrumentos.DataSource = Nothing
+            LimpiarInstrumento()
             Return
         End If
 
