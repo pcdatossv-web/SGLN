@@ -13,7 +13,7 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Operaciones(filtro As String) As DataTable
-        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
 
         Return Consultar(
@@ -41,7 +41,7 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ObtenerOperacion(id As Integer) As DataTable
-        If id <= 0 OrElse Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.reportar_uif")) Then Return New DataTable()
+        If id <= 0 OrElse Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return New DataTable()
         Return Consultar(
             "SELECT * FROM Operaciones_LDAFT WHERE ID = @id",
             Sub(comando As MySqlCommand)
@@ -150,7 +150,7 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function SolicitudesArco(filtro As String) As DataTable
-        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
 
         Return Consultar(
@@ -187,7 +187,7 @@ Public Class CumplimientoRepositorio
     End Function
 
     Public Function ObtenerSolicitud(id As Integer) As DataTable
-        If id <= 0 OrElse Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
+        If id <= 0 OrElse Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.arco") Then Return New DataTable()
         Return Consultar(
             "SELECT a.ID, a.ID_Cliente, a.Tipo_Derecho, a.Fecha_Solicitud, a.Fecha_Vencimiento, " &
             "a.Fecha_Vencimiento_Prorroga, a.Prorroga_Aplicada, " &
@@ -296,21 +296,21 @@ Public Class CumplimientoRepositorio
     ' ------------------------------------------------------------------
 
     Public Function ClientesCombo() As DataTable
-        If Not (Permisos.TieneAcceso("cumplimiento.operaciones") OrElse Permisos.TieneAcceso("cumplimiento.arco")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("cumplimiento.operaciones", "cumplimiento.arco") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
         Return Consultar(
             "SELECT c.ID, CONCAT(c.Numero_Expediente, ' - ', cl.Nombres, ' ', cl.Apellidos) AS Nombre " &
             "FROM Casos c INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente ORDER BY c.Numero_Expediente")
     End Function
 
     Public Function InstrumentosCombo() As DataTable
-        If Not (Permisos.TieneAcceso("cumplimiento.ver") OrElse Permisos.TieneAcceso("cumplimiento.operaciones")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones") Then Return New DataTable()
         Return Consultar(
             "SELECT i.ID, CONCAT('Libro ', l.Numero_Libro, ' - Escritura ', i.Numero_Escritura) AS Nombre " &
             "FROM Instrumentos i INNER JOIN Libros_Protocolo l ON l.ID = i.ID_Libro " &
@@ -396,5 +396,21 @@ Public Class CumplimientoRepositorio
         Parametro(comando, "@aplicada", solicitud.ProrrogaAplicada)
         Parametro(comando, "@detalle", If(solicitud.Detalle, "").Trim())
     End Sub
+
+
+    ''' <summary>
+    ''' Revalida la sesión una sola vez y consulta los permisos actuales.
+    ''' Evita repetir lecturas de cuenta/rol cuando una consulta admite varios
+    ''' perfiles funcionales de acceso.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+
+        Return False
+    End Function
 
 End Class
