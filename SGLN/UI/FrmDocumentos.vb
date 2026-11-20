@@ -140,10 +140,10 @@ Public Class FrmDocumentos
         Dim idInstrumentoActual As Integer? = Nothing
         If Not fila.IsNull("ID_Instrumento") Then
             idInstrumentoActual = UtileriasUI.Entero(fila, "ID_Instrumento")
-            ' Incluir el instrumento histórico solo para este documento. Los
-            ' instrumentos anulados no se ofrecen como nuevas asociaciones.
-            CargarCombos(idInstrumentoActual)
         End If
+        ' Recargar siempre el catálogo para evitar que una selección anterior
+        ' deje instrumentos históricos disponibles al cambiar de documento.
+        CargarCombos(idInstrumentoActual)
 
         SeleccionarTexto(cboTipoDocumento, UtileriasUI.Texto(fila, "Tipo_Documento"))
         UtileriasUI.SeleccionarValor(cboCaso, If(fila.IsNull("ID_Caso"), 0, fila("ID_Caso")))
