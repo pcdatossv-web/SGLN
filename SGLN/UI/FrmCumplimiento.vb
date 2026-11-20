@@ -681,14 +681,40 @@ Public Class FrmCumplimiento
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             CargarOperaciones()
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarFiltroOperaciones()
         End If
+    End Sub
+
+    Private Sub LimpiarFiltroOperaciones()
+        txtFiltroOp.Clear()
+        CargarOperaciones()
+        txtFiltroOp.Focus()
+    End Sub
+
+    Private Sub btnLimpiarOp_Click(sender As Object, e As EventArgs) Handles btnLimpiarOp.Click
+        LimpiarFiltroOperaciones()
     End Sub
 
     Private Sub txtFiltroArco_KeyDown(sender As Object, e As KeyEventArgs) Handles txtFiltroArco.KeyDown
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             CargarSolicitudes()
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarFiltroArco()
         End If
+    End Sub
+
+    Private Sub LimpiarFiltroArco()
+        txtFiltroArco.Clear()
+        CargarSolicitudes()
+        txtFiltroArco.Focus()
+    End Sub
+
+    Private Sub btnLimpiarArco_Click(sender As Object, e As EventArgs) Handles btnLimpiarArco.Click
+        LimpiarFiltroArco()
     End Sub
 
     Private Sub btnBuscarOp_Click(sender As Object, e As EventArgs) Handles btnBuscarOp.Click
