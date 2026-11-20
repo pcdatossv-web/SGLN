@@ -579,8 +579,6 @@ Public Class FrmCumplimiento
                 .TipoDerecho = Convert.ToString(cboTipoDerecho.SelectedItem),
                 .FechaSolicitud = dtpFechaSolicitud.Value.Date,
                 .ProrrogaAplicada = chkProrroga.Checked,
-                .Estado = Convert.ToString(cboEstadoArco.SelectedItem),
-                .FechaRespuesta = UtileriasUI.LeerFecha(dtpFechaRespuesta),
                 .Detalle = txtDetalleArco.Text
             }
 
