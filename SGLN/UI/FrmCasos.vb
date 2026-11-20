@@ -504,6 +504,9 @@ Public Class FrmCasos
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
             CargarGrid(txtFiltro.Text)
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            LimpiarFiltroCasos()
         End If
     End Sub
 
@@ -512,6 +515,10 @@ Public Class FrmCasos
     End Sub
 
     Private Sub btnLimpiarFiltro_Click(sender As Object, e As EventArgs) Handles btnLimpiarFiltro.Click
+        LimpiarFiltroCasos()
+    End Sub
+
+    Private Sub LimpiarFiltroCasos()
         txtFiltro.Clear()
         CargarGrid("")
         txtFiltro.Focus()
