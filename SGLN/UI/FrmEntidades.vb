@@ -25,6 +25,7 @@ Public Class FrmEntidades
         txtDomicilio.MaxLength = 300
         txtDetalleOrigen.MaxLength = 500
         txtCargo.MaxLength = 120
+        txtBuscarEntidad.MaxLength = 200
 
         UtileriasUI.ConfigurarGrid(dgvEntidades)
         chkActivo.Enabled = False ' El estado solo cambia mediante la acción de desactivación.
@@ -386,7 +387,28 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
+        CargarGrid(txtBuscarEntidad.Text)
+    End Sub
+
+    Private Sub btnBuscarEntidad_Click(sender As Object, e As EventArgs) Handles btnBuscarEntidad.Click
+        CargarGrid(txtBuscarEntidad.Text)
+    End Sub
+
+    Private Sub btnLimpiarBusqueda_Click(sender As Object, e As EventArgs) Handles btnLimpiarBusqueda.Click
+        txtBuscarEntidad.Clear()
         CargarGrid("")
+        txtBuscarEntidad.Focus()
+    End Sub
+
+    Private Sub txtBuscarEntidad_KeyDown(sender As Object, e As KeyEventArgs) Handles txtBuscarEntidad.KeyDown
+        If e.KeyCode = Keys.Enter Then
+            e.SuppressKeyPress = True
+            CargarGrid(txtBuscarEntidad.Text)
+        ElseIf e.KeyCode = Keys.Escape Then
+            e.SuppressKeyPress = True
+            txtBuscarEntidad.Clear()
+            CargarGrid("")
+        End If
     End Sub
 
     Private Sub btnAgregarRep_Click(sender As Object, e As EventArgs) Handles btnAgregarRep.Click
