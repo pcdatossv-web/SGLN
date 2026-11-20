@@ -103,8 +103,9 @@ Public Class FrmUsuarios
         chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
         ' Permitir reactivar/desactivar desde el formulario, excepto la cuenta propia.
         ' El servicio vuelve a validar la regla del último administrador activo.
-        chkActivo.Enabled = Sesion.UsuarioActual IsNot Nothing AndAlso
-                            _idSeleccionado <> Sesion.UsuarioActual.ID
+        ' El estado es informativo; se modifica únicamente con la acción
+        ' explícita Desactivar/Reactivar para evitar cambios ambiguos al guardar.
+        chkActivo.Enabled = False
         ActualizarEstadoAccionesUsuario()
         ' No ofrecer la eliminación de la cuenta que mantiene abierta la sesión.
         ' El servicio conserva la misma restricción como control definitivo.
@@ -127,7 +128,8 @@ Public Class FrmUsuarios
             Sesion.UsuarioActual IsNot Nothing AndAlso
             _idSeleccionado <> Sesion.UsuarioActual.ID
 
-        btnDesactivar.Enabled = esOtroUsuario AndAlso chkActivo.Checked
+        btnDesactivar.Text = If(chkActivo.Checked, "Desactivar usuario", "Reactivar usuario")
+        btnDesactivar.Enabled = esOtroUsuario
     End Sub
 
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
@@ -142,6 +144,7 @@ Public Class FrmUsuarios
         If cboRol.Items.Count > 0 Then cboRol.SelectedIndex = 0
         chkActivo.Checked = True
         chkActivo.Enabled = True
+        btnDesactivar.Text = "Desactivar usuario"
         txtClaveNueva.Clear()
         txtClaveConfirmar.Clear()
         btnDesactivar.Enabled = False
@@ -221,21 +224,23 @@ Public Class FrmUsuarios
     End Sub
 
     Private Sub btnDesactivar_Click(sender As Object, e As EventArgs) Handles btnDesactivar.Click
-        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf DesactivarUsuario, Function() _idSeleccionado > 0 AndAlso chkActivo.Checked)
+        UtileriasUI.EjecutarUnaVez(btnDesactivar, AddressOf CambiarEstadoUsuario, Function() _idSeleccionado > 0 AndAlso Sesion.UsuarioActual IsNot Nothing AndAlso _idSeleccionado <> Sesion.UsuarioActual.ID)
     End Sub
 
-    Private Sub DesactivarUsuario()
+    Private Sub CambiarEstadoUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
-
-            If _idSeleccionado = 0 Then
-                Mostrar("Seleccione el usuario que desea desactivar.", False)
+            If _idSeleccionado <= 0 Then
+                Mostrar("Seleccione un usuario.", False)
                 Return
             End If
 
-            If Not UtileriasUI.Confirmar("¿Desactivar el usuario '" & txtUsuario.Text & "'?") Then Return
+            Dim activar As Boolean = Not chkActivo.Checked
+            Dim accion As String = If(activar, "reactivar", "desactivar")
+            If Not UtileriasUI.Confirmar("¿Desea " & accion & " el usuario '" & txtUsuario.Text & "'?") Then Return
 
-            Dim respuesta As Respuesta = _servicio.Desactivar(_idSeleccionado)
+            Dim respuesta As Respuesta =
+                If(activar, _servicio.Activar(_idSeleccionado), _servicio.Desactivar(_idSeleccionado))
             Mostrar(respuesta.Mensaje, respuesta.Exito)
 
             If respuesta.Exito Then
@@ -243,7 +248,7 @@ Public Class FrmUsuarios
                 Nuevo()
             End If
         Catch ex As Exception
-            RegistroErrores.Escribir("Usuarios - btndesactivar", ex)
+            RegistroErrores.Escribir("Usuarios - cambiar estado", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
     End Sub
