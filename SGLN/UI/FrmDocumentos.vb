@@ -273,8 +273,11 @@ Public Class FrmDocumentos
             Return
         End If
 
+        ' Conservar el identificador antes de recargar: CargarGrid puede cambiar
+        ' _idDocumento al seleccionar automáticamente la primera fila.
+        Dim idDocumentoActualizado As Integer = _idDocumento
         Dim respuesta As Respuesta = _servicio.ActualizarMetadatos(
-            _idDocumento,
+            idDocumentoActualizado,
             Convert.ToString(cboTipoDocumento.SelectedItem),
             IdOpcional(cboCaso),
             IdOpcional(cboInstrumento))
@@ -285,7 +288,7 @@ Public Class FrmDocumentos
         End If
 
         CargarGrid()
-        SeleccionarDocumento(_idDocumento)
+        SeleccionarDocumento(idDocumentoActualizado)
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
