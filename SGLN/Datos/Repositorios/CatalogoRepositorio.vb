@@ -9,8 +9,19 @@ Imports MySql.Data.MySqlClient
 Public Class CatalogoRepositorio
     Inherits RepositorioBase
 
+    ''' <summary>
+    ''' Revalida una vez por consulta y evalúa los permisos desde la matriz actual.
+    ''' </summary>
+    Private Shared Function TieneAccesoAlguno(ParamArray codigos As String()) As Boolean
+        If Not Permisos.RevalidarSesion() OrElse codigos Is Nothing Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     Public Function Juzgados() As DataTable
-        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' (', Materia, ')') AS Nombre FROM Juzgados " &
             "WHERE Activo = 1 ORDER BY Nombre")
@@ -24,20 +35,16 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function Feriados() As DataTable
-        If Not (Permisos.TieneAcceso("config.feriados") OrElse Permisos.TieneAcceso("config.ver")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("config.feriados", "config.ver") Then Return New DataTable()
         Return Consultar("SELECT ID, Fecha, Descripcion FROM Feriados ORDER BY Fecha")
     End Function
 
     Public Function FechasFeriadas() As List(Of Date)
-        Dim puedeConsultar As Boolean =
-            Permisos.TieneAcceso("casos.confirmar_plazo") OrElse
-            Permisos.TieneAcceso("protocolo.ver") OrElse
-            Permisos.TieneAcceso("protocolo.entregar") OrElse
-            Permisos.TieneAcceso("protocolo.gestionar") OrElse
-            Permisos.TieneAcceso("cumplimiento.ver") OrElse
-            Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
-            Permisos.TieneAcceso("cumplimiento.arco") OrElse
-            Permisos.TieneAcceso("cumplimiento.reportar_uif")
+        Dim puedeConsultar As Boolean = TieneAccesoAlguno(
+            "casos.confirmar_plazo",
+            "protocolo.ver", "protocolo.entregar", "protocolo.gestionar",
+            "cumplimiento.ver", "cumplimiento.operaciones",
+            "cumplimiento.arco", "cumplimiento.reportar_uif")
         If Not puedeConsultar Then Return New List(Of Date)()
 
         Dim fechas As New List(Of Date)()
@@ -55,22 +62,16 @@ Public Class CatalogoRepositorio
         Select Case claveNormalizada
             Case "Umbral_Efectivo", "LDA_Analisis_Dias", "LDA_Reporte_Dias",
                  "ARCO_Dias_Respuesta", "ARCO_Dias_Prorroga"
-                permisoLectura =
-                    Permisos.TieneAcceso("cumplimiento.ver") OrElse
-                    Permisos.TieneAcceso("cumplimiento.operaciones") OrElse
-                    Permisos.TieneAcceso("cumplimiento.arco") OrElse
-                    Permisos.TieneAcceso("cumplimiento.reportar_uif")
+                permisoLectura = TieneAccesoAlguno(
+                    "cumplimiento.ver", "cumplimiento.operaciones",
+                    "cumplimiento.arco", "cumplimiento.reportar_uif")
             Case "Protocolo_Dias_Entrega"
-                permisoLectura =
-                    Permisos.TieneAcceso("protocolo.ver") OrElse
-                    Permisos.TieneAcceso("protocolo.entregar") OrElse
-                    Permisos.TieneAcceso("protocolo.gestionar")
+                permisoLectura = TieneAccesoAlguno(
+                    "protocolo.ver", "protocolo.entregar", "protocolo.gestionar")
             Case "Carpeta_Documentos"
-                permisoLectura =
-                    Permisos.TieneAcceso("documentos.ver") OrElse
-                    Permisos.TieneAcceso("documentos.importar") OrElse
-                    Permisos.TieneAcceso("documentos.verificar") OrElse
-                    Permisos.TieneAcceso("documentos.metadatos")
+                permisoLectura = TieneAccesoAlguno(
+                    "documentos.ver", "documentos.importar",
+                    "documentos.verificar", "documentos.metadatos")
             Case Else
                 permisoLectura = Permisos.TieneAcceso("config.ver")
         End Select
