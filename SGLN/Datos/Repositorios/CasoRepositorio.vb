@@ -18,7 +18,8 @@ Public Class CasoRepositorio
             "INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
             "LEFT JOIN Juzgados j ON j.ID = c.ID_Juzgado " &
             "WHERE (@filtro IS NULL OR c.Numero_Expediente LIKE @like " &
-            "       OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like) " &
+            "       OR cl.Nombres LIKE @like OR cl.Apellidos LIKE @like " &
+            "       OR c.Materia LIKE @like OR IFNULL(j.Nombre, '') LIKE @like) " &
             "ORDER BY c.Fecha_Apertura DESC, c.Numero_Expediente",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@filtro", texto)
