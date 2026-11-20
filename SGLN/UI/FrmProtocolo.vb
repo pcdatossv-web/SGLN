@@ -51,7 +51,7 @@ Public Class FrmProtocolo
 
         _cargando = True
         CargarClientes()
-        CargarLibros(If(IDLibroInicial > 0, IDLibroInicial, 0))
+        CargarLibros(If(IDLibroInicial > 0, IDLibroInicial, 0), IDLibroInicial > 0)
         _cargando = False
 
         If IDLibroInicial > 0 Then
@@ -73,6 +73,16 @@ Public Class FrmProtocolo
                 MostrarMensaje("El libro asociado a la alerta ya no está disponible.", False)
             End If
         Else
+            ' No cargar automáticamente el primer libro y luego descartar sus datos.
+            ' Sin contexto inicial, dejar el selector y las secciones dependientes vacíos.
+            _cargando = True
+            cboLibro.SelectedIndex = -1
+            cboInstrumentoTest.DataSource = Nothing
+            dgvInstrumentos.DataSource = Nothing
+            dgvComparecientes.DataSource = Nothing
+            dgvTestimonios.DataSource = Nothing
+            dgvIndice.DataSource = Nothing
+            _cargando = False
             LimpiarLibro()
             LimpiarInstrumento()
             MostrarMensaje("", True)
@@ -153,7 +163,7 @@ Public Class FrmProtocolo
         End Try
     End Sub
 
-    Private Sub CargarLibros(seleccionar As Integer)
+    Private Sub CargarLibros(seleccionar As Integer, Optional cargarDetalleSeleccionado As Boolean = True)
         Try
             Dim tabla As DataTable = _servicio.Libros()
 
@@ -169,7 +179,7 @@ Public Class FrmProtocolo
             End If
             _cargando = False
 
-            CargarLibroSeleccionado()
+            If cargarDetalleSeleccionado Then CargarLibroSeleccionado()
         Catch ex As Exception
             _cargando = False
             dgvLibros.DataSource = Nothing
