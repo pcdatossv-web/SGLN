@@ -28,7 +28,7 @@ Public Class CatalogoRepositorio
     End Function
 
     Public Function TiposActuacion() As DataTable
-        If Not (Permisos.TieneAcceso("casos.ver") OrElse Permisos.TieneAcceso("casos.gestionar")) Then Return New DataTable()
+        If Not TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' - ', Plazo_Dias_Default, ' días') AS Nombre, " &
             "Plazo_Dias_Default FROM Tipos_Actuacion WHERE Activo = 1 ORDER BY Nombre")

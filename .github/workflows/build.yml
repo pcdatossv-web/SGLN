@@ -124,13 +124,16 @@ jobs:
           $servicioConfig = Get-Content 'SGLN\\Servicios\\ServicioConfiguracion.vb' -Raw
           if (-not $catalogoRepo.Contains('Permisos.TieneAcceso("config.editar")') -or
               -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.ver")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("cumplimiento.operaciones")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("protocolo.entregar")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.ver")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.gestionar")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("config.feriados")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("casos.confirmar_plazo")') -or
-              -not $catalogoRepo.Contains('Permisos.TieneAcceso("protocolo.ver")') -or
+              -not $catalogoRepo.Contains('TieneAccesoAlguno(ParamArray codigos As String())') -or
+              -not $catalogoRepo.Contains('Permisos.RevalidarSesion()') -or
+              -not $catalogoRepo.Contains('Permisos.Puede(codigo)') -or
+              -not $catalogoRepo.Contains('"cumplimiento.operaciones"') -or
+              -not $catalogoRepo.Contains('"protocolo.entregar"') -or
+              -not $catalogoRepo.Contains('"casos.ver"') -or
+              -not $catalogoRepo.Contains('"casos.gestionar"') -or
+              -not $catalogoRepo.Contains('"config.feriados"') -or
+              -not $catalogoRepo.Contains('"casos.confirmar_plazo"') -or
+              -not $catalogoRepo.Contains('"protocolo.ver"') -or
               -not $catalogoRepo.Contains('Carpeta_Documentos') -or
               -not $catalogoRepo.Contains('Carpeta_Respaldos') -or
               $catalogoRepo.Contains('clave & " = " & valor')) {
@@ -234,9 +237,12 @@ jobs:
             throw 'Faltan validaciones de referencias y metadatos documentales.'
           }
           if ($documentoRepo -notmatch 'TipoDocumentoValido\(documento.TipoDocumento\)' -or
-              $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.ver"\)' -or
+              $documentoRepo -notmatch 'TieneAccesoAlguno\("documentos.ver"' -or
+              $documentoRepo -notmatch 'documentos.verificar' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.importar"\)' -or
               $documentoRepo -notmatch 'Permisos.TieneAcceso\("documentos.metadatos"\)' -or
+              $documentoRepo -notmatch 'Permisos.RevalidarSesion\(\)' -or
+              $documentoRepo -notmatch 'Permisos.Puede\(codigo\)' -or
               $documentoRepo -notmatch 'PuedeConsultarDocumentos' -or
               $documentoRepo -notmatch 'PuedeCargarCombosDocumentos') {
             throw 'El repositorio documental debe validar permisos en cada operación directa.'
