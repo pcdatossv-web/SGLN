@@ -511,6 +511,12 @@ Public Class FrmCasos
         CargarGrid(txtFiltro.Text)
     End Sub
 
+    Private Sub btnLimpiarFiltro_Click(sender As Object, e As EventArgs) Handles btnLimpiarFiltro.Click
+        txtFiltro.Clear()
+        CargarGrid("")
+        txtFiltro.Focus()
+    End Sub
+
     Private Sub btnCalcular_Click(sender As Object, e As EventArgs) Handles btnCalcular.Click
         CalcularPropuesta()
     End Sub
