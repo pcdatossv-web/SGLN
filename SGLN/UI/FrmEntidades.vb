@@ -40,7 +40,7 @@ Public Class FrmEntidades
         cboTipoRepresentacion.SelectedIndex = 0
 
         _cargando = True
-        CargarGrid("")
+        CargarGrid("", False)
         _cargando = False
         CargarClientesCombo()
         If IDEntidadInicial > 0 Then
@@ -96,7 +96,7 @@ Public Class FrmEntidades
         AplicarPermisosInterfaz()
     End Sub
 
-    Private Sub CargarGrid(filtro As String)
+    Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
         Try
             _cargando = True
             dgvEntidades.DataSource = _servicio.Buscar(filtro)
@@ -104,8 +104,8 @@ Public Class FrmEntidades
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvEntidades)
             If filaActual Is Nothing Then
-                Limpiar()
-            Else
+                If cargarDetalleSeleccionado Then Limpiar()
+            ElseIf cargarDetalleSeleccionado Then
                 CargarEntidad(UtileriasUI.Entero(filaActual, "ID"))
             End If
         Catch ex As Exception

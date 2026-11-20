@@ -44,7 +44,7 @@ Public Class FrmCasos
 
         _cargando = True
         CargarCombos()
-        CargarGrid("")
+        CargarGrid("", False)
         _cargando = False
 
         If IDCasoInicial > 0 Then
@@ -137,7 +137,7 @@ Public Class FrmCasos
         End Try
     End Sub
 
-    Private Sub CargarGrid(filtro As String)
+    Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
         Try
             _cargando = True
             dgvCasos.DataSource = _servicio.Buscar(filtro)
@@ -145,8 +145,8 @@ Public Class FrmCasos
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvCasos)
             If filaActual Is Nothing Then
-                Limpiar()
-            Else
+                If cargarDetalleSeleccionado Then Limpiar()
+            ElseIf cargarDetalleSeleccionado Then
                 CargarCaso(UtileriasUI.Entero(filaActual, "ID"))
             End If
         Catch ex As Exception

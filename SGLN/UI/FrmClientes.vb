@@ -39,7 +39,7 @@ Public Class FrmClientes
         cboNivelRiesgo.SelectedIndex = 0
 
         _cargando = True
-        CargarGrid("")
+        CargarGrid("", False)
         _cargando = False
         If IDClienteInicial > 0 Then
             SeleccionarCliente(IDClienteInicial)
@@ -103,7 +103,7 @@ Public Class FrmClientes
         AplicarPermisosInterfaz()
     End Sub
 
-    Private Sub CargarGrid(filtro As String)
+    Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
         Try
             _cargando = True
             dgvClientes.DataSource = _servicio.Buscar(filtro)
@@ -113,8 +113,8 @@ Public Class FrmClientes
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvClientes)
             If filaActual Is Nothing Then
-                Limpiar()
-            Else
+                If cargarDetalleSeleccionado Then Limpiar()
+            ElseIf cargarDetalleSeleccionado Then
                 CargarCliente(UtileriasUI.Entero(filaActual, "ID"))
             End If
         Catch ex As Exception
