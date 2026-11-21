@@ -18,6 +18,8 @@ Partial Class FrmRoles
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.dgvRoles = New System.Windows.Forms.DataGridView()
+        Me.lblBuscar = New System.Windows.Forms.Label()
+        Me.txtBuscar = New System.Windows.Forms.TextBox()
         Me.grpEditor = New System.Windows.Forms.GroupBox()
         Me.lblNombre = New System.Windows.Forms.Label()
         Me.txtNombre = New System.Windows.Forms.TextBox()
@@ -39,10 +41,27 @@ Partial Class FrmRoles
         Me.dgvRoles.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvRoles.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvRoles.Location = New System.Drawing.Point(12, 12)
+        Me.dgvRoles.Location = New System.Drawing.Point(12, 48)
         Me.dgvRoles.Name = "dgvRoles"
-        Me.dgvRoles.Size = New System.Drawing.Size(500, 660)
-        Me.dgvRoles.TabIndex = 0
+        Me.dgvRoles.Size = New System.Drawing.Size(500, 624)
+        Me.dgvRoles.TabIndex = 1
+        '
+        ' lblBuscar
+        '
+        Me.lblBuscar.AutoSize = True
+        Me.lblBuscar.Location = New System.Drawing.Point(12, 17)
+        Me.lblBuscar.Name = "lblBuscar"
+        Me.lblBuscar.Size = New System.Drawing.Size(45, 15)
+        Me.lblBuscar.TabIndex = 0
+        Me.lblBuscar.Text = "Buscar:"
+        '
+        ' txtBuscar
+        '
+        Me.txtBuscar.Location = New System.Drawing.Point(65, 12)
+        Me.txtBuscar.MaxLength = 100
+        Me.txtBuscar.Name = "txtBuscar"
+        Me.txtBuscar.Size = New System.Drawing.Size(447, 23)
+        Me.txtBuscar.TabIndex = 0
         '
         ' grpEditor
         '
@@ -177,6 +196,8 @@ Partial Class FrmRoles
         Me.ClientSize = New System.Drawing.Size(1185, 700)
         Me.Controls.Add(Me.grpEditor)
         Me.Controls.Add(Me.dgvRoles)
+        Me.Controls.Add(Me.txtBuscar)
+        Me.Controls.Add(Me.lblBuscar)
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.MinimumSize = New System.Drawing.Size(1220, 740)
         Me.Name = "FrmRoles"
@@ -189,6 +210,8 @@ Partial Class FrmRoles
     End Sub
 
     Friend WithEvents dgvRoles As System.Windows.Forms.DataGridView
+    Friend WithEvents lblBuscar As System.Windows.Forms.Label
+    Friend WithEvents txtBuscar As System.Windows.Forms.TextBox
     Friend WithEvents grpEditor As System.Windows.Forms.GroupBox
     Friend WithEvents lblNombre As System.Windows.Forms.Label
     Friend WithEvents txtNombre As System.Windows.Forms.TextBox

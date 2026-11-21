@@ -17,11 +17,13 @@ Public Class FrmRoles
     Private _cargando As Boolean
     Private _catalogoDisponible As Boolean
     Private _permisosInicializados As Boolean
+    Private _tablaRoles As DataTable
 
     Private Sub FrmRoles_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.roles", Me) Then Return
 
         UtileriasUI.ConfigurarGrid(dgvRoles)
+        txtBuscar.Clear()
         CargarCatalogoPermisos()
         ' La pantalla inicia en modo alta; no consultar los permisos del primer rol
         ' para limpiarlos inmediatamente después.
@@ -95,7 +97,8 @@ Public Class FrmRoles
         Dim errorCarga As Boolean = False
         Try
             _cargando = True
-            dgvRoles.DataSource = _servicio.Listar()
+            _tablaRoles = _servicio.Listar()
+            dgvRoles.DataSource = New DataView(_tablaRoles)
 
             If dgvRoles.Columns.Contains("ID") Then dgvRoles.Columns("ID").Visible = False
             If dgvRoles.Columns.Contains("Protegido") Then dgvRoles.Columns("Protegido").FillWeight = 45
@@ -106,6 +109,7 @@ Public Class FrmRoles
             RegistroErrores.Escribir("Roles - listar", ex)
             Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
             errorCarga = True
+            _tablaRoles = Nothing
             dgvRoles.DataSource = Nothing
         Finally
             _cargando = False
@@ -122,6 +126,33 @@ Public Class FrmRoles
             End If
         End Try
     End Sub
+
+    ''' <summary>Filtra roles por nombre o descripción sin consultar MySQL por cada tecla.</summary>
+    Private Sub txtBuscar_TextChanged(sender As Object, e As EventArgs) Handles txtBuscar.TextChanged
+        If _tablaRoles Is Nothing Then Return
+
+        Try
+            Dim termino As String = EscaparFiltro(txtBuscar.Text.Trim())
+            Dim vista As DataView = TryCast(dgvRoles.DataSource, DataView)
+            If vista Is Nothing Then Return
+
+            If termino.Length = 0 Then
+                vista.RowFilter = String.Empty
+            Else
+                vista.RowFilter =
+                    "Nombre LIKE '%" & termino & "%' OR " &
+                    "Descripcion LIKE '%" & termino & "%'"
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Roles - filtro de búsqueda", ex)
+            Mostrar("No se pudo aplicar el filtro. Revise el texto ingresado.", False)
+        End Try
+    End Sub
+
+    Private Function EscaparFiltro(valor As String) As String
+        Return If(valor, String.Empty).Replace("[", "[[]").Replace("]", "[]]").
+            Replace("%", "[%]").Replace("*", "[*]").Replace("'", "''")
+    End Function
 
     Private Sub dgvRoles_SelectionChanged(sender As Object, e As EventArgs) Handles dgvRoles.SelectionChanged
         If _cargando Then Return
