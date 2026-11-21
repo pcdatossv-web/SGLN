@@ -25,6 +25,16 @@ Module PruebaValidadorIdentidad
                   "Normalización de NIT")
         Verificar(ValidadorIdentidad.FormatearDui("030962012") = "03096201-2",
                   "Normalización de DUI")
+        Verificar(ValidadorIdentidad.EsFormatoDuiValido("0309 6201-2"),
+                  "DUI con espacios de presentación")
+        Verificar(Not ValidadorIdentidad.EsFormatoDuiValido("03096201--2"),
+                  "DUI con separador duplicado")
+        Verificar(Not ValidadorIdentidad.EsFormatoDuiValido("٠٣٠٩٦٢٠١٢"),
+                  "DUI con dígitos Unicode no ASCII")
+        Verificar(Not ValidadorIdentidad.EsFormatoNitValido("٠٦١٤٠١٠٨٠٨١٠٠١"),
+                  "NIT con dígitos Unicode no ASCII")
+        Verificar(ValidadorIdentidad.FormatearNit("0614-010808-100-1") = "0614-010808-100-1",
+                  "Normalización idempotente de NIT")
 
         Console.WriteLine("Todas las pruebas puras de identidad finalizaron correctamente.")
     End Sub
