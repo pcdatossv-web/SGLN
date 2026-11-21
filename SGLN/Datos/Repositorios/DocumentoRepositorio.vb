@@ -70,6 +70,42 @@ Public Class DocumentoRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Valida y bloquea las referencias dentro de la misma transacción que
+    ''' registra el documento. La validación del servicio es informativa; esta
+    ''' comprobación es la garantía final frente a llamadas directas y carreras.
+    ''' Se conserva la posibilidad de vincular documentos a instrumentos anulados
+    ''' porque forman parte del historial notarial.
+    ''' </summary>
+    Private Sub ValidarReferenciasEnTransaccion(conexion As MySqlConnection,
+                                                transaccion As MySqlTransaction,
+                                                idCaso As Integer?,
+                                                idInstrumento As Integer?)
+        If idCaso.HasValue Then
+            Using comando As New MySqlCommand(
+                "SELECT ID FROM Casos WHERE ID = @id FOR UPDATE",
+                conexion, transaccion)
+                Parametro(comando, "@id", idCaso.Value)
+                Dim valor As Object = comando.ExecuteScalar()
+                If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                    Throw New InvalidOperationException("El caso asociado ya no existe.")
+                End If
+            End Using
+        End If
+
+        If idInstrumento.HasValue Then
+            Using comando As New MySqlCommand(
+                "SELECT ID FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                conexion, transaccion)
+                Parametro(comando, "@id", idInstrumento.Value)
+                Dim valor As Object = comando.ExecuteScalar()
+                If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                    Throw New InvalidOperationException("El instrumento asociado ya no existe.")
+                End If
+            End Using
+        End If
+    End Sub
+
     Public Function Insertar(documento As Documento) As Integer
         If Not Permisos.TieneAcceso("documentos.importar") Then
             Throw New UnauthorizedAccessException("No tiene permiso para importar documentos.")
@@ -98,6 +134,8 @@ Public Class DocumentoRepositorio
         End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ValidarReferenciasEnTransaccion(conexion, transaccion,
+                    documento.IDCaso, documento.IDInstrumento)
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Documentos (Tipo_Documento, Ruta_Archivo, Hash, Estado_Procesamiento_IA, " &
                     "       ID_Caso, ID_Instrumento, Usuario) " &
@@ -144,6 +182,9 @@ Public Class DocumentoRepositorio
                     Dim idExistente As Object = comandoExiste.ExecuteScalar()
                     If idExistente Is Nothing OrElse idExistente Is DBNull.Value Then Return 0
                 End Using
+
+                ValidarReferenciasEnTransaccion(conexion, transaccion,
+                    documento.IDCaso, documento.IDInstrumento)
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Documentos SET Tipo_Documento = @tipo, ID_Caso = @caso, ID_Instrumento = @instrumento " &
