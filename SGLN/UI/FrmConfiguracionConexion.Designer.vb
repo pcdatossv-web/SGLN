@@ -176,7 +176,7 @@ Partial Class FrmConfiguracionConexion
         Me.chkMostrarClaves.Location = New System.Drawing.Point(185, 203)
         Me.chkMostrarClaves.Name = "chkMostrarClaves"
         Me.chkMostrarClaves.Size = New System.Drawing.Size(119, 19)
-        Me.chkMostrarClaves.TabIndex = 21
+        Me.chkMostrarClaves.TabIndex = 11
         Me.chkMostrarClaves.Text = "Mostrar contraseñas"
         Me.chkMostrarClaves.UseVisualStyleBackColor = True
         '
