@@ -10,7 +10,12 @@ Public Class FrmLogin
 
         txtUsuario.Clear()
         txtClave.Clear()
+        chkMostrarClave.Checked = False
         txtUsuario.Focus()
+    End Sub
+
+    Private Sub chkMostrarClave_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClave.CheckedChanged
+        txtClave.UseSystemPasswordChar = Not chkMostrarClave.Checked
     End Sub
 
     Private Sub AbrirConfiguracionConexion()
@@ -53,6 +58,7 @@ Public Class FrmLogin
             If usuario Is Nothing Then
                 lblError.Text = "Usuario o clave incorrectos."
                 txtClave.Clear()
+                chkMostrarClave.Checked = False
                 txtClave.Focus()
                 Return
             End If
@@ -62,6 +68,7 @@ Public Class FrmLogin
                 If String.IsNullOrEmpty(claveNueva) Then
                     lblError.Text = "Debe cambiar la clave inicial para ingresar al sistema."
                     txtClave.Clear()
+                    chkMostrarClave.Checked = False
                     txtClave.Focus()
                     Return
                 End If
@@ -97,6 +104,7 @@ Public Class FrmLogin
             ' no debe quedar una sesión parcialmente inicializada en memoria.
             Sesion.Limpiar()
             txtClave.Clear()
+            chkMostrarClave.Checked = False
             RegistroErrores.Escribir("Inicio de sesión", ex)
             lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
         End Try
