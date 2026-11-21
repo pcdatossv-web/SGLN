@@ -11,7 +11,7 @@ Public Class ServicioCasos
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
     Private Function TienePermisoVigente(permiso As String) As Boolean
-        Return Permisos.RevalidarSesion() AndAlso Permisos.TieneAcceso(permiso)
+        Return Permisos.RevalidarSesion() AndAlso Permisos.Puede(permiso)
     End Function
 
     Public Function Buscar(filtro As String) As DataTable
