@@ -80,7 +80,7 @@ Public Class ServicioCasos
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not Permisos.RevalidarSesion() OrElse Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
