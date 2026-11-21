@@ -694,6 +694,17 @@ Module PruebaFuncional
                   Not quitarUsuariosDirecto.Exito AndAlso
                   permisosEsencialesTrasIntentos.Contains("config.usuarios"))
 
+        ' Una llamada directa al repositorio tampoco puede elevar un rol común.
+        ' La transacción debe restaurar la matriz anterior si el trigger rechaza
+        ' el permiso administrativo después de intentar sincronizarla.
+        Dim elevarRolDirecto As Respuesta = repositorioRolesPrueba.GuardarPermisos(
+            idRolPrueba, New List(Of String) From {"config.roles"})
+        Dim permisosRolTrasElevacion As List(Of String) = roles.PermisosDeRol(idRolPrueba)
+        Verificar("La base de datos rechaza asignar config.roles a un rol ordinario",
+                  Not elevarRolDirecto.Exito AndAlso
+                  permisosRolTrasElevacion.Count = 1 AndAlso
+                  permisosRolTrasElevacion.Contains("casos.ver"))
+
         Dim rUsuarioPrueba As Respuesta = servicioUsuarios.Crear(
             "pruebauser", "Usuario de Prueba", "PruebaSegura123!", idRolPrueba, True)
         Verificar("Crear un usuario con el rol nuevo", rUsuarioPrueba.Exito, rUsuarioPrueba.Mensaje)
