@@ -10,8 +10,12 @@ Public Class ServicioPlazos
     Private ReadOnly _repositorio As New CasoRepositorio()
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
+    Private Function TienePermisoVigente(permiso As String) As Boolean
+        Return Permisos.RevalidarSesion() AndAlso Permisos.TieneAcceso(permiso)
+    End Function
+
     Public Function ObtenerCalculadora() As CalculadoraDiasHabiles
-        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then
+        If Not TienePermisoVigente("casos.confirmar_plazo") Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar el calendario de plazos procesales.")
         End If
         Return New CalculadoraDiasHabiles(_catalogo.FechasFeriadas())
@@ -75,7 +79,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function ActualizarVencidas() As Integer
-        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Return 0
+        If Not TienePermisoVigente("casos.cumplir_plazo") Then Return 0
         Try
             Return _repositorio.MarcarVencidas()
         Catch ex As Exception
@@ -99,7 +103,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function Actuaciones(idCaso As Integer) As DataTable
-        If Not Permisos.TieneAcceso("casos.ver") OrElse idCaso <= 0 Then Return New DataTable()
+        If Not TienePermisoVigente("casos.ver") OrElse idCaso <= 0 Then Return New DataTable()
         Return _repositorio.ActuacionesPorCaso(idCaso)
     End Function
 
