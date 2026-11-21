@@ -745,6 +745,33 @@ Module PruebaFuncional
                   sesionGestor IsNot Nothing AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
                   Not Permisos.TieneAcceso("config.usuarios") AndAlso
                   Not Permisos.TieneAcceso("config.roles") AndAlso Not Sesion.UsuarioActual.RolProtegido)
+
+        ' Una estación puede conservar abierta una sesión mientras el administrador
+        ' modifica la matriz del rol. La siguiente operación protegida debe consultar
+        ' la matriz vigente, no seguir usando el permiso que quedó en memoria.
+        Dim sesionGestorAntesRevocacion As UsuarioSesion = Sesion.UsuarioActual
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        Dim revocacionPermiso As Respuesta = roles.Actualizar(
+            idRolGestor, nombreRolGestor, "Rol ordinario con permiso revocado", True,
+            New List(Of String)())
+        Sesion.UsuarioActual = sesionGestorAntesRevocacion
+        Dim permisoRevocadoEnSesionAbierta As Boolean =
+            revocacionPermiso.Exito AndAlso Not Permisos.TieneAcceso("casos.ver")
+        Verificar("Una sesión abierta pierde el permiso cuando el administrador lo revoca",
+                  permisoRevocadoEnSesionAbierta, revocacionPermiso.Mensaje)
+
+        ' Restaurar la matriz original para que las pruebas posteriores conserven
+        ' el escenario funcional del rol ordinario.
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        Dim restauracionPermiso As Respuesta = roles.Actualizar(
+            idRolGestor, nombreRolGestor, "Rol ordinario para probar la separación de privilegios",
+            True, New List(Of String) From {"casos.ver"})
+        Sesion.UsuarioActual = sesionGestorAntesRevocacion
+        Verificar("La prueba restaura el permiso original del rol temporal",
+                  restauracionPermiso.Exito AndAlso Permisos.TieneAcceso("casos.ver"),
+                  restauracionPermiso.Mensaje)
         Dim cambioClaveGestor As Respuesta = servicioUsuarios.CambiarClavePropia(
             idUsuarioGestor, "GestorPrueba99!", "GestorCambioTemporal99!")
         Verificar("Un usuario ordinario puede cambiar su propia clave sin permisos administrativos",
