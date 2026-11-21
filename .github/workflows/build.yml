@@ -387,7 +387,7 @@ jobs:
 
           # MaxLength es configuración estática del control y debe residir
           # en Designer.vb; los permisos y estados dinámicos siguen en código.
-          $patronLongitud = '\\.MaxLength\\s*='
+          $patronLongitud = '\.MaxLength\s*='
           $casosLongitud = @(
             @{ Texto = 'txtNIT.MaxLength = 17'; DebeCoincidir = $true; Nombre = 'MaxLength en ejecución' },
             @{ Texto = 'txtNIT.ReadOnly = True'; DebeCoincidir = $false; Nombre = 'Estado dinámico permitido' }
