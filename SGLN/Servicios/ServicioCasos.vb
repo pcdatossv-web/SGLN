@@ -10,8 +10,12 @@ Public Class ServicioCasos
     Private ReadOnly _repositorio As New CasoRepositorio()
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
+    Private Function TienePermisoVigente(permiso As String) As Boolean
+        Return Permisos.RevalidarSesion() AndAlso Permisos.TieneAcceso(permiso)
+    End Function
+
     Public Function Buscar(filtro As String) As DataTable
-        If Not Permisos.TieneAcceso("casos.ver") Then Return New DataTable()
+        If Not TienePermisoVigente("casos.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
     End Function
 
@@ -21,7 +25,7 @@ Public Class ServicioCasos
     End Function
 
     Public Function Guardar(caso As Caso) As Respuesta
-        If Not Permisos.TieneAcceso("casos.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar casos.")
+        If Not TienePermisoVigente("casos.gestionar") Then Return Respuesta.Fallo("No tiene permiso para gestionar casos.")
         If caso Is Nothing Then Return Respuesta.Fallo("No se recibieron los datos del caso.")
         If caso.ID < 0 Then Return Respuesta.Fallo("El identificador del caso no es válido.")
         If caso.IDCliente <= 0 Then Return Respuesta.Fallo("Seleccione el cliente del caso.")
@@ -76,7 +80,7 @@ Public Class ServicioCasos
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.RevalidarSesion() OrElse Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
