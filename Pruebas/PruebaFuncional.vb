@@ -3085,6 +3085,46 @@ Module PruebaFuncional
                   contenidoCsvObjeto.Contains("-12") AndAlso
                   Not contenidoCsvObjeto.Contains("'-12"))
 
+        Dim rutaCsvPaginado As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_paginado.csv")
+        File.WriteAllText(rutaCsvPaginado, "contenido anterior")
+        Dim paginaCsv As Func(Of Long, DataTable) =
+            Function(indice As Long)
+                Dim pagina As New DataTable()
+                pagina.Columns.Add("Dato", GetType(String))
+                pagina.Columns.Add("Monto", GetType(Decimal))
+                If indice = 0L Then
+                    pagina.Rows.Add("Primera página", -5D)
+                ElseIf indice = 1L Then
+                    pagina.Rows.Add("=1+1", 15D)
+                Else
+                    Throw New ArgumentOutOfRangeException(NameOf(indice))
+                End If
+                Return pagina
+            End Function
+        Dim filasCsvPaginado As Long = UtileriasUI.ExportarCsvPorPaginas(
+            rutaCsvPaginado, 2L, paginaCsv)
+        Dim contenidoCsvPaginado As String = File.ReadAllText(rutaCsvPaginado, Encoding.UTF8)
+        Verificar("La exportación paginada reúne todas las páginas, neutraliza fórmulas y reemplaza el archivo anterior",
+                  filasCsvPaginado = 2L AndAlso
+                  contenidoCsvPaginado.Contains("Primera página") AndAlso
+                  contenidoCsvPaginado.Contains("'=1+1") AndAlso
+                  Not contenidoCsvPaginado.Contains("contenido anterior"))
+
+        Dim exportacionPaginadaFallida As Boolean = False
+        Try
+            UtileriasUI.ExportarCsvPorPaginas(
+                rutaCsvPaginado, 2L,
+                Function(indice As Long)
+                    If indice = 1L Then Throw New IOException("Fallo simulado de lectura de página.")
+                    Return paginaCsv(0L)
+                End Function)
+        Catch ex As IOException
+            exportacionPaginadaFallida = True
+        End Try
+        Verificar("Un fallo intermedio no sustituye el CSV anterior ni deja una exportación parcial",
+                  exportacionPaginadaFallida AndAlso
+                  File.ReadAllText(rutaCsvPaginado, Encoding.UTF8).Contains("Primera página"))
+
         ' ---------- 11. Configuración, feriados y respaldo ----------
         Console.WriteLine()
         Console.WriteLine("-- 11. Configuración, feriados y respaldo")
