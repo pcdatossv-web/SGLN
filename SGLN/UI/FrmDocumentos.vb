@@ -80,6 +80,7 @@ Public Class FrmDocumentos
 
         btnBuscar.Enabled = puedeConsultar
         btnRefrescar.Enabled = puedeConsultar
+        btnLimpiarFiltro.Enabled = puedeConsultar
         btnImportar.Enabled = _puedeImportar
         txtFiltro.Enabled = puedeConsultar
         cboFiltroTipo.Enabled = puedeConsultar
@@ -320,6 +321,8 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub AbrirDocumento()
+        If Not Permisos.ExigirAccion("documentos.ver") Then Return
+
         If _idDocumento <= 0 Then
             UtileriasUI.MostrarError("Seleccione un documento de la lista.")
             Return
