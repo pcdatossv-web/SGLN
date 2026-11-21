@@ -679,6 +679,21 @@ Module PruebaFuncional
                   Not roles.Actualizar(idRolAdmin, "Administrador", "x", True,
                       New List(Of String) From {"config.roles"}).Exito)
 
+        ' La protección del rol Administrador también debe existir en la capa SQL:
+        ' una llamada directa al repositorio no puede retirar permisos esenciales.
+        Dim quitarRolesDirecto As Respuesta = repositorioRolesPrueba.GuardarPermisos(
+            idRolAdmin, New List(Of String) From {"config.usuarios"})
+        Dim quitarUsuariosDirecto As Respuesta = repositorioRolesPrueba.GuardarPermisos(
+            idRolAdmin, New List(Of String) From {"config.roles"})
+        Dim permisosEsencialesTrasIntentos As List(Of String) =
+            roles.PermisosDeRol(idRolAdmin)
+        Verificar("La base de datos impide retirar config.roles mediante el repositorio",
+                  Not quitarRolesDirecto.Exito AndAlso
+                  permisosEsencialesTrasIntentos.Contains("config.roles"))
+        Verificar("La base de datos impide retirar config.usuarios mediante el repositorio",
+                  Not quitarUsuariosDirecto.Exito AndAlso
+                  permisosEsencialesTrasIntentos.Contains("config.usuarios"))
+
         Dim rUsuarioPrueba As Respuesta = servicioUsuarios.Crear(
             "pruebauser", "Usuario de Prueba", "PruebaSegura123!", idRolPrueba, True)
         Verificar("Crear un usuario con el rol nuevo", rUsuarioPrueba.Exito, rUsuarioPrueba.Mensaje)
