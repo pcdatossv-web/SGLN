@@ -457,6 +457,11 @@ Public Class FrmCasos
 
         Try
             Dim marcadas As Integer = _plazos.ActualizarVencidas()
+            If marcadas < 0 Then
+                MostrarMensaje("No se pudieron actualizar los vencimientos. Los estados podrían no estar al día; revise la conexión y el registro de errores.", False)
+                Return
+            End If
+
             If marcadas > 0 Then
                 ' La actualización afecta actuaciones de todos los expedientes.
                 ' Refrescar el detalle visible para no dejar estados obsoletos.
