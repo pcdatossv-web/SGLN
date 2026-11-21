@@ -24,6 +24,12 @@ Partial Public Class FrmCapturaClave
         ActiveControl = txtClave
     End Sub
 
+    Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
+        Dim ocultar As Boolean = Not chkMostrarClaves.Checked
+        txtClave.UseSystemPasswordChar = ocultar
+        txtConfirmar.UseSystemPasswordChar = ocultar
+    End Sub
+
     Private Sub btnAceptar_Click(sender As Object, e As EventArgs) Handles btnAceptar.Click
         If _modoCambioInicial Then
             Dim errorClave As String = SeguridadClave.ValidarClaveNuevaInicial(txtClave.Text)
