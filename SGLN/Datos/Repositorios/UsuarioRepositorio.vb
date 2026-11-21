@@ -637,11 +637,20 @@ Public Class UsuarioRepositorio
         End Try
     End Function
 
+    ''' <summary>
+    ''' Reautenticación de la sesión actual para operaciones sensibles.
+    ''' Comparte el bloqueo de intentos con el inicio de sesión: una clave
+    ''' incorrecta en una confirmación administrativa también cuenta como
+    ''' intento fallido y no permite eludir la política de bloqueo.
+    ''' </summary>
     Public Function VerificarClave(idUsuario As Integer, clave As String) As Boolean
-        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario Then Return False
+        If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario OrElse
+           idUsuario <= 0 OrElse String.IsNullOrEmpty(clave) OrElse clave.Length > 128 Then
+            Return False
+        End If
 
         Dim tabla As DataTable = Consultar(
-            "SELECT Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1",
+            "SELECT Usuario, Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1",
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@id", idUsuario)
             End Sub)
@@ -649,7 +658,24 @@ Public Class UsuarioRepositorio
         If tabla.Rows.Count = 0 Then Return False
 
         Dim fila As DataRow = tabla.Rows(0)
-        Return SeguridadClave.Verificar(clave, Convert.ToString(fila("Clave_Hash")), Convert.ToString(fila("Clave_Salt")))
+        Dim usuario As String = Convert.ToString(fila("Usuario"))
+        Dim hash As String = Convert.ToString(fila("Clave_Hash"))
+        Dim salt As String = Convert.ToString(fila("Clave_Salt"))
+
+        ' Se conserva un coste de verificación similar aunque la cuenta ya
+        ' esté bloqueada, pero nunca se autoriza una acción durante el bloqueo.
+        If EstaBloqueado(idUsuario) Then
+            SeguridadClave.Verificar(clave, hash, salt)
+            Return False
+        End If
+
+        If Not SeguridadClave.Verificar(clave, hash, salt) Then
+            RegistrarIntentoFallido(idUsuario, usuario)
+            Return False
+        End If
+
+        RestablecerIntentos(idUsuario, usuario)
+        Return True
     End Function
 
     ''' <summary>
