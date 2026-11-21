@@ -2,6 +2,8 @@ Imports System
 Imports System.Data
 Imports System.Collections.Generic
 Imports System.Text.RegularExpressions
+Imports System.Security.Cryptography
+Imports System.Text
 Imports MySql.Data.MySqlClient
 
 ''' <summary>
@@ -69,7 +71,7 @@ Public Class UsuarioRepositorio
             ' La condición sobre el hash anterior evita sobrescribir un cambio
             ' de contraseña concurrente realizado desde otra estación.
             Dim credencialNueva As SalHash = SeguridadClave.CrearHash(clave)
-            Ejecutar(
+            Dim filasMigradas As Integer = Ejecutar(
                 "UPDATE Usuarios SET Clave_Hash = @nuevoHash, Clave_Salt = @nuevoSalt " &
                 "WHERE ID = @id AND Clave_Hash = @hashAnterior",
                 Sub(comando As MySqlCommand)
@@ -78,6 +80,12 @@ Public Class UsuarioRepositorio
                     Parametro(comando, "@id", Convert.ToInt32(fila("ID")))
                     Parametro(comando, "@hashAnterior", hash)
                 End Sub)
+
+            ' Si otra estación cambió la clave durante la migración, no abrir
+            ' una sesión basada en la credencial anterior.
+            If filasMigradas <> 1 Then Return Nothing
+            hash = credencialNueva.Hash
+            salt = credencialNueva.Salt
         End If
 
         Dim sesion As New UsuarioSesion With {
@@ -87,7 +95,8 @@ Public Class UsuarioRepositorio
             .IDRol = Convert.ToInt32(fila("ID_Rol")),
             .Rol = Convert.ToString(fila("Rol")),
             .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1,
-            .DebeCambiarClave = SeguridadClave.EsClaveInicial(clave)
+            .DebeCambiarClave = SeguridadClave.EsClaveInicial(clave),
+            .HuellaCredencial = CrearHuellaCredencial(hash, salt)
         }
 
         Try
@@ -203,7 +212,8 @@ Public Class UsuarioRepositorio
         If Sesion.UsuarioActual.ID <> id AndAlso Not EsAdministradorAutenticado() Then Return Nothing
 
         Dim tabla As DataTable = Consultar(
-            "SELECT u.ID, u.Usuario, u.Nombre_Completo, r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
+            "SELECT u.ID, u.Usuario, u.Nombre_Completo, u.Clave_Hash, u.Clave_Salt, " &
+            "r.ID AS ID_Rol, r.Nombre AS Rol, r.Protegido AS Rol_Protegido " &
             "FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
             "WHERE u.ID = @id AND u.Activo = 1 AND r.Activo = 1",
             Sub(comando As MySqlCommand)
@@ -219,7 +229,9 @@ Public Class UsuarioRepositorio
             .NombreCompleto = Convert.ToString(fila("Nombre_Completo")),
             .IDRol = Convert.ToInt32(fila("ID_Rol")),
             .Rol = Convert.ToString(fila("Rol")),
-            .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1
+             .RolProtegido = Convert.ToInt32(fila("Rol_Protegido")) = 1,
+            .HuellaCredencial = CrearHuellaCredencial(
+                Convert.ToString(fila("Clave_Hash")), Convert.ToString(fila("Clave_Salt")))
         }
     End Function
 
@@ -580,6 +592,13 @@ Public Class UsuarioRepositorio
 
             If resultado = 0 Then Return Respuesta.Fallo("La cuenta ya no existe o está inactiva.")
             If resultado = -1 Then Return Respuesta.Fallo("La clave actual no es correcta.")
+
+            ' Mantener únicamente la sesión que realizó el cambio. Las demás
+            ' estaciones detectarán la nueva huella y deberán autenticarse otra vez.
+            If Sesion.UsuarioActual IsNot Nothing AndAlso Sesion.UsuarioActual.ID = idUsuario Then
+                Sesion.UsuarioActual.HuellaCredencial =
+                    CrearHuellaCredencial(credencial.Hash, credencial.Salt)
+            End If
             Return Respuesta.Ok("Clave actualizada correctamente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - cambio de clave propia", ex)
@@ -739,6 +758,13 @@ Public Class UsuarioRepositorio
             RegistroErrores.Escribir("Usuarios - eliminación segura", ex)
             Return Respuesta.Fallo("No se pudo eliminar el usuario. La operación fue cancelada para proteger la integridad de los datos.")
         End Try
+    End Function
+
+    Private Shared Function CrearHuellaCredencial(hash As String, salt As String) As String
+        Dim datos As Byte() = Encoding.UTF8.GetBytes(If(hash, "") & "|" & If(salt, ""))
+        Using sha As SHA256 = SHA256.Create()
+            Return Convert.ToBase64String(sha.ComputeHash(datos))
+        End Using
     End Function
 
     Private Shared Function IdentificadorSeguro(nombre As String) As String

@@ -115,6 +115,15 @@ Public NotInheritable Class Permisos
                 Return False
             End If
 
+            ' La huella cambia cuando un administrador restablece la clave
+            ' desde otra estación. Revocar antes de refrescar roles/permisos.
+            If String.IsNullOrWhiteSpace(usuarioSesion.HuellaCredencial) OrElse
+               Not String.Equals(usuarioSesion.HuellaCredencial, estado.HuellaCredencial,
+                                 StringComparison.Ordinal) Then
+                Sesion.Limpiar()
+                Return False
+            End If
+
             usuarioSesion.Usuario = estado.Usuario
             usuarioSesion.NombreCompleto = estado.NombreCompleto
             usuarioSesion.IDRol = estado.IDRol

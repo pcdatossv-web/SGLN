@@ -134,4 +134,6 @@ Public Class UsuarioSesion
     Public Property RolProtegido As Boolean
     ''' <summary>Indica que aún utiliza la clave sembrada por defecto.</summary>
     Public Property DebeCambiarClave As Boolean
+    ''' <summary>Huella no reversible para detectar cambios de credencial y revocar sesiones anteriores.</summary>
+    Public Property HuellaCredencial As String = ""
 End Class
