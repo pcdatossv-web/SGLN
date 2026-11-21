@@ -10,6 +10,7 @@ Public Class FrmAuditoria
     Private _paginaActual As Long
     Private _totalRegistros As Long
     Private _totalPaginas As Long = 1
+    Private _snapshotMaxId As Long
     Private _permisosInicializados As Boolean
 
     Private Sub FrmAuditoria_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -93,6 +94,22 @@ Public Class FrmAuditoria
 
     Private Sub Buscar()
         _paginaActual = 0
+        Try
+            ' Congelar el conjunto al iniciar una búsqueda: la bitácora es
+            ' append-only y los nuevos eventos no deben desplazar páginas.
+            _snapshotMaxId = _servicio.ObtenerMaximoId()
+        Catch ex As Exception
+            _snapshotMaxId = 0
+            _totalRegistros = 0
+            _totalPaginas = 1
+            dgvAuditoria.DataSource = Nothing
+            lblResumen.Text = "No se pudo establecer el corte de auditoría."
+            RegistroErrores.Escribir("Auditoría - establecer corte", ex)
+            MostrarMensaje("No se pudo iniciar la consulta de auditoría. Verifique la conexión.", False)
+            ActualizarEstadoPaginacion()
+            ActualizarEstadoExportacion()
+            Return
+        End Try
         CargarPagina()
     End Sub
 
@@ -115,13 +132,13 @@ Public Class FrmAuditoria
             Dim desde As Date = dtpDesde.Value.Date
             Dim hasta As Date = dtpHasta.Value.Date
 
-            _totalRegistros = _servicio.Contar(usuario, tabla, accion, desde, hasta)
+            _totalRegistros = _servicio.Contar(usuario, tabla, accion, desde, hasta, _snapshotMaxId)
             _totalPaginas = If(_totalRegistros = 0L, 1L,
                                (_totalRegistros + TamanoPagina - 1L) \ TamanoPagina)
             If _paginaActual >= _totalPaginas Then _paginaActual = _totalPaginas - 1L
 
             dgvAuditoria.DataSource = _servicio.BuscarPagina(
-                usuario, tabla, accion, desde, hasta, _paginaActual, TamanoPagina)
+                usuario, tabla, accion, desde, hasta, _snapshotMaxId, _paginaActual, TamanoPagina)
 
             If dgvAuditoria.Columns.Contains("ID") Then dgvAuditoria.Columns("ID").Visible = False
             If dgvAuditoria.Columns.Contains("Fecha_Hora") Then
@@ -197,7 +214,8 @@ Public Class FrmAuditoria
                     ValorFiltro(cboTabla),
                     ValorFiltro(cboAccion),
                     dtpDesde.Value.Date,
-                    dtpHasta.Value.Date)
+                    dtpHasta.Value.Date,
+                    _snapshotMaxId)
                 If tablaCompleta.Rows.Count = 0 Then
                     UtileriasUI.MostrarError("No hay registros para exportar con los filtros actuales.")
                     Return

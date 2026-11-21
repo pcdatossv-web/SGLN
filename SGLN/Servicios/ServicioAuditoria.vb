@@ -15,24 +15,30 @@ Public Class ServicioAuditoria
         Return Permisos.TieneAcceso("auditoria.ver")
     End Function
 
+    Public Function ObtenerMaximoId() As Long
+        If Not PuedeConsultar() Then Return 0L
+        Return _repositorio.ObtenerMaximoId()
+    End Function
+
     Public Function Buscar(usuario As String, tabla As String, accion As String,
-                           desde As Date, hasta As Date) As DataTable
+                           desde As Date, hasta As Date,
+                           Optional idMaximo As Long? = Nothing) As DataTable
         If Not PuedeConsultar() Then Return New DataTable()
         If desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return New DataTable()
-        Return _repositorio.Buscar(usuario, tabla, accion, desde, hasta)
+        Return _repositorio.Buscar(usuario, tabla, accion, desde, hasta, idMaximo)
     End Function
 
     Public Function Contar(usuario As String, tabla As String, accion As String,
-                           desde As Date, hasta As Date) As Long
+                           desde As Date, hasta As Date, idMaximo As Long) As Long
         If Not PuedeConsultar() OrElse desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return 0L
-        Return _repositorio.Contar(usuario, tabla, accion, desde, hasta)
+        Return _repositorio.Contar(usuario, tabla, accion, desde, hasta, idMaximo)
     End Function
 
     Public Function BuscarPagina(usuario As String, tabla As String, accion As String,
                                  desde As Date, hasta As Date,
-                                 pagina As Long, tamanoPagina As Integer) As DataTable
+                                 idMaximo As Long, pagina As Long, tamanoPagina As Integer) As DataTable
         If Not PuedeConsultar() OrElse desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return New DataTable()
-        Return _repositorio.BuscarPagina(usuario, tabla, accion, desde, hasta, pagina, tamanoPagina)
+        Return _repositorio.BuscarPagina(usuario, tabla, accion, desde, hasta, idMaximo, pagina, tamanoPagina)
     End Function
 
     Public Function TablasAfectadas() As DataTable
