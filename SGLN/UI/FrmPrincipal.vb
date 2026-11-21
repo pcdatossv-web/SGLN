@@ -392,6 +392,15 @@ Public Class FrmPrincipal
     End Sub
 
     Private Sub btnActualizar_Click(sender As Object, e As EventArgs) Handles btnActualizar.Click
+        ' La sesión puede revocarse mientras el panel principal permanece abierto.
+        ' No actualizar datos sensibles sin confirmar nuevamente cuenta y permisos.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Me.Close()
+            Return
+        End If
+
+        AplicarPermisos()
         CargarPanel()
     End Sub
 
