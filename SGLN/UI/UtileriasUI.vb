@@ -171,6 +171,76 @@ Public Module UtileriasUI
         File.WriteAllText(ruta, contenido.ToString(), Encoding.UTF8)
     End Sub
 
+    ''' <summary>
+    ''' Exporta resultados paginados a un archivo temporal y lo publica al
+    ''' terminar. Evita cargar toda la bitácora en memoria y no deja un CSV
+    ''' parcial en la ruta final si una página falla.
+    ''' </summary>
+    Public Function ExportarCsvPorPaginas(ruta As String,
+                                          cantidadPaginas As Long,
+                                          obtenerPagina As Func(Of Long, DataTable)) As Long
+        If String.IsNullOrWhiteSpace(ruta) Then Throw New ArgumentException("La ruta de exportación no es válida.", NameOf(ruta))
+        If cantidadPaginas < 1 OrElse obtenerPagina Is Nothing Then
+            Throw New ArgumentOutOfRangeException(NameOf(cantidadPaginas), "No hay páginas válidas para exportar.")
+        End If
+
+        Dim directorio As String = Path.GetDirectoryName(Path.GetFullPath(ruta))
+        If Not Directory.Exists(directorio) Then Throw New DirectoryNotFoundException("La carpeta de destino no existe.")
+        Dim temporal As String = Path.Combine(directorio, "." & Path.GetFileName(ruta) & "." & Guid.NewGuid().ToString("N") & ".tmp")
+        Dim total As Long = 0L
+        Dim encabezadoEscrito As Boolean = False
+
+        Try
+            Using escritor As New StreamWriter(temporal, False, New UTF8Encoding(True))
+                For pagina As Long = 0L To cantidadPaginas - 1L
+                    Dim datos As DataTable = obtenerPagina(pagina)
+                    If datos Is Nothing Then Throw New InvalidOperationException("La consulta devolvió una página nula.")
+                    If Not encabezadoEscrito Then
+                        Dim encabezados As New List(Of String)()
+                        For Each columna As DataColumn In datos.Columns
+                            encabezados.Add(ValorCsv(columna.ColumnName, True))
+                        Next
+                        escritor.WriteLine(String.Join(",", encabezados.ToArray()))
+                        encabezadoEscrito = True
+                    End If
+
+                    For Each fila As DataRow In datos.Rows
+                        Dim valores As New List(Of String)()
+                        For Each columna As DataColumn In datos.Columns
+                            Dim original As Object = fila(columna)
+                            Dim valor As String = Convert.ToString(original)
+                            Dim tipo As Type = If(fila.IsNull(columna), Nothing, original.GetType())
+                            valores.Add(ValorCsv(valor, Not EsTipoNumerico(tipo)))
+                        Next
+                        escritor.WriteLine(String.Join(",", valores.ToArray()))
+                        total += 1L
+                    Next
+                Next
+            End Using
+
+            If Not encabezadoEscrito OrElse total = 0L Then
+                Throw New InvalidOperationException("No existen registros para exportar.")
+            End If
+
+            If File.Exists(ruta) Then
+                File.Replace(temporal, ruta, Nothing)
+            Else
+                File.Move(temporal, ruta)
+            End If
+            Return total
+        Finally
+            If File.Exists(temporal) Then
+                Try
+                    File.Delete(temporal)
+                Catch ex As IOException
+                    RegistroErrores.Escribir("CSV - limpieza de archivo temporal", ex)
+                Catch ex As UnauthorizedAccessException
+                    RegistroErrores.Escribir("CSV - limpieza de archivo temporal", ex)
+                End Try
+            End If
+        End Try
+    End Function
+
     Private Function EsTipoNumerico(tipo As Type) As Boolean
         If tipo Is Nothing Then Return False
 

@@ -209,19 +209,18 @@ Public Class FrmAuditoria
             End If
 
             Try
-                Dim tablaCompleta As DataTable = _servicio.Buscar(
-                    txtUsuario.Text,
-                    ValorFiltro(cboTabla),
-                    ValorFiltro(cboAccion),
-                    dtpDesde.Value.Date,
-                    dtpHasta.Value.Date,
-                    _snapshotMaxId)
-                If tablaCompleta.Rows.Count = 0 Then
-                    UtileriasUI.MostrarError("No hay registros para exportar con los filtros actuales.")
-                    Return
-                End If
-                UtileriasUI.ExportarCsv(tablaCompleta, dialogo.FileName)
-                MostrarMensaje("Se exportaron " & tablaCompleta.Rows.Count.ToString("N0") &
+                Dim usuario As String = txtUsuario.Text
+                Dim tabla As String = ValorFiltro(cboTabla)
+                Dim accion As String = ValorFiltro(cboAccion)
+                Dim desde As Date = dtpDesde.Value.Date
+                Dim hasta As Date = dtpHasta.Value.Date
+                Dim exportados As Long = UtileriasUI.ExportarCsvPorPaginas(
+                    dialogo.FileName,
+                    _totalPaginas,
+                    Function(pagina As Long) _servicio.BuscarPagina(
+                        usuario, tabla, accion, desde, hasta,
+                        _snapshotMaxId, pagina, TamanoPagina))
+                MostrarMensaje("Se exportaron " & exportados.ToString("N0") &
                                " registros de auditoría.", True)
             Catch ex As Exception
                 RegistroErrores.Escribir("Auditoría - exportar", ex)
