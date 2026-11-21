@@ -48,9 +48,10 @@ Public NotInheritable Class Permisos
     ''' protegido (Administrador) tiene acceso total aunque su matriz esté
     ''' incompleta: así nunca se queda fuera del sistema.
     ''' </summary>
-    Public Shared Sub Cargar(idRol As Integer, esRolProtegido As Boolean)
+    Public Shared Function Cargar(idRol As Integer, esRolProtegido As Boolean) As Boolean
         Dim permisosNuevos As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         Dim accesoTotalNuevo As Boolean = False
+        Dim cargaCorrecta As Boolean = False
 
         If idRol > 0 Then
             Try
@@ -59,6 +60,7 @@ Public NotInheritable Class Permisos
                 ' entre varias conexiones si el rol cambia durante la carga.
                 Dim tabla As DataTable = New RolRepositorio().CargarPermisosDeRol(idRol)
                 If tabla.Rows.Count > 0 Then
+                    cargaCorrecta = True
                     accesoTotalNuevo = Convert.ToInt32(tabla.Rows(0)("Protegido")) = 1
                     For Each fila As DataRow In tabla.Rows
                         If fila.IsNull("Codigo") Then Continue For
@@ -83,7 +85,9 @@ Public NotInheritable Class Permisos
             Next
             _accesoTotal = accesoTotalNuevo
         End SyncLock
-    End Sub
+
+        Return cargaCorrecta
+    End Function
 
     Public Shared Sub Limpiar()
         SyncLock _sync
@@ -117,7 +121,13 @@ Public NotInheritable Class Permisos
             usuarioSesion.Rol = estado.Rol
             usuarioSesion.RolProtegido = estado.RolProtegido
 
-            Cargar(estado.IDRol, estado.RolProtegido)
+            If Not Cargar(estado.IDRol, estado.RolProtegido) Then
+                ' La cuenta puede seguir activa y aun así no ser posible
+                ' confirmar que su rol está activo y cargar su matriz.
+                ' En ese caso la sesión completa se invalida.
+                Sesion.Limpiar()
+                Return False
+            End If
             Return True
         Catch ex As Exception
             ' Si no se puede comprobar el estado actual, se retira la sesión:

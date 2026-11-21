@@ -32,13 +32,13 @@ Public Module Sesion
     ''' Carga en memoria los permisos del usuario de la sesión. Se llama al
     ''' iniciar sesión y después de cambiar el rol del usuario actual.
     ''' </summary>
-    Public Sub CargarPermisos()
+    Public Function CargarPermisos() As Boolean
         If UsuarioActual Is Nothing Then
             Permisos.Limpiar()
-            Return
+            Return False
         End If
-        Permisos.Cargar(UsuarioActual.IDRol, UsuarioActual.RolProtegido)
-    End Sub
+        Return Permisos.Cargar(UsuarioActual.IDRol, UsuarioActual.RolProtegido)
+    End Function
 
     Public Sub Limpiar()
         UsuarioActual = Nothing

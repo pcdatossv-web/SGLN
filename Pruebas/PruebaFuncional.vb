@@ -166,6 +166,12 @@ Module PruebaFuncional
         Verificar("El login rechaza claves mayores de 128 caracteres", loginClaveExcesiva Is Nothing)
 
         Sesion.Limpiar()
+        Verificar("La carga de permisos rechaza un identificador de rol inválido",
+                  Not Permisos.Cargar(0, False) AndAlso
+                  Permisos.CantidadPermisos = 0 AndAlso Not Permisos.AccesoTotal)
+        Verificar("Una sesión sin usuario no puede declarar permisos cargados",
+                  Not Sesion.CargarPermisos() AndAlso
+                  Permisos.CantidadPermisos = 0 AndAlso Not Permisos.AccesoTotal)
         Dim operacionSinSesion As Respuesta = New ServicioUsuarios().Desactivar(1)
         Verificar("La capa de servicios deniega operaciones sin sesión autenticada",
                   Not operacionSinSesion.Exito AndAlso operacionSinSesion.Mensaje.Contains("No tiene permiso"))

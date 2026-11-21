@@ -85,7 +85,11 @@ Public Class FrmLogin
             End If
 
             Sesion.UsuarioActual = usuario
-            Sesion.CargarPermisos()
+            If Not Sesion.CargarPermisos() Then
+                Sesion.Limpiar()
+                Throw New InvalidOperationException(
+                    "No fue posible verificar el rol activo y cargar sus permisos. El inicio de sesión fue cancelado.")
+            End If
             Me.DialogResult = DialogResult.OK
             Me.Close()
         Catch ex As Exception
