@@ -191,6 +191,11 @@ Public Class FrmAuditoria
 
     Private Sub Exportar()
         If Not Permisos.ExigirAccion("auditoria.exportar") Then Return
+
+        ' Los filtros pueden cambiar después de la última búsqueda. Actualizar
+        ' el corte y el total antes de exportar para que el número de páginas
+        ' corresponda exactamente a los filtros visibles en pantalla.
+        Buscar()
         If _totalRegistros = 0 Then
             UtileriasUI.MostrarError("No hay registros para exportar.")
             Return
