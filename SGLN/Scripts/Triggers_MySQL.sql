@@ -235,6 +235,7 @@ BEGIN
     DECLARE v_nombre VARCHAR(150);
     DECLARE v_actor VARCHAR(50);
     DECLARE v_protegido TINYINT DEFAULT 0;
+    DECLARE v_activo TINYINT DEFAULT 0;
     DECLARE v_total INT DEFAULT 0;
     DECLARE v_fin INT DEFAULT 0;
     DECLARE v_tabla VARCHAR(64);
@@ -288,12 +289,17 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario ya no existe.';
     END IF;
 
-    SELECT u.Usuario, u.Nombre_Completo, COALESCE(r.Protegido, 0)
-      INTO v_usuario, v_nombre, v_protegido
+    SELECT u.Usuario, u.Nombre_Completo, COALESCE(r.Protegido, 0), u.Activo
+      INTO v_usuario, v_nombre, v_protegido, v_activo
     FROM Usuarios u
     LEFT JOIN Roles r ON r.ID = u.ID_Rol
     WHERE u.ID = p_id
     FOR UPDATE;
+
+    IF v_activo <> 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Primero debe desactivar la cuenta antes de eliminarla definitivamente.';
+    END IF;
 
     SELECT COUNT(*) INTO v_total
     FROM Usuarios u
