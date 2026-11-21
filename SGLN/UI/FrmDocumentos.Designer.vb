@@ -33,6 +33,7 @@ Partial Class FrmDocumentos
         Me.cboInstrumento = New System.Windows.Forms.ComboBox()
         Me.lblHash = New System.Windows.Forms.Label()
         Me.txtHash = New System.Windows.Forms.TextBox()
+        Me.btnCopiarHash = New System.Windows.Forms.Button()
         Me.lblEstadoIA = New System.Windows.Forms.Label()
         Me.txtEstadoIA = New System.Windows.Forms.TextBox()
         Me.lblFechaCarga = New System.Windows.Forms.Label()
@@ -116,6 +117,7 @@ Partial Class FrmDocumentos
         Me.grpDetalle.Controls.Add(Me.lblInstrumento)
         Me.grpDetalle.Controls.Add(Me.cboInstrumento)
         Me.grpDetalle.Controls.Add(Me.lblHash)
+        Me.grpDetalle.Controls.Add(Me.btnCopiarHash)
         Me.grpDetalle.Controls.Add(Me.txtHash)
         Me.grpDetalle.Controls.Add(Me.lblEstadoIA)
         Me.grpDetalle.Controls.Add(Me.txtEstadoIA)
@@ -201,6 +203,16 @@ Partial Class FrmDocumentos
         Me.txtHash.ReadOnly = True
         Me.txtHash.Size = New System.Drawing.Size(355, 45)
         Me.txtHash.TabIndex = 3
+        '
+        ' btnCopiarHash
+        '
+        Me.btnCopiarHash.Location = New System.Drawing.Point(245, 184)
+        Me.btnCopiarHash.Name = "btnCopiarHash"
+        Me.btnCopiarHash.Size = New System.Drawing.Size(125, 25)
+        Me.btnCopiarHash.TabIndex = 11
+        Me.btnCopiarHash.Text = "Copiar hash"
+        Me.btnCopiarHash.Enabled = False
+        Me.btnCopiarHash.UseVisualStyleBackColor = True
         '
         ' lblEstadoIA
         '
@@ -340,6 +352,7 @@ Partial Class FrmDocumentos
     Friend WithEvents cboInstrumento As System.Windows.Forms.ComboBox
     Friend WithEvents lblHash As System.Windows.Forms.Label
     Friend WithEvents txtHash As System.Windows.Forms.TextBox
+    Friend WithEvents btnCopiarHash As System.Windows.Forms.Button
     Friend WithEvents lblEstadoIA As System.Windows.Forms.Label
     Friend WithEvents txtEstadoIA As System.Windows.Forms.TextBox
     Friend WithEvents lblFechaCarga As System.Windows.Forms.Label
