@@ -189,12 +189,34 @@ Public Module UtileriasUI
         Dim temporal As String = Path.Combine(directorio, "." & Path.GetFileName(ruta) & "." & Guid.NewGuid().ToString("N") & ".tmp")
         Dim total As Long = 0L
         Dim encabezadoEscrito As Boolean = False
+        Dim columnasEsperadas As List(Of KeyValuePair(Of String, Type)) = Nothing
 
         Try
             Using escritor As New StreamWriter(temporal, False, New UTF8Encoding(True))
                 For pagina As Long = 0L To cantidadPaginas - 1L
                     Dim datos As DataTable = obtenerPagina(pagina)
                     If datos Is Nothing Then Throw New InvalidOperationException("La consulta devolvió una página nula.")
+
+                    ' Todas las páginas deben conservar exactamente el mismo esquema.
+                    ' Si una consulta cambia durante la exportación, cancelar antes de
+                    ' publicar un CSV con columnas desplazadas o datos incompatibles.
+                    If columnasEsperadas Is Nothing Then
+                        columnasEsperadas = New List(Of KeyValuePair(Of String, Type))()
+                        For Each columna As DataColumn In datos.Columns
+                            columnasEsperadas.Add(New KeyValuePair(Of String, Type)(columna.ColumnName, columna.DataType))
+                        Next
+                    Else
+                        If datos.Columns.Count <> columnasEsperadas.Count Then
+                            Throw New InvalidOperationException("La estructura de los resultados cambió durante la exportación. No se generó el archivo.")
+                        End If
+                        For indice As Integer = 0 To columnasEsperadas.Count - 1
+                            If Not String.Equals(datos.Columns(indice).ColumnName, columnasEsperadas(indice).Key, StringComparison.Ordinal) OrElse
+                               datos.Columns(indice).DataType IsNot columnasEsperadas(indice).Value Then
+                                Throw New InvalidOperationException("La estructura de los resultados cambió durante la exportación. No se generó el archivo.")
+                            End If
+                        Next
+                    End If
+
                     If Not encabezadoEscrito Then
                         Dim encabezados As New List(Of String)()
                         For Each columna As DataColumn In datos.Columns
