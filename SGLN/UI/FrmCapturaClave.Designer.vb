@@ -19,6 +19,7 @@ Partial Class FrmCapturaClave
         Me.txtConfirmar = New System.Windows.Forms.TextBox()
         Me.btnAceptar = New System.Windows.Forms.Button()
         Me.btnCancelar = New System.Windows.Forms.Button()
+        Me.chkMostrarClaves = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         Me.lblInstruccion.Location = New System.Drawing.Point(16, 14)
         Me.lblInstruccion.Name = "lblInstruccion"
@@ -44,12 +45,12 @@ Partial Class FrmCapturaClave
         Me.txtConfirmar.Name = "txtConfirmar"
         Me.txtConfirmar.Size = New System.Drawing.Size(388, 23)
         Me.txtConfirmar.UseSystemPasswordChar = True
-        Me.btnAceptar.Location = New System.Drawing.Point(160, 185)
+        Me.btnAceptar.Location = New System.Drawing.Point(160, 205)
         Me.btnAceptar.Name = "btnAceptar"
         Me.btnAceptar.Size = New System.Drawing.Size(120, 32)
         Me.btnAceptar.Text = "Continuar"
         Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancelar.Location = New System.Drawing.Point(286, 185)
+        Me.btnCancelar.Location = New System.Drawing.Point(286, 205)
         Me.btnCancelar.Name = "btnCancelar"
         Me.btnCancelar.Size = New System.Drawing.Size(120, 32)
         Me.btnCancelar.Text = "Cancelar"
@@ -57,7 +58,13 @@ Partial Class FrmCapturaClave
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancelar
-        Me.ClientSize = New System.Drawing.Size(424, 235)
+        Me.ClientSize = New System.Drawing.Size(424, 255)
+        Me.chkMostrarClaves.AutoSize = True
+        Me.chkMostrarClaves.Location = New System.Drawing.Point(18, 174)
+        Me.chkMostrarClaves.Name = "chkMostrarClaves"
+        Me.chkMostrarClaves.Size = New System.Drawing.Size(139, 19)
+        Me.chkMostrarClaves.Text = "Mostrar contraseñas"
+        Me.Controls.Add(Me.chkMostrarClaves)
         Me.Controls.Add(Me.btnCancelar)
         Me.Controls.Add(Me.btnAceptar)
         Me.Controls.Add(Me.txtConfirmar)
@@ -83,4 +90,5 @@ Partial Class FrmCapturaClave
     Friend WithEvents txtConfirmar As System.Windows.Forms.TextBox
     Friend WithEvents btnAceptar As System.Windows.Forms.Button
     Friend WithEvents btnCancelar As System.Windows.Forms.Button
+    Friend WithEvents chkMostrarClaves As System.Windows.Forms.CheckBox
 End Class
