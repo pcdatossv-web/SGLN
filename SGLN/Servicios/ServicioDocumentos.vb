@@ -81,6 +81,7 @@ Public Class ServicioDocumentos
 
         Dim rutaDestino As String = ""
         Dim rutaTemporal As String = ""
+        Dim destinoPublicadoPorEstaImportacion As Boolean = False
         Try
             Dim carpeta As String = RutaBaseDocumentosInterna()
 
@@ -141,6 +142,7 @@ Public Class ServicioDocumentos
             ' File.Move no sobrescribe un destino existente y evita exponer
             ' documentos parcialmente copiados.
             File.Move(rutaTemporal, rutaDestino)
+            destinoPublicadoPorEstaImportacion = True
             rutaTemporal = ""
 
             Dim rutaCopiaValidada As String = RutaCompletaInterna(rutaDestino)
@@ -180,7 +182,7 @@ Public Class ServicioDocumentos
                     End If
                 End If
 
-                If File.Exists(rutaDestino) Then
+                If destinoPublicadoPorEstaImportacion AndAlso File.Exists(rutaDestino) Then
                     ' No borrar a través de una ruta que ahora resuelva mediante
                     ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
                     Dim rutaLimpieza As String = RutaCompletaInterna(rutaDestino)
