@@ -22,9 +22,13 @@ Public Class ServicioPlazos
     End Function
 
     Public Function CalcularVencimiento(fechaNotificacion As Date, diasHabiles As Integer) As Date
-        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then
+        If Not TienePermisoVigente("casos.confirmar_plazo") Then
             Throw New UnauthorizedAccessException("No tiene permiso para calcular plazos procesales.")
         End If
+        Return CalcularVencimientoInterno(fechaNotificacion, diasHabiles)
+    End Function
+
+    Private Function CalcularVencimientoInterno(fechaNotificacion As Date, diasHabiles As Integer) As Date
         If fechaNotificacion = Date.MinValue OrElse fechaNotificacion.Date.Year < 1000 Then
             Throw New ArgumentOutOfRangeException(NameOf(fechaNotificacion),
                 "La fecha de notificación debe estar dentro del rango admitido por MySQL (1000-01-01 o posterior).")
@@ -37,7 +41,7 @@ Public Class ServicioPlazos
             Throw New ArgumentOutOfRangeException(NameOf(diasHabiles),
                 "El plazo debe estar entre 1 y " & CalculadoraDiasHabiles.MaxDiasHabilesPermitidos.ToString() & " días hábiles.")
         End If
-        Return ObtenerCalculadora().CalcularVencimiento(fechaNotificacion, diasHabiles)
+        Return New CalculadoraDiasHabiles(_catalogo.FechasFeriadas()).CalcularVencimiento(fechaNotificacion, diasHabiles)
     End Function
 
     Public Function Confirmar(actuacion As ActuacionProcesal) As Respuesta
@@ -60,7 +64,7 @@ Public Class ServicioPlazos
         Try
             ' Se recalcula en el servidor de aplicación para que la fecha no
             ' dependa de lo que muestre o modifique la interfaz.
-            actuacion.FechaVencimiento = CalcularVencimiento(actuacion.FechaNotificacion, actuacion.PlazoLegalDias)
+            actuacion.FechaVencimiento = CalcularVencimientoInterno(actuacion.FechaNotificacion, actuacion.PlazoLegalDias)
             actuacion.ID = _repositorio.GuardarActuacion(actuacion)
             If actuacion.ID <= 0 Then Return Respuesta.Fallo("La actuación que intenta modificar ya no existe.")
 
