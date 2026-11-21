@@ -176,7 +176,7 @@ Partial Class FrmAuditoria
         Me.dgvAuditoria.Location = New System.Drawing.Point(12, 100)
         Me.dgvAuditoria.Name = "dgvAuditoria"
         Me.dgvAuditoria.Size = New System.Drawing.Size(1161, 570)
-        Me.dgvAuditoria.TabIndex = 8
+        Me.dgvAuditoria.TabIndex = 9
         '
         ' lblResumen
         '
