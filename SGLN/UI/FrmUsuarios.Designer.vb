@@ -71,7 +71,6 @@ Partial Class FrmUsuarios
         Me.txtBuscar.Location = New System.Drawing.Point(65, 12)
         Me.txtBuscar.MaxLength = 100
         Me.txtBuscar.Name = "txtBuscar"
-        Me.txtBuscar.PlaceholderText = "Usuario, nombre o rol..."
         Me.txtBuscar.Size = New System.Drawing.Size(637, 23)
         Me.txtBuscar.TabIndex = 0
         '
