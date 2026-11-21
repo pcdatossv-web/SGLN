@@ -115,6 +115,10 @@ Public Class ServicioEntidades
         End If
         Try
             Return _repositorio.AgregarRepresentante(idEntidad, idCliente, If(cargo, "").Trim(), If(tipo, "").Trim())
+        Catch ex As InvalidOperationException
+            ' El repositorio valida dentro de la transacción que entidad y cliente
+            ' sigan activos; comunicar esa condición evita ocultar un conflicto funcional.
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - agregar representante", ex)
             Return Respuesta.Fallo("No se pudo agregar el representante. Verifique los datos y la conexión con la base de datos.")
