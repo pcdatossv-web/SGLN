@@ -49,6 +49,42 @@ Public Class CumplimientoRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Verifica y bloquea las referencias de una operación LDA/FT dentro de
+    ''' la transacción de escritura. La validación superficial de IDs no basta:
+    ''' el caso o instrumento debe existir al confirmar el registro.
+    ''' Se admiten registros históricos aunque el caso esté cerrado o el
+    ''' instrumento haya sido anulado.
+    ''' </summary>
+    Private Sub ValidarReferenciasOperacionEnTransaccion(conexion As MySqlConnection,
+                                                         transaccion As MySqlTransaction,
+                                                         idCaso As Integer?,
+                                                         idInstrumento As Integer?)
+        If idCaso.HasValue Then
+            Using comando As New MySqlCommand(
+                "SELECT ID FROM Casos WHERE ID = @id FOR UPDATE",
+                conexion, transaccion)
+                Parametro(comando, "@id", idCaso.Value)
+                Dim valor As Object = comando.ExecuteScalar()
+                If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                    Throw New InvalidOperationException("El caso asociado a la operación ya no existe.")
+                End If
+            End Using
+        End If
+
+        If idInstrumento.HasValue Then
+            Using comando As New MySqlCommand(
+                "SELECT ID FROM Instrumentos WHERE ID = @id FOR UPDATE",
+                conexion, transaccion)
+                Parametro(comando, "@id", idInstrumento.Value)
+                Dim valor As Object = comando.ExecuteScalar()
+                If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                    Throw New InvalidOperationException("El instrumento asociado a la operación ya no existe.")
+                End If
+            End Using
+        End If
+    End Sub
+
     Public Function InsertarOperacion(operacion As OperacionLdaft) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.operaciones") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar operaciones LDA/FT.")
         If operacion Is Nothing Then Throw New ArgumentNullException(NameOf(operacion))
@@ -57,6 +93,8 @@ Public Class CumplimientoRepositorio
         NormalizarDatosOperacion(operacion)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ValidarReferenciasOperacionEnTransaccion(conexion, transaccion,
+                    operacion.IDCaso, operacion.IDInstrumento)
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Operaciones_LDAFT (ID_Caso, ID_Instrumento, Tipo_Operacion, Monto, Moneda, " &
                     "Fecha_Operacion, Descripcion, Estado, Fecha_Vencimiento_Analisis, Fecha_Vencimiento_Reporte, Observaciones) " &
@@ -77,6 +115,20 @@ Public Class CumplimientoRepositorio
         NormalizarDatosOperacion(operacion)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Serializar la edición con el reporte/descarte: el estado se
+                ' vuelve a comprobar bajo bloqueo antes de validar las referencias.
+                Using bloquear As New MySqlCommand(
+                    "SELECT ID FROM Operaciones_LDAFT " &
+                    "WHERE ID = @id AND Estado IN ('Registrada', 'En análisis') AND Reportado_UIF = 0 FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(bloquear, "@id", operacion.ID)
+                    Dim idExistente As Object = bloquear.ExecuteScalar()
+                    If idExistente Is Nothing OrElse Convert.IsDBNull(idExistente) Then Return 0
+                End Using
+
+                ValidarReferenciasOperacionEnTransaccion(conexion, transaccion,
+                    operacion.IDCaso, operacion.IDInstrumento)
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Operaciones_LDAFT SET ID_Caso = @caso, ID_Instrumento = @instrumento, " &
                     "Tipo_Operacion = @tipo, Monto = @monto, Moneda = @moneda, Fecha_Operacion = @fecha, " &
