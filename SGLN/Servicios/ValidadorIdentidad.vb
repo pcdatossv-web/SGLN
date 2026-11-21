@@ -53,7 +53,9 @@ Public Module ValidadorIdentidad
         Dim digitos As String = LimpiarDocumento(dui)
         If digitos.Length <> 9 Then Return False
 
-        Dim pesos As Integer() = {3, 7, 13, 17, 19, 23, 29, 37}
+        ' DUI salvadoreño: pesos descendentes de 9 a 2 sobre los primeros
+        ' ocho dígitos; el noveno es el complemento a la siguiente decena.
+        Dim pesos As Integer() = {9, 8, 7, 6, 5, 4, 3, 2}
         Dim suma As Integer = 0
         For i As Integer = 0 To 7
             suma += Integer.Parse(digitos.Substring(i, 1)) * pesos(i)
