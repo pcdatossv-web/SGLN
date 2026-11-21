@@ -109,7 +109,28 @@ Public Class FrmEntidades
         AplicarPermisosInterfaz()
     End Sub
 
+    ''' <summary>
+    ''' Impide consultas desde un formulario abierto cuando la sesión expiró
+    ''' o el permiso de consulta fue revocado en otra sesión.
+    ''' </summary>
+    Private Function PuedeConsultarEntidades() As Boolean
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return False
+        End If
+
+        If Not Permisos.Puede("entidades.ver") Then
+            Close()
+            Return False
+        End If
+
+        Return True
+    End Function
+
     Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
+        If Not PuedeConsultarEntidades() Then Return
+
         Try
             _cargando = True
             dgvEntidades.DataSource = _servicio.Buscar(filtro)
@@ -131,6 +152,8 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub CargarClientesCombo()
+        If Not PuedeConsultarEntidades() Then Return
+
         Try
             UtileriasUI.CargarCombo(cboRepCliente, _servicio.ClientesCombo(), "Nombre", "ID")
             btnAgregarRep.Enabled = Permisos.Puede("entidades.gestionar") AndAlso cboRepCliente.Items.Count > 0
@@ -165,6 +188,12 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub CargarEntidad(id As Integer)
+        If Not PuedeConsultarEntidades() Then Return
+        If id <= 0 Then
+            Limpiar()
+            Return
+        End If
+
         Try
             Dim tabla As DataTable = _servicio.Obtener(id)
             If tabla.Rows.Count = 0 Then
@@ -201,6 +230,7 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub CargarRepresentantes()
+        If Not PuedeConsultarEntidades() Then Return
         If _idEntidad <= 0 Then
             dgvRepresentantes.DataSource = Nothing
             Return
