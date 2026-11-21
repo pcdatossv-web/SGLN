@@ -11,6 +11,12 @@ Partial Public Class FrmPrimerAdministrador
         InitializeComponent()
     End Sub
 
+    Private Sub MostrarOcultarClave(sender As Object, e As EventArgs) Handles chkMostrarClave.CheckedChanged
+        Dim mostrar As Boolean = chkMostrarClave.Checked
+        txtClave.UseSystemPasswordChar = Not mostrar
+        txtConfirmar.UseSystemPasswordChar = Not mostrar
+    End Sub
+
     Private Sub CrearAdministrador(sender As Object, e As EventArgs) Handles btnCrear.Click
         If _creando Then Return
 
