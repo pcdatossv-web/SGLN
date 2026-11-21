@@ -363,7 +363,7 @@ jobs:
         run: |
           $forms = Get-ChildItem 'SGLN\UI' -Filter '*.vb' -File |
             Where-Object { $_.Name -notlike '*.Designer.vb' }
-          $pattern = '\bNew\s+(?:System\.Windows\.Forms\.)?(?:Button|Label|TextBox|RichTextBox|MaskedTextBox|ComboBox|ListBox|CheckedListBox|DataGridView|DateTimePicker|MonthCalendar|Panel|GroupBox|CheckBox|RadioButton|TabControl|TabPage|MenuStrip|ToolStrip|ToolStripMenuItem|StatusStrip|PictureBox|TreeView|ListView|NumericUpDown|ProgressBar)\b|\.Controls\.Add(?:Range)?\s*\)'
+          $pattern = '\bNew\s+(?:System\.Windows\.Forms\.)?(?:Form|UserControl|Button|Label|LinkLabel|TextBox|RichTextBox|MaskedTextBox|ComboBox|ListBox|CheckedListBox|DataGridView|DateTimePicker|MonthCalendar|Panel|FlowLayoutPanel|TableLayoutPanel|GroupBox|SplitContainer|Splitter|CheckBox|RadioButton|TabControl|TabPage|MenuStrip|ContextMenuStrip|ToolStrip|ToolStripMenuItem|ToolStripTextBox|ToolStripComboBox|ToolStripSeparator|StatusStrip|PictureBox|TreeView|ListView|NumericUpDown|ProgressBar|TrackBar|HScrollBar|VScrollBar|WebBrowser|PropertyGrid|BindingNavigator|ErrorProvider|ToolTip|Timer)\b|\.Controls\.Add(?:Range)?\s*\('
           $violations = Select-String -Path $forms.FullName -Pattern $pattern
           if ($violations) {
             $violations | ForEach-Object { Write-Error ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim()) }
