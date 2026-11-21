@@ -67,7 +67,18 @@ Public Class FrmConfiguracion
 
         dtpFeriado.Value = Date.Today
         If puedeRespaldos Then
-            lblCarpetaRespaldos.Text = "Carpeta de respaldos: " & _servicio.CarpetaRespaldos()
+            Try
+                lblCarpetaRespaldos.Text = "Carpeta de respaldos: " & _servicio.CarpetaRespaldos()
+            Catch ex As Exception
+                ' Una ruta inválida o un enlace no permitido debe bloquear el
+                ' respaldo, pero no impedir el acceso a las demás opciones.
+                RegistroErrores.Escribir("Configuración - validar ruta de respaldos", ex)
+                lblCarpetaRespaldos.Text = "Carpeta de respaldos: ruta no disponible o no válida."
+                lblResultadoRespaldo.ForeColor = Color.Firebrick
+                lblResultadoRespaldo.Text = "No se puede utilizar la carpeta de respaldos. Revise la ruta configurada y sus permisos."
+                btnRespaldar.Enabled = False
+                btnAbrirCarpeta.Enabled = False
+            End Try
         End If
 
         ' El cambio de clave es siempre del usuario que tiene la sesión abierta:
