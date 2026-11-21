@@ -257,6 +257,25 @@ Public Class CumplimientoRepositorio
             End Sub)
     End Function
 
+    ''' <summary>
+    ''' Comprueba y bloquea al titular de una solicitud ARCO dentro de la
+    ''' transacción de alta. La solicitud debe conservarse aunque el cliente
+    ''' esté inactivo; únicamente se exige que el registro exista.
+    ''' </summary>
+    Private Sub ValidarClienteSolicitudEnTransaccion(conexion As MySqlConnection,
+                                                     transaccion As MySqlTransaction,
+                                                     idCliente As Integer)
+        Using comando As New MySqlCommand(
+            "SELECT ID FROM Clientes WHERE ID = @id FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@id", idCliente)
+            Dim valor As Object = comando.ExecuteScalar()
+            If valor Is Nothing OrElse Convert.IsDBNull(valor) Then
+                Throw New InvalidOperationException("El cliente asociado a la solicitud ARCO ya no existe.")
+            End If
+        End Using
+    End Sub
+
     Public Function InsertarSolicitud(solicitud As SolicitudArco) As Integer
         If Not Permisos.TieneAcceso("cumplimiento.arco") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar solicitudes ARCO.")
         If solicitud Is Nothing Then Throw New ArgumentNullException(NameOf(solicitud))
@@ -264,6 +283,7 @@ Public Class CumplimientoRepositorio
         ValidarSolicitudNueva(solicitud)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ValidarClienteSolicitudEnTransaccion(conexion, transaccion, solicitud.IDCliente)
                 Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
                     "INSERT INTO Solicitudes_ARCO (ID_Cliente, Tipo_Derecho, Fecha_Solicitud, Fecha_Vencimiento, " &
                     "Fecha_Vencimiento_Prorroga, Prorroga_Aplicada, Estado, Fecha_Respuesta, Detalle) " &
