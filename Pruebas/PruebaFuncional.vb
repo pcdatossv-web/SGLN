@@ -775,6 +775,9 @@ Module PruebaFuncional
 
         ' Cambiar el rol asignado a una cuenta no debe dejar su sesión con el
         ' identificador ni con la matriz de permisos del rol anterior.
+        ' La preparación del rol temporal requiere privilegios administrativos.
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
         Dim altaRolSinPermisos As Respuesta = roles.Crear(
             "Sin acceso " & sufijoGestor, "Rol temporal sin permisos", New List(Of String)())
         Dim idRolSinPermisos As Integer = 0
@@ -786,8 +789,6 @@ Module PruebaFuncional
                 End If
             Next
         End If
-        Sesion.UsuarioActual = admin
-        Sesion.CargarPermisos()
         Dim cambioRolEnOtraEstacion As Respuesta = servicioUsuarios.Actualizar(
             idUsuarioGestor, "Gestor temporal de pruebas", idRolSinPermisos, True)
         Sesion.UsuarioActual = sesionGestorAntesRevocacion
