@@ -57,6 +57,7 @@ jobs:
               $bloqueCifrar -match 'DataProtectionScope\.LocalMachine') {
             throw 'Las nuevas credenciales deben cifrarse exclusivamente con DPAPI CurrentUser.'
           }
+          $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
           if ($conexionSource -match 'datos\.Password\s*=\s*constructor\.Password' -or
               $conexionSource -match 'Respaldos_Clave' -or
               $configRepo -match 'Respaldos_Clave') {
@@ -81,7 +82,6 @@ jobs:
           $seguridadClave = Get-Content 'SGLN\\Servicios\\SeguridadClave.vb' -Raw
           $servicioUsuarios = Get-Content 'SGLN\\Servicios\\ServicioUsuarios.vb' -Raw
           $servicioRoles = Get-Content 'SGLN\\Servicios\\ServicioRoles.vb' -Raw
-          $configRepo = Get-Content 'SGLN\\Datos\\Repositorios\\ConfiguracionRepositorio.vb' -Raw
           $catalogoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CatalogoRepositorio.vb' -Raw
           $casoRepo = Get-Content 'SGLN\\Datos\\Repositorios\\CasoRepositorio.vb' -Raw
           $servicioCasos = Get-Content 'SGLN\\Servicios\\ServicioCasos.vb' -Raw
