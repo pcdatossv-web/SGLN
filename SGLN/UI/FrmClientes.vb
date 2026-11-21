@@ -22,7 +22,6 @@ Public Class FrmClientes
         txtNombres.MaxLength = 120
         txtApellidos.MaxLength = 120
         txtDUI.MaxLength = 10
-        txtNIT.MaxLength = 14
         txtNacionalidad.MaxLength = 60
         txtProfesion.MaxLength = 120
         txtDireccion.MaxLength = 300
