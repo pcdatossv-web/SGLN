@@ -554,23 +554,38 @@ Public Class UsuarioRepositorio
         If errorClave <> "" Then Return Respuesta.Fallo(errorClave)
 
         Try
-            Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
+            Dim credencial As SalHash = Nothing
             Dim resultado As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                     Dim hashActual As String = Nothing
                     Dim saltActual As String = Nothing
+                    Dim usuarioActual As String = Nothing
                     Using consultar As New MySqlCommand(
-                        "SELECT Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1 FOR UPDATE",
+                        "SELECT Usuario, Clave_Hash, Clave_Salt FROM Usuarios WHERE ID = @id AND Activo = 1 FOR UPDATE",
                         conexion, transaccion)
                         Parametro(consultar, "@id", idUsuario)
                         Using lector As MySqlDataReader = consultar.ExecuteReader()
                             If Not lector.Read() Then Return 0
+                            usuarioActual = Convert.ToString(lector("Usuario"))
                             hashActual = Convert.ToString(lector("Clave_Hash"))
                             saltActual = Convert.ToString(lector("Clave_Salt"))
                         End Using
                     End Using
 
-                    If Not SeguridadClave.Verificar(claveActual, hashActual, saltActual) Then Return -1
+                    ' El cambio de clave comparte el mismo bloqueo de intentos que el login.
+                    ' Así no se puede probar indefinidamente la clave actual desde esta pantalla.
+                    If EstaBloqueado(idUsuario) Then
+                        SeguridadClave.Verificar(claveActual, hashActual, saltActual)
+                        Return -2
+                    End If
+
+                    If Not SeguridadClave.Verificar(claveActual, hashActual, saltActual) Then
+                        RegistrarIntentoFallido(idUsuario, usuarioActual)
+                        Return -1
+                    End If
+
+                    ' Derivar la nueva clave solo después de autenticar la clave actual.
+                    credencial = SeguridadClave.CrearHash(claveNueva)
 
                     Ejecutar(conexion, transaccion,
                         "UPDATE Usuarios SET Clave_Hash = @hash, Clave_Salt = @salt WHERE ID = @id AND Activo = 1",
@@ -591,7 +606,8 @@ Public Class UsuarioRepositorio
                 End Function)
 
             If resultado = 0 Then Return Respuesta.Fallo("La cuenta ya no existe o está inactiva.")
-            If resultado = -1 Then Return Respuesta.Fallo("La clave actual no es correcta.")
+            If resultado = -1 Then Return Respuesta.Fallo("La clave actual no es correcta. El intento quedó registrado.")
+            If resultado = -2 Then Return Respuesta.Fallo("La cuenta está temporalmente bloqueada por intentos fallidos. Intente nuevamente cuando finalice el bloqueo.")
 
             ' Mantener únicamente la sesión que realizó el cambio. Las demás
             ' estaciones detectarán la nueva huella y deberán autenticarse otra vez.
