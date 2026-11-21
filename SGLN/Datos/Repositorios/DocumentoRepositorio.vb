@@ -26,8 +26,9 @@ Public Class DocumentoRepositorio
     ''' El repositorio mantiene esta barrera aunque se invoque sin pasar por el servicio.
     ''' </summary>
     Private Function PuedeConsultarDocumentos() As Boolean
+        ' Importar no concede acceso de lectura a los registros existentes.
         Return Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar",
-                                 "documentos.metadatos", "documentos.importar")
+                                 "documentos.metadatos")
     End Function
 
     Private Function PuedeCargarCombosDocumentos() As Boolean
@@ -36,7 +37,7 @@ Public Class DocumentoRepositorio
     End Function
 
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
+        If Not PuedeConsultarDocumentos() Then Return New DataTable()
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
 
