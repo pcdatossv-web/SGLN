@@ -335,9 +335,14 @@ Public Class FrmUsuarios
             Dim claveAdministrador As String = SolicitarClaveAdministrador()
             If claveAdministrador Is Nothing Then Return
 
-            Dim respuesta As Respuesta =
-                _servicio.EliminarDefinitivamente(_idSeleccionado, claveAdministrador)
-            claveAdministrador = Nothing
+            Dim respuesta As Respuesta
+            Try
+                respuesta = _servicio.EliminarDefinitivamente(_idSeleccionado, claveAdministrador)
+            Finally
+                ' Liberar la referencia a la clave incluso si la operación falla.
+                ' String es inmutable: esto no garantiza el borrado físico de memoria.
+                claveAdministrador = Nothing
+            End Try
             Mostrar(respuesta.Mensaje, respuesta.Exito)
             If respuesta.Exito Then
                 CargarUsuarios()
