@@ -772,6 +772,53 @@ Module PruebaFuncional
         Verificar("La prueba restaura el permiso original del rol temporal",
                   restauracionPermiso.Exito AndAlso Permisos.TieneAcceso("casos.ver"),
                   restauracionPermiso.Mensaje)
+
+        ' Cambiar el rol asignado a una cuenta no debe dejar su sesión con el
+        ' identificador ni con la matriz de permisos del rol anterior.
+        Dim altaRolSinPermisos As Respuesta = roles.Crear(
+            "Sin acceso " & sufijoGestor, "Rol temporal sin permisos", New List(Of String)())
+        Dim idRolSinPermisos As Integer = 0
+        If altaRolSinPermisos.Exito Then
+            For Each fila As DataRow In roles.Listar().Rows
+                If UtileriasUI.Texto(fila, "Nombre") = "Sin acceso " & sufijoGestor Then
+                    idRolSinPermisos = UtileriasUI.Entero(fila, "ID")
+                    Exit For
+                End If
+            Next
+        End If
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        Dim cambioRolEnOtraEstacion As Respuesta = servicioUsuarios.Actualizar(
+            idUsuarioGestor, "Gestor temporal de pruebas", idRolSinPermisos, True)
+        Sesion.UsuarioActual = sesionGestorAntesRevocacion
+        Dim rolNuevoAplicadoEnSesion As Boolean =
+            altaRolSinPermisos.Exito AndAlso idRolSinPermisos > 0 AndAlso
+            cambioRolEnOtraEstacion.Exito AndAlso
+            Permisos.TieneAcceso("casos.ver") = False AndAlso
+            Sesion.UsuarioActual IsNot Nothing AndAlso
+            Sesion.UsuarioActual.IDRol = idRolSinPermisos
+        Verificar("Una sesión abierta adopta el nuevo rol asignado desde otra estación",
+                  rolNuevoAplicadoEnSesion, cambioRolEnOtraEstacion.Mensaje)
+
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        Dim restauracionRolGestor As Respuesta = servicioUsuarios.Actualizar(
+            idUsuarioGestor, "Gestor temporal de pruebas", idRolGestor, True)
+        Sesion.UsuarioActual = sesionGestorAntesRevocacion
+        Dim rolGestorRestaurado As Boolean =
+            restauracionRolGestor.Exito AndAlso Permisos.TieneAcceso("casos.ver") AndAlso
+            Sesion.UsuarioActual.IDRol = idRolGestor
+        Verificar("La prueba restaura el rol original de la cuenta temporal",
+                  rolGestorRestaurado, restauracionRolGestor.Mensaje)
+
+        Sesion.UsuarioActual = admin
+        Sesion.CargarPermisos()
+        If idRolSinPermisos > 0 Then
+            Verificar("El rol temporal sin permisos se elimina tras la prueba",
+                      roles.Eliminar(idRolSinPermisos).Exito)
+        End If
+        Sesion.UsuarioActual = sesionGestorAntesRevocacion
+        Permisos.RevalidarSesion()
         Dim cambioClaveGestor As Respuesta = servicioUsuarios.CambiarClavePropia(
             idUsuarioGestor, "GestorPrueba99!", "GestorCambioTemporal99!")
         Verificar("Un usuario ordinario puede cambiar su propia clave sin permisos administrativos",
