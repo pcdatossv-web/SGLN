@@ -537,18 +537,21 @@ Public Class FrmProtocolo
     ''' lista visible, para no repetir datos por descuido.
     ''' </summary>
     Private Sub SugerirSiguienteInstrumento()
-        Dim tabla As DataTable = TryCast(dgvInstrumentos.DataSource, DataTable)
-        If tabla Is Nothing OrElse tabla.Rows.Count = 0 Then Return
+        ' El grid está enlazado a un DataView, no directamente a un DataTable.
+        ' Consultar la tabla subyacente evita que la sugerencia quede desactivada
+        ' por un cast que siempre devuelve Nothing en el enlace actual.
+        If _vistaInstrumentos Is Nothing OrElse _vistaInstrumentos.Table Is Nothing OrElse
+           _vistaInstrumentos.Table.Rows.Count = 0 Then Return
 
         Dim mayorNumero As Integer = 0
         Dim mayorFolio As Integer = 0
-        For Each fila As DataRow In tabla.Rows
+        For Each fila As DataRow In _vistaInstrumentos.Table.Rows
             mayorNumero = Math.Max(mayorNumero, UtileriasUI.Entero(fila, "Numero_Escritura"))
             mayorFolio = Math.Max(mayorFolio, UtileriasUI.Entero(fila, "Folio_Fin"))
         Next
 
-        nudNumeroEscritura.Value = Math.Min(mayorNumero + 1, nudNumeroEscritura.Maximum)
-        nudFolioInicio.Value = Math.Min(mayorFolio + 1, nudFolioInicio.Maximum)
+        nudNumeroEscritura.Value = Math.Min(CDec(mayorNumero) + 1D, nudNumeroEscritura.Maximum)
+        nudFolioInicio.Value = Math.Min(CDec(mayorFolio) + 1D, nudFolioInicio.Maximum)
         nudFolioFin.Value = nudFolioInicio.Value
     End Sub
 
