@@ -3094,7 +3094,7 @@ Module PruebaFuncional
                 pagina.Columns.Add("Monto", GetType(Decimal))
                 If numeroPagina = 0L Then
                     pagina.Rows.Add("Primera página", -5D)
-                ElseIf indice = 1L Then
+                ElseIf numeroPagina = 1L Then
                     pagina.Rows.Add("=1+1", 15D)
                 Else
                     Throw New ArgumentOutOfRangeException("numeroPagina")
