@@ -165,7 +165,7 @@ Public Class FrmCumplimiento
         If errorUmbral Then
             lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. La evaluación automática de montos queda no disponible hasta restablecer la configuración."
         Else
-            lblNotaUmbral.Text = "Umbral de efectivo configurado: $" & _umbral.ToString("N2") &
+            lblNotaUmbral.Text = "Umbral efectivo aplicado (configurado o predeterminado): $" & _umbral.ToString("N2") &
                 ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
         End If
 
