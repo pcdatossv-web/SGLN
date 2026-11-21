@@ -10,6 +10,7 @@ Public Class FrmCumplimiento
     Private _idOperacion As Integer
     Private _idSolicitud As Integer
     Private _umbral As Decimal
+    Private _umbralDisponible As Boolean
     Private _puedeVer As Boolean
     Private _puedeGestionarOperaciones As Boolean
     Private _puedeReportar As Boolean
@@ -152,16 +153,17 @@ Public Class FrmCumplimiento
 
         Try
             _umbral = _servicio.UmbralEfectivo()
+            _umbralDisponible = True
         Catch ex As Exception
-            ' La pantalla debe seguir disponible para consulta aunque no pueda
-            ' recuperar el umbral configurado. El valor alternativo se informa.
-            _umbral = 10000D
+            ' Mantener la pantalla consultable, pero nunca presentar un umbral
+            ' alternativo como si fuera el valor efectivo configurado.
+            _umbral = 0D
+            _umbralDisponible = False
             errorUmbral = True
             RegistroErrores.Escribir("Cumplimiento - cargar umbral inicial", ex)
         End Try
         If errorUmbral Then
-            lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. Se usa temporalmente el valor predeterminado de $" &
-                _umbral.ToString("N2") & "; confirme la configuración antes de evaluar operaciones."
+            lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. La evaluación automática de montos queda no disponible hasta restablecer la configuración."
         Else
             lblNotaUmbral.Text = "Umbral de efectivo configurado: $" & _umbral.ToString("N2") &
                 ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
@@ -445,6 +447,11 @@ Public Class FrmCumplimiento
     Private Sub EvaluarUmbral()
         lblAlertaUmbral.Text = ""
         lblAlertaUmbral.ForeColor = Color.Firebrick
+
+        If Not _umbralDisponible Then
+            lblAlertaUmbral.Text = "No se puede evaluar el monto: el umbral configurado no está disponible."
+            Return
+        End If
 
         If nudMonto.Value < _umbral Then Return
 
