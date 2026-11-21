@@ -88,7 +88,9 @@ Public Class ServicioPlazos
             Return _repositorio.MarcarVencidas()
         Catch ex As Exception
             RegistroErrores.Escribir("Actualizar plazos vencidos", ex)
-            Return 0
+            ' -1 distingue un fallo de infraestructura de una ejecución correcta
+            ' que simplemente no encontró plazos pendientes vencidos.
+            Return -1
         End Try
     End Function
 
