@@ -585,6 +585,16 @@ Module PruebaFuncional
         ' pierde sin limpiar la colección de permisos en memoria.
         Sesion.UsuarioActual = Nothing
         Permisos.Cargar(admin.IDRol, True)
+        Dim repositorioRolesSinSesion As New RolRepositorio()
+        Dim altaRolSinSesion As Respuesta = repositorioRolesSinSesion.Crear(
+            "Rol sin sesión", "No debe persistir", New List(Of String)())
+        Dim edicionPermisosSinSesion As Respuesta =
+            repositorioRolesSinSesion.GuardarPermisos(idRolAbogado, New List(Of String)())
+        Verificar("El repositorio de roles rechaza altas sin una sesión autenticada",
+                  Not altaRolSinSesion.Exito)
+        Verificar("El repositorio de roles rechaza cambios de permisos sin sesión",
+                  Not edicionPermisosSinSesion.Exito)
+
         Dim sesionAusenteLimpiaPermisos As Boolean =
             Not Permisos.RevalidarSesion() AndAlso Not Permisos.Puede("config.usuarios")
         Verificar("Una sesión ausente limpia los permisos que pudieran quedar en memoria",
