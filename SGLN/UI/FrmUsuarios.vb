@@ -14,11 +14,13 @@ Public Class FrmUsuarios
     Private _idSeleccionado As Integer
     Private _cargando As Boolean
     Private _permisosInicializados As Boolean
+    Private _tablaUsuarios As DataTable
 
     Private Sub FrmUsuarios_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not Permisos.Exigir("config.usuarios", Me) Then Return
 
         UtileriasUI.ConfigurarGrid(dgvUsuarios)
+        txtBuscar.Clear()
 
         ' Las rutinas de carga registran y muestran sus propios errores, pero
         ' la carga posterior o Nuevo() puede limpiar el mensaje. Conservar
@@ -75,7 +77,8 @@ Public Class FrmUsuarios
         Dim errorCarga As Boolean = False
         Try
             _cargando = True
-            dgvUsuarios.DataSource = _servicio.Listar()
+            _tablaUsuarios = _servicio.Listar()
+            dgvUsuarios.DataSource = New DataView(_tablaUsuarios)
 
             If dgvUsuarios.Columns.Contains("ID") Then dgvUsuarios.Columns("ID").Visible = False
             If dgvUsuarios.Columns.Contains("ID_Rol") Then dgvUsuarios.Columns("ID_Rol").Visible = False
@@ -88,6 +91,7 @@ Public Class FrmUsuarios
             RegistroErrores.Escribir("Usuarios - listar", ex)
             Mostrar("No se pudieron cargar los usuarios. Verifique la conexión con la base de datos.", False)
             errorCarga = True
+            _tablaUsuarios = Nothing
             dgvUsuarios.DataSource = Nothing
         Finally
             _cargando = False
@@ -102,6 +106,41 @@ Public Class FrmUsuarios
             End If
         End Try
     End Sub
+
+    ''' <summary>
+    ''' Filtra localmente el conjunto ya autorizado y cargado; no ejecuta
+    ''' consultas por cada tecla ni altera los datos almacenados.
+    ''' </summary>
+    Private Sub txtBuscar_TextChanged(sender As Object, e As EventArgs) Handles txtBuscar.TextChanged
+        If _tablaUsuarios Is Nothing Then Return
+
+        Try
+            Dim termino As String = EscaparFiltro(txtBuscar.Text.Trim())
+            Dim vista As DataView = TryCast(dgvUsuarios.DataSource, DataView)
+            If vista Is Nothing Then Return
+
+            If termino.Length = 0 Then
+                vista.RowFilter = String.Empty
+            Else
+                vista.RowFilter =
+                    "Usuario LIKE '%" & termino & "%' OR " &
+                    "Nombre_Completo LIKE '%" & termino & "%' OR " &
+                    "Rol LIKE '%" & termino & "%'"
+            End If
+        Catch ex As Exception
+            RegistroErrores.Escribir("Usuarios - filtro de búsqueda", ex)
+            Mostrar("No se pudo aplicar el filtro de búsqueda. Revise el texto ingresado.", False)
+        End Try
+    End Sub
+
+    Private Function EscaparFiltro(valor As String) As String
+        Return If(valor, String.Empty).
+            Replace("[", "[[]").
+            Replace("]", "[]]").
+            Replace("%", "[%]").
+            Replace("*", "[*]").
+            Replace("'", "''")
+    End Function
 
     Private Sub dgvUsuarios_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvUsuarios.CellFormatting
         If e.RowIndex < 0 OrElse Not dgvUsuarios.Columns.Contains("Activo") Then Return

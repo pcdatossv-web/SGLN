@@ -18,6 +18,8 @@ Partial Class FrmUsuarios
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.dgvUsuarios = New System.Windows.Forms.DataGridView()
+        Me.lblBuscar = New System.Windows.Forms.Label()
+        Me.txtBuscar = New System.Windows.Forms.TextBox()
         Me.grpDatos = New System.Windows.Forms.GroupBox()
         Me.lblUsuario = New System.Windows.Forms.Label()
         Me.txtUsuario = New System.Windows.Forms.TextBox()
@@ -48,10 +50,30 @@ Partial Class FrmUsuarios
         Me.dgvUsuarios.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvUsuarios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvUsuarios.Location = New System.Drawing.Point(12, 12)
+        Me.dgvUsuarios.Location = New System.Drawing.Point(12, 48)
         Me.dgvUsuarios.Name = "dgvUsuarios"
-        Me.dgvUsuarios.Size = New System.Drawing.Size(690, 660)
-        Me.dgvUsuarios.TabIndex = 0
+        Me.dgvUsuarios.Size = New System.Drawing.Size(690, 624)
+        Me.dgvUsuarios.TabIndex = 1
+        '
+        ' lblBuscar
+        '
+        Me.lblBuscar.AutoSize = True
+        Me.lblBuscar.Location = New System.Drawing.Point(12, 17)
+        Me.lblBuscar.Name = "lblBuscar"
+        Me.lblBuscar.Size = New System.Drawing.Size(45, 15)
+        Me.lblBuscar.TabIndex = 0
+        Me.lblBuscar.Text = "Buscar:"
+        '
+        ' txtBuscar
+        '
+        Me.txtBuscar.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtBuscar.Location = New System.Drawing.Point(65, 12)
+        Me.txtBuscar.MaxLength = 100
+        Me.txtBuscar.Name = "txtBuscar"
+        Me.txtBuscar.PlaceholderText = "Usuario, nombre o rol..."
+        Me.txtBuscar.Size = New System.Drawing.Size(637, 23)
+        Me.txtBuscar.TabIndex = 0
         '
         ' grpDatos
         '
@@ -258,6 +280,8 @@ Partial Class FrmUsuarios
         Me.Controls.Add(Me.grpClave)
         Me.Controls.Add(Me.grpDatos)
         Me.Controls.Add(Me.dgvUsuarios)
+        Me.Controls.Add(Me.txtBuscar)
+        Me.Controls.Add(Me.lblBuscar)
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.MinimumSize = New System.Drawing.Size(1150, 680)
         Me.Name = "FrmUsuarios"
@@ -272,6 +296,8 @@ Partial Class FrmUsuarios
     End Sub
 
     Friend WithEvents dgvUsuarios As System.Windows.Forms.DataGridView
+    Friend WithEvents lblBuscar As System.Windows.Forms.Label
+    Friend WithEvents txtBuscar As System.Windows.Forms.TextBox
     Friend WithEvents grpDatos As System.Windows.Forms.GroupBox
     Friend WithEvents lblUsuario As System.Windows.Forms.Label
     Friend WithEvents txtUsuario As System.Windows.Forms.TextBox
