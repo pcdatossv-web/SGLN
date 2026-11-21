@@ -13,7 +13,18 @@ Partial Public Class FrmCambioClave
     End Sub
 
     Private Sub FrmCambioClave_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
+        chkMostrarClaves.Checked = False
+        txtActual.UseSystemPasswordChar = True
+        txtNueva.UseSystemPasswordChar = True
+        txtConfirmar.UseSystemPasswordChar = True
         txtActual.Focus()
+    End Sub
+
+    Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
+        Dim ocultar As Boolean = Not chkMostrarClaves.Checked
+        txtActual.UseSystemPasswordChar = ocultar
+        txtNueva.UseSystemPasswordChar = ocultar
+        txtConfirmar.UseSystemPasswordChar = ocultar
     End Sub
 
     Private Sub GuardarClick(sender As Object, e As EventArgs) Handles btnGuardar.Click
