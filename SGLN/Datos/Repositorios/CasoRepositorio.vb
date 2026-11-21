@@ -285,7 +285,7 @@ Public Class CasoRepositorio
 
     ''' <summary>
     ''' Bloquea el expediente y verifica que admita nuevas actuaciones procesales.
-    ''' Los expedientes suspendidos conservan sus plazos; cerrados y archivados no.
+    ''' Los expedientes suspendidos conservan sus plazos; cerrados y archivados no admiten nuevas actuaciones ni modificaciones. La regularización de plazos ya registrados se permite mediante MarcarCumplida.
     ''' </summary>
     Private Sub ValidarCasoAdmiteActuaciones(conexion As MySqlConnection,
                                              transaccion As MySqlTransaction,
