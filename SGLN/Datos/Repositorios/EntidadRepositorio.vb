@@ -234,7 +234,7 @@ Public Class EntidadRepositorio
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not (Permisos.TieneAcceso("entidades.ver") OrElse Permisos.TieneAcceso("entidades.gestionar")) Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("entidades.ver", "entidades.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
             "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
