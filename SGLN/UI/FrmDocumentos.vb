@@ -345,6 +345,28 @@ Public Class FrmDocumentos
         End Try
     End Sub
 
+    Private Sub CopiarHash()
+        If _idDocumento <= 0 OrElse String.IsNullOrWhiteSpace(txtHash.Text) Then
+            MostrarMensaje("Seleccione un documento con hash disponible.", False)
+            Return
+        End If
+
+        If Not Permisos.RevalidarSesion() OrElse
+           Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+
+        Try
+            Clipboard.SetText(txtHash.Text.Trim())
+            MostrarMensaje("Hash SHA-256 copiado al portapapeles.", True)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - copiar hash", ex)
+            MostrarMensaje("No se pudo copiar el hash. Compruebe el acceso al portapapeles.", False)
+        End Try
+    End Sub
+
     Private Sub VerificarIntegridad()
         If Not Permisos.ExigirAccion("documentos.verificar") Then Return
 
@@ -453,6 +475,10 @@ Public Class FrmDocumentos
 
     Private Sub btnAbrir_Click(sender As Object, e As EventArgs) Handles btnAbrir.Click
         AbrirDocumento()
+    End Sub
+
+    Private Sub btnCopiarHash_Click(sender As Object, e As EventArgs) Handles btnCopiarHash.Click
+        CopiarHash()
     End Sub
 
     Private Sub btnVerificar_Click(sender As Object, e As EventArgs) Handles btnVerificar.Click
