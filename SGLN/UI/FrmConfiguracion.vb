@@ -98,22 +98,26 @@ Public Class FrmConfiguracion
     Private Sub FrmConfiguracion_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
         If Not _permisosInicializados OrElse IsDisposed Then Return
 
-        If Not Permisos.RevalidarSesion() Then
-            Sesion.CerrarSesionSolicitado = True
-            Close()
-            Return
-        End If
-
-        ' Las pestañas se filtran al abrir. Si cambia cualquier permiso,
-        ' cerrar evita conservar datos de una sección cuyo acceso fue revocado.
-        If Permisos.Puede("config.ver") <> _permisoConfigVer OrElse
-           Permisos.Puede("config.editar") <> _permisoConfigEditar OrElse
-           Permisos.Puede("config.feriados") <> _permisoFeriados OrElse
-           Permisos.Puede("config.seguridad") <> _permisoSeguridad OrElse
-           Permisos.Puede("config.respaldos") <> _permisoRespaldos Then
+        If Not PermisosFormularioVigentes() Then
+            If Sesion.UsuarioActual Is Nothing Then Sesion.CerrarSesionSolicitado = True
             Close()
         End If
     End Sub
+
+    ''' <summary>
+    ''' Comprueba que la sesión y todos los permisos que determinaron las
+    ''' pestañas visibles sigan siendo los mismos que al abrir el formulario.
+    ''' También se usa al terminar operaciones asíncronas.
+    ''' </summary>
+    Private Function PermisosFormularioVigentes() As Boolean
+        If Not Permisos.RevalidarSesion() Then Return False
+
+        Return Permisos.Puede("config.ver") = _permisoConfigVer AndAlso
+               Permisos.Puede("config.editar") = _permisoConfigEditar AndAlso
+               Permisos.Puede("config.feriados") = _permisoFeriados AndAlso
+               Permisos.Puede("config.seguridad") = _permisoSeguridad AndAlso
+               Permisos.Puede("config.respaldos") = _permisoRespaldos
+    End Function
 
     ''' <summary>
     ''' Deshabilita lo que el rol no puede usar. Ocultar el menú no basta:
@@ -326,8 +330,16 @@ Public Class FrmConfiguracion
         Finally
             _respaldando = False
             If Not IsDisposed Then
-                btnRespaldar.Enabled = True
                 Cursor = Cursors.Default
+
+                ' No reactivar el botón por defecto: los permisos pudieron
+                ' cambiar mientras mysqldump se ejecutaba en segundo plano.
+                If Not PermisosFormularioVigentes() Then
+                    If Sesion.UsuarioActual Is Nothing Then Sesion.CerrarSesionSolicitado = True
+                    Close()
+                Else
+                    btnRespaldar.Enabled = Permisos.Puede("config.respaldos")
+                End If
             End If
         End Try
     End Sub
