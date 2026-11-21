@@ -107,6 +107,7 @@ Partial Class FrmEntidades
         ' txtBuscarEntidad
         '
         Me.txtBuscarEntidad.Location = New System.Drawing.Point(12, 55)
+        Me.txtBuscarEntidad.MaxLength = 200
         Me.txtBuscarEntidad.Name = "txtBuscarEntidad"
         Me.txtBuscarEntidad.Size = New System.Drawing.Size(205, 23)
         Me.txtBuscarEntidad.TabIndex = 5
@@ -177,6 +178,7 @@ Partial Class FrmEntidades
         ' txtRazonSocial
         '
         Me.txtRazonSocial.Location = New System.Drawing.Point(15, 40)
+        Me.txtRazonSocial.MaxLength = 200
         Me.txtRazonSocial.Name = "txtRazonSocial"
         Me.txtRazonSocial.Size = New System.Drawing.Size(420, 23)
         Me.txtRazonSocial.TabIndex = 0
@@ -210,6 +212,7 @@ Partial Class FrmEntidades
         ' txtNRC
         '
         Me.txtNRC.Location = New System.Drawing.Point(15, 95)
+        Me.txtNRC.MaxLength = 30
         Me.txtNRC.Name = "txtNRC"
         Me.txtNRC.Size = New System.Drawing.Size(180, 23)
         Me.txtNRC.TabIndex = 2
@@ -226,6 +229,7 @@ Partial Class FrmEntidades
         ' txtDomicilio
         '
         Me.txtDomicilio.Location = New System.Drawing.Point(210, 95)
+        Me.txtDomicilio.MaxLength = 300
         Me.txtDomicilio.Name = "txtDomicilio"
         Me.txtDomicilio.Size = New System.Drawing.Size(450, 23)
         Me.txtDomicilio.TabIndex = 3
@@ -280,6 +284,7 @@ Partial Class FrmEntidades
         ' txtDetalleOrigen
         '
         Me.txtDetalleOrigen.Location = New System.Drawing.Point(15, 240)
+        Me.txtDetalleOrigen.MaxLength = 500
         Me.txtDetalleOrigen.Multiline = True
         Me.txtDetalleOrigen.Name = "txtDetalleOrigen"
         Me.txtDetalleOrigen.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
@@ -362,6 +367,7 @@ Partial Class FrmEntidades
         ' txtCargo
         '
         Me.txtCargo.Location = New System.Drawing.Point(265, 42)
+        Me.txtCargo.MaxLength = 120
         Me.txtCargo.Name = "txtCargo"
         Me.txtCargo.Size = New System.Drawing.Size(150, 23)
         Me.txtCargo.TabIndex = 1
