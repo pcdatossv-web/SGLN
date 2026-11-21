@@ -61,7 +61,7 @@ Public Class FrmClientes
         Dim puedeGestionar As Boolean = Permisos.Puede("clientes.gestionar")
         btnNuevo.Enabled = puedeGestionar
         btnGuardar.Enabled = puedeGestionar
-        btnDesactivar.Enabled = Permisos.Puede("clientes.desactivar") AndAlso chkActivo.Checked
+        btnDesactivar.Enabled = _idCliente > 0 AndAlso Permisos.Puede("clientes.desactivar") AndAlso chkActivo.Checked
         btnEntidades.Enabled = Permisos.Puede("entidades.ver")
 
         ' Permitir consultar y copiar los datos sin habilitar su modificación.
