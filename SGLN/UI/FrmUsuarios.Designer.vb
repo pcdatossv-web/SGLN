@@ -66,8 +66,7 @@ Partial Class FrmUsuarios
         '
         ' txtBuscar
         '
-        Me.txtBuscar.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtBuscar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.txtBuscar.Location = New System.Drawing.Point(65, 12)
         Me.txtBuscar.MaxLength = 100
         Me.txtBuscar.Name = "txtBuscar"
