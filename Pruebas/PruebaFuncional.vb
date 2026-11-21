@@ -532,14 +532,6 @@ Module PruebaFuncional
             Verificar("Se crea una cuenta aislada para probar el bloqueo por intentos fallidos", altaUsuarioBloqueo.Exito)
 
             If altaUsuarioBloqueo.Exito Then
-                For intento As Integer = 1 To 5
-                    If usuarios.Autenticar(usuarioBloqueo, "Incorrecta99!") IsNot Nothing Then
-                        Throw New Exception("Se aceptó una clave incorrecta durante la prueba de bloqueo.")
-                    End If
-                Next
-                Verificar("Cinco intentos fallidos bloquean incluso un ingreso con la clave correcta",
-                          usuarios.Autenticar(usuarioBloqueo, "BloqueoClave99!") Is Nothing)
-
                 Dim idUsuarioBloqueo As Integer = 0
                 For Each fila As DataRow In servicioUsuarios.Listar().Rows
                     If UtileriasUI.Texto(fila, "Usuario") = usuarioBloqueo Then
@@ -547,6 +539,38 @@ Module PruebaFuncional
                         Exit For
                     End If
                 Next
+
+                ' La ruta de cambio de clave propia debe compartir el bloqueo
+                ' por intentos con el login, aunque la cuenta no tenga permisos
+                ' administrativos. Se autentica la cuenta temporal para abrir
+                ' su propia sesión y probar exactamente ese flujo.
+                Dim sesionBloqueo As UsuarioSesion =
+                    usuarios.Autenticar(usuarioBloqueo, "BloqueoClave99!")
+                Verificar("La cuenta temporal puede iniciar sesión antes de probar el bloqueo desde cambio de clave",
+                          idUsuarioBloqueo > 0 AndAlso sesionBloqueo IsNot Nothing)
+                If sesionBloqueo IsNot Nothing Then
+                    Sesion.UsuarioActual = sesionBloqueo
+                    Sesion.CargarPermisos()
+                    Dim intentosCambioClaveRechazados As Boolean = True
+                    For intento As Integer = 1 To 5
+                        Dim cambioFallido As Respuesta =
+                            servicioUsuarios.CambiarClavePropia(
+                                idUsuarioBloqueo, "Incorrecta99!", "NuevaClaveSegura99!")
+                        If cambioFallido.Exito Then intentosCambioClaveRechazados = False
+                    Next
+                    Verificar("Cinco claves actuales incorrectas desde cambio propio se rechazan",
+                              intentosCambioClaveRechazados)
+                    Verificar("Los intentos fallidos de cambio propio bloquean el siguiente login",
+                              usuarios.Autenticar(usuarioBloqueo, "BloqueoClave99!") Is Nothing)
+                Else
+                    Verificar("Los intentos fallidos de cambio propio bloquean el siguiente login", False,
+                              "No se pudo crear la sesión temporal necesaria para la prueba.")
+                End If
+
+                ' Recuperar la sesión administrativa para restablecer la clave
+                ' y retirar el bloqueo de la cuenta temporal de forma controlada.
+                Sesion.UsuarioActual = admin
+                Sesion.CargarPermisos()
                 Dim restablecimientoBloqueo As Respuesta =
                     servicioUsuarios.RestablecerClave(idUsuarioBloqueo, "DesbloqueoSeguro99!")
                 Verificar("Restablecer la clave también retira el bloqueo de acceso",
