@@ -250,6 +250,7 @@ Public Class FrmDocumentos
         btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
         btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
         btnVerificar.Enabled = _puedeVerificar AndAlso haySeleccion
+        btnCopiarHash.Enabled = haySeleccion AndAlso Not String.IsNullOrWhiteSpace(txtHash.Text)
         btnProcesarIA.Enabled = False ' ServicioIA declara la integración como no disponible.
     End Sub
 
