@@ -112,6 +112,18 @@ Public Class FrmClientes
     End Sub
 
     Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
+        ' Revalidar en el punto de acceso a datos: Activated no garantiza que
+        ' la sesión siga vigente cuando el formulario permanece abierto.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+        If Not Permisos.Puede("clientes.ver") Then
+            Close()
+            Return
+        End If
+
         Try
             _cargando = True
             dgvClientes.DataSource = _servicio.Buscar(filtro)
@@ -145,6 +157,23 @@ Public Class FrmClientes
     End Sub
 
     Private Sub CargarCliente(id As Integer)
+        If id <= 0 Then
+            Limpiar()
+            Return
+        End If
+
+        ' El detalle también es una lectura protegida. No basta con validar
+        ' al activar la ventana, porque puede permanecer enfocada por tiempo.
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return
+        End If
+        If Not Permisos.Puede("clientes.ver") Then
+            Close()
+            Return
+        End If
+
         Try
             Dim tabla As DataTable = _servicio.Obtener(id)
             If tabla.Rows.Count = 0 Then
