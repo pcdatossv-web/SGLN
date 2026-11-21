@@ -450,6 +450,11 @@ Public Class FrmCasos
     End Sub
 
     Private Sub ActualizarVencidas()
+        ' La actualización global de vencimientos requiere el permiso específico.
+        ' Omitirla para usuarios de solo lectura evita invocaciones denegadas y
+        ' registros de error innecesarios al abrir o refrescar el formulario.
+        If Not _puedeCumplirPlazo Then Return
+
         Try
             Dim marcadas As Integer = _plazos.ActualizarVencidas()
             If marcadas > 0 Then
