@@ -152,6 +152,10 @@ Public Class FrmConfiguracionConexion
             Cursor = Cursors.WaitCursor
             btnProbar.Enabled = False
             correcta = ConfiguracionConexion.Probar(datos, mensaje)
+        Catch ex As Exception
+            RegistroErrores.Escribir("FrmConfiguracionConexion.btnProbar", ex)
+            correcta = False
+            mensaje = "No se pudo completar la prueba de conexión. Revise el servidor, el certificado TLS y los registros de errores."
         Finally
             Cursor = Cursors.Default
             btnProbar.Enabled = True
