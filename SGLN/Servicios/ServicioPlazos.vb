@@ -11,7 +11,7 @@ Public Class ServicioPlazos
     Private ReadOnly _catalogo As New CatalogoRepositorio()
 
     Private Function TienePermisoVigente(permiso As String) As Boolean
-        Return Permisos.RevalidarSesion() AndAlso Permisos.TieneAcceso(permiso)
+        Return Permisos.RevalidarSesion() AndAlso Permisos.Puede(permiso)
     End Function
 
     Public Function ObtenerCalculadora() As CalculadoraDiasHabiles
