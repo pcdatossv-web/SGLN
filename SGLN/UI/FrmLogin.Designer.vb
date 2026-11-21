@@ -23,6 +23,7 @@ Partial Class FrmLogin
         Me.txtUsuario = New System.Windows.Forms.TextBox()
         Me.lblClave = New System.Windows.Forms.Label()
         Me.txtClave = New System.Windows.Forms.TextBox()
+        Me.chkMostrarClave = New System.Windows.Forms.CheckBox()
         Me.btnIngresar = New System.Windows.Forms.Button()
         Me.btnSalir = New System.Windows.Forms.Button()
         Me.lblError = New System.Windows.Forms.Label()
@@ -86,12 +87,22 @@ Partial Class FrmLogin
         Me.txtClave.TabIndex = 1
         Me.txtClave.UseSystemPasswordChar = True
         '
+        ' chkMostrarClave
+        '
+        Me.chkMostrarClave.AutoSize = True
+        Me.chkMostrarClave.Location = New System.Drawing.Point(42, 205)
+        Me.chkMostrarClave.Name = "chkMostrarClave"
+        Me.chkMostrarClave.Size = New System.Drawing.Size(104, 19)
+        Me.chkMostrarClave.TabIndex = 2
+        Me.chkMostrarClave.Text = "Mostrar clave"
+        Me.chkMostrarClave.UseVisualStyleBackColor = True
+        '
         ' btnIngresar
         '
         Me.btnIngresar.Location = New System.Drawing.Point(275, 118)
         Me.btnIngresar.Name = "btnIngresar"
         Me.btnIngresar.Size = New System.Drawing.Size(120, 32)
-        Me.btnIngresar.TabIndex = 2
+        Me.btnIngresar.TabIndex = 3
         Me.btnIngresar.Text = "Ingresar"
         Me.btnIngresar.UseVisualStyleBackColor = True
         '
@@ -101,14 +112,14 @@ Partial Class FrmLogin
         Me.btnSalir.Location = New System.Drawing.Point(275, 158)
         Me.btnSalir.Name = "btnSalir"
         Me.btnSalir.Size = New System.Drawing.Size(120, 32)
-        Me.btnSalir.TabIndex = 3
+        Me.btnSalir.TabIndex = 4
         Me.btnSalir.Text = "Salir"
         Me.btnSalir.UseVisualStyleBackColor = True
         '
         ' lblError
         '
         Me.lblError.ForeColor = System.Drawing.Color.Firebrick
-        Me.lblError.Location = New System.Drawing.Point(42, 208)
+        Me.lblError.Location = New System.Drawing.Point(42, 232)
         Me.lblError.Name = "lblError"
         Me.lblError.Size = New System.Drawing.Size(353, 34)
         Me.lblError.TabIndex = 8
@@ -116,7 +127,7 @@ Partial Class FrmLogin
         ' lnkConfigurarServidor
         '
         Me.lnkConfigurarServidor.AutoSize = True
-        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 246)
+        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 270)
         Me.lnkConfigurarServidor.Name = "lnkConfigurarServidor"
         Me.lnkConfigurarServidor.Size = New System.Drawing.Size(190, 15)
         Me.lnkConfigurarServidor.TabIndex = 9
@@ -126,7 +137,7 @@ Partial Class FrmLogin
         ' lblPie
         '
         Me.lblPie.ForeColor = System.Drawing.Color.Gray
-        Me.lblPie.Location = New System.Drawing.Point(22, 280)
+        Me.lblPie.Location = New System.Drawing.Point(22, 304)
         Me.lblPie.Name = "lblPie"
         Me.lblPie.Size = New System.Drawing.Size(396, 20)
         Me.lblPie.TabIndex = 10
@@ -139,10 +150,11 @@ Partial Class FrmLogin
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnSalir
-        Me.ClientSize = New System.Drawing.Size(440, 312)
+        Me.ClientSize = New System.Drawing.Size(440, 336)
         Me.Controls.Add(Me.lnkConfigurarServidor)
         Me.Controls.Add(Me.lblPie)
         Me.Controls.Add(Me.lblError)
+        Me.Controls.Add(Me.chkMostrarClave)
         Me.Controls.Add(Me.btnSalir)
         Me.Controls.Add(Me.btnIngresar)
         Me.Controls.Add(Me.txtClave)
@@ -167,6 +179,7 @@ Partial Class FrmLogin
     Friend WithEvents txtUsuario As System.Windows.Forms.TextBox
     Friend WithEvents lblClave As System.Windows.Forms.Label
     Friend WithEvents txtClave As System.Windows.Forms.TextBox
+    Friend WithEvents chkMostrarClave As System.Windows.Forms.CheckBox
     Friend WithEvents btnIngresar As System.Windows.Forms.Button
     Friend WithEvents btnSalir As System.Windows.Forms.Button
     Friend WithEvents lblError As System.Windows.Forms.Label
