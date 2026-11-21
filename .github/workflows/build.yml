@@ -361,9 +361,9 @@ jobs:
       - name: Enforce WinForms Designer-only controls
         shell: pwsh
         run: |
-          $forms = Get-ChildItem 'SGLN\\UI' -Filter '*.vb' -File |
+          $forms = Get-ChildItem 'SGLN\UI' -Filter '*.vb' -File |
             Where-Object { $_.Name -notlike '*.Designer.vb' -and $_.Name -ne 'UtileriasUI.vb' }
-          $pattern = '\\bNew\\s+(?:System\\.Windows\\.Forms\\.)?(?:Button|Label|TextBox|RichTextBox|MaskedTextBox|ComboBox|ListBox|CheckedListBox|DataGridView|DateTimePicker|MonthCalendar|Panel|GroupBox|CheckBox|RadioButton|TabControl|TabPage|MenuStrip|ToolStrip|ToolStripMenuItem|StatusStrip|PictureBox|TreeView|ListView|NumericUpDown|ProgressBar)\\b|\\.Controls\\.Add\\s*\\('
+          $pattern = '\bNew\s+(?:System\.Windows\.Forms\.)?(?:Button|Label|TextBox|RichTextBox|MaskedTextBox|ComboBox|ListBox|CheckedListBox|DataGridView|DateTimePicker|MonthCalendar|Panel|GroupBox|CheckBox|RadioButton|TabControl|TabPage|MenuStrip|ToolStrip|ToolStripMenuItem|StatusStrip|PictureBox|TreeView|ListView|NumericUpDown|ProgressBar)\b|\.Controls\.Add\s*\('
           $violations = Select-String -Path $forms.FullName -Pattern $pattern
           if ($violations) {
             $violations | ForEach-Object { Write-Error ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim()) }
