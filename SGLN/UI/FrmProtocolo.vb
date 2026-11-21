@@ -878,6 +878,18 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub ExportarIndice(Optional confirmarGeneracion As Boolean = False)
+        ' La disponibilidad visual del botón no es una autorización: revalidar
+        ' el permiso en la acción y nuevamente después del diálogo modal.
+        If confirmarGeneracion Then
+            If Not Permisos.TieneAcceso("protocolo.gestionar") Then
+                MostrarMensaje("Su sesión ya no tiene permiso para generar el índice.", False)
+                Return
+            End If
+        ElseIf Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then
+            MostrarMensaje("Su sesión ya no tiene permiso para exportar el índice.", False)
+            Return
+        End If
+
         Dim tabla As DataTable = TryCast(dgvIndice.DataSource, DataTable)
         If tabla Is Nothing OrElse tabla.Rows.Count = 0 Then
             UtileriasUI.MostrarError("No hay índice para exportar.")
@@ -888,6 +900,18 @@ Public Class FrmProtocolo
             dialogo.Filter = "Archivo CSV (*.csv)|*.csv"
             dialogo.FileName = "Indice_Libro_" & _idLibro & ".csv"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
+
+            ' El usuario puede permanecer en el diálogo mientras un administrador
+            ' revoca el permiso desde otra sesión o estación.
+            If confirmarGeneracion Then
+                If Not Permisos.TieneAcceso("protocolo.gestionar") Then
+                    MostrarMensaje("El permiso para generar el índice fue revocado. No se exportó el archivo.", False)
+                    Return
+                End If
+            ElseIf Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then
+                MostrarMensaje("El permiso para exportar el índice fue revocado. No se exportó el archivo.", False)
+                Return
+            End If
 
             Try
                 UtileriasUI.ExportarCsv(tabla, dialogo.FileName)
