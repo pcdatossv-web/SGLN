@@ -3125,6 +3125,29 @@ Module PruebaFuncional
                   exportacionPaginadaFallida AndAlso
                   File.ReadAllText(rutaCsvPaginado, Encoding.UTF8).Contains("Primera página"))
 
+        Dim esquemaPaginadoInconsistenteRechazado As Boolean = False
+        Try
+            UtileriasUI.ExportarCsvPorPaginas(
+                rutaCsvPaginado, 2L,
+                Function(numeroPagina As Long)
+                    Dim pagina As New DataTable()
+                    If numeroPagina = 0L Then
+                        pagina.Columns.Add("Dato", GetType(String))
+                        pagina.Columns.Add("Monto", GetType(Decimal))
+                        pagina.Rows.Add("Primera página", 1D)
+                    Else
+                        pagina.Columns.Add("Dato", GetType(String))
+                        pagina.Rows.Add("Página con esquema distinto")
+                    End If
+                    Return pagina
+                End Function)
+        Catch ex As InvalidOperationException
+            esquemaPaginadoInconsistenteRechazado = ex.Message.Contains("estructura")
+        End Try
+        Verificar("La exportación paginada rechaza cambios de columnas entre páginas y conserva el CSV anterior",
+                  esquemaPaginadoInconsistenteRechazado AndAlso
+                  File.ReadAllText(rutaCsvPaginado, Encoding.UTF8).Contains("Primera página"))
+
         ' ---------- 11. Configuración, feriados y respaldo ----------
         Console.WriteLine()
         Console.WriteLine("-- 11. Configuración, feriados y respaldo")
