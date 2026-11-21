@@ -15,6 +15,23 @@ Partial Public Class FrmPrimerAdministrador
         If _creando Then Return
 
         lblEstado.Text = ""
+
+        If String.IsNullOrWhiteSpace(txtUsuario.Text) Then
+            lblEstado.Text = "Ingrese el nombre de usuario."
+            txtUsuario.Focus()
+            Return
+        End If
+        If String.IsNullOrWhiteSpace(txtNombre.Text) Then
+            lblEstado.Text = "Ingrese el nombre completo."
+            txtNombre.Focus()
+            Return
+        End If
+        If String.IsNullOrEmpty(txtClave.Text) Then
+            lblEstado.Text = "Ingrese una clave para el administrador."
+            txtClave.Focus()
+            Return
+        End If
+
         If Not String.Equals(txtClave.Text, txtConfirmar.Text, StringComparison.Ordinal) Then
             lblEstado.Text = "La confirmación de la clave no coincide."
             txtConfirmar.Focus()
@@ -33,6 +50,10 @@ Partial Public Class FrmPrimerAdministrador
         Catch ex As Exception
             RegistroErrores.Escribir("Creación del primer administrador", ex)
             lblEstado.Text = "No se pudo completar la creación del primer administrador. Revise los datos y el registro local de errores."
+            ' No conservar credenciales tras un intento fallido de alta.
+            txtClave.Clear()
+            txtConfirmar.Clear()
+            txtClave.Focus()
         Finally
             Cursor = Cursors.Default
             _creando = False
