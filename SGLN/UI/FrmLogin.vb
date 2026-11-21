@@ -82,6 +82,7 @@ Public Class FrmLogin
                     Sesion.Limpiar()
                     lblError.Text = cambio.Mensaje
                     txtClave.Clear()
+                    chkMostrarClave.Checked = False
                     txtClave.Focus()
                     Return
                 End If
