@@ -127,7 +127,28 @@ Public Class FrmCasos
         AplicarPermisosInterfaz()
     End Sub
 
+    ''' <summary>
+    ''' Evita consultas desde un expediente abierto si la sesión expiró
+    ''' o se revocó el permiso de lectura desde otra sesión.
+    ''' </summary>
+    Private Function PuedeConsultarCasos() As Boolean
+        If Not Permisos.RevalidarSesion() Then
+            Sesion.CerrarSesionSolicitado = True
+            Close()
+            Return False
+        End If
+
+        If Not Permisos.Puede("casos.ver") Then
+            Close()
+            Return False
+        End If
+
+        Return True
+    End Function
+
     Private Sub CargarCombos()
+        If Not PuedeConsultarCasos() Then Return
+
         Try
             UtileriasUI.CargarCombo(cboCliente, _servicio.ClientesCombo(), "Nombre", "ID")
 
@@ -150,6 +171,8 @@ Public Class FrmCasos
     End Sub
 
     Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
+        If Not PuedeConsultarCasos() Then Return
+
         Try
             _cargando = True
             dgvCasos.DataSource = _servicio.Buscar(filtro)
@@ -182,6 +205,12 @@ Public Class FrmCasos
     End Sub
 
     Private Sub CargarCaso(id As Integer)
+        If Not PuedeConsultarCasos() Then Return
+        If id <= 0 Then
+            Limpiar()
+            Return
+        End If
+
         Try
             Dim tabla As DataTable = _servicio.Obtener(id)
             If tabla.Rows.Count = 0 Then
@@ -215,6 +244,7 @@ Public Class FrmCasos
     End Sub
 
     Private Sub CargarActuaciones()
+        If Not PuedeConsultarCasos() Then Return
         If _idCaso <= 0 Then
             dgvActuaciones.DataSource = Nothing
             Return
