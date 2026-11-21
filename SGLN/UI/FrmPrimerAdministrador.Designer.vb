@@ -22,6 +22,7 @@ Partial Class FrmPrimerAdministrador
         Me.txtClave = New System.Windows.Forms.TextBox()
         Me.lblConfirmar = New System.Windows.Forms.Label()
         Me.txtConfirmar = New System.Windows.Forms.TextBox()
+        Me.chkMostrarClave = New System.Windows.Forms.CheckBox()
         Me.lblEstado = New System.Windows.Forms.Label()
         Me.btnCrear = New System.Windows.Forms.Button()
         Me.btnSalir = New System.Windows.Forms.Button()
@@ -43,6 +44,7 @@ Partial Class FrmPrimerAdministrador
         Me.txtUsuario.MaxLength = 50
         Me.txtUsuario.Name = "txtUsuario"
         Me.txtUsuario.Size = New System.Drawing.Size(315, 23)
+        Me.txtUsuario.TabIndex = 0
         Me.lblNombre.Location = New System.Drawing.Point(20, 155)
         Me.lblNombre.Name = "lblNombre"
         Me.lblNombre.Size = New System.Drawing.Size(145, 22)
@@ -51,6 +53,7 @@ Partial Class FrmPrimerAdministrador
         Me.txtNombre.MaxLength = 150
         Me.txtNombre.Name = "txtNombre"
         Me.txtNombre.Size = New System.Drawing.Size(315, 23)
+        Me.txtNombre.TabIndex = 1
         Me.lblClave.Location = New System.Drawing.Point(20, 195)
         Me.lblClave.Name = "lblClave"
         Me.lblClave.Size = New System.Drawing.Size(145, 22)
@@ -59,6 +62,7 @@ Partial Class FrmPrimerAdministrador
         Me.txtClave.MaxLength = 128
         Me.txtClave.Name = "txtClave"
         Me.txtClave.Size = New System.Drawing.Size(315, 23)
+        Me.txtClave.TabIndex = 2
         Me.txtClave.UseSystemPasswordChar = True
         Me.lblConfirmar.Location = New System.Drawing.Point(20, 235)
         Me.lblConfirmar.Name = "lblConfirmar"
@@ -68,28 +72,39 @@ Partial Class FrmPrimerAdministrador
         Me.txtConfirmar.MaxLength = 128
         Me.txtConfirmar.Name = "txtConfirmar"
         Me.txtConfirmar.Size = New System.Drawing.Size(315, 23)
+        Me.txtConfirmar.TabIndex = 3
         Me.txtConfirmar.UseSystemPasswordChar = True
+        Me.chkMostrarClave.AutoSize = True
+        Me.chkMostrarClave.Location = New System.Drawing.Point(170, 263)
+        Me.chkMostrarClave.Name = "chkMostrarClave"
+        Me.chkMostrarClave.Size = New System.Drawing.Size(104, 19)
+        Me.chkMostrarClave.TabIndex = 4
+        Me.chkMostrarClave.Text = "Mostrar claves"
+        Me.chkMostrarClave.UseVisualStyleBackColor = True
         Me.lblEstado.ForeColor = System.Drawing.Color.Firebrick
-        Me.lblEstado.Location = New System.Drawing.Point(20, 273)
+        Me.lblEstado.Location = New System.Drawing.Point(20, 288)
         Me.lblEstado.Name = "lblEstado"
         Me.lblEstado.Size = New System.Drawing.Size(465, 35)
-        Me.btnCrear.Location = New System.Drawing.Point(215, 315)
+        Me.btnCrear.Location = New System.Drawing.Point(215, 330)
         Me.btnCrear.Name = "btnCrear"
         Me.btnCrear.Size = New System.Drawing.Size(160, 32)
+        Me.btnCrear.TabIndex = 5
         Me.btnCrear.Text = "Crear administrador"
         Me.btnSalir.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnSalir.Location = New System.Drawing.Point(385, 315)
+        Me.btnSalir.Location = New System.Drawing.Point(385, 330)
         Me.btnSalir.Name = "btnSalir"
         Me.btnSalir.Size = New System.Drawing.Size(100, 32)
+        Me.btnSalir.TabIndex = 6
         Me.btnSalir.Text = "Salir"
         Me.AcceptButton = Me.btnCrear
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnSalir
-        Me.ClientSize = New System.Drawing.Size(510, 365)
+        Me.ClientSize = New System.Drawing.Size(510, 380)
         Me.Controls.Add(Me.btnSalir)
         Me.Controls.Add(Me.btnCrear)
         Me.Controls.Add(Me.lblEstado)
+        Me.Controls.Add(Me.chkMostrarClave)
         Me.Controls.Add(Me.txtConfirmar)
         Me.Controls.Add(Me.lblConfirmar)
         Me.Controls.Add(Me.txtClave)
@@ -120,6 +135,7 @@ Partial Class FrmPrimerAdministrador
     Friend WithEvents txtClave As System.Windows.Forms.TextBox
     Friend WithEvents lblConfirmar As System.Windows.Forms.Label
     Friend WithEvents txtConfirmar As System.Windows.Forms.TextBox
+    Friend WithEvents chkMostrarClave As System.Windows.Forms.CheckBox
     Friend WithEvents lblEstado As System.Windows.Forms.Label
     Friend WithEvents btnCrear As System.Windows.Forms.Button
     Friend WithEvents btnSalir As System.Windows.Forms.Button
