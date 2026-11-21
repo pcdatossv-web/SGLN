@@ -197,7 +197,7 @@ Public Class FrmCumplimiento
         If errorCatalogos Then mensajeErrorInicial &= "No se pudieron cargar los catálogos. "
         If errorOperaciones Then mensajeErrorInicial &= "No se pudieron cargar las operaciones de cumplimiento. "
         If errorArco Then mensajeErrorInicial &= "No se pudieron cargar las solicitudes ARCO. "
-        If errorUmbral Then mensajeErrorInicial &= "No se pudo recuperar el umbral configurado; se aplicó temporalmente el valor predeterminado de $10,000.00. "
+        If errorUmbral Then mensajeErrorInicial &= "No se pudo recuperar el umbral configurado; la evaluación automática de montos permanece deshabilitada. "
 
         If mensajeErrorInicial.Length > 0 Then
             MostrarMensaje(mensajeErrorInicial.Trim(), False)
