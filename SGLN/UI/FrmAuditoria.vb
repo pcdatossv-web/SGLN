@@ -154,6 +154,15 @@ Public Class FrmAuditoria
             dialogo.FileName = "Auditoria_" & Date.Now.ToString("yyyyMMdd_HHmm") & ".csv"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
 
+            ' El diálogo de archivo puede permanecer abierto mientras el
+            ' administrador revoca el permiso o desactiva la cuenta.
+            ' Revalidar inmediatamente antes de escribir el archivo: el
+            ' estado del botón y la comprobación inicial no son suficientes.
+            If Not Permisos.ExigirAccion("auditoria.exportar") Then
+                ActualizarEstadoExportacion()
+                Return
+            End If
+
             Try
                 UtileriasUI.ExportarCsv(tabla, dialogo.FileName)
                 MostrarMensaje("Auditoría exportada en " & dialogo.FileName, True)
