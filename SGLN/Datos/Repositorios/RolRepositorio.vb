@@ -167,6 +167,10 @@ Public Class RolRepositorio
                         If rolProtegido AndAlso Not activo Then
                             Throw New InvalidOperationException("El rol Administrador protegido no se puede desactivar.")
                         End If
+                        If rolProtegido AndAlso
+                           Not String.Equals(nombreActual, nombre.Trim(), StringComparison.Ordinal) Then
+                            Throw New InvalidOperationException("El nombre del rol Administrador protegido no se puede modificar.")
+                        End If
                         If Not activo Then
                             Using comandoUsuarios As New MySqlCommand(
                                 "SELECT COUNT(*) FROM Usuarios WHERE ID_Rol = @id", conexion, transaccion)
@@ -333,6 +337,22 @@ Public Class RolRepositorio
             For Each codigo As String In codigos
                 If Not String.IsNullOrWhiteSpace(codigo) Then nuevos.Add(codigo.Trim())
             Next
+        End If
+
+        ' Defensa en profundidad: cualquier ruta de escritura (incluida
+        ' GuardarPermisos) debe conservar los permisos mínimos del rol protegido.
+        Dim esProtegido As Boolean = False
+        Using comandoRol As New MySqlCommand(
+            "SELECT Protegido FROM Roles WHERE ID = @rol FOR UPDATE", conexion, transaccion)
+            Parametro(comandoRol, "@rol", idRol)
+            Dim valor As Object = comandoRol.ExecuteScalar()
+            esProtegido = valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) AndAlso
+                          Convert.ToInt32(valor) = 1
+        End Using
+        If esProtegido AndAlso
+           (Not nuevos.Contains("config.usuarios") OrElse Not nuevos.Contains("config.roles")) Then
+            Throw New InvalidOperationException(
+                "El rol Administrador protegido debe conservar los permisos 'config.usuarios' y 'config.roles'.")
         End If
 
         Dim actuales As New List(Of String)()
