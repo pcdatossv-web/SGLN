@@ -49,7 +49,9 @@ Public Class FrmPrincipal
                     Permisos.Puede("config.ver") OrElse
                     Permisos.Puede("config.feriados") OrElse
                     Permisos.Puede("config.seguridad") OrElse
-                    Permisos.Puede("config.respaldos")
+                    Permisos.Puede("config.respaldos") OrElse
+                    Permisos.Puede("config.usuarios") OrElse
+                    Permisos.Puede("config.roles")
             Case Else
                 autorizado =
                     item.Tag Is Nothing OrElse
