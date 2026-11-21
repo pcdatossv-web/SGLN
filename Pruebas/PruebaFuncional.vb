@@ -3088,16 +3088,16 @@ Module PruebaFuncional
         Dim rutaCsvPaginado As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_paginado.csv")
         File.WriteAllText(rutaCsvPaginado, "contenido anterior")
         Dim paginaCsv As Func(Of Long, DataTable) =
-            Function(indice As Long)
+            Function(numeroPagina As Long)
                 Dim pagina As New DataTable()
                 pagina.Columns.Add("Dato", GetType(String))
                 pagina.Columns.Add("Monto", GetType(Decimal))
-                If indice = 0L Then
+                If numeroPagina = 0L Then
                     pagina.Rows.Add("Primera página", -5D)
                 ElseIf indice = 1L Then
                     pagina.Rows.Add("=1+1", 15D)
                 Else
-                    Throw New ArgumentOutOfRangeException(NameOf(indice))
+                    Throw New ArgumentOutOfRangeException("numeroPagina")
                 End If
                 Return pagina
             End Function
@@ -3114,8 +3114,8 @@ Module PruebaFuncional
         Try
             UtileriasUI.ExportarCsvPorPaginas(
                 rutaCsvPaginado, 2L,
-                Function(indice As Long)
-                    If indice = 1L Then Throw New IOException("Fallo simulado de lectura de página.")
+                Function(numeroPagina As Long)
+                    If numeroPagina = 1L Then Throw New IOException("Fallo simulado de lectura de página.")
                     Return paginaCsv(0L)
                 End Function)
         Catch ex As IOException
