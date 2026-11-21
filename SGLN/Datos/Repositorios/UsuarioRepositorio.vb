@@ -753,7 +753,14 @@ Public Class UsuarioRepositorio
 
             Return Respuesta.Ok("Usuario eliminado. Se conservó la bitácora de creación y eliminación.")
         Catch ex As MySqlException When ex.Number = 1644
+            ' El procedimiento devuelve errores de negocio controlados por SIGNAL.
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As MySqlException When ex.Number = 1305
+            RegistroErrores.Escribir("Usuarios - procedimiento de eliminación no instalado", ex)
+            Return Respuesta.Fallo("La eliminación segura no está instalada en la base de datos. Un administrador debe ejecutar Scripts\Triggers_MySQL.sql y después aplicar Scripts\Privilegios_Minimos.sql.")
+        Catch ex As MySqlException When ex.Number = 1370
+            RegistroErrores.Escribir("Usuarios - permiso EXECUTE de eliminación", ex)
+            Return Respuesta.Fallo("La cuenta de aplicación no tiene permiso para ejecutar la eliminación segura. Un administrador debe volver a aplicar Scripts\Privilegios_Minimos.sql.")
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - eliminación segura", ex)
             Return Respuesta.Fallo("No se pudo eliminar el usuario. La operación fue cancelada para proteger la integridad de los datos.")
