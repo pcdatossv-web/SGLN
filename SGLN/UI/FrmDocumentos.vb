@@ -250,7 +250,10 @@ Public Class FrmDocumentos
         btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
         btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
         btnVerificar.Enabled = _puedeVerificar AndAlso haySeleccion
-        btnCopiarHash.Enabled = haySeleccion AndAlso Not String.IsNullOrWhiteSpace(txtHash.Text)
+        btnCopiarHash.Enabled =
+            haySeleccion AndAlso
+            (_puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos) AndAlso
+            Not String.IsNullOrWhiteSpace(txtHash.Text)
         btnProcesarIA.Enabled = False ' ServicioIA declara la integración como no disponible.
     End Sub
 
@@ -352,10 +355,15 @@ Public Class FrmDocumentos
             Return
         End If
 
-        If Not Permisos.RevalidarSesion() OrElse
-           Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then
+        If Not Permisos.RevalidarSesion() Then
             Sesion.CerrarSesionSolicitado = True
             Close()
+            Return
+        End If
+
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then
+            ActualizarAccionesDocumento()
+            MostrarMensaje("No tiene permiso para consultar o copiar el hash de documentos.", False)
             Return
         End If
 
