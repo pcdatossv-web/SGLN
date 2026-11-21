@@ -455,7 +455,7 @@ Partial Class FrmConfiguracion
         Me.lblNotaRespaldos.Name = "lblNotaRespaldos"
         Me.lblNotaRespaldos.Size = New System.Drawing.Size(1100, 120)
         Me.lblNotaRespaldos.TabIndex = 4
-        Me.lblNotaRespaldos.Text = "El respaldo se crea con BACKUP DATABASE de SQL Server. La cuenta del servicio SQL debe tener permiso de escritura sobre la carpeta. Para restaurar, use SQL Server Management Studio o el comando RESTORE DATABASE; la restauración no se hace desde esta aplicación para evitar sobrescribir datos por error."
+        Me.lblNotaRespaldos.Text = "El respaldo lógico se genera con mysqldump de MySQL y una cuenta de respaldo dedicada. SGLN no restaura bases de datos. Para ensayar una recuperación, utilice una instancia MySQL aislada y siga SGLN\\Scripts\\GUIA_RESPALDO_RESTAURACION.md. Nunca pruebe la restauración sobre producción."
         '
         ' FrmConfiguracion
         '
