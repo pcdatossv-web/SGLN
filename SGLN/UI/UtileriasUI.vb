@@ -148,25 +148,41 @@ Public Module UtileriasUI
 
         Dim encabezados As New List(Of String)()
         For Each columna As DataColumn In tabla.Columns
-            encabezados.Add(ValorCsv(columna.ColumnName))
+            ' Los nombres de columna también forman celdas del CSV y deben
+            ' tratarse como texto no confiable.
+            encabezados.Add(ValorCsv(columna.ColumnName, True))
         Next
         contenido.AppendLine(String.Join(",", encabezados.ToArray()))
 
         For Each fila As DataRow In tabla.Rows
             Dim valores As New List(Of String)()
             For Each columna As DataColumn In tabla.Columns
-                Dim valor As String = Convert.ToString(fila(columna))
-                ' Proteger según el tipo real del valor, no solo el tipo
-                ' declarado de la columna: una columna Object también puede
-                ' contener texto controlado por usuarios y fórmulas CSV.
-                ' Los valores numéricos negativos conservan su formato.
-                valores.Add(ValorCsv(valor, TypeOf fila(columna) Is String))
+                Dim valorOriginal As Object = fila(columna)
+                Dim valor As String = Convert.ToString(valorOriginal)
+                ' Proteger cualquier valor no numérico según su tipo real.
+                ' Esto cubre columnas Object y objetos cuyo ToString devuelve
+                ' texto controlado, sin alterar negativos numéricos legítimos.
+                Dim tipoValor As Type = If(fila.IsNull(columna), Nothing, valorOriginal.GetType())
+                valores.Add(ValorCsv(valor, Not EsTipoNumerico(tipoValor)))
             Next
             contenido.AppendLine(String.Join(",", valores.ToArray()))
         Next
 
         File.WriteAllText(ruta, contenido.ToString(), Encoding.UTF8)
     End Sub
+
+    Private Function EsTipoNumerico(tipo As Type) As Boolean
+        If tipo Is Nothing Then Return False
+
+        Select Case Type.GetTypeCode(tipo)
+            Case TypeCode.Byte, TypeCode.SByte, TypeCode.Int16, TypeCode.UInt16,
+                 TypeCode.Int32, TypeCode.UInt32, TypeCode.Int64, TypeCode.UInt64,
+                 TypeCode.Single, TypeCode.Double, TypeCode.Decimal
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
 
     Private Function ValorCsv(valor As String, Optional protegerFormula As Boolean = False) As String
         If protegerFormula AndAlso Not String.IsNullOrEmpty(valor) Then

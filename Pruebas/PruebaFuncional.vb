@@ -2942,12 +2942,17 @@ Module PruebaFuncional
 
         Dim tablaCsvObjeto As New DataTable()
         tablaCsvObjeto.Columns.Add("Valor", GetType(Object))
-        tablaCsvObjeto.Rows.Add("  =1+1")
+        tablaCsvObjeto.Columns.Add("Importe", GetType(Object))
+        tablaCsvObjeto.Columns("Valor").ColumnName = "=Cabecera"
+        tablaCsvObjeto.Rows.Add("  =1+1", -12D)
         Dim rutaCsvObjeto As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_objeto.csv")
         UtileriasUI.ExportarCsv(tablaCsvObjeto, rutaCsvObjeto)
         Dim contenidoCsvObjeto As String = File.ReadAllText(rutaCsvObjeto, Encoding.UTF8)
-        Verificar("La exportación CSV neutraliza fórmulas en columnas Object",
-                  contenidoCsvObjeto.Contains("'  =1+1"))
+        Verificar("La exportación CSV neutraliza fórmulas en columnas Object y encabezados, conservando números",
+                  contenidoCsvObjeto.Contains("'=Cabecera") AndAlso
+                  contenidoCsvObjeto.Contains("'  =1+1") AndAlso
+                  contenidoCsvObjeto.Contains("-12") AndAlso
+                  Not contenidoCsvObjeto.Contains("'-12"))
 
         ' ---------- 11. Configuración, feriados y respaldo ----------
         Console.WriteLine()
