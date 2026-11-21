@@ -2940,6 +2940,15 @@ Module PruebaFuncional
                   contenidoCsvFormula.Contains("-10") AndAlso
                   Not contenidoCsvFormula.Contains("'-10"))
 
+        Dim tablaCsvObjeto As New DataTable()
+        tablaCsvObjeto.Columns.Add("Valor", GetType(Object))
+        tablaCsvObjeto.Rows.Add("  =1+1")
+        Dim rutaCsvObjeto As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_objeto.csv")
+        UtileriasUI.ExportarCsv(tablaCsvObjeto, rutaCsvObjeto)
+        Dim contenidoCsvObjeto As String = File.ReadAllText(rutaCsvObjeto, Encoding.UTF8)
+        Verificar("La exportación CSV neutraliza fórmulas en columnas Object",
+                  contenidoCsvObjeto.Contains("'  =1+1"))
+
         ' ---------- 11. Configuración, feriados y respaldo ----------
         Console.WriteLine()
         Console.WriteLine("-- 11. Configuración, feriados y respaldo")

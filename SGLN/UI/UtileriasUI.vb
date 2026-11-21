@@ -156,11 +156,11 @@ Public Module UtileriasUI
             Dim valores As New List(Of String)()
             For Each columna As DataColumn In tabla.Columns
                 Dim valor As String = Convert.ToString(fila(columna))
-                ' Excel y otras hojas de cálculo pueden ejecutar fórmulas
-                ' introducidas en campos de texto al abrir un CSV. Anteponer
-                ' apóstrofo solo a columnas de texto evita la ejecución sin
-                ' convertir importes numéricos negativos en texto.
-                valores.Add(ValorCsv(valor, columna.DataType Is GetType(String)))
+                ' Proteger según el tipo real del valor, no solo el tipo
+                ' declarado de la columna: una columna Object también puede
+                ' contener texto controlado por usuarios y fórmulas CSV.
+                ' Los valores numéricos negativos conservan su formato.
+                valores.Add(ValorCsv(valor, TypeOf fila(columna) Is String))
             Next
             contenido.AppendLine(String.Join(",", valores.ToArray()))
         Next
