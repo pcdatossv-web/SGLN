@@ -16,6 +16,7 @@ Public Class FrmConfiguracionConexion
         txtPassword.Text = datos.Password
         txtUsuarioRespaldo.Text = datos.UsuarioRespaldo
         txtPasswordRespaldo.Text = datos.PasswordRespaldo
+        chkMostrarClaves.Checked = False
         txtCertificadoCa.Text = datos.CertificadoCa
 
         ' Compatibilidad con instalaciones anteriores: TLS con validación de CA.
@@ -36,6 +37,12 @@ Public Class FrmConfiguracionConexion
         Else
             lblEstado.Text = "Presione ""Probar conexión"" para verificar los datos."
         End If
+    End Sub
+
+    Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
+        Dim mostrar As Boolean = chkMostrarClaves.Checked
+        txtPassword.UseSystemPasswordChar = Not mostrar
+        txtPasswordRespaldo.UseSystemPasswordChar = Not mostrar
     End Sub
 
     Private Function DescripcionOrigen(origen As String) As String
