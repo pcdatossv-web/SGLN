@@ -99,6 +99,7 @@ Public Class FrmRoles
             _cargando = True
             _tablaRoles = _servicio.Listar()
             dgvRoles.DataSource = New DataView(_tablaRoles)
+            If txtBuscar.TextLength > 0 Then txtBuscar_TextChanged(txtBuscar, EventArgs.Empty)
 
             If dgvRoles.Columns.Contains("ID") Then dgvRoles.Columns("ID").Visible = False
             If dgvRoles.Columns.Contains("Protegido") Then dgvRoles.Columns("Protegido").FillWeight = 45

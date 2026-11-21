@@ -79,6 +79,7 @@ Public Class FrmUsuarios
             _cargando = True
             _tablaUsuarios = _servicio.Listar()
             dgvUsuarios.DataSource = New DataView(_tablaUsuarios)
+            If txtBuscar.TextLength > 0 Then txtBuscar_TextChanged(txtBuscar, EventArgs.Empty)
 
             If dgvUsuarios.Columns.Contains("ID") Then dgvUsuarios.Columns("ID").Visible = False
             If dgvUsuarios.Columns.Contains("ID_Rol") Then dgvUsuarios.Columns("ID_Rol").Visible = False
