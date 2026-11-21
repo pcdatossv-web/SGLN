@@ -135,12 +135,24 @@ Public Class FrmUsuarios
     End Sub
 
     Private Function EscaparFiltro(valor As String) As String
-        Return If(valor, String.Empty).
-            Replace("[", "[[]").
-            Replace("]", "[]]").
-            Replace("%", "[%]").
-            Replace("*", "[*]").
-            Replace("'", "''")
+        Dim resultado As New System.Text.StringBuilder()
+        For Each caracter As Char In If(valor, String.Empty)
+            Select Case caracter
+                Case "["c
+                    resultado.Append("[[]")
+                Case "]"c
+                    resultado.Append("[]]")
+                Case "%"c
+                    resultado.Append("[%]")
+                Case "*"c
+                    resultado.Append("[*]")
+                Case "'"c
+                    resultado.Append("''")
+                Case Else
+                    resultado.Append(caracter)
+            End Select
+        Next
+        Return resultado.ToString()
     End Function
 
     Private Sub dgvUsuarios_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvUsuarios.CellFormatting
