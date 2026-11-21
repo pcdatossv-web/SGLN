@@ -358,6 +358,18 @@ jobs:
             throw 'Los argumentos variables de mysqldump deben escaparse para evitar inyección de argumentos en Windows.'
           }
 
+      - name: Enforce WinForms Designer-only controls
+        shell: pwsh
+        run: |
+          $forms = Get-ChildItem 'SGLN\\UI' -Filter '*.vb' -File |
+            Where-Object { $_.Name -notlike '*.Designer.vb' -and $_.Name -ne 'UtileriasUI.vb' }
+          $pattern = '\\bNew\\s+(?:System\\.Windows\\.Forms\\.)?(?:Button|Label|TextBox|RichTextBox|MaskedTextBox|ComboBox|ListBox|CheckedListBox|DataGridView|DateTimePicker|MonthCalendar|Panel|GroupBox|CheckBox|RadioButton|TabControl|TabPage|MenuStrip|ToolStrip|ToolStripMenuItem|StatusStrip|PictureBox|TreeView|ListView|NumericUpDown|ProgressBar)\\b|\\.Controls\\.Add\\s*\\('
+          $violations = Select-String -Path $forms.FullName -Pattern $pattern
+          if ($violations) {
+            $violations | ForEach-Object { Write-Error ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim()) }
+            throw 'Los controles WinForms deben declararse y configurarse exclusivamente en archivos Designer.vb.'
+          }
+
       - name: Build .NET Framework 4.8 solution
         shell: pwsh
         run: msbuild .\SGLN.sln /m /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
