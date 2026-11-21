@@ -6,7 +6,10 @@ Imports System.Windows.Forms
 Public Class FrmAuditoria
 
     Private ReadOnly _servicio As New ServicioAuditoria()
-    Private _cargando As Boolean
+    Private Const TamanoPagina As Integer = 100
+    Private _paginaActual As Long
+    Private _totalRegistros As Long
+    Private _totalPaginas As Long = 1
     Private _permisosInicializados As Boolean
 
     Private Sub FrmAuditoria_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -24,11 +27,9 @@ Public Class FrmAuditoria
         dtpDesde.Value = Date.Today.AddDays(-30)
         dtpHasta.Value = Date.Today
 
-        _cargando = True
         CargarFiltros()
         Dim errorFiltros As Boolean =
             cboTabla.DataSource Is Nothing OrElse cboAccion.DataSource Is Nothing
-        _cargando = False
 
         Buscar()
         If errorFiltros Then
@@ -91,22 +92,36 @@ Public Class FrmAuditoria
     End Function
 
     Private Sub Buscar()
+        _paginaActual = 0
+        CargarPagina()
+    End Sub
+
+    Private Sub CargarPagina()
         If dtpDesde.Value.Date > dtpHasta.Value.Date Then
+            _totalRegistros = 0
+            _totalPaginas = 1
             dgvAuditoria.DataSource = Nothing
-            ActualizarEstadoExportacion()
             lblResumen.Text = "Rango de fechas no válido."
             MostrarMensaje("La fecha inicial no puede ser posterior a la fecha final.", False)
+            ActualizarEstadoPaginacion()
+            ActualizarEstadoExportacion()
             Return
         End If
 
         Try
-            _cargando = True
-            dgvAuditoria.DataSource = _servicio.Buscar(
-                txtUsuario.Text,
-                ValorFiltro(cboTabla),
-                ValorFiltro(cboAccion),
-                dtpDesde.Value.Date,
-                dtpHasta.Value.Date)
+            Dim usuario As String = txtUsuario.Text
+            Dim tabla As String = ValorFiltro(cboTabla)
+            Dim accion As String = ValorFiltro(cboAccion)
+            Dim desde As Date = dtpDesde.Value.Date
+            Dim hasta As Date = dtpHasta.Value.Date
+
+            _totalRegistros = _servicio.Contar(usuario, tabla, accion, desde, hasta)
+            _totalPaginas = If(_totalRegistros = 0L, 1L,
+                               (_totalRegistros + TamanoPagina - 1L) \ TamanoPagina)
+            If _paginaActual >= _totalPaginas Then _paginaActual = _totalPaginas - 1L
+
+            dgvAuditoria.DataSource = _servicio.BuscarPagina(
+                usuario, tabla, accion, desde, hasta, _paginaActual, TamanoPagina)
 
             If dgvAuditoria.Columns.Contains("ID") Then dgvAuditoria.Columns("ID").Visible = False
             If dgvAuditoria.Columns.Contains("Fecha_Hora") Then
@@ -114,27 +129,43 @@ Public Class FrmAuditoria
                 dgvAuditoria.Columns("Fecha_Hora").FillWeight = 110
             End If
             If dgvAuditoria.Columns.Contains("Detalle") Then dgvAuditoria.Columns("Detalle").FillWeight = 250
-            _cargando = False
 
-            lblResumen.Text = "Registros encontrados: " & dgvAuditoria.Rows.Count.ToString("N0")
+            If _totalRegistros = 0 Then
+                lblResumen.Text = "No se encontraron registros."
+            Else
+                Dim primero As Long = (_paginaActual * TamanoPagina) + 1L
+                Dim ultimo As Long = Math.Min(primero + TamanoPagina - 1L, _totalRegistros)
+                lblResumen.Text = "Registros: " & _totalRegistros.ToString("N0") &
+                                  " | Mostrando " & primero.ToString("N0") & "-" & ultimo.ToString("N0")
+            End If
+
             MostrarMensaje("", True)
+            ActualizarEstadoPaginacion()
             ActualizarEstadoExportacion()
         Catch ex As Exception
-            _cargando = False
+            _totalRegistros = 0
+            _totalPaginas = 1
             dgvAuditoria.DataSource = Nothing
-            ActualizarEstadoExportacion()
             lblResumen.Text = "No se pudo cargar la bitácora."
             RegistroErrores.Escribir("Auditoría - buscar", ex)
             MostrarMensaje("No se pudo consultar la bitácora de auditoría. Verifique los filtros y la conexión con la base de datos.", False)
+            ActualizarEstadoPaginacion()
+            ActualizarEstadoExportacion()
         End Try
     End Sub
 
-    Private Sub ActualizarEstadoExportacion()
-        Dim tabla As DataTable = TryCast(dgvAuditoria.DataSource, DataTable)
-        btnExportar.Enabled = Permisos.Puede("auditoria.exportar") AndAlso
-                             tabla IsNot Nothing AndAlso tabla.Rows.Count > 0
+    Private Sub ActualizarEstadoPaginacion()
+        lblPagina.Text = If(_totalRegistros = 0,
+                            "Página 0 de 0",
+                            "Página " & (_paginaActual + 1L).ToString("N0") &
+                            " de " & _totalPaginas.ToString("N0"))
+        btnAnterior.Enabled = _totalRegistros > 0 AndAlso _paginaActual > 0
+        btnSiguiente.Enabled = _totalRegistros > 0 AndAlso _paginaActual + 1L < _totalPaginas
     End Sub
 
+    Private Sub ActualizarEstadoExportacion()
+        btnExportar.Enabled = Permisos.Puede("auditoria.exportar") AndAlso _totalRegistros > 0
+    End Sub
 
     Private Function ValorFiltro(combo As ComboBox) As String
         If combo.SelectedValue Is Nothing Then Return ""
@@ -143,8 +174,7 @@ Public Class FrmAuditoria
 
     Private Sub Exportar()
         If Not Permisos.ExigirAccion("auditoria.exportar") Then Return
-        Dim tabla As DataTable = TryCast(dgvAuditoria.DataSource, DataTable)
-        If tabla Is Nothing OrElse tabla.Rows.Count = 0 Then
+        If _totalRegistros = 0 Then
             UtileriasUI.MostrarError("No hay registros para exportar.")
             Return
         End If
@@ -154,18 +184,27 @@ Public Class FrmAuditoria
             dialogo.FileName = "Auditoria_" & Date.Now.ToString("yyyyMMdd_HHmm") & ".csv"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
 
-            ' El diálogo de archivo puede permanecer abierto mientras el
-            ' administrador revoca el permiso o desactiva la cuenta.
-            ' Revalidar inmediatamente antes de escribir el archivo: el
-            ' estado del botón y la comprobación inicial no son suficientes.
+            ' Exportar todos los resultados del filtro, no solo la página visible.
+            ' Revalidar el permiso después del diálogo modal.
             If Not Permisos.ExigirAccion("auditoria.exportar") Then
                 ActualizarEstadoExportacion()
                 Return
             End If
 
             Try
-                UtileriasUI.ExportarCsv(tabla, dialogo.FileName)
-                MostrarMensaje("Auditoría exportada en " & dialogo.FileName, True)
+                Dim tablaCompleta As DataTable = _servicio.Buscar(
+                    txtUsuario.Text,
+                    ValorFiltro(cboTabla),
+                    ValorFiltro(cboAccion),
+                    dtpDesde.Value.Date,
+                    dtpHasta.Value.Date)
+                If tablaCompleta.Rows.Count = 0 Then
+                    UtileriasUI.MostrarError("No hay registros para exportar con los filtros actuales.")
+                    Return
+                End If
+                UtileriasUI.ExportarCsv(tablaCompleta, dialogo.FileName)
+                MostrarMensaje("Se exportaron " & tablaCompleta.Rows.Count.ToString("N0") &
+                               " registros de auditoría.", True)
             Catch ex As Exception
                 RegistroErrores.Escribir("Auditoría - exportar", ex)
                 MostrarMensaje("No se pudo exportar la bitácora. Verifique la ruta y los permisos de escritura.", False)
@@ -207,11 +246,9 @@ Public Class FrmAuditoria
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
-        _cargando = True
         CargarFiltros()
         Dim errorFiltros As Boolean =
             cboTabla.DataSource Is Nothing OrElse cboAccion.DataSource Is Nothing
-        _cargando = False
 
         Buscar()
         If errorFiltros Then
@@ -221,6 +258,18 @@ Public Class FrmAuditoria
                    "No se pudieron actualizar los filtros ni consultar la bitácora."),
                 False)
         End If
+    End Sub
+
+    Private Sub btnAnterior_Click(sender As Object, e As EventArgs) Handles btnAnterior.Click
+        If _paginaActual <= 0 Then Return
+        _paginaActual -= 1L
+        CargarPagina()
+    End Sub
+
+    Private Sub btnSiguiente_Click(sender As Object, e As EventArgs) Handles btnSiguiente.Click
+        If _paginaActual + 1L >= _totalPaginas Then Return
+        _paginaActual += 1L
+        CargarPagina()
     End Sub
 
     Private Sub btnExportar_Click(sender As Object, e As EventArgs) Handles btnExportar.Click

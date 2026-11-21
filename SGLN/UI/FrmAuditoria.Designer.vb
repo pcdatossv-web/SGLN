@@ -31,6 +31,9 @@ Partial Class FrmAuditoria
         Me.btnRefrescar = New System.Windows.Forms.Button()
         Me.btnExportar = New System.Windows.Forms.Button()
         Me.btnLimpiar = New System.Windows.Forms.Button()
+        Me.btnAnterior = New System.Windows.Forms.Button()
+        Me.lblPagina = New System.Windows.Forms.Label()
+        Me.btnSiguiente = New System.Windows.Forms.Button()
         Me.lblMensaje = New System.Windows.Forms.Label()
         Me.dgvAuditoria = New System.Windows.Forms.DataGridView()
         Me.lblResumen = New System.Windows.Forms.Label()
@@ -175,8 +178,38 @@ Partial Class FrmAuditoria
         Me.dgvAuditoria.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvAuditoria.Location = New System.Drawing.Point(12, 100)
         Me.dgvAuditoria.Name = "dgvAuditoria"
-        Me.dgvAuditoria.Size = New System.Drawing.Size(1161, 570)
+        Me.dgvAuditoria.Size = New System.Drawing.Size(1161, 535)
         Me.dgvAuditoria.TabIndex = 9
+        '
+        ' btnAnterior
+        '
+        Me.btnAnterior.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnAnterior.Location = New System.Drawing.Point(430, 642)
+        Me.btnAnterior.Name = "btnAnterior"
+        Me.btnAnterior.Size = New System.Drawing.Size(90, 27)
+        Me.btnAnterior.TabIndex = 10
+        Me.btnAnterior.Text = "Anterior"
+        Me.btnAnterior.UseVisualStyleBackColor = True
+        '
+        ' lblPagina
+        '
+        Me.lblPagina.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.lblPagina.Location = New System.Drawing.Point(530, 644)
+        Me.lblPagina.Name = "lblPagina"
+        Me.lblPagina.Size = New System.Drawing.Size(180, 23)
+        Me.lblPagina.TabIndex = 11
+        Me.lblPagina.Text = "Página 0 de 0"
+        Me.lblPagina.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+        '
+        ' btnSiguiente
+        '
+        Me.btnSiguiente.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnSiguiente.Location = New System.Drawing.Point(720, 642)
+        Me.btnSiguiente.Name = "btnSiguiente"
+        Me.btnSiguiente.Size = New System.Drawing.Size(90, 27)
+        Me.btnSiguiente.TabIndex = 12
+        Me.btnSiguiente.Text = "Siguiente"
+        Me.btnSiguiente.UseVisualStyleBackColor = True
         '
         ' lblResumen
         '
@@ -205,6 +238,9 @@ Partial Class FrmAuditoria
         Me.ClientSize = New System.Drawing.Size(1185, 710)
         Me.Controls.Add(Me.lblNota)
         Me.Controls.Add(Me.lblResumen)
+        Me.Controls.Add(Me.btnSiguiente)
+        Me.Controls.Add(Me.lblPagina)
+        Me.Controls.Add(Me.btnAnterior)
         Me.Controls.Add(Me.dgvAuditoria)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnExportar)
@@ -245,6 +281,9 @@ Partial Class FrmAuditoria
     Friend WithEvents btnRefrescar As System.Windows.Forms.Button
     Friend WithEvents btnExportar As System.Windows.Forms.Button
     Friend WithEvents btnLimpiar As System.Windows.Forms.Button
+    Friend WithEvents btnAnterior As System.Windows.Forms.Button
+    Friend WithEvents lblPagina As System.Windows.Forms.Label
+    Friend WithEvents btnSiguiente As System.Windows.Forms.Button
     Friend WithEvents lblMensaje As System.Windows.Forms.Label
     Friend WithEvents dgvAuditoria As System.Windows.Forms.DataGridView
     Friend WithEvents lblResumen As System.Windows.Forms.Label

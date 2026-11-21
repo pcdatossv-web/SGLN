@@ -22,6 +22,19 @@ Public Class ServicioAuditoria
         Return _repositorio.Buscar(usuario, tabla, accion, desde, hasta)
     End Function
 
+    Public Function Contar(usuario As String, tabla As String, accion As String,
+                           desde As Date, hasta As Date) As Long
+        If Not PuedeConsultar() OrElse desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return 0L
+        Return _repositorio.Contar(usuario, tabla, accion, desde, hasta)
+    End Function
+
+    Public Function BuscarPagina(usuario As String, tabla As String, accion As String,
+                                 desde As Date, hasta As Date,
+                                 pagina As Long, tamanoPagina As Integer) As DataTable
+        If Not PuedeConsultar() OrElse desde.Date < New Date(1000, 1, 1) OrElse hasta.Date < desde.Date Then Return New DataTable()
+        Return _repositorio.BuscarPagina(usuario, tabla, accion, desde, hasta, pagina, tamanoPagina)
+    End Function
+
     Public Function TablasAfectadas() As DataTable
         If Not PuedeConsultar() Then Return New DataTable()
         Return _repositorio.TablasAfectadas()
