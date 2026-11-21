@@ -207,7 +207,8 @@ Public Class FrmUsuarios
             EsAdministradorActual() AndAlso
             _idSeleccionado > 0 AndAlso
             Sesion.UsuarioActual IsNot Nothing AndAlso
-            _idSeleccionado <> Sesion.UsuarioActual.ID
+            _idSeleccionado <> Sesion.UsuarioActual.ID AndAlso
+            Not chkActivo.Checked
         Mostrar("", True)
     End Sub
 
@@ -224,7 +225,9 @@ Public Class FrmUsuarios
 
         btnDesactivar.Text = If(chkActivo.Checked, "Desactivar usuario", "Reactivar usuario")
         btnDesactivar.Enabled = esOtroUsuario
-        btnEliminar.Enabled = EsAdministradorActual() AndAlso esOtroUsuario
+        ' La eliminación física exige que la cuenta ya esté desactivada.
+        ' El procedimiento MySQL repite esta condición dentro de la transacción.
+        btnEliminar.Enabled = EsAdministradorActual() AndAlso esOtroUsuario AndAlso Not chkActivo.Checked
     End Sub
 
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
