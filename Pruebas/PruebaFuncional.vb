@@ -1572,12 +1572,20 @@ Module PruebaFuncional
                   }, Nothing).Exito)
         Verificar("El dígito verificador DUI rechaza una distribución incorrecta del guion",
                   Not ValidadorIdentidad.EsDigitoDuiValido("0-00000000"))
-        Verificar("DUI salvadoreño conocido valida con pesos oficiales 9 a 2",
+        Verificar("DUI salvadoreño conocido valida con la regla de pesos 9 a 2",
                   ValidadorIdentidad.EsDigitoDuiValido("03096201-2"))
         Verificar("DUI con dígito verificador alterado se rechaza",
                   Not ValidadorIdentidad.EsDigitoDuiValido("03096201-3"))
         Verificar("DUI válido sin guion también se acepta",
                   ValidadorIdentidad.EsDigitoDuiValido("030962012"))
+        Verificar("NIT compacto de 14 dígitos se acepta",
+                  ValidadorIdentidad.EsFormatoNitValido("06140108081001"))
+        Verificar("NIT formateado con separadores correctos se acepta",
+                  ValidadorIdentidad.EsFormatoNitValido("0614-010808-100-1"))
+        Verificar("NIT con separadores fuera de posición se rechaza",
+                  Not ValidadorIdentidad.EsFormatoNitValido("06140-10808-100-1"))
+        Verificar("NIT compacto se normaliza con separadores",
+                  ValidadorIdentidad.FormatearNit("06140108081001") = "0614-010808-100-1")
         Verificar("Email sin arroba se rechaza",
                   Not clientes.Guardar(New Cliente With {.Nombres = "X", .Apellidos = "Y", .Email = "correo"}, Nothing).Exito)
         Verificar("Nombres vacíos se rechazan",
