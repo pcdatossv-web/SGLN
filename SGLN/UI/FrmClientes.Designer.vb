@@ -222,6 +222,7 @@ Partial Class FrmClientes
         ' txtNombres
         '
         Me.txtNombres.Location = New System.Drawing.Point(20, 38)
+        Me.txtNombres.MaxLength = 120
         Me.txtNombres.Name = "txtNombres"
         Me.txtNombres.Size = New System.Drawing.Size(260, 23)
         Me.txtNombres.TabIndex = 0
@@ -238,6 +239,7 @@ Partial Class FrmClientes
         ' txtApellidos
         '
         Me.txtApellidos.Location = New System.Drawing.Point(300, 38)
+        Me.txtApellidos.MaxLength = 120
         Me.txtApellidos.Name = "txtApellidos"
         Me.txtApellidos.Size = New System.Drawing.Size(260, 23)
         Me.txtApellidos.TabIndex = 1
@@ -288,6 +290,7 @@ Partial Class FrmClientes
         ' txtNacionalidad
         '
         Me.txtNacionalidad.Location = New System.Drawing.Point(370, 98)
+        Me.txtNacionalidad.MaxLength = 60
         Me.txtNacionalidad.Name = "txtNacionalidad"
         Me.txtNacionalidad.Size = New System.Drawing.Size(190, 23)
         Me.txtNacionalidad.TabIndex = 4
@@ -304,6 +307,7 @@ Partial Class FrmClientes
         ' txtProfesion
         '
         Me.txtProfesion.Location = New System.Drawing.Point(20, 158)
+        Me.txtProfesion.MaxLength = 120
         Me.txtProfesion.Name = "txtProfesion"
         Me.txtProfesion.Size = New System.Drawing.Size(260, 23)
         Me.txtProfesion.TabIndex = 5
@@ -338,6 +342,7 @@ Partial Class FrmClientes
         ' txtDireccion
         '
         Me.txtDireccion.Location = New System.Drawing.Point(20, 218)
+        Me.txtDireccion.MaxLength = 300
         Me.txtDireccion.Multiline = True
         Me.txtDireccion.Name = "txtDireccion"
         Me.txtDireccion.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
@@ -356,6 +361,7 @@ Partial Class FrmClientes
         ' txtTelefono
         '
         Me.txtTelefono.Location = New System.Drawing.Point(20, 298)
+        Me.txtTelefono.MaxLength = 40
         Me.txtTelefono.Name = "txtTelefono"
         Me.txtTelefono.Size = New System.Drawing.Size(150, 23)
         Me.txtTelefono.TabIndex = 8
@@ -372,6 +378,7 @@ Partial Class FrmClientes
         ' txtEmail
         '
         Me.txtEmail.Location = New System.Drawing.Point(190, 298)
+        Me.txtEmail.MaxLength = 120
         Me.txtEmail.Name = "txtEmail"
         Me.txtEmail.Size = New System.Drawing.Size(260, 23)
         Me.txtEmail.TabIndex = 9
@@ -457,6 +464,7 @@ Partial Class FrmClientes
         ' txtDetalleOrigen
         '
         Me.txtDetalleOrigen.Location = New System.Drawing.Point(20, 135)
+        Me.txtDetalleOrigen.MaxLength = 500
         Me.txtDetalleOrigen.Multiline = True
         Me.txtDetalleOrigen.Name = "txtDetalleOrigen"
         Me.txtDetalleOrigen.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
@@ -493,6 +501,7 @@ Partial Class FrmClientes
         ' txtObservaciones
         '
         Me.txtObservaciones.Location = New System.Drawing.Point(20, 290)
+        Me.txtObservaciones.MaxLength = 500
         Me.txtObservaciones.Multiline = True
         Me.txtObservaciones.Name = "txtObservaciones"
         Me.txtObservaciones.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
