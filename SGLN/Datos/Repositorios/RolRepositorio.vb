@@ -23,7 +23,7 @@ Public Class RolRepositorio
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("config.roles", "config.usuarios") Then Return New DataTable()
         Return Consultar(
             "SELECT r.ID, r.Nombre, IFNULL(r.Descripcion, '') AS Descripcion, r.Activo, r.Protegido, " &
             "       (SELECT COUNT(*) FROM Usuarios u WHERE u.ID_Rol = r.ID) AS Usuarios, " &
@@ -36,7 +36,7 @@ Public Class RolRepositorio
 
     ''' <summary>Roles activos para el combo de alta/edición de usuarios.</summary>
     Public Function RolesActivos() As DataTable
-        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("config.roles", "config.usuarios") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, Nombre FROM Roles WHERE Activo = 1 ORDER BY Protegido DESC, Nombre")
     End Function
