@@ -34,6 +34,7 @@ Partial Class FrmConfiguracionConexion
         Me.lblModoSsl = New System.Windows.Forms.Label()
         Me.cmbModoSsl = New System.Windows.Forms.ComboBox()
         Me.chkEquipo = New System.Windows.Forms.CheckBox()
+        Me.chkMostrarClaves = New System.Windows.Forms.CheckBox()
         Me.txtPassword = New System.Windows.Forms.TextBox()
         Me.lblPassword = New System.Windows.Forms.Label()
         Me.txtUsuario = New System.Windows.Forms.TextBox()
@@ -64,6 +65,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblCertificadoCa)
         Me.grpServidor.Controls.Add(Me.lblUsuarioRespaldo)
         Me.grpServidor.Controls.Add(Me.lblAyuda)
+        Me.grpServidor.Controls.Add(Me.chkMostrarClaves)
         Me.grpServidor.Controls.Add(Me.chkEquipo)
         Me.grpServidor.Controls.Add(Me.txtPassword)
         Me.grpServidor.Controls.Add(Me.lblPassword)
@@ -167,6 +169,16 @@ Partial Class FrmConfiguracionConexion
         Me.cmbModoSsl.Name = "cmbModoSsl"
         Me.cmbModoSsl.Size = New System.Drawing.Size(335, 23)
         Me.cmbModoSsl.TabIndex = 20
+        '
+        ' chkMostrarClaves
+        '
+        Me.chkMostrarClaves.AutoSize = True
+        Me.chkMostrarClaves.Location = New System.Drawing.Point(185, 203)
+        Me.chkMostrarClaves.Name = "chkMostrarClaves"
+        Me.chkMostrarClaves.Size = New System.Drawing.Size(119, 19)
+        Me.chkMostrarClaves.TabIndex = 21
+        Me.chkMostrarClaves.Text = "Mostrar contraseñas"
+        Me.chkMostrarClaves.UseVisualStyleBackColor = True
         '
         ' chkEquipo
         '
@@ -344,6 +356,7 @@ Partial Class FrmConfiguracionConexion
     Friend WithEvents lblPassword As System.Windows.Forms.Label
     Friend WithEvents txtPassword As System.Windows.Forms.TextBox
     Friend WithEvents chkEquipo As System.Windows.Forms.CheckBox
+    Friend WithEvents chkMostrarClaves As System.Windows.Forms.CheckBox
     Friend WithEvents lblAyuda As System.Windows.Forms.Label
     Friend WithEvents lblUsuarioRespaldo As System.Windows.Forms.Label
     Friend WithEvents txtUsuarioRespaldo As System.Windows.Forms.TextBox
