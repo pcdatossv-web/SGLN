@@ -544,6 +544,11 @@ Public Class UsuarioRepositorio
     End Function
 
     Public Function CambiarClavePropia(idUsuario As Integer, claveActual As String, claveNueva As String) As Respuesta
+        ' Esta operación también debe rechazar sesiones revocadas o roles
+        ' desactivados, aunque la identidad siga almacenada en memoria.
+        If Not Permisos.RevalidarSesion() Then
+            Return Respuesta.Fallo("La sesión ya no es válida. Inicie sesión nuevamente.")
+        End If
         If Sesion.UsuarioActual Is Nothing OrElse Sesion.UsuarioActual.ID <> idUsuario OrElse idUsuario <= 0 Then
             Return Respuesta.Fallo("Solo puede cambiar la clave de la cuenta con la que inició sesión.")
         End If
