@@ -176,7 +176,7 @@ Public Class FrmCasos
         Try
             _cargando = True
             dgvCasos.DataSource = _servicio.Buscar(filtro)
-            If dgvCasos.Columns.Contains("ID") Then dgvCasos.Columns("ID").Visible = False
+            ConfigurarColumnasCasos()
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvCasos)
             If filaActual Is Nothing Then
@@ -191,6 +191,40 @@ Public Class FrmCasos
             RegistroErrores.Escribir("Casos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Presenta el listado con encabezados legibles y tamaños previsibles.
+    ''' La consulta conserva los nombres técnicos para no alterar servicios.
+    ''' </summary>
+    Private Sub ConfigurarColumnasCasos()
+        If dgvCasos.Columns.Contains("ID") Then dgvCasos.Columns("ID").Visible = False
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Numero_Expediente", "Expediente"},
+            {"Cliente", "Cliente"},
+            {"Materia", "Materia"},
+            {"Juzgado", "Juzgado"},
+            {"Estado", "Estado"},
+            {"Fecha_Apertura", "Apertura"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvCasos.Columns.Contains(par.Key) Then
+                dgvCasos.Columns(par.Key).HeaderText = par.Value
+                dgvCasos.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvCasos.Columns.Contains("Numero_Expediente") Then dgvCasos.Columns("Numero_Expediente").Width = 115
+        If dgvCasos.Columns.Contains("Cliente") Then dgvCasos.Columns("Cliente").MinimumWidth = 130
+        If dgvCasos.Columns.Contains("Materia") Then dgvCasos.Columns("Materia").Width = 85
+        If dgvCasos.Columns.Contains("Juzgado") Then dgvCasos.Columns("Juzgado").MinimumWidth = 110
+        If dgvCasos.Columns.Contains("Estado") Then dgvCasos.Columns("Estado").Width = 85
+        If dgvCasos.Columns.Contains("Fecha_Apertura") Then
+            dgvCasos.Columns("Fecha_Apertura").Width = 90
+            dgvCasos.Columns("Fecha_Apertura").DefaultCellStyle.Format = "dd/MM/yyyy"
+        End If
     End Sub
 
     Private Sub dgvCasos_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCasos.SelectionChanged
