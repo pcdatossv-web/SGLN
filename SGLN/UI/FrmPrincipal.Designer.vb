@@ -45,7 +45,7 @@ Partial Class FrmPrincipal
         Me.grpAlertas = New System.Windows.Forms.GroupBox()
         Me.dgvAlertas = New System.Windows.Forms.DataGridView()
         Me.btnActualizar = New System.Windows.Forms.Button()
-        Me.lblNota = New System.Windows.Forms.Label()
+        Me.lblNota = New System.Windows.Forms.Label()\n        Me.tmrActualizacion = New System.Windows.Forms.Timer(Me.components)
         Me.mnuPrincipal.SuspendLayout()
         Me.statusPrincipal.SuspendLayout()
         Me.grpAlertas.SuspendLayout()
@@ -268,7 +268,7 @@ Partial Class FrmPrincipal
         Me.lblNota.Name = "lblNota"
         Me.lblNota.Size = New System.Drawing.Size(930, 58)
         Me.lblNota.TabIndex = 6
-        Me.lblNota.Text = "Los vencimientos de plazos los calcula el sistema (días hábiles + feriados) y deben ser confirmados por el abogado. La IA/OCR se integrará en la fase final: nunca fijará plazos ni sustituirá la revisión legal."
+        Me.lblNota.Text = "El panel se actualiza automáticamente cada 2 minutos mientras la ventana está activa. Los vencimientos de plazos los calcula el sistema (días hábiles + feriados) y deben ser confirmados por el abogado. La IA/OCR se integrará en la fase final: nunca fijará plazos ni sustituirá la revisión legal."
         '
         ' FrmPrincipal
         '
@@ -285,7 +285,7 @@ Partial Class FrmPrincipal
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.MainMenuStrip = Me.mnuPrincipal
         Me.MinimumSize = New System.Drawing.Size(1000, 650)
-        Me.Name = "FrmPrincipal"
+        Me.tmrActualizacion.Interval = 120000\n        Me.tmrActualizacion.Enabled = False\n        Me.Name = "FrmPrincipal"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "SGLN El Salvador - Sistema de Gestión Legal y Notarial"
         Me.mnuPrincipal.ResumeLayout(False)
@@ -325,5 +325,5 @@ Partial Class FrmPrincipal
     Friend WithEvents grpAlertas As System.Windows.Forms.GroupBox
     Friend WithEvents dgvAlertas As System.Windows.Forms.DataGridView
     Friend WithEvents btnActualizar As System.Windows.Forms.Button
-    Friend WithEvents lblNota As System.Windows.Forms.Label
+    Friend WithEvents lblNota As System.Windows.Forms.Label\n    Friend WithEvents tmrActualizacion As System.Windows.Forms.Timer
 End Class
