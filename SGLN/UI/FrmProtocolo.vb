@@ -1009,7 +1009,53 @@ Public Class FrmProtocolo
             columna.SortMode = DataGridViewColumnSortMode.Automatic
             columna.HeaderText = columna.HeaderText.Replace("_", " ")
             columna.MinimumWidth = 55
+            columna.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft
+            columna.DefaultCellStyle.Padding = New Padding(3, 2, 3, 2)
         Next
+
+        ' Evitar que las columnas de texto legal compriman fechas, folios
+        ' y estados. El detalle conserva varias líneas cuando es extenso.
+        If grid.Columns.Contains("Objeto_Acto") Then
+            With grid.Columns("Objeto_Acto")
+                .FillWeight = 210
+                .MinimumWidth = 220
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+        End If
+        If grid.Columns.Contains("Destinatario") Then
+            With grid.Columns("Destinatario")
+                .FillWeight = 170
+                .MinimumWidth = 150
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+        End If
+        If grid.Columns.Contains("Otorgantes") Then
+            With grid.Columns("Otorgantes")
+                .FillWeight = 180
+                .MinimumWidth = 170
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+        End If
+        If grid.Columns.Contains("Fecha_Hora_Otorgamiento") Then
+            grid.Columns("Fecha_Hora_Otorgamiento").MinimumWidth = 145
+            grid.Columns("Fecha_Hora_Otorgamiento").FillWeight = 105
+        End If
+        If grid.Columns.Contains("Estado") Then
+            grid.Columns("Estado").MinimumWidth = 85
+            grid.Columns("Estado").FillWeight = 65
+            grid.Columns("Estado").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+        End If
+        If grid.Columns.Contains("Folio_Inicio") Then grid.Columns("Folio_Inicio").FillWeight = 65
+        If grid.Columns.Contains("Folio_Fin") Then grid.Columns("Folio_Fin").FillWeight = 65
+
+        If grid.Columns.Contains("Objeto_Acto") OrElse
+           grid.Columns.Contains("Destinatario") OrElse
+           grid.Columns.Contains("Otorgantes") Then
+            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+        Else
+            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None
+            grid.RowTemplate.Height = 26
+        End If
 
         If grid.Columns.Contains("Numero_Libro") Then grid.Columns("Numero_Libro").HeaderText = "Libro"
         If grid.Columns.Contains("Anio_Vigencia") Then grid.Columns("Anio_Vigencia").HeaderText = "Año"
