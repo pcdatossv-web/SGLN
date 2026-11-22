@@ -584,6 +584,12 @@ Public Class UsuarioRepositorio
                         Return -1
                     End If
 
+                    ' No permitir que el cambio propio se convierta en una operación
+                    ' sin efecto: la nueva clave debe ser distinta de la actual.
+                    If String.Equals(claveActual, claveNueva, StringComparison.Ordinal) Then
+                        Return -3
+                    End If
+
                     ' Derivar la nueva clave solo después de autenticar la clave actual.
                     credencial = SeguridadClave.CrearHash(claveNueva)
 
@@ -608,6 +614,7 @@ Public Class UsuarioRepositorio
             If resultado = 0 Then Return Respuesta.Fallo("La cuenta ya no existe o está inactiva.")
             If resultado = -1 Then Return Respuesta.Fallo("La clave actual no es correcta. El intento quedó registrado.")
             If resultado = -2 Then Return Respuesta.Fallo("La cuenta está temporalmente bloqueada por intentos fallidos. Intente nuevamente cuando finalice el bloqueo.")
+            If resultado = -3 Then Return Respuesta.Fallo("La nueva clave debe ser diferente de la clave actual.")
 
             ' Mantener únicamente la sesión que realizó el cambio. Las demás
             ' estaciones detectarán la nueva huella y deberán autenticarse otra vez.
