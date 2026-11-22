@@ -279,7 +279,7 @@ jobs:
               $cumplimientoRepo -notmatch 'Permisos.TieneAcceso\("cumplimiento.operaciones"\)' -or
               $cumplimientoRepo -notmatch 'Permisos.TieneAcceso\("cumplimiento.arco"\)' -or
               $cumplimientoRepo -notmatch 'Permisos.TieneAcceso\("cumplimiento.reportar_uif"\)' -or
-              $protocoloRepoDatos -notmatch 'Permisos.TieneAcceso\("protocolo.ver"\)' -or
+              $protocoloRepoDatos -notmatch 'Permisos.TieneAccesoAlguno\("protocolo.ver"' -or
               $protocoloRepoDatos -notmatch 'Permisos.TieneAcceso\("protocolo.gestionar"\)' -or
               $protocoloRepoDatos -notmatch 'Permisos.TieneAcceso\("protocolo.cerrar_libro"\)' -or
               $protocoloRepoDatos -notmatch 'Permisos.TieneAcceso\("protocolo.entregar"\)' -or
