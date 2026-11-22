@@ -439,10 +439,24 @@ Public Class FrmCasos
                 Return
             End If
 
-            _idCaso = caso.ID
-            CargarGrid("")
-            SeleccionarCaso(caso.ID)
-            CargarActuaciones()
+            ' Actualizar la lista sin cargar automáticamente un expediente distinto.
+            ' SeleccionarCaso carga el detalle y el historial una sola vez.
+            CargarGrid("", False)
+
+            If dgvCasos.DataSource Is Nothing Then
+                Limpiar()
+                MostrarMensaje(respuesta.Mensaje &
+                    " El expediente se guardó, pero no se pudo actualizar la lista. Presione ""Refrescar"" para recuperar la vista.", False)
+                Return
+            End If
+
+            If Not SeleccionarCaso(caso.ID) Then
+                Limpiar()
+                MostrarMensaje(respuesta.Mensaje &
+                    " El expediente se guardó, pero no se pudo localizar en la lista actualizada. Presione ""Refrescar"" y vuelva a seleccionarlo.", False)
+                Return
+            End If
+
             If _actuacionesDisponibles Then
                 MostrarMensaje(respuesta.Mensaje, True)
             Else
