@@ -696,7 +696,7 @@ Public Class FrmProtocolo
             Return
         End If
 
-        If Not UtileriasUI.Confirmar("¿Quitar el compareciente seleccionado?") Then Return
+        If Not UtileriasUI.Confirmar("¿Retirar este compareciente de la escritura? Se conservarán el expediente del cliente y los demás registros. La operación no está permitida si ya se expidieron testimonios o el libro dejó de estar vigente.") Then Return
 
         Dim respuesta As Respuesta = _servicio.QuitarCompareciente(UtileriasUI.Entero(fila, "ID"))
         If Not respuesta.Exito Then
