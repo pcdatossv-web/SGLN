@@ -20,6 +20,14 @@ Partial Public Class FrmCambioClave
         txtActual.Focus()
     End Sub
 
+    Private Sub FrmCambioClave_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        ' Vaciar los controles al cerrar, tanto por éxito como por cancelación o error.
+        txtActual.Clear()
+        txtNueva.Clear()
+        txtConfirmar.Clear()
+        chkMostrarClaves.Checked = False
+    End Sub
+
     Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
         Dim ocultar As Boolean = Not chkMostrarClaves.Checked
         txtActual.UseSystemPasswordChar = ocultar
