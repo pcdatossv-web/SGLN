@@ -312,7 +312,11 @@ Public Class FrmUsuarios
                 Return
             End If
 
-            If Not UtileriasUI.Confirmar("¿Restablecer la clave del usuario '" & txtUsuario.Text & "'?") Then Return
+            If Not UtileriasUI.Confirmar("¿Restablecer la clave del usuario '" & txtUsuario.Text & "'?") Then
+                txtClaveNueva.Clear()
+                txtClaveConfirmar.Clear()
+                Return
+            End If
 
             Dim respuesta As Respuesta
             Try
