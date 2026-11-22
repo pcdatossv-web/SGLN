@@ -17,7 +17,11 @@ Public Class FrmProtocolo
     Private _permisosInicializados As Boolean
 
     Private Sub FrmProtocolo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        If Not Permisos.Exigir("protocolo.ver", Me) Then Return
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") Then
+            MessageBox.Show("Su rol no tiene permisos para consultar ni operar el protocolo.", "Permiso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Close()
+            Return
+        End If
 
         AplicarPermisosInterfaz()
 
@@ -164,7 +168,11 @@ Public Class FrmProtocolo
             Return
         End If
 
-        If Not Permisos.Puede("protocolo.ver") Then
+        If Not Permisos.Puede("protocolo.ver") AndAlso
+           Not Permisos.Puede("protocolo.gestionar") AndAlso
+           Not Permisos.Puede("protocolo.cerrar_libro") AndAlso
+           Not Permisos.Puede("protocolo.entregar") AndAlso
+           Not Permisos.Puede("protocolo.testimonios") Then
             Close()
             Return
         End If
