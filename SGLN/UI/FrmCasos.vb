@@ -13,6 +13,8 @@ Public Class FrmCasos
     Private _puedeConfirmarPlazo As Boolean
     Private _puedeCumplirPlazo As Boolean
     Private _permisosInicializados As Boolean
+    ' False hasta que el historial del expediente se haya consultado correctamente.
+    Private _actuacionesDisponibles As Boolean
     Private _fechaPropuesta As Date?
 
     ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
@@ -285,7 +287,7 @@ Public Class FrmCasos
 
             CargarActuaciones()
             LimpiarPlazo()
-            MostrarMensaje("", True)
+            If _actuacionesDisponibles Then MostrarMensaje("", True)
         Catch ex As Exception
             Limpiar()
             RegistroErrores.Escribir("Casos - detalle", ex)
@@ -300,13 +302,18 @@ Public Class FrmCasos
             Return
         End If
 
+        _actuacionesDisponibles = False
+        ActualizarAccionesPlazo()
+
         Try
             dgvActuaciones.DataSource = _plazos.Actuaciones(_idCaso)
             ConfigurarColumnasActuaciones()
+            _actuacionesDisponibles = True
             ActualizarAccionesPlazo()
         Catch ex As Exception
             dgvActuaciones.DataSource = Nothing
-            btnMarcarCumplida.Enabled = False
+            _actuacionesDisponibles = False
+            ActualizarAccionesPlazo()
             RegistroErrores.Escribir("Casos - actuaciones", ex)
             MostrarMensaje("No se pudieron cargar las actuaciones del expediente. No se habilitarán acciones hasta recuperar la información.", False)
         End Try
@@ -367,6 +374,7 @@ Public Class FrmCasos
         txtResponsable.Clear()
         txtDescripcion.Clear()
         dgvActuaciones.DataSource = Nothing
+        _actuacionesDisponibles = False
         LimpiarPlazo()
         MostrarMensaje("", True)
 
@@ -467,14 +475,15 @@ Public Class FrmCasos
     End Sub
 
     Private Sub ActualizarAccionesPlazo()
-        btnConfirmarPlazo.Enabled = _puedeConfirmarPlazo AndAlso _idCaso > 0 AndAlso _fechaPropuesta.HasValue
+        Dim historialDisponible As Boolean = _actuacionesDisponibles AndAlso _idCaso > 0
+        btnConfirmarPlazo.Enabled = _puedeConfirmarPlazo AndAlso historialDisponible AndAlso _fechaPropuesta.HasValue
 
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvActuaciones)
         Dim estado As String = If(fila Is Nothing, "", UtileriasUI.Texto(fila, "Estado"))
         Dim puedeMarcar As Boolean = fila IsNot Nothing AndAlso
             (String.Equals(estado, "Pendiente", StringComparison.OrdinalIgnoreCase) OrElse
              String.Equals(estado, "Vencido", StringComparison.OrdinalIgnoreCase))
-        btnMarcarCumplida.Enabled = _puedeCumplirPlazo AndAlso puedeMarcar
+        btnMarcarCumplida.Enabled = _puedeCumplirPlazo AndAlso historialDisponible AndAlso puedeMarcar
     End Sub
 
     Private Sub dgvActuaciones_SelectionChanged(sender As Object, e As EventArgs) Handles dgvActuaciones.SelectionChanged
@@ -486,6 +495,11 @@ Public Class FrmCasos
 
         If _idCaso <= 0 Then
             UtileriasUI.MostrarError("Seleccione o guarde primero el caso.")
+            Return
+        End If
+
+        If Not _actuacionesDisponibles Then
+            MostrarMensaje("El historial no está disponible. No se pueden registrar plazos hasta recuperar la consulta.", False)
             Return
         End If
 
@@ -527,6 +541,11 @@ Public Class FrmCasos
         If Not Permisos.ExigirAccion("casos.cumplir_plazo") Then Return
 
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvActuaciones)
+        If Not _actuacionesDisponibles Then
+            MostrarMensaje("El historial no está disponible. No se puede modificar una actuación hasta recuperar la consulta.", False)
+            Return
+        End If
+
         If fila Is Nothing Then
             UtileriasUI.MostrarError("Seleccione una actuación de la lista.")
             Return
