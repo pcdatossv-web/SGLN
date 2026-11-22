@@ -364,7 +364,7 @@ Public Class FrmEntidades
             Return
         End If
 
-        If Not UtileriasUI.Confirmar("¿Quitar el representante seleccionado?") Then Return
+        If Not UtileriasUI.Confirmar("¿Retirar esta representación legal? Se eliminará únicamente la asociación de representante con la entidad. El cliente y su historial notarial, de casos y auditoría no se eliminarán.") Then Return
 
         Dim respuesta As Respuesta = _servicio.QuitarRepresentante(UtileriasUI.Entero(fila, "ID"))
         If Not respuesta.Exito Then
