@@ -128,6 +128,7 @@ Partial Class FrmProtocolo
         Me.cboLibro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboLibro.FormattingEnabled = True
         Me.cboLibro.Location = New System.Drawing.Point(60, 15)
+        Me.cboLibro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboLibro.Name = "cboLibro"
         Me.cboLibro.Size = New System.Drawing.Size(450, 23)
         Me.cboLibro.TabIndex = 1
@@ -299,6 +300,7 @@ Partial Class FrmProtocolo
         Me.cboEstadoLibro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboEstadoLibro.FormattingEnabled = True
         Me.cboEstadoLibro.Location = New System.Drawing.Point(15, 100)
+        Me.cboEstadoLibro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboEstadoLibro.Name = "cboEstadoLibro"
         Me.cboEstadoLibro.Size = New System.Drawing.Size(150, 23)
         Me.cboEstadoLibro.TabIndex = 4
@@ -577,6 +579,7 @@ Partial Class FrmProtocolo
         Me.cboEstadoInstrumento.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboEstadoInstrumento.FormattingEnabled = True
         Me.cboEstadoInstrumento.Location = New System.Drawing.Point(15, 185)
+        Me.cboEstadoInstrumento.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboEstadoInstrumento.Name = "cboEstadoInstrumento"
         Me.cboEstadoInstrumento.Size = New System.Drawing.Size(150, 23)
         Me.cboEstadoInstrumento.TabIndex = 5
@@ -639,6 +642,7 @@ Partial Class FrmProtocolo
         Me.cboClienteComp.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboClienteComp.FormattingEnabled = True
         Me.cboClienteComp.Location = New System.Drawing.Point(15, 42)
+        Me.cboClienteComp.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboClienteComp.Name = "cboClienteComp"
         Me.cboClienteComp.Size = New System.Drawing.Size(260, 23)
         Me.cboClienteComp.TabIndex = 0
@@ -657,6 +661,7 @@ Partial Class FrmProtocolo
         Me.cboCalidad.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboCalidad.FormattingEnabled = True
         Me.cboCalidad.Location = New System.Drawing.Point(285, 42)
+        Me.cboCalidad.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboCalidad.Name = "cboCalidad"
         Me.cboCalidad.Size = New System.Drawing.Size(130, 23)
         Me.cboCalidad.TabIndex = 1
@@ -761,6 +766,7 @@ Partial Class FrmProtocolo
         Me.cboInstrumentoTest.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboInstrumentoTest.FormattingEnabled = True
         Me.cboInstrumentoTest.Location = New System.Drawing.Point(15, 42)
+        Me.cboInstrumentoTest.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboInstrumentoTest.Name = "cboInstrumentoTest"
         Me.cboInstrumentoTest.Size = New System.Drawing.Size(365, 23)
         Me.cboInstrumentoTest.TabIndex = 0
@@ -779,6 +785,7 @@ Partial Class FrmProtocolo
         Me.cboTipoTestimonio.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboTipoTestimonio.FormattingEnabled = True
         Me.cboTipoTestimonio.Location = New System.Drawing.Point(15, 98)
+        Me.cboTipoTestimonio.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboTipoTestimonio.Name = "cboTipoTestimonio"
         Me.cboTipoTestimonio.Size = New System.Drawing.Size(150, 23)
         Me.cboTipoTestimonio.TabIndex = 1
