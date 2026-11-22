@@ -297,6 +297,7 @@ Public Class FrmDocumentos
     End Sub
 
     Private Sub ActualizarAccionesDocumento()
+        btnImportar.Enabled = _puedeImportar AndAlso _catalogosDisponibles
         Dim haySeleccion As Boolean = _idDocumento > 0
         btnAbrir.Enabled = _puedeVer AndAlso haySeleccion
         btnActualizar.Enabled = _puedeMetadatos AndAlso haySeleccion
