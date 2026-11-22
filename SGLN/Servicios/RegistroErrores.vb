@@ -38,7 +38,7 @@ Public Module RegistroErrores
         ' Nunca escribir contraseñas/PWD en texto claro en los logs locales.
         Dim resultado As String = Regex.Replace(
             detalle,
-            "(?i)\b(password|pwd)\s*=\s*([^;,\r\n]*)",
+            "(?i)\b(password|pwd)\s*=\s*([^;\r\n]*)",
             "$1=[REDACTADO]")
 
         ' Ocultar credenciales incluidas en URI del tipo protocolo://usuario:clave@host.
