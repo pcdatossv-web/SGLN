@@ -270,11 +270,39 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarDatosIniciales()
-        SembrarConfiguracion()
-        SembrarFeriados()
-        SembrarJuzgados()
-        SembrarTiposActuacion()
-        SembrarPlantillas()
+        ' Serializa el sembrado entre instancias. Las operaciones de catálogo
+        ' usan conexiones propias, por lo que el bloqueo se mantiene en esta
+        ' conexión durante toda la secuencia.
+        Using conexion As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexion.Open()
+            Dim bloqueoAdquirido As Boolean = False
+            Try
+                Using comando As New MySqlCommand(
+                    "SELECT GET_LOCK(CONCAT('SGLN_SEMILLA_', DATABASE()), 30)", conexion)
+                    bloqueoAdquirido = Convert.ToInt32(comando.ExecuteScalar()) = 1
+                End Using
+                If Not bloqueoAdquirido Then
+                    Throw New InvalidOperationException("No se pudo asegurar el sembrado de catálogos. Intente iniciar nuevamente.")
+                End If
+
+                SembrarConfiguracion()
+                SembrarFeriados()
+                SembrarJuzgados()
+                SembrarTiposActuacion()
+                SembrarPlantillas()
+            Finally
+                If bloqueoAdquirido Then
+                    Try
+                        Using comando As New MySqlCommand(
+                            "SELECT RELEASE_LOCK(CONCAT('SGLN_SEMILLA_', DATABASE()))", conexion)
+                            comando.ExecuteScalar()
+                        End Using
+                    Catch
+                        ' Al cerrar la conexión MySQL libera automáticamente el bloqueo.
+                    End Try
+                End If
+            End Try
+        End Using
     End Sub
 
     Public Function HayUsuarios() As Boolean
@@ -443,8 +471,6 @@ Public Module InicializadorBD
     End Function
 
     Private Sub SembrarJuzgados()
-        If EscalarEntero("SELECT COUNT(*) FROM Juzgados") > 0 Then Return
-
         Dim datos As String()() = {
             New String() {"Juzgado Primero de lo Civil de San Salvador", "Civil", "San Salvador"},
             New String() {"Juzgado Segundo de lo Civil de San Salvador", "Civil", "San Salvador"},
@@ -456,7 +482,9 @@ Public Module InicializadorBD
 
         For Each fila As String() In datos
             Ejecutar(
-                "INSERT INTO Juzgados (Nombre, Materia, Distrito, Activo) VALUES (@nombre, @materia, @distrito, 1)",
+                "INSERT INTO Juzgados (Nombre, Materia, Distrito, Activo) " &
+                "SELECT @nombre, @materia, @distrito, 1 WHERE NOT EXISTS (" &
+                "SELECT 1 FROM Juzgados WHERE Nombre = @nombre AND Materia = @materia AND Distrito <=> @distrito)",
                 Sub(comando As MySqlCommand)
                     Parametro(comando, "@nombre", fila(0))
                     Parametro(comando, "@materia", fila(1))
@@ -466,8 +494,6 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarTiposActuacion()
-        If EscalarEntero("SELECT COUNT(*) FROM Tipos_Actuacion") > 0 Then Return
-
         Dim datos As Object()() = {
             New Object() {"Contestación de demanda", 15, "Civil"},
             New Object() {"Apelación de sentencia", 10, "Civil"},
@@ -479,7 +505,9 @@ Public Module InicializadorBD
 
         For Each fila As Object() In datos
             Ejecutar(
-                "INSERT INTO Tipos_Actuacion (Nombre, Plazo_Dias_Default, Materia, Activo) VALUES (@nombre, @plazo, @materia, 1)",
+                "INSERT INTO Tipos_Actuacion (Nombre, Plazo_Dias_Default, Materia, Activo) " &
+                "SELECT @nombre, @plazo, @materia, 1 WHERE NOT EXISTS (" &
+                "SELECT 1 FROM Tipos_Actuacion WHERE Nombre = @nombre AND Materia <=> @materia)",
                 Sub(comando As MySqlCommand)
                     Parametro(comando, "@nombre", fila(0))
                     Parametro(comando, "@plazo", fila(1))
@@ -489,12 +517,12 @@ Public Module InicializadorBD
     End Sub
 
     Private Sub SembrarPlantillas()
-        If EscalarEntero("SELECT COUNT(*) FROM Plantillas_Documentos") > 0 Then Return
-
         Dim nombres As String() = {"Compraventa de Vehículo", "Poder General", "Constitución de Sociedad"}
         For Each nombre As String In nombres
             Ejecutar(
-                "INSERT INTO Plantillas_Documentos (Nombre, Tipo, Ruta_Plantilla, Activa) VALUES (@nombre, 'Escritura', NULL, 1)",
+                "INSERT INTO Plantillas_Documentos (Nombre, Tipo, Ruta_Plantilla, Activa) " &
+                "SELECT @nombre, 'Escritura', NULL, 1 WHERE NOT EXISTS (" &
+                "SELECT 1 FROM Plantillas_Documentos WHERE Nombre = @nombre AND Tipo = 'Escritura')",
                 Sub(comando As MySqlCommand)
                     Parametro(comando, "@nombre", nombre)
                 End Sub)
