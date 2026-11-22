@@ -239,7 +239,7 @@ Partial Class FrmUsuarios
         Me.lblNotaClave.Name = "lblNotaClave"
         Me.lblNotaClave.Size = New System.Drawing.Size(420, 55)
         Me.lblNotaClave.TabIndex = 5
-        Me.lblNotaClave.Text = "La clave debe tener al menos 8 caracteres. Al restablecerla, el usuario deberá cambiarla; comuníquesela por un medio seguro."
+        Me.lblNotaClave.Text = "La clave debe tener entre 12 y 128 caracteres e incluir mayúsculas, minúsculas, números y símbolos. Al restablecerla, comuníquesela por un medio seguro."
         '
         ' btnDesactivar
         '
