@@ -299,27 +299,35 @@ Public Class FrmUsuarios
     Private Sub RestablecerClaveUsuario()
         If Not Permisos.ExigirAccion("config.usuarios") Then Return
         Try
-
             If _idSeleccionado = 0 Then
                 Mostrar("Seleccione el usuario al que desea restablecer la clave.", False)
                 Return
             End If
 
             If txtClaveNueva.Text <> txtClaveConfirmar.Text Then
-                Mostrar("Las claves no coinciden.", False)
+                txtClaveNueva.Clear()
+                txtClaveConfirmar.Clear()
+                Mostrar("Las claves no coinciden. Ingréselas nuevamente.", False)
+                txtClaveNueva.Focus()
                 Return
             End If
 
             If Not UtileriasUI.Confirmar("¿Restablecer la clave del usuario '" & txtUsuario.Text & "'?") Then Return
 
-            Dim respuesta As Respuesta = _servicio.RestablecerClave(_idSeleccionado, txtClaveNueva.Text)
-            Mostrar(respuesta.Mensaje, respuesta.Exito)
-
-            If respuesta.Exito Then
+            Dim respuesta As Respuesta
+            Try
+                respuesta = _servicio.RestablecerClave(_idSeleccionado, txtClaveNueva.Text)
+            Finally
+                ' Las credenciales temporales no deben permanecer en el formulario,
+                ' incluso si el repositorio devuelve un error o lanza una excepción.
                 txtClaveNueva.Clear()
                 txtClaveConfirmar.Clear()
-            End If
+            End Try
+
+            Mostrar(respuesta.Mensaje, respuesta.Exito)
         Catch ex As Exception
+            txtClaveNueva.Clear()
+            txtClaveConfirmar.Clear()
             RegistroErrores.Escribir("Usuarios - btnrestablecer", ex)
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
