@@ -57,7 +57,7 @@ Partial Class FrmCambioClave
         Me.lblMensaje.Location = New System.Drawing.Point(24, 190)
         Me.lblMensaje.Name = "lblMensaje"
         Me.lblMensaje.Size = New System.Drawing.Size(410, 34)
-        Me.lblMensaje.Text = "Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos."
+        Me.lblMensaje.Text = "Entre 12 y 128 caracteres, con mayúsculas, minúsculas, números y símbolos. No puede repetir la clave actual."
         Me.btnGuardar.Location = New System.Drawing.Point(165, 238)
         Me.btnGuardar.Name = "btnGuardar"
         Me.btnGuardar.Size = New System.Drawing.Size(120, 32)
