@@ -707,7 +707,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Testimonios(idLibro As Integer) As DataTable
-        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.testimonios") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT t.ID, i.Numero_Escritura, t.Tipo_Testimonio, t.Fecha_Expedicion, " &
             "       t.Destinatario, IFNULL(t.Usuario, '') AS Usuario " &
