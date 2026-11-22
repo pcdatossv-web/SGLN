@@ -323,8 +323,11 @@ Public Class FrmCasos
 
         For Each nombre As String In {"Fecha_Notificacion", "Fecha_Vencimiento_Calculada", "Fecha_Confirmacion"}
             If dgvActuaciones.Columns.Contains(nombre) Then
-                dgvActuaciones.Columns(nombre).DefaultCellStyle.Format = "dd/MM/yyyy"
-                dgvActuaciones.Columns(nombre).MinimumWidth = 90
+                With dgvActuaciones.Columns(nombre)
+                    .DefaultCellStyle.Format = "dd/MM/yyyy"
+                    .MinimumWidth = 90
+                    .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+                End With
             End If
         Next
 
@@ -601,17 +604,50 @@ Public Class FrmCasos
 
 
     Private Sub dgvActuaciones_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvActuaciones.CellFormatting
-        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
-           dgvActuaciones.Columns(e.ColumnIndex).Name <> "Estado" Then Return
-        Dim estado As String = Convert.ToString(dgvActuaciones.Rows(e.RowIndex).Cells("Estado").Value)
-        Select Case estado.Trim().ToUpperInvariant()
-            Case "VENCIDO"
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
+
+        Dim nombreColumna As String = dgvActuaciones.Columns(e.ColumnIndex).Name
+        Dim fila As DataGridViewRow = dgvActuaciones.Rows(e.RowIndex)
+        Dim estado As String = If(dgvActuaciones.Columns.Contains("Estado"),
+                                  Convert.ToString(fila.Cells("Estado").Value), "")
+
+        If nombreColumna = "Estado" Then
+            Select Case estado.Trim().ToUpperInvariant()
+                Case "VENCIDO"
+                    e.CellStyle.ForeColor = Color.Firebrick
+                Case "CUMPLIDO"
+                    e.CellStyle.ForeColor = Color.DarkGreen
+                Case "PENDIENTE"
+                    e.CellStyle.ForeColor = Color.DarkOrange
+            End Select
+            Return
+        End If
+
+        ' El color del vencimiento permite detectar plazos críticos incluso
+        ' cuando el usuario no tiene permiso para ejecutar la actualización
+        ' global que cambia Pendiente a Vencido en la base de datos.
+        If nombreColumna = "Fecha_Vencimiento_Calculada" AndAlso
+           e.Value IsNot Nothing AndAlso Not Convert.IsDBNull(e.Value) Then
+            Dim vencimiento As Date
+            If TypeOf e.Value Is Date Then
+                vencimiento = CDate(e.Value).Date
+            ElseIf Not Date.TryParse(Convert.ToString(e.Value), vencimiento) Then
+                Return
+            Else
+                vencimiento = vencimiento.Date
+            End If
+
+            If String.Equals(estado, "Cumplido", StringComparison.OrdinalIgnoreCase) Then Return
+
+            If vencimiento < Date.Today OrElse
+               String.Equals(estado, "Vencido", StringComparison.OrdinalIgnoreCase) Then
                 e.CellStyle.ForeColor = Color.Firebrick
-            Case "CUMPLIDO"
-                e.CellStyle.ForeColor = Color.DarkGreen
-            Case "PENDIENTE"
-                e.CellStyle.ForeColor = Color.DarkOrange
-        End Select
+                e.CellStyle.BackColor = Color.MistyRose
+            ElseIf vencimiento <= Date.Today.AddDays(3) Then
+                e.CellStyle.ForeColor = Color.DarkGoldenrod
+                e.CellStyle.BackColor = Color.LemonChiffon
+            End If
+        End If
     End Sub
 
 
