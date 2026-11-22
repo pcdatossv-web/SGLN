@@ -88,6 +88,10 @@ Public Class FrmCumplimiento
         UtileriasUI.ConfigurarGrid(dgvOperaciones)
         UtileriasUI.ConfigurarGrid(dgvArco)
 
+        ' Los estados críticos se distinguen visualmente sin ocultar su etiqueta.
+        AddHandler dgvOperaciones.RowPrePaint, AddressOf dgvCumplimiento_RowPrePaint
+        AddHandler dgvArco.RowPrePaint, AddressOf dgvCumplimiento_RowPrePaint
+
         ' Limitar la captura en pantalla a los mismos máximos que valida el servicio.
 
         ' Las operaciones registradas no pueden tener fecha futura.
@@ -258,6 +262,56 @@ Public Class FrmCumplimiento
     ' ------------------------------------------------------------------
     ' Operaciones LDA/FT
     ' ------------------------------------------------------------------
+
+    ''' <summary>
+    ''' Señala vencimientos y estados de cumplimiento con colores discretos.
+    ''' El texto del estado siempre permanece visible para no depender del color.
+    ''' </summary>
+    Private Sub dgvCumplimiento_RowPrePaint(sender As Object, e As DataGridViewRowPrePaintEventArgs)
+        Dim grid As DataGridView = TryCast(sender, DataGridView)
+        If grid Is Nothing OrElse e.RowIndex < 0 OrElse e.RowIndex >= grid.Rows.Count Then Return
+
+        Dim fila As DataGridViewRow = grid.Rows(e.RowIndex)
+        If grid.Columns.Contains("Estado") Then
+            Dim estado As String = Convert.ToString(fila.Cells("Estado").Value).Trim()
+            Select Case estado.ToUpperInvariant()
+                Case "VENCIDA"
+                    fila.DefaultCellStyle.BackColor = Color.MistyRose
+                    fila.DefaultCellStyle.ForeColor = Color.DarkRed
+                Case "REVISAR PRÓRROGA", "REVISAR PRORROGA"
+                    fila.DefaultCellStyle.BackColor = Color.LemonChiffon
+                    fila.DefaultCellStyle.ForeColor = Color.DarkGoldenrod
+                Case "RESPONDIDA", "REPORTADA"
+                    fila.DefaultCellStyle.BackColor = Color.Honeydew
+                    fila.DefaultCellStyle.ForeColor = Color.DarkGreen
+                Case "DESCARTADA"
+                    fila.DefaultCellStyle.BackColor = Color.Gainsboro
+                    fila.DefaultCellStyle.ForeColor = Color.DimGray
+                Case Else
+                    fila.DefaultCellStyle.BackColor = grid.DefaultCellStyle.BackColor
+                    fila.DefaultCellStyle.ForeColor = grid.DefaultCellStyle.ForeColor
+            End Select
+        End If
+
+        If grid.Columns.Contains("Reportado_UIF") Then
+            Dim reportada As Boolean = False
+            If fila.Cells("Reportado_UIF").Value IsNot Nothing AndAlso
+               Not Convert.IsDBNull(fila.Cells("Reportado_UIF").Value) Then
+                Boolean.TryParse(Convert.ToString(fila.Cells("Reportado_UIF").Value), reportada)
+                If Not reportada Then
+                    Try
+                        reportada = Convert.ToBoolean(fila.Cells("Reportado_UIF").Value)
+                    Catch
+                        reportada = False
+                    End Try
+                End If
+            End If
+            If reportada Then
+                fila.DefaultCellStyle.BackColor = Color.Honeydew
+                fila.DefaultCellStyle.ForeColor = Color.DarkGreen
+            End If
+        End If
+    End Sub
 
     Private Sub CargarOperaciones()
         Try
