@@ -126,7 +126,7 @@ Public Class FrmEntidades
         Try
             _cargando = True
             dgvEntidades.DataSource = _servicio.Buscar(filtro)
-            If dgvEntidades.Columns.Contains("ID") Then dgvEntidades.Columns("ID").Visible = False
+            ConfigurarColumnasEntidades()
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvEntidades)
             If filaActual Is Nothing Then
@@ -163,6 +163,123 @@ Public Class FrmEntidades
                               UtileriasUI.FilaActual(dgvRepresentantes) IsNot Nothing
     End Sub
 
+
+    ''' <summary>Organiza los datos de identificación y riesgo de entidades legales.</summary>
+    Private Sub ConfigurarColumnasEntidades()
+        If dgvEntidades.Columns.Contains("ID") Then dgvEntidades.Columns("ID").Visible = False
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Razon_Social", "Razón social"},
+            {"NIT", "NIT"},
+            {"NRC", "NRC"},
+            {"Riesgo", "Nivel de riesgo"},
+            {"Activo", "Estado"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvEntidades.Columns.Contains(par.Key) Then
+                dgvEntidades.Columns(par.Key).HeaderText = par.Value
+                dgvEntidades.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvEntidades.Columns.Contains("Razon_Social") Then
+            With dgvEntidades.Columns("Razon_Social")
+                .FillWeight = 210
+                .MinimumWidth = 210
+            End With
+        End If
+        If dgvEntidades.Columns.Contains("NIT") Then
+            dgvEntidades.Columns("NIT").FillWeight = 95
+            dgvEntidades.Columns("NIT").MinimumWidth = 125
+        End If
+        If dgvEntidades.Columns.Contains("NRC") Then
+            dgvEntidades.Columns("NRC").FillWeight = 75
+            dgvEntidades.Columns("NRC").MinimumWidth = 95
+        End If
+        If dgvEntidades.Columns.Contains("Riesgo") Then
+            dgvEntidades.Columns("Riesgo").FillWeight = 75
+            dgvEntidades.Columns("Riesgo").MinimumWidth = 95
+        End If
+        If dgvEntidades.Columns.Contains("Activo") Then
+            dgvEntidades.Columns("Activo").FillWeight = 60
+            dgvEntidades.Columns("Activo").MinimumWidth = 80
+            dgvEntidades.Columns("Activo").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+        End If
+    End Sub
+
+    ''' <summary>Oculta claves internas y presenta claramente la representación legal.</summary>
+    Private Sub ConfigurarColumnasRepresentantes()
+        If dgvRepresentantes.Columns.Contains("ID") Then dgvRepresentantes.Columns("ID").Visible = False
+        If dgvRepresentantes.Columns.Contains("ID_Cliente") Then dgvRepresentantes.Columns("ID_Cliente").Visible = False
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Nombre", "Representante"},
+            {"DUI", "DUI"},
+            {"Cargo", "Cargo"},
+            {"Tipo_Representacion", "Tipo de representación"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvRepresentantes.Columns.Contains(par.Key) Then
+                dgvRepresentantes.Columns(par.Key).HeaderText = par.Value
+                dgvRepresentantes.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvRepresentantes.Columns.Contains("Nombre") Then
+            dgvRepresentantes.Columns("Nombre").FillWeight = 170
+            dgvRepresentantes.Columns("Nombre").MinimumWidth = 170
+        End If
+        If dgvRepresentantes.Columns.Contains("DUI") Then
+            dgvRepresentantes.Columns("DUI").FillWeight = 85
+            dgvRepresentantes.Columns("DUI").MinimumWidth = 105
+        End If
+        If dgvRepresentantes.Columns.Contains("Cargo") Then
+            dgvRepresentantes.Columns("Cargo").FillWeight = 110
+            dgvRepresentantes.Columns("Cargo").MinimumWidth = 110
+        End If
+        If dgvRepresentantes.Columns.Contains("Tipo_Representacion") Then
+            dgvRepresentantes.Columns("Tipo_Representacion").FillWeight = 105
+            dgvRepresentantes.Columns("Tipo_Representacion").MinimumWidth = 120
+        End If
+    End Sub
+
+    Private Sub dgvEntidades_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvEntidades.CellFormatting
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
+
+        Dim columna As String = dgvEntidades.Columns(e.ColumnIndex).Name
+        If columna = "Riesgo" Then
+            Select Case Convert.ToString(e.Value).Trim().ToUpperInvariant()
+                Case "ALTO"
+                    e.CellStyle.ForeColor = Color.DarkRed
+                Case "MEDIO"
+                    e.CellStyle.ForeColor = Color.DarkGoldenrod
+                Case "BAJO"
+                    e.CellStyle.ForeColor = Color.DarkGreen
+                Case Else
+                    e.CellStyle.ForeColor = dgvEntidades.DefaultCellStyle.ForeColor
+            End Select
+        ElseIf columna = "Activo" Then
+            If e.Value Is Nothing OrElse Convert.IsDBNull(e.Value) Then Return
+
+            Dim activo As Boolean
+            Dim numero As Integer
+            If TypeOf e.Value Is Boolean Then
+                activo = CBool(e.Value)
+            ElseIf Boolean.TryParse(Convert.ToString(e.Value), activo) Then
+                ' El proveedor puede entregar el valor como Boolean.
+            ElseIf Integer.TryParse(Convert.ToString(e.Value), numero) Then
+                activo = (numero <> 0)
+            Else
+                Return
+            End If
+
+            e.Value = If(activo, "Activa", "Inactiva")
+            e.FormattingApplied = True
+            e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
+        End If
+    End Sub
 
     Private Sub dgvRepresentantes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvRepresentantes.SelectionChanged
         ActualizarEstadoRepresentantes()
@@ -230,8 +347,7 @@ Public Class FrmEntidades
 
         Try
             dgvRepresentantes.DataSource = _servicio.Representantes(_idEntidad)
-            If dgvRepresentantes.Columns.Contains("ID") Then dgvRepresentantes.Columns("ID").Visible = False
-            If dgvRepresentantes.Columns.Contains("ID_Cliente") Then dgvRepresentantes.Columns("ID_Cliente").Visible = False
+            ConfigurarColumnasRepresentantes()
             ActualizarEstadoRepresentantes()
         Catch ex As Exception
             dgvRepresentantes.DataSource = Nothing
