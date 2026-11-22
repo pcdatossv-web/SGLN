@@ -10,6 +10,7 @@ Public Class FrmPrincipal
         UtileriasUI.ConfigurarGrid(dgvAlertas)
         AplicarPermisos()
         CargarPanel()
+        AddHandler txtBuscarAlertas.TextChanged, AddressOf txtBuscarAlertas_TextChanged
         tmrActualizacion.Enabled = True
     End Sub
 
@@ -409,7 +410,7 @@ Public Class FrmPrincipal
     End Sub
 
 
-    Private Sub txtBuscarAlertas_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarAlertas.TextChanged
+    Private Sub txtBuscarAlertas_TextChanged(sender As Object, e As EventArgs)
         AplicarFiltroAlertas()
     End Sub
 
