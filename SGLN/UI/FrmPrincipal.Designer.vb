@@ -45,7 +45,8 @@ Partial Class FrmPrincipal
         Me.grpAlertas = New System.Windows.Forms.GroupBox()
         Me.dgvAlertas = New System.Windows.Forms.DataGridView()
         Me.btnActualizar = New System.Windows.Forms.Button()
-        Me.lblNota = New System.Windows.Forms.Label()\n        Me.tmrActualizacion = New System.Windows.Forms.Timer(Me.components)
+        Me.lblNota = New System.Windows.Forms.Label()
+        Me.tmrActualizacion = New System.Windows.Forms.Timer(Me.components)
         Me.mnuPrincipal.SuspendLayout()
         Me.statusPrincipal.SuspendLayout()
         Me.grpAlertas.SuspendLayout()
@@ -285,7 +286,9 @@ Partial Class FrmPrincipal
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.MainMenuStrip = Me.mnuPrincipal
         Me.MinimumSize = New System.Drawing.Size(1000, 650)
-        Me.tmrActualizacion.Interval = 120000\n        Me.tmrActualizacion.Enabled = False\n        Me.Name = "FrmPrincipal"
+        Me.tmrActualizacion.Interval = 120000
+        Me.tmrActualizacion.Enabled = False
+        Me.Name = "FrmPrincipal"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "SGLN El Salvador - Sistema de Gestión Legal y Notarial"
         Me.mnuPrincipal.ResumeLayout(False)
@@ -325,5 +328,6 @@ Partial Class FrmPrincipal
     Friend WithEvents grpAlertas As System.Windows.Forms.GroupBox
     Friend WithEvents dgvAlertas As System.Windows.Forms.DataGridView
     Friend WithEvents btnActualizar As System.Windows.Forms.Button
-    Friend WithEvents lblNota As System.Windows.Forms.Label\n    Friend WithEvents tmrActualizacion As System.Windows.Forms.Timer
+    Friend WithEvents lblNota As System.Windows.Forms.Label
+    Friend WithEvents tmrActualizacion As System.Windows.Forms.Timer
 End Class
