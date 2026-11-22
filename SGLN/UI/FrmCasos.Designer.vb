@@ -457,6 +457,7 @@ Partial Class FrmCasos
         Me.Controls.Add(Me.btnNuevo)
         Me.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.MinimumSize = New System.Drawing.Size(1150, 700)
+        Me.KeyPreview = True
         Me.Name = "FrmCasos"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Text = "Casos judiciales y control de plazos"
