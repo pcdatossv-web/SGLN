@@ -14,18 +14,6 @@ Public Class ServicioCasos
         Return Permisos.RevalidarSesion() AndAlso Permisos.Puede(permiso)
     End Function
 
-    ''' <summary>
-    ''' Revalida la sesión antes de permitir la carga de catálogos compartidos.
-    ''' No basta con consultar la matriz de permisos que pudo quedar en memoria.
-    ''' </summary>
-    Private Function TieneAlgunoPermisoVigente(ParamArray codigos() As String) As Boolean
-        If Not Permisos.RevalidarSesion() Then Return False
-        For Each codigo As String In codigos
-            If Permisos.Puede(codigo) Then Return True
-        Next
-        Return False
-    End Function
-
     Public Function Buscar(filtro As String) As DataTable
         If Not TienePermisoVigente("casos.ver") Then Return New DataTable()
         Return _repositorio.Buscar(filtro)
@@ -92,17 +80,17 @@ Public Class ServicioCasos
     End Function
 
     Public Function ClientesCombo() As DataTable
-        If Not TieneAlgunoPermisoVigente("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _repositorio.ClientesCombo()
     End Function
 
     Public Function JuzgadosCombo() As DataTable
-        If Not TieneAlgunoPermisoVigente("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _catalogo.Juzgados()
     End Function
 
     Public Function TiposActuacionCombo() As DataTable
-        If Not TieneAlgunoPermisoVigente("casos.ver", "casos.gestionar") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return _catalogo.TiposActuacion()
     End Function
 
