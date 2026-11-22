@@ -134,6 +134,14 @@ Partial Class FrmEntidades
         '
         Me.dgvEntidades.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvEntidades.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvEntidades.AllowUserToAddRows = False
+        Me.dgvEntidades.AllowUserToDeleteRows = False
+        Me.dgvEntidades.AllowUserToResizeRows = False
+        Me.dgvEntidades.ReadOnly = True
+        Me.dgvEntidades.MultiSelect = False
+        Me.dgvEntidades.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvEntidades.RowHeadersVisible = False
+        Me.dgvEntidades.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvEntidades.Location = New System.Drawing.Point(12, 88)
         Me.dgvEntidades.Name = "dgvEntidades"
         Me.dgvEntidades.Size = New System.Drawing.Size(380, 547)
@@ -416,6 +424,14 @@ Partial Class FrmEntidades
         '
         Me.dgvRepresentantes.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvRepresentantes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvRepresentantes.AllowUserToAddRows = False
+        Me.dgvRepresentantes.AllowUserToDeleteRows = False
+        Me.dgvRepresentantes.AllowUserToResizeRows = False
+        Me.dgvRepresentantes.ReadOnly = True
+        Me.dgvRepresentantes.MultiSelect = False
+        Me.dgvRepresentantes.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvRepresentantes.RowHeadersVisible = False
+        Me.dgvRepresentantes.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvRepresentantes.Location = New System.Drawing.Point(15, 112)
         Me.dgvRepresentantes.Name = "dgvRepresentantes"
         Me.dgvRepresentantes.Size = New System.Drawing.Size(645, 95)
