@@ -145,10 +145,7 @@ Public Class FrmDocumentos
 
             _cargando = True
             dgvDocumentos.DataSource = _servicio.Buscar(txtFiltro.Text, tipo)
-            OcultarColumnas("ID", "ID_Caso", "ID_Instrumento")
-            If dgvDocumentos.Columns.Contains("Fecha_Carga") Then
-                dgvDocumentos.Columns("Fecha_Carga").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
-            End If
+            ConfigurarColumnasDocumentos()
             _cargando = False
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
@@ -171,6 +168,45 @@ Public Class FrmDocumentos
             RegistroErrores.Escribir("Documentos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Reduce la exposición de rutas y hashes en el listado y presenta
+    ''' metadatos útiles para localizar documentos sin saturar la grilla.
+    ''' Los valores completos siguen disponibles en el panel de detalle.
+    ''' </summary>
+    Private Sub ConfigurarColumnasDocumentos()
+        OcultarColumnas("ID", "ID_Caso", "ID_Instrumento", "Ruta_Archivo", "Hash")
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Tipo_Documento", "Tipo de documento"},
+            {"Estado_Procesamiento_IA", "Estado de análisis"},
+            {"Fecha_Carga", "Fecha de carga"},
+            {"Usuario", "Cargado por"},
+            {"Expediente", "Expediente"},
+            {"Escritura", "Escritura"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvDocumentos.Columns.Contains(par.Key) Then
+                dgvDocumentos.Columns(par.Key).HeaderText = par.Value
+                dgvDocumentos.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvDocumentos.Columns.Contains("Fecha_Carga") Then
+            dgvDocumentos.Columns("Fecha_Carga").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
+            dgvDocumentos.Columns("Fecha_Carga").MinimumWidth = 125
+        End If
+        If dgvDocumentos.Columns.Contains("Tipo_Documento") Then
+            dgvDocumentos.Columns("Tipo_Documento").MinimumWidth = 130
+        End If
+        If dgvDocumentos.Columns.Contains("Estado_Procesamiento_IA") Then
+            dgvDocumentos.Columns("Estado_Procesamiento_IA").MinimumWidth = 115
+        End If
+        If dgvDocumentos.Columns.Contains("Expediente") Then
+            dgvDocumentos.Columns("Expediente").MinimumWidth = 115
+        End If
     End Sub
 
     Private Sub dgvDocumentos_SelectionChanged(sender As Object, e As EventArgs) Handles dgvDocumentos.SelectionChanged
