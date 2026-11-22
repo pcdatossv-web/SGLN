@@ -194,6 +194,10 @@ Public Class FrmCasos
                     MostrarInformacion("No hay expedientes registrados.")
                 Else
                     MostrarInformacion("No se encontraron expedientes que coincidan con """ & termino & """.")
+                    ' Facilitar la corrección inmediata del criterio sin obligar
+                    ' al usuario a volver a buscar el cuadro de filtro.
+                    txtFiltro.Focus()
+                    txtFiltro.SelectAll()
                 End If
             End If
         Catch ex As Exception
