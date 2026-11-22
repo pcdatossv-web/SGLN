@@ -2161,6 +2161,26 @@ Module PruebaFuncional
             .PlazoLegalDias = 3
         }
         plazos.Confirmar(vencida)
+
+        ' El día local de vencimiento todavía no se considera vencido.
+        ' Se fija explícitamente la fecha para no depender de la zona horaria MySQL.
+        Dim fechaHoySql As String = Date.Today.ToString("yyyy-MM-dd")
+        EjecutarSqlDirecto("UPDATE Actuaciones_Procesales SET Fecha_Vencimiento_Calculada = '" &
+                           fechaHoySql & "' WHERE ID = " & vencida.ID.ToString())
+        plazos.ActualizarVencidas()
+        Dim actuacionEnFechaLimite As DataTable = plazos.Actuaciones(idCaso)
+        Dim siguePendienteEnFechaLimite As Boolean = False
+        For Each filaLimite As DataRow In actuacionEnFechaLimite.Rows
+            If UtileriasUI.Entero(filaLimite, "ID") = vencida.ID Then
+                siguePendienteEnFechaLimite = UtileriasUI.Texto(filaLimite, "Estado") = "Pendiente"
+                Exit For
+            End If
+        Next
+        Verificar("Una actuación no vence durante su propio día límite local", siguePendienteEnFechaLimite)
+
+        Dim fechaAyerSql As String = Date.Today.AddDays(-1).ToString("yyyy-MM-dd")
+        EjecutarSqlDirecto("UPDATE Actuaciones_Procesales SET Fecha_Vencimiento_Calculada = '" &
+                           fechaAyerSql & "' WHERE ID = " & vencida.ID.ToString())
         Dim marcadas As Integer = plazos.ActualizarVencidas()
         Verificar("Las actuaciones vencidas se marcan al refrescar", marcadas >= 1,
                   "Se marcaron " & marcadas.ToString() & " actuaciones")
