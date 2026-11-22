@@ -205,7 +205,7 @@ Public Class ServicioProtocolo
     End Function
 
     Public Function ObtenerInstrumento(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") OrElse id <= 0 Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.testimonios") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerInstrumento(id)
     End Function
 
