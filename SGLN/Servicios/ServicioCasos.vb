@@ -18,10 +18,10 @@ Public Class ServicioCasos
     ''' Revalida la sesión antes de permitir la carga de catálogos compartidos.
     ''' No basta con consultar la matriz de permisos que pudo quedar en memoria.
     ''' </summary>
-    Private Function TieneAlgunoPermisoVigente(ParamArray permisos() As String) As Boolean
+    Private Function TieneAlgunoPermisoVigente(ParamArray codigos() As String) As Boolean
         If Not Permisos.RevalidarSesion() Then Return False
-        For Each permiso As String In permisos
-            If Permisos.Puede(permiso) Then Return True
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
         Next
         Return False
     End Function
