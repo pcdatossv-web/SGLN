@@ -410,7 +410,11 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") OrElse idLibro <= 0 Then Return New DataTable()
+        ' La consulta del índice también es necesaria para quien tiene permiso
+        ' de gestión, aunque no tenga asignado el permiso general de lectura.
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") OrElse idLibro <= 0 Then
+            Return New DataTable()
+        End If
         Return _repositorio.IndiceLibro(idLibro)
     End Function
 
