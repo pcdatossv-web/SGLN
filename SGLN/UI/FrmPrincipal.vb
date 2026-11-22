@@ -10,6 +10,7 @@ Public Class FrmPrincipal
         UtileriasUI.ConfigurarGrid(dgvAlertas)
         AplicarPermisos()
         CargarPanel()
+        tmrActualizacion.Enabled = True
     End Sub
 
     ''' <summary>
@@ -390,6 +391,22 @@ Public Class FrmPrincipal
                 End If
         End Select
     End Sub
+
+    Private Sub tmrActualizacion_Tick(sender As Object, e As EventArgs) Handles tmrActualizacion.Tick
+        If Not Me.Enabled OrElse Me.IsDisposed Then Return
+
+        If Not Permisos.RevalidarSesion() Then
+            tmrActualizacion.Stop()
+            Sesion.CerrarSesionSolicitado = True
+            Me.Close()
+            Return
+        End If
+
+
+        AplicarPermisos()
+        CargarPanel()
+    End Sub
+
 
     Private Sub btnActualizar_Click(sender As Object, e As EventArgs) Handles btnActualizar.Click
         ' La sesión puede revocarse mientras el panel principal permanece abierto.
