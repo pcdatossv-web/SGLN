@@ -16,12 +16,12 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Libros() As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") Then Return New DataTable()
         Return _repositorio.Libros()
     End Function
 
     Public Function ObtenerLibro(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") OrElse id <= 0 Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.ObtenerLibro(id)
     End Function
 
@@ -200,7 +200,7 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Instrumentos(idLibro As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") OrElse idLibro <= 0 Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") OrElse idLibro <= 0 Then Return New DataTable()
         Return _repositorio.Instrumentos(idLibro)
     End Function
 
@@ -310,7 +310,7 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Comparecientes(idInstrumento As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.testimonios") Then Return New DataTable()
         If idInstrumento <= 0 Then Return New DataTable()
         Return _repositorio.Comparecientes(idInstrumento)
     End Function
