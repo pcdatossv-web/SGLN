@@ -310,7 +310,7 @@ Public Class EntidadRepositorio
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim detalleHistorico As String = Nothing
                 Using consultar As New MySqlCommand(
-                    "SELECT e.Razon_Social, c.Nombres, c.Apellidos, r.Cargo, r.Tipo_Representacion " &
+                    "SELECT e.Razon_Social, c.Nombres, c.Apellidos, c.DUI, r.Cargo, r.Tipo_Representacion " &
                     "FROM Representantes_Legales r " &
                     "INNER JOIN Entidades_Legales e ON e.ID = r.ID_Entidad " &
                     "INNER JOIN Clientes c ON c.ID = r.ID_Cliente " &
@@ -320,8 +320,9 @@ Public Class EntidadRepositorio
                     Using lector As MySqlDataReader = consultar.ExecuteReader()
                         If Not lector.Read() Then Return 0
                         detalleHistorico = "Representante: " & Convert.ToString(lector("Nombres")) & " " &
-                            Convert.ToString(lector("Apellidos")) & "; entidad: " &
-                            Convert.ToString(lector("Razon_Social")) & "; cargo: " &
+                            Convert.ToString(lector("Apellidos")) & "; DUI: " &
+                            If(lector.IsDBNull(lector.GetOrdinal("DUI")), "No registrado", Convert.ToString(lector("DUI"))) &
+                            "; entidad: " & Convert.ToString(lector("Razon_Social")) & "; cargo: " &
                             Convert.ToString(lector("Cargo")) & "; representación: " &
                             Convert.ToString(lector("Tipo_Representacion"))
                     End Using
