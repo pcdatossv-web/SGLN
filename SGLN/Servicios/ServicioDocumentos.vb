@@ -21,23 +21,39 @@ Public Class ServicioDocumentos
 
     Private Const TamanoMaximoMb As Integer = 50
 
+    ''' <summary>
+    ''' Revalida la sesión antes de consultar permisos para impedir que
+    ''' autorizaciones almacenadas en memoria sobrevivan a una revocación.
+    ''' </summary>
+    Private Function TienePermisoVigente(codigo As String) As Boolean
+        Return Permisos.RevalidarSesion() AndAlso Permisos.Puede(codigo)
+    End Function
+
+    Private Function TieneAlgunoPermisoVigente(ParamArray codigos() As String) As Boolean
+        If Not Permisos.RevalidarSesion() Then Return False
+        For Each codigo As String In codigos
+            If Permisos.Puede(codigo) Then Return True
+        Next
+        Return False
+    End Function
+
     Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
+        If Not TieneAlgunoPermisoVigente("documentos.ver", "documentos.verificar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.Buscar(filtro, tipo)
     End Function
 
     Public Function Obtener(id As Integer) As DataTable
-        If Not Permisos.TieneAcceso("documentos.ver") OrElse id <= 0 Then Return New DataTable()
+        If Not TienePermisoVigente("documentos.ver") OrElse id <= 0 Then Return New DataTable()
         Return _repositorio.Obtener(id)
     End Function
 
     Public Function CasosCombo() As DataTable
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
+        If Not TieneAlgunoPermisoVigente("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.CasosCombo()
     End Function
 
     Public Function InstrumentosCombo(Optional idInstrumentoActual As Integer? = Nothing) As DataTable
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
+        If Not TieneAlgunoPermisoVigente("documentos.ver", "documentos.importar", "documentos.metadatos") Then Return New DataTable()
         Return _repositorio.InstrumentosCombo(idInstrumentoActual)
     End Function
 
@@ -47,7 +63,7 @@ Public Class ServicioDocumentos
     ''' </summary>
     Public Function Importar(rutaOrigen As String, tipoDocumento As String,
                              idCaso As Integer?, idInstrumento As Integer?) As Respuesta
-        If Not Permisos.TieneAcceso("documentos.importar") Then Return Respuesta.Fallo("No tiene permiso para importar documentos.")
+        If Not TienePermisoVigente("documentos.importar") Then Return Respuesta.Fallo("No tiene permiso para importar documentos.")
 
 
         Dim extension As String = ""
@@ -207,7 +223,7 @@ Public Class ServicioDocumentos
 
     Public Function ActualizarMetadatos(id As Integer, tipoDocumento As String,
                                         idCaso As Integer?, idInstrumento As Integer?) As Respuesta
-        If Not Permisos.TieneAcceso("documentos.metadatos") Then Return Respuesta.Fallo("No tiene permiso para modificar metadatos de documentos.")
+        If Not TienePermisoVigente("documentos.metadatos") Then Return Respuesta.Fallo("No tiene permiso para modificar metadatos de documentos.")
 
         Try
             If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
@@ -241,7 +257,7 @@ Public Class ServicioDocumentos
     ''' Recalcula el hash del archivo y lo compara con el registrado.
     ''' </summary>
     Public Function VerificarIntegridad(id As Integer) As Respuesta
-        If Not Permisos.TieneAcceso("documentos.verificar") Then Return Respuesta.Fallo("No tiene permiso para verificar documentos.")
+        If Not TienePermisoVigente("documentos.verificar") Then Return Respuesta.Fallo("No tiene permiso para verificar documentos.")
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un documento.")
 
         Try
@@ -272,7 +288,7 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaDelDocumento(id As Integer) As String
-        If Not Permisos.TieneAcceso("documentos.ver") Then
+        If Not TienePermisoVigente("documentos.ver") Then
             Throw New UnauthorizedAccessException("No tiene permiso para consultar documentos.")
         End If
 
@@ -298,7 +314,7 @@ Public Class ServicioDocumentos
     End Function
 
     Public Function RutaBaseDocumentos() As String
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        If Not TieneAlgunoPermisoVigente("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         Return RutaBaseDocumentosInterna()
     End Function
 
@@ -327,7 +343,7 @@ Public Class ServicioDocumentos
     ''' aceptan si permanecen dentro de la carpeta documental configurada.
     ''' </summary>
     Public Function RutaCompleta(rutaRegistrada As String) As String
-        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
+        If Not TieneAlgunoPermisoVigente("documentos.ver", "documentos.importar", "documentos.verificar", "documentos.metadatos") Then Return ""
         Return RutaCompletaInterna(rutaRegistrada)
     End Function
 
