@@ -224,7 +224,7 @@ Public Class EntidadRepositorio
         If idEntidad <= 0 OrElse Not Permisos.TieneAcceso("entidades.ver") Then Return New DataTable()
         Return Consultar(
             "SELECT r.ID, c.ID AS ID_Cliente, CONCAT(c.Nombres, ' ', c.Apellidos) AS Nombre, " &
-            "       r.Cargo, r.Tipo_Representacion " &
+            "       c.DUI, r.Cargo, r.Tipo_Representacion " &
             "FROM Representantes_Legales r " &
             "INNER JOIN Clientes c ON c.ID = r.ID_Cliente " &
             "WHERE r.ID_Entidad = @id ORDER BY c.Apellidos, c.Nombres",
@@ -236,8 +236,9 @@ Public Class EntidadRepositorio
     Public Function ClientesCombo() As DataTable
         If Not Permisos.TieneAccesoAlguno("entidades.ver", "entidades.gestionar") Then Return New DataTable()
         Return Consultar(
-            "SELECT ID, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM Clientes " &
-            "WHERE Activo = 1 ORDER BY Apellidos, Nombres")
+            "SELECT ID, CONCAT(Nombres, ' ', Apellidos, ' | DUI: ', " &
+            "       IFNULL(NULLIF(DUI, ''), 'No registrado')) AS Nombre " &
+            "FROM Clientes WHERE Activo = 1 ORDER BY Apellidos, Nombres, ID")
     End Function
 
     Public Function AgregarRepresentante(idEntidad As Integer, idCliente As Integer, cargo As String, tipo As String) As Respuesta
