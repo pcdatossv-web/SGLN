@@ -84,7 +84,8 @@ Public Class FrmPrincipal
         Try
             Dim servicio As New ServicioAlertas()
             Dim alertas As DataTable = servicio.ObtenerAlertas()
-            dgvAlertas.DataSource = alertas
+            dgvAlertas.DataSource = alertas.DefaultView
+            AplicarFiltroAlertas()
             lblResumen.Text = servicio.ObtenerResumen()
             lblFecha.Text = "Actualizado: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
 
@@ -407,6 +408,28 @@ Public Class FrmPrincipal
         CargarPanel()
     End Sub
 
+
+    Private Sub txtBuscarAlertas_TextChanged(sender As Object, e As EventArgs) Handles txtBuscarAlertas.TextChanged
+        AplicarFiltroAlertas()
+    End Sub
+
+    Private Sub AplicarFiltroAlertas()
+        Dim vista As DataView = TryCast(dgvAlertas.DataSource, DataView)
+        If vista Is Nothing Then Return
+
+        Dim texto As String = txtBuscarAlertas.Text.Trim()
+        If texto.Length = 0 Then
+            vista.RowFilter = ""
+            Return
+        End If
+
+        ' Escapar caracteres especiales de DataView.RowFilter para evitar
+        ' errores al buscar nombres o descripciones con apostrofes.
+        texto = texto.Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]").Replace("*", "[*]")
+        vista.RowFilter = "Convert(Tipo, 'System.String') LIKE '%" & texto & "%' OR " &
+                          "Convert(Descripcion, 'System.String') LIKE '%" & texto & "%' OR " &
+                          "Convert(Prioridad, 'System.String') LIKE '%" & texto & "%'"
+    End Sub
 
     Private Sub btnActualizar_Click(sender As Object, e As EventArgs) Handles btnActualizar.Click
         ' La sesión puede revocarse mientras el panel principal permanece abierto.
