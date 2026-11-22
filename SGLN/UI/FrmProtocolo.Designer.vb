@@ -422,6 +422,14 @@ Partial Class FrmProtocolo
         '
         Me.dgvInstrumentos.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvInstrumentos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvInstrumentos.AllowUserToAddRows = False
+        Me.dgvInstrumentos.AllowUserToDeleteRows = False
+        Me.dgvInstrumentos.AllowUserToResizeRows = False
+        Me.dgvInstrumentos.ReadOnly = True
+        Me.dgvInstrumentos.MultiSelect = False
+        Me.dgvInstrumentos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvInstrumentos.RowHeadersVisible = False
+        Me.dgvInstrumentos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvInstrumentos.Location = New System.Drawing.Point(10, 42)
         Me.dgvInstrumentos.Name = "dgvInstrumentos"
         Me.dgvInstrumentos.Size = New System.Drawing.Size(560, 573)
@@ -679,6 +687,14 @@ Partial Class FrmProtocolo
         '
         Me.dgvComparecientes.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvComparecientes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvComparecientes.AllowUserToAddRows = False
+        Me.dgvComparecientes.AllowUserToDeleteRows = False
+        Me.dgvComparecientes.AllowUserToResizeRows = False
+        Me.dgvComparecientes.ReadOnly = True
+        Me.dgvComparecientes.MultiSelect = False
+        Me.dgvComparecientes.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvComparecientes.RowHeadersVisible = False
+        Me.dgvComparecientes.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvComparecientes.Location = New System.Drawing.Point(15, 80)
         Me.dgvComparecientes.Name = "dgvComparecientes"
         Me.dgvComparecientes.Size = New System.Drawing.Size(565, 155)
@@ -711,6 +727,14 @@ Partial Class FrmProtocolo
         '
         Me.dgvTestimonios.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvTestimonios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvTestimonios.AllowUserToAddRows = False
+        Me.dgvTestimonios.AllowUserToDeleteRows = False
+        Me.dgvTestimonios.AllowUserToResizeRows = False
+        Me.dgvTestimonios.ReadOnly = True
+        Me.dgvTestimonios.MultiSelect = False
+        Me.dgvTestimonios.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvTestimonios.RowHeadersVisible = False
+        Me.dgvTestimonios.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvTestimonios.Location = New System.Drawing.Point(10, 42)
         Me.dgvTestimonios.Name = "dgvTestimonios"
         Me.dgvTestimonios.Size = New System.Drawing.Size(760, 573)
@@ -851,6 +875,14 @@ Partial Class FrmProtocolo
         '
         Me.dgvIndice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvIndice.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvIndice.AllowUserToAddRows = False
+        Me.dgvIndice.AllowUserToDeleteRows = False
+        Me.dgvIndice.AllowUserToResizeRows = False
+        Me.dgvIndice.ReadOnly = True
+        Me.dgvIndice.MultiSelect = False
+        Me.dgvIndice.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgvIndice.RowHeadersVisible = False
+        Me.dgvIndice.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvIndice.Location = New System.Drawing.Point(10, 10)
         Me.dgvIndice.Name = "dgvIndice"
         Me.dgvIndice.Size = New System.Drawing.Size(1165, 555)
