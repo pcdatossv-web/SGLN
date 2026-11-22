@@ -73,6 +73,8 @@ Public Class FrmCasos
             MostrarMensaje("No se pudo cargar la lista de casos. Verifique la conexión con la base de datos.", False)
         ElseIf errorCargaCombos Then
             MostrarMensaje("No se pudieron cargar los catálogos de casos. Verifique la conexión con la base de datos.", False)
+        ElseIf dgvCasos.Rows.Count = 0 Then
+            MostrarMensaje("No hay expedientes registrados. Puede crear uno con el botón ""Nuevo"".", True)
         End If
 
         _permisosInicializados = True
@@ -184,6 +186,15 @@ Public Class FrmCasos
                 If cargarDetalleSeleccionado Then Limpiar()
             ElseIf cargarDetalleSeleccionado Then
                 CargarCaso(UtileriasUI.Entero(filaActual, "ID"))
+            End If
+
+            If cargarDetalleSeleccionado AndAlso dgvCasos.Rows.Count = 0 Then
+                Dim termino As String = If(filtro, "").Trim()
+                If termino.Length = 0 Then
+                    MostrarMensaje("No hay expedientes registrados.", True)
+                Else
+                    MostrarMensaje("No se encontraron expedientes que coincidan con "" " & termino & " "". ", True)
+                End If
             End If
         Catch ex As Exception
             _cargando = False
