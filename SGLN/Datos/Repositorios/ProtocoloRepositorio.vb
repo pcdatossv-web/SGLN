@@ -488,6 +488,27 @@ Public Class ProtocoloRepositorio
                         End If
                     End If
 
+                    ' El número de escritura es único dentro del libro y no debe
+                    ' reutilizarse aunque el instrumento anterior esté anulado.
+                    ' El bloqueo previo de la fila del libro serializa esta validación
+                    ' con las altas y modificaciones concurrentes del mismo libro.
+                    Dim numeroDuplicado As Integer
+                    Using comandoNumero As New MySqlCommand(
+                        "SELECT COUNT(*) FROM Instrumentos " &
+                        "WHERE ID_Libro = @libro AND ID <> @excluir AND Numero_Escritura = @numero",
+                        conexion, transaccion)
+                        Parametro(comandoNumero, "@libro", instrumento.IDLibro)
+                        Parametro(comandoNumero, "@excluir", instrumento.ID)
+                        Parametro(comandoNumero, "@numero", instrumento.NumeroEscritura)
+                        numeroDuplicado = Convert.ToInt32(comandoNumero.ExecuteScalar())
+                    End Using
+
+                    If numeroDuplicado > 0 Then
+                        motivo = "El número de escritura ya está registrado en este libro. Las escrituras anuladas también conservan su numeración."
+                        transaccion.Rollback()
+                        Return False
+                    End If
+
                     If String.Equals(instrumento.Estado, "Vigente", StringComparison.OrdinalIgnoreCase) Then
                         Dim traslapes As Integer
                         Using comandoTraslape As New MySqlCommand(
