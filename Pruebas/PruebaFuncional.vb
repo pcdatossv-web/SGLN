@@ -525,6 +525,34 @@ Module PruebaFuncional
                   Not Permisos.TieneAccesoAlguno())
         Verificar("El Administrador puede modificar configuración", Permisos.Puede("config.editar"))
 
+        ' Regresión de la consulta paginada de auditoría: el corte por ID debe
+        ' ser estable y el total debe concordar con la primera página.
+        Dim servicioAuditoria As New ServicioAuditoria()
+        Dim corteAuditoria As Long = servicioAuditoria.ObtenerMaximoId()
+        Verificar("La bitácora establece un corte de ID válido", corteAuditoria > 0)
+        Dim totalAuditoria As Long = servicioAuditoria.Contar(
+            "", "", "", New Date(1000, 1, 1), Date.Today, corteAuditoria)
+        Dim primeraPaginaAuditoria As DataTable = servicioAuditoria.BuscarPagina(
+            "", "", "", New Date(1000, 1, 1), Date.Today, corteAuditoria, 0, 100)
+        Verificar("La primera página de auditoría respeta el tamaño máximo solicitado",
+                  primeraPaginaAuditoria IsNot Nothing AndAlso primeraPaginaAuditoria.Rows.Count <= 100)
+        Verificar("El conteo de auditoría no es menor que los registros de la primera página",
+                  totalAuditoria >= primeraPaginaAuditoria.Rows.Count)
+        If totalAuditoria <= 100 Then
+            Verificar("Cuando la bitácora cabe en una página, el conteo coincide con sus filas",
+                      totalAuditoria = primeraPaginaAuditoria.Rows.Count)
+        End If
+
+        Dim paginaInvalidaRechazada As Boolean = False
+        Try
+            servicioAuditoria.BuscarPagina(
+                "", "", "", New Date(1000, 1, 1), Date.Today, corteAuditoria, 0, 0)
+        Catch ex As ArgumentOutOfRangeException
+            paginaInvalidaRechazada = True
+        End Try
+        Verificar("La consulta de auditoría rechaza tamaños de página inválidos",
+                  paginaInvalidaRechazada)
+
         If idRolAbogado > 0 Then
             Dim usuarioBloqueo As String = "bloq" & Guid.NewGuid().ToString("N").Substring(0, 8)
             Dim altaUsuarioBloqueo As Respuesta = servicioUsuarios.Crear(
