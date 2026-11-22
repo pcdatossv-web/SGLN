@@ -14,6 +14,7 @@ Public Class FrmProtocolo
     ''' <summary>Libro que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDLibroInicial As Integer
     Private _idInstrumento As Integer
+    Private _comparecientesDisponibles As Boolean
     Private _permisosInicializados As Boolean
 
     Private Sub FrmProtocolo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -532,7 +533,7 @@ Public Class FrmProtocolo
 
             CargarComparecientes()
             ActualizarEstadoAccionesContextuales()
-            MostrarMensaje("", True)
+            If _comparecientesDisponibles Then MostrarMensaje("", True)
         Catch ex As Exception
             LimpiarInstrumento()
             RegistroErrores.Escribir("Protocolo - detalle de instrumento", ex)
@@ -542,6 +543,7 @@ Public Class FrmProtocolo
 
     Private Sub LimpiarInstrumento()
         _idInstrumento = 0
+        _comparecientesDisponibles = False
         nudNumeroEscritura.Value = 1
         dtpFechaHoraOtorgamiento.Value = Date.Now
         nudFolioInicio.Value = 1
@@ -658,17 +660,24 @@ Public Class FrmProtocolo
 
     Private Sub CargarComparecientes()
         If _idInstrumento <= 0 Then
+            _comparecientesDisponibles = False
             dgvComparecientes.DataSource = Nothing
+            ActualizarEstadoAccionesContextuales()
             Return
         End If
 
+        _comparecientesDisponibles = False
         Try
             dgvComparecientes.DataSource = _servicio.Comparecientes(_idInstrumento)
             ConfigurarPresentacionGrid(dgvComparecientes)
             OcultarColumnas(dgvComparecientes, "ID", "ID_Cliente")
+            _comparecientesDisponibles = True
         Catch ex As Exception
             dgvComparecientes.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - comparecientes", ex)
+            MostrarMensaje("No se pudieron cargar los comparecientes. Las operaciones sobre esta lista permanecerán bloqueadas hasta recuperar la información.", False)
+        Finally
+            ActualizarEstadoAccionesContextuales()
         End Try
     End Sub
 
@@ -1190,8 +1199,8 @@ Public Class FrmProtocolo
 
         cboClienteComp.Enabled = puedeGestionar AndAlso instrumentoVigente
         cboCalidad.Enabled = puedeGestionar AndAlso instrumentoVigente
-        btnAgregarComp.Enabled = puedeGestionar AndAlso instrumentoVigente
-        btnQuitarComp.Enabled = puedeGestionar AndAlso instrumentoVigente AndAlso comparecienteSeleccionado
+        btnAgregarComp.Enabled = puedeGestionar AndAlso instrumentoVigente AndAlso _comparecientesDisponibles
+        btnQuitarComp.Enabled = puedeGestionar AndAlso instrumentoVigente AndAlso _comparecientesDisponibles AndAlso comparecienteSeleccionado
 
         grpTestimonio.Enabled = puedeTestimonios AndAlso
             (libroVigente OrElse libroCerrado) AndAlso cboInstrumentoTest.Items.Count > 0
