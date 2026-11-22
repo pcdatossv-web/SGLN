@@ -835,8 +835,11 @@ Public Class ProtocoloRepositorio
                         Parametro(comando, "@destinatario", destinatario)
                         Parametro(comando, "@usuario", Sesion.NombreUsuario)
                     End Sub)
+                ' La auditoría conserva la operación y su identificador, pero no
+                ' duplica el nombre del destinatario, que permanece en el registro
+                ' funcional del testimonio con sus controles de acceso.
                 AuditarEnTransaccion(conexion, transaccion, "EXPEDIR TESTIMONIO", "Testimonios_Expedidos",
-                    nuevoId, tipo & " testimonio para " & destinatario)
+                    nuevoId, tipo & " testimonio; instrumento " & idInstrumento)
                 Return nuevoId
             End Function)
     End Sub
