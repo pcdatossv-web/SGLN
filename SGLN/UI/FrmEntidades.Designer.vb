@@ -350,9 +350,10 @@ Partial Class FrmEntidades
         ' cboRepCliente
         '
         Me.cboRepCliente.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboRepCliente.DropDownWidth = 420
+        Me.cboRepCliente.MaxDropDownItems = 15
         Me.cboRepCliente.FormattingEnabled = True
         Me.cboRepCliente.Location = New System.Drawing.Point(15, 42)
-        Me.cboRepCliente.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboRepCliente.Name = "cboRepCliente"
         Me.cboRepCliente.Size = New System.Drawing.Size(240, 23)
         Me.cboRepCliente.TabIndex = 0
