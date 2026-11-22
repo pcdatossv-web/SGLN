@@ -646,6 +646,9 @@ Public Class ProtocoloRepositorio
         If id <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Primero se obtiene la escritura para respetar el orden global de bloqueos:
+                ' libro -> instrumento -> compareciente. Así se reduce el riesgo de deadlocks
+                ' con el cierre del libro y las operaciones de testimonios.
                 Dim idInstrumento As Integer = 0
                 Using consultar As New MySqlCommand(
                     "SELECT ID_Instrumento FROM Comparecientes_Instrumento WHERE ID = @id",
@@ -665,14 +668,36 @@ Public Class ProtocoloRepositorio
                         "No se pueden quitar comparecientes después de expedir testimonios.")
                 End If
 
+                Dim detalleHistorico As String = Nothing
+                Using consultarDetalle As New MySqlCommand(
+                    "SELECT i.Numero_Escritura, cl.Nombres, cl.Apellidos, cl.DUI, c.Calidad " &
+                    "FROM Comparecientes_Instrumento c " &
+                    "INNER JOIN Instrumentos i ON i.ID = c.ID_Instrumento " &
+                    "INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
+                    "WHERE c.ID = @id AND c.ID_Instrumento = @instrumento FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultarDetalle, "@id", id)
+                    Parametro(consultarDetalle, "@instrumento", idInstrumento)
+                    Using lector As MySqlDataReader = consultarDetalle.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        detalleHistorico = "Escritura: " & Convert.ToString(lector("Numero_Escritura")) &
+                            "; compareciente: " & Convert.ToString(lector("Nombres")) & " " &
+                            Convert.ToString(lector("Apellidos")) & "; DUI: " &
+                            If(lector.IsDBNull(lector.GetOrdinal("DUI")), "No registrado", Convert.ToString(lector("DUI"))) &
+                            "; calidad: " & Convert.ToString(lector("Calidad"))
+                    End Using
+                End Using
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "DELETE FROM Comparecientes_Instrumento WHERE ID = @id AND ID_Instrumento = @instrumento",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                         Parametro(comando, "@instrumento", idInstrumento)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "QUITAR COMPARECIENTE",
-                    "Comparecientes_Instrumento", id, "Compareciente eliminado")
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "QUITAR COMPARECIENTE",
+                        "Comparecientes_Instrumento", id, detalleHistorico)
+                End If
                 Return filas
             End Function)
     End Function
