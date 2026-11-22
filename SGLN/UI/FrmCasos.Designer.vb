@@ -92,6 +92,7 @@ Partial Class FrmCasos
         '
         ' lblMensaje
         '
+        Me.lblMensaje.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblMensaje.Location = New System.Drawing.Point(310, 12)
         Me.lblMensaje.Name = "lblMensaje"
         Me.lblMensaje.Size = New System.Drawing.Size(870, 40)
@@ -389,6 +390,7 @@ Partial Class FrmCasos
         '
         Me.lblPropuesta.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblPropuesta.ForeColor = System.Drawing.Color.DimGray
+        Me.lblPropuesta.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblPropuesta.Location = New System.Drawing.Point(15, 145)
         Me.lblPropuesta.Name = "lblPropuesta"
         Me.lblPropuesta.Size = New System.Drawing.Size(755, 40)
