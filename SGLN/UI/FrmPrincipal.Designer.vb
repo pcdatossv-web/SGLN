@@ -46,6 +46,8 @@ Partial Class FrmPrincipal
         Me.dgvAlertas = New System.Windows.Forms.DataGridView()
         Me.btnActualizar = New System.Windows.Forms.Button()
         Me.lblNota = New System.Windows.Forms.Label()
+        Me.lblBuscarAlertas = New System.Windows.Forms.Label()
+        Me.txtBuscarAlertas = New System.Windows.Forms.TextBox()
         Me.tmrActualizacion = New System.Windows.Forms.Timer(Me.components)
         Me.mnuPrincipal.SuspendLayout()
         Me.statusPrincipal.SuspendLayout()
@@ -230,14 +232,32 @@ Partial Class FrmPrincipal
         Me.lblResumen.TabIndex = 3
         Me.lblResumen.Text = "Cargando información..."
         '
+        '
+        ' lblBuscarAlertas
+        '
+        Me.lblBuscarAlertas.Location = New System.Drawing.Point(22, 91)
+        Me.lblBuscarAlertas.Name = "lblBuscarAlertas"
+        Me.lblBuscarAlertas.Size = New System.Drawing.Size(110, 20)
+        Me.lblBuscarAlertas.TabIndex = 7
+        Me.lblBuscarAlertas.Text = "Buscar alertas:"
+        Me.lblBuscarAlertas.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        '
+        ' txtBuscarAlertas
+        '
+        Me.txtBuscarAlertas.Location = New System.Drawing.Point(132, 90)
+        Me.txtBuscarAlertas.Name = "txtBuscarAlertas"
+        Me.txtBuscarAlertas.Size = New System.Drawing.Size(450, 23)
+        Me.txtBuscarAlertas.TabIndex = 8
+        Me.txtBuscarAlertas.MaxLength = 200
+        '
         ' grpAlertas
         '
         Me.grpAlertas.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right, System.Windows.Forms.AnchorStyles)
         Me.grpAlertas.Controls.Add(Me.dgvAlertas)
-        Me.grpAlertas.Location = New System.Drawing.Point(22, 92)
+        Me.grpAlertas.Location = New System.Drawing.Point(22, 122)
         Me.grpAlertas.Name = "grpAlertas"
         Me.grpAlertas.Padding = New System.Windows.Forms.Padding(8)
-        Me.grpAlertas.Size = New System.Drawing.Size(1106, 500)
+        Me.grpAlertas.Size = New System.Drawing.Size(1106, 470)
         Me.grpAlertas.TabIndex = 4
         Me.grpAlertas.TabStop = False
         Me.grpAlertas.Text = "Alertas y pendientes del bufete"
@@ -248,7 +268,7 @@ Partial Class FrmPrincipal
         Me.dgvAlertas.Dock = System.Windows.Forms.DockStyle.Fill
         Me.dgvAlertas.Location = New System.Drawing.Point(8, 24)
         Me.dgvAlertas.Name = "dgvAlertas"
-        Me.dgvAlertas.Size = New System.Drawing.Size(1090, 468)
+        Me.dgvAlertas.Size = New System.Drawing.Size(1090, 438)
         Me.dgvAlertas.TabIndex = 0
         '
         ' btnActualizar
@@ -277,6 +297,8 @@ Partial Class FrmPrincipal
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1150, 700)
         Me.Controls.Add(Me.lblNota)
+        Me.Controls.Add(Me.txtBuscarAlertas)
+        Me.Controls.Add(Me.lblBuscarAlertas)
         Me.Controls.Add(Me.btnActualizar)
         Me.Controls.Add(Me.grpAlertas)
         Me.Controls.Add(Me.lblResumen)
@@ -330,4 +352,6 @@ Partial Class FrmPrincipal
     Friend WithEvents btnActualizar As System.Windows.Forms.Button
     Friend WithEvents lblNota As System.Windows.Forms.Label
     Friend WithEvents tmrActualizacion As System.Windows.Forms.Timer
+    Friend WithEvents lblBuscarAlertas As System.Windows.Forms.Label
+    Friend WithEvents txtBuscarAlertas As System.Windows.Forms.TextBox
 End Class
