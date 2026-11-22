@@ -443,7 +443,11 @@ Public Class FrmCasos
             CargarGrid("")
             SeleccionarCaso(caso.ID)
             CargarActuaciones()
-            MostrarMensaje(respuesta.Mensaje, True)
+            If _actuacionesDisponibles Then
+                MostrarMensaje(respuesta.Mensaje, True)
+            Else
+                MostrarMensaje(respuesta.Mensaje & " El historial no pudo actualizarse; las acciones de plazos permanecen bloqueadas.", False)
+            End If
         Catch ex As Exception
             RegistroErrores.Escribir("Casos - guardar", ex)
             MostrarMensaje("No se pudo guardar el caso. Verifique los datos y la conexión con la base de datos.", False)
@@ -534,7 +538,11 @@ Public Class FrmCasos
 
         CargarActuaciones()
         LimpiarPlazo()
-        MostrarMensaje(respuesta.Mensaje, True)
+        If _actuacionesDisponibles Then
+            MostrarMensaje(respuesta.Mensaje, True)
+        Else
+            MostrarMensaje(respuesta.Mensaje & " El historial no pudo actualizarse; las acciones de plazos permanecen bloqueadas.", False)
+        End If
     End Sub
 
     Private Sub MarcarCumplida()
@@ -560,7 +568,11 @@ Public Class FrmCasos
         End If
 
         CargarActuaciones()
-        MostrarMensaje(respuesta.Mensaje, True)
+        If _actuacionesDisponibles Then
+            MostrarMensaje(respuesta.Mensaje, True)
+        Else
+            MostrarMensaje(respuesta.Mensaje & " El historial no pudo actualizarse; las acciones de plazos permanecen bloqueadas.", False)
+        End If
     End Sub
 
     Private Sub ActualizarVencidas()
