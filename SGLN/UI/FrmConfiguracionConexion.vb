@@ -39,6 +39,16 @@ Public Class FrmConfiguracionConexion
         End If
     End Sub
 
+    Private Sub FrmConfiguracionConexion_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        ' Las credenciales solo deben permanecer en los controles mientras
+        ' el formulario está abierto; vaciarlas también al cancelar o cerrar.
+        txtPassword.Clear()
+        txtPasswordRespaldo.Clear()
+        chkMostrarClaves.Checked = False
+        txtPassword.UseSystemPasswordChar = True
+        txtPasswordRespaldo.UseSystemPasswordChar = True
+    End Sub
+
     Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
         Dim mostrar As Boolean = chkMostrarClaves.Checked
         txtPassword.UseSystemPasswordChar = Not mostrar
