@@ -247,10 +247,17 @@ Public Class CasoRepositorio
         If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Throw New UnauthorizedAccessException("No tiene permiso para actualizar plazos.")
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Usar la fecha local de la aplicación evita que la zona horaria
+                ' del servidor MySQL adelante o retrase el vencimiento respecto
+                ' de la fecha que ve el usuario en el sistema.
+                Dim fechaLocal As Date = Date.Today
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
                     "WHERE Estado = 'Pendiente' AND Fecha_Vencimiento_Calculada IS NOT NULL " &
-                    "AND Fecha_Vencimiento_Calculada < CURDATE()")
+                    "AND Fecha_Vencimiento_Calculada < @hoy",
+                    Sub(comando As MySqlCommand)
+                        Parametro(comando, "@hoy", fechaLocal)
+                    End Sub)
                 If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ACTUALIZAR", "Actuaciones_Procesales",
                     Nothing, filas & " plazos marcados como vencidos")
                 Return filas
