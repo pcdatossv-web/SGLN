@@ -1,3 +1,4 @@
+Imports System.Collections.Generic
 Imports System
 Imports System.Data
 Imports System.Drawing
@@ -140,12 +141,7 @@ Public Class FrmAuditoria
             dgvAuditoria.DataSource = _servicio.BuscarPagina(
                 usuario, tabla, accion, desde, hasta, _snapshotMaxId, _paginaActual, TamanoPagina)
 
-            If dgvAuditoria.Columns.Contains("ID") Then dgvAuditoria.Columns("ID").Visible = False
-            If dgvAuditoria.Columns.Contains("Fecha_Hora") Then
-                dgvAuditoria.Columns("Fecha_Hora").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss"
-                dgvAuditoria.Columns("Fecha_Hora").FillWeight = 110
-            End If
-            If dgvAuditoria.Columns.Contains("Detalle") Then dgvAuditoria.Columns("Detalle").FillWeight = 250
+            ConfigurarColumnasAuditoria()
 
             If _totalRegistros = 0 Then
                 lblResumen.Text = "No se encontraron registros."
@@ -169,6 +165,60 @@ Public Class FrmAuditoria
             ActualizarEstadoPaginacion()
             ActualizarEstadoExportacion()
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Presenta nombres comprensibles y prioriza el espacio para el detalle
+    ''' sin exponer el identificador técnico interno de la bitácora.
+    ''' </summary>
+    Private Sub ConfigurarColumnasAuditoria()
+        If dgvAuditoria.Columns.Contains("ID") Then
+            dgvAuditoria.Columns("ID").Visible = False
+        End If
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Usuario", "Usuario"},
+            {"Fecha_Hora", "Fecha y hora"},
+            {"Accion", "Acción"},
+            {"Tabla_Afectada", "Tabla"},
+            {"ID_Registro", "N.º de registro"},
+            {"Detalle", "Detalle"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvAuditoria.Columns.Contains(par.Key) Then
+                dgvAuditoria.Columns(par.Key).HeaderText = par.Value
+            End If
+        Next
+
+        If dgvAuditoria.Columns.Contains("Fecha_Hora") Then
+            With dgvAuditoria.Columns("Fecha_Hora")
+                .DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss"
+                .FillWeight = 115
+                .MinimumWidth = 145
+            End With
+        End If
+
+        If dgvAuditoria.Columns.Contains("Usuario") Then
+            dgvAuditoria.Columns("Usuario").FillWeight = 85
+        End If
+        If dgvAuditoria.Columns.Contains("Accion") Then
+            dgvAuditoria.Columns("Accion").FillWeight = 75
+        End If
+        If dgvAuditoria.Columns.Contains("Tabla_Afectada") Then
+            dgvAuditoria.Columns("Tabla_Afectada").FillWeight = 85
+        End If
+        If dgvAuditoria.Columns.Contains("ID_Registro") Then
+            dgvAuditoria.Columns("ID_Registro").FillWeight = 65
+        End If
+        If dgvAuditoria.Columns.Contains("Detalle") Then
+            With dgvAuditoria.Columns("Detalle")
+                .FillWeight = 250
+                .MinimumWidth = 220
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+            dgvAuditoria.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+        End If
     End Sub
 
     Private Sub ActualizarEstadoPaginacion()
