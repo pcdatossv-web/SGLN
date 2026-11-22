@@ -266,6 +266,12 @@ Public Class FrmEntidades
         If Not Permisos.ExigirAccion("entidades.gestionar") Then Return
 
         Try
+            If dtpVerificacionListas.Checked AndAlso dtpVerificacionListas.Value.Date > Date.Today Then
+                UtileriasUI.MostrarError("La fecha de verificación de listas no puede ser futura.")
+                dtpVerificacionListas.Focus()
+                Return
+            End If
+
             Dim entidad As New EntidadLegal With {
                 .ID = _idEntidad,
                 .RazonSocial = txtRazonSocial.Text,
