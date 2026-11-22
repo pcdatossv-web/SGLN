@@ -1160,7 +1160,10 @@ Public Class FrmProtocolo
     ''' selección. La validación definitiva permanece en ServicioProtocolo.
     ''' </summary>
     Private Sub ActualizarEstadoAccionesContextuales()
-        If Not _permisosInicializados AndAlso Not Permisos.Puede("protocolo.ver") Then Return
+        If Not _permisosInicializados AndAlso
+           Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar",
+                                         "protocolo.cerrar_libro", "protocolo.entregar",
+                                         "protocolo.testimonios") Then Return
 
         Dim puedeGestionar As Boolean = Permisos.Puede("protocolo.gestionar")
         Dim puedeCerrar As Boolean = Permisos.Puede("protocolo.cerrar_libro")
