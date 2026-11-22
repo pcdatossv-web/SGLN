@@ -627,6 +627,7 @@ Public Class FrmCasos
                                   Convert.ToString(fila.Cells("Estado").Value), "")
 
         If nombreColumna = "Estado" Then
+            e.CellStyle.ForeColor = Color.Empty
             Select Case estado.Trim().ToUpperInvariant()
                 Case "VENCIDO"
                     e.CellStyle.ForeColor = Color.Firebrick
@@ -641,6 +642,13 @@ Public Class FrmCasos
         ' El color del vencimiento permite detectar plazos críticos incluso
         ' cuando el usuario no tiene permiso para ejecutar la actualización
         ' global que cambia Pendiente a Vencido en la base de datos.
+        If nombreColumna = "Fecha_Vencimiento_Calculada" Then
+            ' Restablece estilos previos para evitar colores persistentes tras refrescar.
+            e.CellStyle.ForeColor = Color.Empty
+            e.CellStyle.BackColor = Color.Empty
+        End If
+
+
         If nombreColumna = "Fecha_Vencimiento_Calculada" AndAlso
            e.Value IsNot Nothing AndAlso Not Convert.IsDBNull(e.Value) Then
             Dim vencimiento As Date
