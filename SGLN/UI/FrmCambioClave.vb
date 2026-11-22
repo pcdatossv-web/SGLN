@@ -71,7 +71,7 @@ Partial Public Class FrmCambioClave
             If Not respuesta.Exito Then
                 lblMensaje.ForeColor = Color.Firebrick
                 lblMensaje.Text = respuesta.Mensaje
-                txtActual.Clear()
+                LimpiarCamposClave()
                 txtActual.Focus()
                 Return
             End If
@@ -82,7 +82,18 @@ Partial Public Class FrmCambioClave
             Me.Close()
         Catch ex As Exception
             RegistroErrores.Escribir("Cambiar mi clave", ex)
+            LimpiarCamposClave()
             lblMensaje.Text = "No se pudo cambiar la clave. Verifique la conexión y vuelva a intentarlo."
         End Try
+    End Sub
+
+    Private Sub LimpiarCamposClave()
+        txtActual.Clear()
+        txtNueva.Clear()
+        txtConfirmar.Clear()
+        chkMostrarClaves.Checked = False
+        txtActual.UseSystemPasswordChar = True
+        txtNueva.UseSystemPasswordChar = True
+        txtConfirmar.UseSystemPasswordChar = True
     End Sub
 End Class
