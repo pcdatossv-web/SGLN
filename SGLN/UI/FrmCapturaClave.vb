@@ -28,7 +28,6 @@ Partial Public Class FrmCapturaClave
         ' El diálogo puede manejar claves actuales o nuevas; limpiar ambos campos al cerrarlo.
         txtClave.Clear()
         txtConfirmar.Clear()
-        ClaveCapturada = Nothing
         chkMostrarClaves.Checked = False
     End Sub
 
