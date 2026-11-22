@@ -58,9 +58,9 @@ Public Class FrmCasos
         If errorCargaLista Then
             Limpiar()
         ElseIf IDCasoInicial > 0 Then
-            If SeleccionarCaso(IDCasoInicial) Then
-                CargarCaso(IDCasoInicial)
-            Else
+            ' SeleccionarCaso ya carga el detalle y el historial del expediente.
+            ' Evitar una segunda consulta al abrir desde una alerta.
+            If Not SeleccionarCaso(IDCasoInicial) Then
                 Limpiar()
                 MostrarMensaje("El expediente asociado a la alerta ya no está disponible.", False)
             End If
