@@ -127,6 +127,14 @@ Public Class FrmLogin
         End Using
     End Function
 
+    Private Sub FrmLogin_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        ' Liberar credenciales visibles al cerrar el formulario, incluso si
+        ' el usuario cancela el inicio de sesión o la autenticación termina bien.
+        txtClave.Clear()
+        chkMostrarClave.Checked = False
+        txtUsuario.Clear()
+    End Sub
+
     Private Sub btnSalir_Click(sender As Object, e As EventArgs) Handles btnSalir.Click
         Me.DialogResult = DialogResult.Cancel
         Me.Close()
