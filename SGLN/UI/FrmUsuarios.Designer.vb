@@ -49,7 +49,15 @@ Partial Class FrmUsuarios
         '
         Me.dgvUsuarios.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.dgvUsuarios.AllowUserToAddRows = False
+        Me.dgvUsuarios.AllowUserToDeleteRows = False
+        Me.dgvUsuarios.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvUsuarios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvUsuarios.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically
+        Me.dgvUsuarios.MultiSelect = False
+        Me.dgvUsuarios.ReadOnly = True
+        Me.dgvUsuarios.RowHeadersVisible = False
+        Me.dgvUsuarios.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
         Me.dgvUsuarios.Location = New System.Drawing.Point(12, 48)
         Me.dgvUsuarios.Name = "dgvUsuarios"
         Me.dgvUsuarios.Size = New System.Drawing.Size(690, 624)
