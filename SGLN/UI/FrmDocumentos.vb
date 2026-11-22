@@ -16,6 +16,7 @@ Public Class FrmDocumentos
     Private _puedeMetadatos As Boolean
     Private _puedeVerificar As Boolean
     Private _permisosInicializados As Boolean
+    Private _catalogosDisponibles As Boolean
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Revalidar la sesión una vez al abrir y evaluar la matriz recién cargada.
@@ -119,14 +120,21 @@ Public Class FrmDocumentos
     End Function
 
     Private Sub CargarCombos(Optional idInstrumentoActual As Integer? = Nothing)
+        _catalogosDisponibles = False
         Try
-            UtileriasUI.CargarCombo(cboCaso, ConOpcionNinguno(_servicio.CasosCombo()), "Nombre", "ID")
-            UtileriasUI.CargarCombo(cboInstrumento, ConOpcionNinguno(_servicio.InstrumentosCombo(idInstrumentoActual)), "Nombre", "ID")
+            Dim casos As DataTable = ConOpcionNinguno(_servicio.CasosCombo())
+            Dim instrumentos As DataTable = ConOpcionNinguno(_servicio.InstrumentosCombo(idInstrumentoActual))
+            UtileriasUI.CargarCombo(cboCaso, casos, "Nombre", "ID")
+            UtileriasUI.CargarCombo(cboInstrumento, instrumentos, "Nombre", "ID")
+            _catalogosDisponibles = True
         Catch ex As Exception
             cboCaso.DataSource = Nothing
             cboInstrumento.DataSource = Nothing
             RegistroErrores.Escribir("Documentos - combos", ex)
-            MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
+            MostrarMensaje("No se pudieron cargar los catálogos. No se permitirá guardar metadatos ni importar con vínculos incompletos.", False)
+        Finally
+            ActualizarEdicionMetadatos(_idDocumento <= 0)
+            ActualizarAccionesDocumento()
         End Try
     End Sub
 
@@ -238,8 +246,10 @@ Public Class FrmDocumentos
         CargarCombos(idInstrumentoActual)
 
         SeleccionarTexto(cboTipoDocumento, UtileriasUI.Texto(fila, "Tipo_Documento"))
-        UtileriasUI.SeleccionarValor(cboCaso, If(fila.IsNull("ID_Caso"), 0, fila("ID_Caso")))
-        UtileriasUI.SeleccionarValor(cboInstrumento, If(fila.IsNull("ID_Instrumento"), 0, fila("ID_Instrumento")))
+        If _catalogosDisponibles Then
+            UtileriasUI.SeleccionarValor(cboCaso, If(fila.IsNull("ID_Caso"), 0, fila("ID_Caso")))
+            UtileriasUI.SeleccionarValor(cboInstrumento, If(fila.IsNull("ID_Instrumento"), 0, fila("ID_Instrumento")))
+        End If
 
         txtHash.Text = UtileriasUI.Texto(fila, "Hash")
         txtEstadoIA.Text = UtileriasUI.Texto(fila, "Estado_Procesamiento_IA")
@@ -250,7 +260,11 @@ Public Class FrmDocumentos
         _cargando = False
         ActualizarEdicionMetadatos(False)
         ActualizarAccionesDocumento()
-        MostrarMensaje("", True)
+        If _catalogosDisponibles Then
+            MostrarMensaje("", True)
+        Else
+            MostrarMensaje("No se pudieron cargar los catálogos. La edición de metadatos y la importación están bloqueadas para evitar perder vínculos.", False)
+        End If
     End Sub
 
     Private Sub Limpiar()
@@ -276,7 +290,7 @@ Public Class FrmDocumentos
     ''' el permiso específico puede editar sus metadatos.
     ''' </summary>
     Private Sub ActualizarEdicionMetadatos(paraNuevoDocumento As Boolean)
-        Dim puedeEditar As Boolean = _puedeMetadatos OrElse (paraNuevoDocumento AndAlso _puedeImportar)
+        Dim puedeEditar As Boolean = _catalogosDisponibles AndAlso (_puedeMetadatos OrElse (paraNuevoDocumento AndAlso _puedeImportar))
         cboTipoDocumento.Enabled = puedeEditar
         cboCaso.Enabled = puedeEditar
         cboInstrumento.Enabled = puedeEditar
@@ -296,6 +310,10 @@ Public Class FrmDocumentos
 
     Private Sub Importar()
         If Not Permisos.ExigirAccion("documentos.importar") Then Return
+        If Not _catalogosDisponibles Then
+            MostrarMensaje("No se puede importar: los catálogos de casos e instrumentos no están disponibles.", False)
+            Return
+        End If
 
         Using dialogo As New OpenFileDialog()
             dialogo.Title = "Seleccione el documento a importar"
@@ -336,6 +354,10 @@ Public Class FrmDocumentos
 
     Private Sub ActualizarMetadatos()
         If Not Permisos.ExigirAccion("documentos.metadatos") Then Return
+        If Not _catalogosDisponibles Then
+            MostrarMensaje("No se pueden guardar metadatos porque no se pudieron cargar los vínculos actuales. Actualice los catálogos e intente nuevamente.", False)
+            Return
+        End If
 
         If _idDocumento <= 0 Then
             UtileriasUI.MostrarError("Seleccione un documento de la lista.")
