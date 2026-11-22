@@ -180,6 +180,7 @@ Public Class FrmProtocolo
 
             _cargando = True
             dgvLibros.DataSource = tabla
+            ConfigurarPresentacionGrid(dgvLibros)
             OcultarColumnas(dgvLibros, "ID", "Razon_Cierre")
 
             UtileriasUI.CargarCombo(cboLibro, TablaLibrosCombo(tabla), "Descripcion", "ID")
@@ -409,6 +410,7 @@ Public Class FrmProtocolo
             txtBuscarInstrumento.Clear()
             _vistaInstrumentos = New DataView(tabla)
             dgvInstrumentos.DataSource = _vistaInstrumentos
+            ConfigurarPresentacionGrid(dgvInstrumentos)
             AplicarFiltroInstrumentosInterno()
             OcultarColumnas(dgvInstrumentos, "ID")
             _cargando = False
@@ -643,6 +645,7 @@ Public Class FrmProtocolo
 
         Try
             dgvComparecientes.DataSource = _servicio.Comparecientes(_idInstrumento)
+            ConfigurarPresentacionGrid(dgvComparecientes)
             OcultarColumnas(dgvComparecientes, "ID", "ID_Cliente")
         Catch ex As Exception
             dgvComparecientes.DataSource = Nothing
@@ -746,6 +749,7 @@ Public Class FrmProtocolo
             txtBuscarTestimonio.Clear()
             _vistaTestimonios = New DataView(tabla)
             dgvTestimonios.DataSource = _vistaTestimonios
+            ConfigurarPresentacionGrid(dgvTestimonios)
             OcultarColumnas(dgvTestimonios, "ID")
             _cargando = False
         Catch ex As Exception
@@ -857,6 +861,7 @@ Public Class FrmProtocolo
 
         Try
             dgvIndice.DataSource = _servicio.IndiceLibro(_idLibro)
+            ConfigurarPresentacionGrid(dgvIndice)
             If dgvIndice.Columns.Contains("Fecha_Hora_Otorgamiento") Then
                 dgvIndice.Columns("Fecha_Hora_Otorgamiento").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
             End If
@@ -946,6 +951,52 @@ Public Class FrmProtocolo
     ' ------------------------------------------------------------------
     ' Utilidades
     ' ------------------------------------------------------------------
+
+    ''' <summary>
+    ''' Normaliza la presentación de las tablas notariales sin modificar los
+    ''' nombres de las columnas devueltas por el repositorio.
+    ''' </summary>
+    Private Sub ConfigurarPresentacionGrid(grid As DataGridView)
+        If grid Is Nothing OrElse grid.Columns.Count = 0 Then Return
+
+        For Each columna As DataGridViewColumn In grid.Columns
+            columna.SortMode = DataGridViewColumnSortMode.Automatic
+            columna.HeaderText = columna.HeaderText.Replace("_", " ")
+            columna.MinimumWidth = 55
+        Next
+
+        If grid.Columns.Contains("Numero_Libro") Then grid.Columns("Numero_Libro").HeaderText = "Libro"
+        If grid.Columns.Contains("Anio_Vigencia") Then grid.Columns("Anio_Vigencia").HeaderText = "Año"
+        If grid.Columns.Contains("Fecha_Autorizacion") Then
+            grid.Columns("Fecha_Autorizacion").HeaderText = "Autorización"
+            grid.Columns("Fecha_Autorizacion").DefaultCellStyle.Format = "dd/MM/yyyy"
+        End If
+        If grid.Columns.Contains("Fecha_Vencimiento") Then
+            grid.Columns("Fecha_Vencimiento").HeaderText = "Vencimiento"
+            grid.Columns("Fecha_Vencimiento").DefaultCellStyle.Format = "dd/MM/yyyy"
+        End If
+        If grid.Columns.Contains("Numero_Escritura") Then grid.Columns("Numero_Escritura").HeaderText = "Escritura"
+        If grid.Columns.Contains("Fecha_Hora_Otorgamiento") Then
+            grid.Columns("Fecha_Hora_Otorgamiento").HeaderText = "Otorgamiento"
+            grid.Columns("Fecha_Hora_Otorgamiento").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
+        End If
+        If grid.Columns.Contains("Folio_Inicio") Then grid.Columns("Folio_Inicio").HeaderText = "Folio inicial"
+        If grid.Columns.Contains("Folio_Fin") Then grid.Columns("Folio_Fin").HeaderText = "Folio final"
+        If grid.Columns.Contains("Objeto_Acto") Then grid.Columns("Objeto_Acto").HeaderText = "Acto / objeto"
+        If grid.Columns.Contains("Comparecientes") Then grid.Columns("Comparecientes").HeaderText = "Comparecientes"
+        If grid.Columns.Contains("Cliente") Then grid.Columns("Cliente").HeaderText = "Compareciente"
+        If grid.Columns.Contains("DUI") Then grid.Columns("DUI").HeaderText = "DUI"
+        If grid.Columns.Contains("Calidad") Then grid.Columns("Calidad").HeaderText = "Calidad"
+        If grid.Columns.Contains("Tipo_Testimonio") Then grid.Columns("Tipo_Testimonio").HeaderText = "Tipo"
+        If grid.Columns.Contains("Fecha_Expedicion") Then
+            grid.Columns("Fecha_Expedicion").HeaderText = "Expedición"
+            grid.Columns("Fecha_Expedicion").DefaultCellStyle.Format = "dd/MM/yyyy"
+        End If
+        If grid.Columns.Contains("Destinatario") Then grid.Columns("Destinatario").HeaderText = "Destinatario"
+        If grid.Columns.Contains("Usuario") Then grid.Columns("Usuario").HeaderText = "Registrado por"
+        If grid.Columns.Contains("Otorgantes") Then grid.Columns("Otorgantes").HeaderText = "Otorgantes"
+        If grid.Columns.Contains("Estado") Then grid.Columns("Estado").HeaderText = "Estado"
+    End Sub
 
     Private Sub OcultarColumnas(grid As DataGridView, ParamArray nombres As String())
         For Each nombre As String In nombres
