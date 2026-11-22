@@ -306,7 +306,9 @@ Public Class FrmCasos
             ActualizarAccionesPlazo()
         Catch ex As Exception
             dgvActuaciones.DataSource = Nothing
+            btnMarcarCumplida.Enabled = False
             RegistroErrores.Escribir("Casos - actuaciones", ex)
+            MostrarMensaje("No se pudieron cargar las actuaciones del expediente. No se habilitarán acciones hasta recuperar la información.", False)
         End Try
     End Sub
 
