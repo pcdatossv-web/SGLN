@@ -278,7 +278,7 @@ Public Module InicializadorBD
             Dim bloqueoAdquirido As Boolean = False
             Try
                 Using comando As New MySqlCommand(
-                    "SELECT GET_LOCK(CONCAT('SGLN_SEMILLA_', DATABASE()), 30)", conexion)
+                    "SELECT GET_LOCK(CONCAT('SGLN_SEMILLA_', LEFT(SHA2(DATABASE(), 256), 48)), 30)", conexion)
                     bloqueoAdquirido = Convert.ToInt32(comando.ExecuteScalar()) = 1
                 End Using
                 If Not bloqueoAdquirido Then
@@ -294,7 +294,7 @@ Public Module InicializadorBD
                 If bloqueoAdquirido Then
                     Try
                         Using comando As New MySqlCommand(
-                            "SELECT RELEASE_LOCK(CONCAT('SGLN_SEMILLA_', DATABASE()))", conexion)
+                            "SELECT RELEASE_LOCK(CONCAT('SGLN_SEMILLA_', LEFT(SHA2(DATABASE(), 256), 48)))", conexion)
                             comando.ExecuteScalar()
                         End Using
                     Catch
