@@ -1,6 +1,7 @@
 Imports System
 Imports System.IO
 Imports System.Text
+Imports Microsoft.VisualBasic
 
 ''' <summary>
 ''' Registro de errores por usuario Windows. Se escribe en LocalAppData para
