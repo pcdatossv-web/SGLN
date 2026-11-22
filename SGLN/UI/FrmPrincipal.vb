@@ -1,4 +1,5 @@
 Imports System
+Imports System.Collections.Generic
 Imports System.Windows.Forms
 
 Public Class FrmPrincipal
@@ -86,6 +87,7 @@ Public Class FrmPrincipal
             Dim servicio As New ServicioAlertas()
             Dim alertas As DataTable = servicio.ObtenerAlertas()
             dgvAlertas.DataSource = alertas.DefaultView
+            ConfigurarColumnasAlertas()
             AplicarFiltroAlertas()
             lblResumen.Text = servicio.ObtenerResumen()
             lblFecha.Text = "Actualizado: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
@@ -118,6 +120,68 @@ Public Class FrmPrincipal
             lblResumen.Text = "No se pudieron cargar las alertas ni el resumen. Verifique la conexión con la base de datos."
             lblNota.Text = "La información del panel no está actualizada. No utilice los datos anteriores para tomar decisiones."
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Presentación uniforme del panel. Los identificadores técnicos se
+    ''' conservan en el DataTable para navegación, pero no se exponen al usuario.
+    ''' </summary>
+    Private Sub ConfigurarColumnasAlertas()
+        If dgvAlertas.Columns.Count = 0 Then Return
+
+        If dgvAlertas.Columns.Contains("ID_Referencia") Then
+            dgvAlertas.Columns("ID_Referencia").Visible = False
+        End If
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Tipo", "Categoría"},
+            {"Descripcion", "Detalle"},
+            {"Fecha_Referencia", "Fecha límite"},
+            {"Prioridad", "Prioridad"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvAlertas.Columns.Contains(par.Key) Then
+                dgvAlertas.Columns(par.Key).HeaderText = par.Value
+                dgvAlertas.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvAlertas.Columns.Contains("Tipo") Then
+            With dgvAlertas.Columns("Tipo")
+                .MinimumWidth = 105
+                .FillWeight = 75
+            End With
+        End If
+
+        If dgvAlertas.Columns.Contains("Descripcion") Then
+            With dgvAlertas.Columns("Descripcion")
+                .MinimumWidth = 280
+                .FillWeight = 230
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+        End If
+
+        If dgvAlertas.Columns.Contains("Fecha_Referencia") Then
+            With dgvAlertas.Columns("Fecha_Referencia")
+                .MinimumWidth = 105
+                .FillWeight = 75
+                .DefaultCellStyle.Format = "dd/MM/yyyy"
+                .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End With
+        End If
+
+        If dgvAlertas.Columns.Contains("Prioridad") Then
+            With dgvAlertas.Columns("Prioridad")
+                .MinimumWidth = 85
+                .FillWeight = 55
+                .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End With
+        End If
+
+        dgvAlertas.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+        dgvAlertas.DefaultCellStyle.SelectionBackColor = Color.FromArgb(214, 228, 245)
+        dgvAlertas.DefaultCellStyle.SelectionForeColor = Color.FromArgb(24, 52, 92)
     End Sub
 
     Private Sub Abrir(Of T As {Form, New})()
