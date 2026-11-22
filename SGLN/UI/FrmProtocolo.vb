@@ -896,6 +896,8 @@ Public Class FrmProtocolo
         Catch ex As Exception
             dgvIndice.DataSource = Nothing
             RegistroErrores.Escribir("Protocolo - índice", ex)
+            MostrarMensaje("No se pudo cargar el índice del libro. La exportación permanecerá deshabilitada hasta recuperar la información.", False)
+            ActualizarEstadoAccionesContextuales()
         End Try
     End Sub
 
