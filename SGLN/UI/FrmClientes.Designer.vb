@@ -324,7 +324,6 @@ Partial Class FrmClientes
         ' dtpNacimiento
         '
         Me.dtpNacimiento.Format = System.Windows.Forms.DateTimePickerFormat.Short
-        Me.dtpNacimiento.MaxDate = System.DateTime.Today
         Me.dtpNacimiento.Location = New System.Drawing.Point(300, 158)
         Me.dtpNacimiento.Name = "dtpNacimiento"
         Me.dtpNacimiento.ShowCheckBox = True
@@ -485,7 +484,6 @@ Partial Class FrmClientes
         ' dtpVerificacionListas
         '
         Me.dtpVerificacionListas.Format = System.Windows.Forms.DateTimePickerFormat.Short
-        Me.dtpVerificacionListas.MaxDate = System.DateTime.Today
         Me.dtpVerificacionListas.Location = New System.Drawing.Point(20, 230)
         Me.dtpVerificacionListas.Name = "dtpVerificacionListas"
         Me.dtpVerificacionListas.ShowCheckBox = True
