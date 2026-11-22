@@ -74,7 +74,7 @@ Public Class FrmCasos
         ElseIf errorCargaCombos Then
             MostrarMensaje("No se pudieron cargar los catálogos de casos. Verifique la conexión con la base de datos.", False)
         ElseIf dgvCasos.Rows.Count = 0 Then
-            MostrarMensaje("No hay expedientes registrados. Puede crear uno con el botón ""Nuevo"".", True)
+            MostrarInformacion("No hay expedientes registrados. Puede crear uno con el botón ""Nuevo"".")
         End If
 
         _permisosInicializados = True
@@ -191,9 +191,9 @@ Public Class FrmCasos
             If cargarDetalleSeleccionado AndAlso dgvCasos.Rows.Count = 0 Then
                 Dim termino As String = If(filtro, "").Trim()
                 If termino.Length = 0 Then
-                    MostrarMensaje("No hay expedientes registrados.", True)
+                    MostrarInformacion("No hay expedientes registrados.")
                 Else
-                    MostrarMensaje("No se encontraron expedientes que coincidan con """ & termino & """.", True)
+                    MostrarInformacion("No se encontraron expedientes que coincidan con """ & termino & """.")
                 End If
             End If
         Catch ex As Exception
@@ -665,6 +665,14 @@ Public Class FrmCasos
     Private Sub MostrarMensaje(texto As String, exito As Boolean)
         lblMensaje.Text = texto
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
+    End Sub
+
+    ''' <summary>
+    ''' Muestra información neutral sin presentarla como éxito o error.
+    ''' </summary>
+    Private Sub MostrarInformacion(texto As String)
+        lblMensaje.Text = texto
+        lblMensaje.ForeColor = Color.DimGray
     End Sub
 
     ''' <summary>
