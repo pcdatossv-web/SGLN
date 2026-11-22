@@ -193,7 +193,7 @@ Public Class FrmCasos
                 If termino.Length = 0 Then
                     MostrarMensaje("No hay expedientes registrados.", True)
                 Else
-                    MostrarMensaje("No se encontraron expedientes que coincidan con "" " & termino & " "". ", True)
+                    MostrarMensaje("No se encontraron expedientes que coincidan con """ & termino & """.", True)
                 End If
             End If
         Catch ex As Exception
