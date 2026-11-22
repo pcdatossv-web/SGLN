@@ -17,7 +17,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Libros() As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, Numero_Libro, Anio_Vigencia, Fecha_Autorizacion, Fecha_Vencimiento, " &
             "       Estado, Fecha_Cierre, Fecha_Entrega_Notariado, Indice_Generado, Razon_Cierre " &
@@ -260,7 +260,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Instrumentos(idLibro As Integer) As DataTable
-        If idLibro <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.cerrar_libro", "protocolo.entregar", "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT i.ID, i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
             "       i.Objeto_Acto, i.Estado, " &
@@ -569,7 +569,7 @@ Public Class ProtocoloRepositorio
     ' ------------------------------------------------------------------
 
     Public Function Comparecientes(idInstrumento As Integer) As DataTable
-        If idInstrumento <= 0 OrElse Not Permisos.TieneAcceso("protocolo.ver") Then Return New DataTable()
+        If idInstrumento <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar", "protocolo.testimonios") Then Return New DataTable()
         Return Consultar(
             "SELECT c.ID, c.ID_Cliente, CONCAT(cl.Nombres, ' ', cl.Apellidos) AS Cliente, " &
             "       IFNULL(cl.DUI, '') AS DUI, c.Calidad " &
