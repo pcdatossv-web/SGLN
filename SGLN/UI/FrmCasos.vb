@@ -287,13 +287,53 @@ Public Class FrmCasos
 
         Try
             dgvActuaciones.DataSource = _plazos.Actuaciones(_idCaso)
-            If dgvActuaciones.Columns.Contains("ID") Then dgvActuaciones.Columns("ID").Visible = False
-            If dgvActuaciones.Columns.Contains("ID_Tipo_Actuacion") Then dgvActuaciones.Columns("ID_Tipo_Actuacion").Visible = False
+            ConfigurarColumnasActuaciones()
             ActualizarAccionesPlazo()
         Catch ex As Exception
             dgvActuaciones.DataSource = Nothing
             RegistroErrores.Escribir("Casos - actuaciones", ex)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Presenta el historial procesal con nombres claros y fechas uniformes.
+    ''' Los identificadores técnicos permanecen ocultos y la grilla es de consulta.
+    ''' </summary>
+    Private Sub ConfigurarColumnasActuaciones()
+        If dgvActuaciones.Columns.Contains("ID") Then dgvActuaciones.Columns("ID").Visible = False
+        If dgvActuaciones.Columns.Contains("ID_Tipo_Actuacion") Then dgvActuaciones.Columns("ID_Tipo_Actuacion").Visible = False
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Tipo", "Actuación"},
+            {"Fecha_Notificacion", "Notificación"},
+            {"Plazo_Legal_Dias", "Días hábiles"},
+            {"Fecha_Vencimiento_Calculada", "Vencimiento"},
+            {"Estado", "Estado"},
+            {"Observaciones", "Observaciones"},
+            {"Fecha_Confirmacion", "Confirmada el"},
+            {"Usuario_Confirma", "Confirmada por"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvActuaciones.Columns.Contains(par.Key) Then
+                dgvActuaciones.Columns(par.Key).HeaderText = par.Value
+                dgvActuaciones.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        For Each nombre As String In {"Fecha_Notificacion", "Fecha_Vencimiento_Calculada", "Fecha_Confirmacion"}
+            If dgvActuaciones.Columns.Contains(nombre) Then
+                dgvActuaciones.Columns(nombre).DefaultCellStyle.Format = "dd/MM/yyyy"
+                dgvActuaciones.Columns(nombre).MinimumWidth = 90
+            End If
+        Next
+
+        If dgvActuaciones.Columns.Contains("Plazo_Legal_Dias") Then
+            dgvActuaciones.Columns("Plazo_Legal_Dias").Width = 80
+        End If
+        If dgvActuaciones.Columns.Contains("Estado") Then
+            dgvActuaciones.Columns("Estado").Width = 90
+        End If
     End Sub
 
     Private Sub Limpiar()
