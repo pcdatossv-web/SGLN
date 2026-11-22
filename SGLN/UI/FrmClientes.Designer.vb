@@ -438,6 +438,7 @@ Partial Class FrmClientes
         Me.cboNivelRiesgo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboNivelRiesgo.FormattingEnabled = True
         Me.cboNivelRiesgo.Location = New System.Drawing.Point(20, 38)
+        Me.cboNivelRiesgo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboNivelRiesgo.Name = "cboNivelRiesgo"
         Me.cboNivelRiesgo.Size = New System.Drawing.Size(180, 23)
         Me.cboNivelRiesgo.TabIndex = 0
