@@ -45,7 +45,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function Confirmar(actuacion As ActuacionProcesal) As Respuesta
-        If Not Permisos.TieneAcceso("casos.confirmar_plazo") Then Return Respuesta.Fallo("No tiene permiso para confirmar plazos.")
+        If Not TienePermisoVigente("casos.confirmar_plazo") Then Return Respuesta.Fallo("No tiene permiso para confirmar plazos.")
 
         If actuacion Is Nothing Then Return Respuesta.Fallo("Los datos de la actuación no son válidos.")
         If actuacion.ID < 0 Then Return Respuesta.Fallo("El identificador de la actuación no es válido.")
@@ -95,7 +95,7 @@ Public Class ServicioPlazos
     End Function
 
     Public Function MarcarCumplida(idActuacion As Integer) As Respuesta
-        If Not Permisos.TieneAcceso("casos.cumplir_plazo") Then Return Respuesta.Fallo("No tiene permiso para marcar actuaciones como cumplidas.")
+        If Not TienePermisoVigente("casos.cumplir_plazo") Then Return Respuesta.Fallo("No tiene permiso para marcar actuaciones como cumplidas.")
 
         If idActuacion <= 0 Then Return Respuesta.Fallo("Seleccione una actuación.")
         Try
