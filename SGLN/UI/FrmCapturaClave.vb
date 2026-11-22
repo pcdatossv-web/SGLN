@@ -24,6 +24,14 @@ Partial Public Class FrmCapturaClave
         ActiveControl = txtClave
     End Sub
 
+    Private Sub FrmCapturaClave_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        ' El diálogo puede manejar claves actuales o nuevas; limpiar ambos campos al cerrarlo.
+        txtClave.Clear()
+        txtConfirmar.Clear()
+        ClaveCapturada = Nothing
+        chkMostrarClaves.Checked = False
+    End Sub
+
     Private Sub chkMostrarClaves_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClaves.CheckedChanged
         Dim ocultar As Boolean = Not chkMostrarClaves.Checked
         txtClave.UseSystemPasswordChar = ocultar
