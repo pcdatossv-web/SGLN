@@ -101,7 +101,15 @@ Partial Class FrmDocumentos
         ' dgvDocumentos
         '
         Me.dgvDocumentos.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.dgvDocumentos.AllowUserToAddRows = False
+        Me.dgvDocumentos.AllowUserToDeleteRows = False
+        Me.dgvDocumentos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
         Me.dgvDocumentos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvDocumentos.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically
+        Me.dgvDocumentos.MultiSelect = False
+        Me.dgvDocumentos.ReadOnly = True
+        Me.dgvDocumentos.RowHeadersVisible = False
+        Me.dgvDocumentos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
         Me.dgvDocumentos.Location = New System.Drawing.Point(12, 50)
         Me.dgvDocumentos.Name = "dgvDocumentos"
         Me.dgvDocumentos.Size = New System.Drawing.Size(760, 600)
