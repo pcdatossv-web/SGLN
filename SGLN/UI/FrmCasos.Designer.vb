@@ -389,9 +389,9 @@ Partial Class FrmCasos
         '
         Me.lblPropuesta.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblPropuesta.ForeColor = System.Drawing.Color.DimGray
-        Me.lblPropuesta.Location = New System.Drawing.Point(680, 20)
+        Me.lblPropuesta.Location = New System.Drawing.Point(15, 145)
         Me.lblPropuesta.Name = "lblPropuesta"
-        Me.lblPropuesta.Size = New System.Drawing.Size(90, 60)
+        Me.lblPropuesta.Size = New System.Drawing.Size(755, 40)
         Me.lblPropuesta.TabIndex = 12
         Me.lblPropuesta.Text = "Sin cálculo."
         '
@@ -435,9 +435,9 @@ Partial Class FrmCasos
         '
         Me.dgvActuaciones.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dgvActuaciones.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvActuaciones.Location = New System.Drawing.Point(15, 160)
+        Me.dgvActuaciones.Location = New System.Drawing.Point(15, 190)
         Me.dgvActuaciones.Name = "dgvActuaciones"
-        Me.dgvActuaciones.Size = New System.Drawing.Size(755, 200)
+        Me.dgvActuaciones.Size = New System.Drawing.Size(755, 170)
         Me.dgvActuaciones.TabIndex = 7
         '
         ' FrmCasos
