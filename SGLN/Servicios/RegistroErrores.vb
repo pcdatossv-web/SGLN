@@ -1,6 +1,7 @@
 Imports System
 Imports System.IO
 Imports System.Text
+Imports System.Text.RegularExpressions
 Imports Microsoft.VisualBasic
 
 ''' <summary>
@@ -30,6 +31,25 @@ Public Module RegistroErrores
         Agregar(contexto, mensaje)
     End Sub
 
+    Private Function SanitizarDetalle(detalle As String) As String
+        If String.IsNullOrEmpty(detalle) Then Return ""
+
+        ' Las excepciones de proveedores pueden incluir cadenas de conexión.
+        ' Nunca escribir contraseñas/PWD en texto claro en los logs locales.
+        Dim resultado As String = Regex.Replace(
+            detalle,
+            "(?i)\b(password|pwd)\s*=\s*([^;,\r\n]*)",
+            "$1=[REDACTADO]")
+
+        ' Ocultar credenciales incluidas en URI del tipo protocolo://usuario:clave@host.
+        resultado = Regex.Replace(
+            resultado,
+            "(?i)(://[^:/\s]+:)[^@/\s]+(@)",
+            "$1[REDACTADO]$2")
+
+        Return resultado
+    End Function
+
     Private Sub Agregar(contexto As String, detalle As String)
         Try
             Dim datosLocales As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
@@ -48,7 +68,7 @@ Public Module RegistroErrores
                 contextoSeguro = contextoSeguro.Substring(0, MaximoContextoCaracteres)
             End If
 
-            Dim detalleSeguro As String = If(detalle, "")
+            Dim detalleSeguro As String = SanitizarDetalle(If(detalle, ""))
             If detalleSeguro.Length > MaximoDetalleCaracteres Then
                 detalleSeguro = detalleSeguro.Substring(0, MaximoDetalleCaracteres) &
                     Environment.NewLine & "[Detalle truncado por límite de registro]"
