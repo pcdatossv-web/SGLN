@@ -371,7 +371,11 @@ Public Class ServicioProtocolo
     ' ------------------------------------------------------------------
 
     Public Function Testimonios(idLibro As Integer) As DataTable
-        If Not Permisos.TieneAcceso("protocolo.ver") OrElse idLibro <= 0 Then Return New DataTable()
+        ' Quien puede expedir testimonios debe poder consultar su historial,
+        ' incluso si no dispone del permiso general de lectura del protocolo.
+        If Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.testimonios") OrElse idLibro <= 0 Then
+            Return New DataTable()
+        End If
         Return _repositorio.Testimonios(idLibro)
     End Function
 
