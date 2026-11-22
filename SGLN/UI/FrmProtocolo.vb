@@ -29,6 +29,13 @@ Public Class FrmProtocolo
         UtileriasUI.ConfigurarGrid(dgvTestimonios)
         UtileriasUI.ConfigurarGrid(dgvIndice)
 
+        ' Diferenciar visualmente estados sin depender únicamente del texto.
+        AddHandler dgvLibros.RowPrePaint, AddressOf dgvProtocolo_RowPrePaint
+        AddHandler dgvInstrumentos.RowPrePaint, AddressOf dgvProtocolo_RowPrePaint
+        AddHandler dgvComparecientes.RowPrePaint, AddressOf dgvProtocolo_RowPrePaint
+        AddHandler dgvTestimonios.RowPrePaint, AddressOf dgvProtocolo_RowPrePaint
+        AddHandler dgvIndice.RowPrePaint, AddressOf dgvProtocolo_RowPrePaint
+
         cboEstadoLibro.Items.Clear()
         cboEstadoLibro.Items.AddRange(New Object() {"Vigente", "Cerrado", "Entregado"})
         cboEstadoLibro.SelectedIndex = 0
@@ -956,6 +963,33 @@ Public Class FrmProtocolo
     ''' Normaliza la presentación de las tablas notariales sin modificar los
     ''' nombres de las columnas devueltas por el repositorio.
     ''' </summary>
+    ''' <summary>
+    ''' Refuerza la lectura del estado de libros y escrituras. El texto del
+    ''' estado permanece visible; el color es una ayuda adicional, no el único indicador.
+    ''' </summary>
+    Private Sub dgvProtocolo_RowPrePaint(sender As Object, e As DataGridViewRowPrePaintEventArgs)
+        Dim grid As DataGridView = TryCast(sender, DataGridView)
+        If grid Is Nothing OrElse e.RowIndex < 0 OrElse e.RowIndex >= grid.Rows.Count Then Return
+        If Not grid.Columns.Contains("Estado") Then Return
+
+        Dim fila As DataGridViewRow = grid.Rows(e.RowIndex)
+        Dim estado As String = Convert.ToString(fila.Cells("Estado").Value)
+        Select Case estado.Trim().ToUpperInvariant()
+            Case "ANULADO"
+                fila.DefaultCellStyle.BackColor = Color.Gainsboro
+                fila.DefaultCellStyle.ForeColor = Color.DimGray
+            Case "CERRADO"
+                fila.DefaultCellStyle.BackColor = Color.LemonChiffon
+                fila.DefaultCellStyle.ForeColor = Color.Black
+            Case "ENTREGADO"
+                fila.DefaultCellStyle.BackColor = Color.Honeydew
+                fila.DefaultCellStyle.ForeColor = Color.DarkGreen
+            Case Else
+                fila.DefaultCellStyle.BackColor = grid.DefaultCellStyle.BackColor
+                fila.DefaultCellStyle.ForeColor = grid.DefaultCellStyle.ForeColor
+        End Select
+    End Sub
+
     Private Sub ConfigurarPresentacionGrid(grid As DataGridView)
         If grid Is Nothing OrElse grid.Columns.Count = 0 Then Return
 
