@@ -267,6 +267,22 @@ Public Module InicializadorBD
                 "Falta el procedimiento de eliminación segura de usuarios o la cuenta de aplicación no tiene EXECUTE. " &
                 "Un administrador debe volver a ejecutar Scripts\Triggers_MySQL.sql y Scripts\Privilegios_Minimos.sql.")
         End If
+
+        ' La existencia del procedimiento no basta: el script de seguridad
+        ' instala también los triggers que protegen roles, administradores y
+        ' la bitácora ante operaciones SQL directas. Si una instalación se
+        ' interrumpió a mitad del script, no permitir iniciar con candados parciales.
+        If EscalarEntero(
+            "SELECT COUNT(*) FROM information_schema.triggers " &
+            "WHERE trigger_schema = DATABASE() AND trigger_name IN (" &
+            "'trg_roles_protegido_bi','trg_roles_protegido_bu','trg_roles_protegido_bd'," &
+            "'trg_usuarios_admin_bu','trg_usuarios_admin_bd','trg_usuarios_rol_activo_bi'," &
+            "'trg_rol_permiso_admin_bi','trg_rol_permiso_admin_bu','trg_rol_permiso_admin_bd'," &
+            "'trg_audit_log_no_update','trg_audit_log_no_delete')") <> 11 Then
+            Throw New InvalidOperationException(
+                "La protección de integridad de MySQL está incompleta: faltan triggers de seguridad. " &
+                "Un administrador debe volver a ejecutar Scripts\Triggers_MySQL.sql y después Scripts\Privilegios_Minimos.sql.")
+        End If
     End Sub
 
     Private Sub SembrarDatosIniciales()
