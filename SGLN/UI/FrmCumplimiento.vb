@@ -297,13 +297,12 @@ Public Class FrmCumplimiento
             Dim reportada As Boolean = False
             If fila.Cells("Reportado_UIF").Value IsNot Nothing AndAlso
                Not Convert.IsDBNull(fila.Cells("Reportado_UIF").Value) Then
-                Boolean.TryParse(Convert.ToString(fila.Cells("Reportado_UIF").Value), reportada)
-                If Not reportada Then
-                    Try
-                        reportada = Convert.ToBoolean(fila.Cells("Reportado_UIF").Value)
-                    Catch
-                        reportada = False
-                    End Try
+                Dim valorReportado As String = Convert.ToString(fila.Cells("Reportado_UIF").Value).Trim()
+                If Not Boolean.TryParse(valorReportado, reportada) Then
+                    ' MySQL puede entregar TINYINT(1) como 0/1 numérico o como texto.
+                    ' Convert.ToBoolean("1") no es válido en .NET; interpretar ambos formatos.
+                    Dim numeroReportado As Long
+                    reportada = Long.TryParse(valorReportado, numeroReportado) AndAlso numeroReportado <> 0
                 End If
             End If
             If reportada Then
