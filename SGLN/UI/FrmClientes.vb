@@ -258,6 +258,19 @@ Public Class FrmClientes
                 Return
             End If
 
+            ' Validación inmediata en UI sin limitar MaxDate: así los registros
+            ' históricos con fechas futuras inválidas pueden cargarse y corregirse.
+            If dtpNacimiento.Checked AndAlso dtpNacimiento.Value.Date > Date.Today Then
+                UtileriasUI.MostrarError("La fecha de nacimiento no puede ser futura.")
+                dtpNacimiento.Focus()
+                Return
+            End If
+            If dtpVerificacionListas.Checked AndAlso dtpVerificacionListas.Value.Date > Date.Today Then
+                UtileriasUI.MostrarError("La fecha de verificación de listas no puede ser futura.")
+                dtpVerificacionListas.Focus()
+                Return
+            End If
+
             Dim cliente As New Cliente With {
                 .ID = _idCliente,
                 .Nombres = txtNombres.Text,
