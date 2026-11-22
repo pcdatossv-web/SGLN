@@ -752,8 +752,10 @@ Public Class FrmProtocolo
             ActualizarEstadoAccionesContextuales()
         Catch ex As Exception
             cboInstrumentoTest.DataSource = Nothing
+            ActualizarLimitesFechaTestimonio()
             ActualizarEstadoAccionesContextuales()
             RegistroErrores.Escribir("Protocolo - combo de instrumentos", ex)
+            MostrarMensaje("No se pudieron cargar las escrituras disponibles para expedir testimonios. La expedición permanece deshabilitada.", False)
         End Try
     End Sub
 
@@ -785,6 +787,7 @@ Public Class FrmProtocolo
             dgvTestimonios.DataSource = Nothing
             _vistaTestimonios = Nothing
             RegistroErrores.Escribir("Protocolo - testimonios", ex)
+            MostrarMensaje("No se pudo cargar el historial de testimonios. Verifique la conexión e intente actualizar.", False)
         End Try
     End Sub
 
