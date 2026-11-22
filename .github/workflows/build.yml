@@ -166,8 +166,10 @@ jobs:
           $inicializador = Get-Content 'SGLN\\Datos\\InicializadorBD.vb' -Raw
           if ($inicializador -match 'SembrarPermisosAdicionales' -or
               $inicializador -notmatch 'Codigo = ''config.editar''' -or
-              -not $inicializador.Contains('Array.IndexOf(recursos, nombreRecurso)')) {
-            throw 'El inicializador debe verificar el catálogo sin modificarlo y localizar recursos sin abrir flujos innecesarios.'
+              -not $inicializador.Contains('Array.IndexOf(recursos, nombreRecurso)') -or
+              $inicializador -notmatch 'information_schema\.triggers' -or
+              $inicializador -notmatch 'trg_audit_log_no_delete') {
+            throw 'El inicializador debe verificar el catálogo sin modificarlo, localizar recursos y exigir los triggers de seguridad.'
           }
           if ($casoRepo -notmatch 'SELECT ID_Cliente, Numero_Expediente FROM Casos WHERE ID = @id FOR UPDATE' -or
               $casoRepo -notmatch 'Actuaciones_Procesales WHERE ID_Caso' -or
