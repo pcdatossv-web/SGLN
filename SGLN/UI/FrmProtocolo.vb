@@ -20,6 +20,10 @@ Public Class FrmProtocolo
         If Not Permisos.Exigir("protocolo.ver", Me) Then Return
 
         AplicarPermisosInterfaz()
+
+        ' Reflejar en la captura las mismas restricciones temporales del servicio.
+        dtpFechaHoraOtorgamiento.MaxDate = Date.Today
+        dtpFechaTestimonio.MaxDate = Date.Today
         ' Exportar el índice es una operación de consulta y queda disponible
         ' para quien ya tiene permiso de lectura del protocolo.
 
