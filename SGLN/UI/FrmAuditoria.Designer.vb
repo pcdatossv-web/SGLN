@@ -54,6 +54,7 @@ Partial Class FrmAuditoria
         '
         Me.txtUsuario.Location = New System.Drawing.Point(12, 30)
         Me.txtUsuario.Name = "txtUsuario"
+        Me.txtUsuario.MaxLength = 50
         Me.txtUsuario.Size = New System.Drawing.Size(160, 23)
         Me.txtUsuario.TabIndex = 0
         '
