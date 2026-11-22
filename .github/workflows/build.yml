@@ -111,7 +111,7 @@ jobs:
             'trg_audit_log_no_delete'
           )
           foreach ($nombreTrigger in $triggersObligatorios) {
-            if ($triggersSql -notmatch ('(?i)CREATE TRIGGER\\s+' + [regex]::Escape($nombreTrigger) + '\\b')) {
+            if ($triggersSql -notmatch ('(?i)CREATE TRIGGER\s+' + [regex]::Escape($nombreTrigger) + '\b')) {
               throw "Falta el trigger de seguridad obligatorio: $nombreTrigger"
             }
           }
