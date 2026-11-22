@@ -217,6 +217,32 @@ Public Class ProtocoloRepositorio
         If idLibro <= 0 Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                ' Validar dentro de la misma transacción: no permitir que una
+                ' llamada directa al repositorio marque un índice vacío o abierto.
+                Dim estado As String = Nothing
+                Dim indiceGenerado As Boolean = False
+                Using consultarLibro As New MySqlCommand(
+                    "SELECT Estado, Indice_Generado FROM Libros_Protocolo WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(consultarLibro, "@id", idLibro)
+                    Using lector As MySqlDataReader = consultarLibro.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        estado = Convert.ToString(lector("Estado"))
+                        indiceGenerado = Convert.ToBoolean(lector("Indice_Generado"))
+                    End Using
+                End Using
+
+                If (estado <> "Cerrado" AndAlso estado <> "Entregado") OrElse indiceGenerado Then Return 0
+
+                Dim cantidadInstrumentos As Integer
+                Using consultarInstrumentos As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Instrumentos WHERE ID_Libro = @id",
+                    conexion, transaccion)
+                    Parametro(consultarInstrumentos, "@id", idLibro)
+                    cantidadInstrumentos = Convert.ToInt32(consultarInstrumentos.ExecuteScalar())
+                End Using
+                If cantidadInstrumentos = 0 Then Return 0
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Indice_Generado = 1 " &
                     "WHERE ID = @id AND Estado IN ('Cerrado', 'Entregado') AND Indice_Generado = 0",
