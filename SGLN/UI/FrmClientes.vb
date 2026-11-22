@@ -115,9 +115,7 @@ Public Class FrmClientes
         Try
             _cargando = True
             dgvClientes.DataSource = _servicio.Buscar(filtro)
-            If dgvClientes.Columns.Contains("ID") Then
-                dgvClientes.Columns("ID").Visible = False
-            End If
+            ConfigurarColumnasClientes()
             _cargando = False
             Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvClientes)
             If filaActual Is Nothing Then
@@ -132,6 +130,82 @@ Public Class FrmClientes
             RegistroErrores.Escribir("Clientes - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de clientes. Verifique la conexión con la base de datos.", False)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Presenta la lista de clientes con encabezados claros y espacio
+    ''' proporcional para identificar a la persona y revisar su riesgo.
+    ''' </summary>
+    Private Sub ConfigurarColumnasClientes()
+        If dgvClientes.Columns.Contains("ID") Then
+            dgvClientes.Columns("ID").Visible = False
+        End If
+
+        Dim encabezados As New Dictionary(Of String, String) From {
+            {"Nombre", "Cliente"},
+            {"DUI", "DUI"},
+            {"NIT", "NIT"},
+            {"Riesgo", "Nivel de riesgo"},
+            {"Activo", "Estado"}
+        }
+
+        For Each par As KeyValuePair(Of String, String) In encabezados
+            If dgvClientes.Columns.Contains(par.Key) Then
+                dgvClientes.Columns(par.Key).HeaderText = par.Value
+                dgvClientes.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+            End If
+        Next
+
+        If dgvClientes.Columns.Contains("Nombre") Then
+            With dgvClientes.Columns("Nombre")
+                .FillWeight = 190
+                .MinimumWidth = 180
+            End With
+        End If
+        If dgvClientes.Columns.Contains("DUI") Then
+            dgvClientes.Columns("DUI").FillWeight = 85
+            dgvClientes.Columns("DUI").MinimumWidth = 105
+        End If
+        If dgvClientes.Columns.Contains("NIT") Then
+            dgvClientes.Columns("NIT").FillWeight = 105
+            dgvClientes.Columns("NIT").MinimumWidth = 125
+        End If
+        If dgvClientes.Columns.Contains("Riesgo") Then
+            dgvClientes.Columns("Riesgo").FillWeight = 75
+            dgvClientes.Columns("Riesgo").MinimumWidth = 95
+        End If
+        If dgvClientes.Columns.Contains("Activo") Then
+            dgvClientes.Columns("Activo").FillWeight = 60
+            dgvClientes.Columns("Activo").MinimumWidth = 80
+            dgvClientes.Columns("Activo").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+        End If
+    End Sub
+
+    Private Sub dgvClientes_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvClientes.CellFormatting
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
+
+        Dim columna As String = dgvClientes.Columns(e.ColumnIndex).Name
+        If columna = "Riesgo" Then
+            Dim riesgo As String = Convert.ToString(e.Value).Trim()
+            Select Case riesgo.ToUpperInvariant()
+                Case "ALTO"
+                    e.CellStyle.ForeColor = Color.DarkRed
+                    e.CellStyle.Font = New Font(dgvClientes.Font, FontStyle.Bold)
+                Case "MEDIO"
+                    e.CellStyle.ForeColor = Color.DarkGoldenrod
+                Case "BAJO"
+                    e.CellStyle.ForeColor = Color.DarkGreen
+                Case Else
+                    e.CellStyle.ForeColor = dgvClientes.DefaultCellStyle.ForeColor
+            End Select
+        ElseIf columna = "Activo" Then
+            Dim activo As Boolean
+            If e.Value IsNot Nothing AndAlso Boolean.TryParse(Convert.ToString(e.Value), activo) Then
+                e.Value = If(activo, "Activo", "Inactivo")
+                e.FormattingApplied = True
+                e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
+            End If
+        End If
     End Sub
 
     Private Sub dgvClientes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvClientes.SelectionChanged
