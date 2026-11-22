@@ -190,7 +190,6 @@ Public Class FrmClientes
             Select Case riesgo.ToUpperInvariant()
                 Case "ALTO"
                     e.CellStyle.ForeColor = Color.DarkRed
-                    e.CellStyle.Font = New Font(dgvClientes.Font, FontStyle.Bold)
                 Case "MEDIO"
                     e.CellStyle.ForeColor = Color.DarkGoldenrod
                 Case "BAJO"
@@ -199,12 +198,23 @@ Public Class FrmClientes
                     e.CellStyle.ForeColor = dgvClientes.DefaultCellStyle.ForeColor
             End Select
         ElseIf columna = "Activo" Then
+            If e.Value Is Nothing OrElse Convert.IsDBNull(e.Value) Then Return
+
             Dim activo As Boolean
-            If e.Value IsNot Nothing AndAlso Boolean.TryParse(Convert.ToString(e.Value), activo) Then
-                e.Value = If(activo, "Activo", "Inactivo")
-                e.FormattingApplied = True
-                e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
+            Dim numero As Integer
+            If TypeOf e.Value Is Boolean Then
+                activo = CBool(e.Value)
+            ElseIf Boolean.TryParse(Convert.ToString(e.Value), activo) Then
+                ' El proveedor puede entregar el valor como Boolean.
+            ElseIf Integer.TryParse(Convert.ToString(e.Value), numero) Then
+                activo = (numero <> 0)
+            Else
+                Return
             End If
+
+            e.Value = If(activo, "Activo", "Inactivo")
+            e.FormattingApplied = True
+            e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
         End If
     End Sub
 
