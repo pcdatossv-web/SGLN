@@ -258,6 +258,7 @@ Partial Class FrmEntidades
         Me.cboNivelRiesgo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboNivelRiesgo.FormattingEnabled = True
         Me.cboNivelRiesgo.Location = New System.Drawing.Point(15, 185)
+        Me.cboNivelRiesgo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboNivelRiesgo.Name = "cboNivelRiesgo"
         Me.cboNivelRiesgo.Size = New System.Drawing.Size(150, 23)
         Me.cboNivelRiesgo.TabIndex = 5
@@ -351,6 +352,7 @@ Partial Class FrmEntidades
         Me.cboRepCliente.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboRepCliente.FormattingEnabled = True
         Me.cboRepCliente.Location = New System.Drawing.Point(15, 42)
+        Me.cboRepCliente.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboRepCliente.Name = "cboRepCliente"
         Me.cboRepCliente.Size = New System.Drawing.Size(240, 23)
         Me.cboRepCliente.TabIndex = 0
@@ -386,6 +388,7 @@ Partial Class FrmEntidades
         Me.cboTipoRepresentacion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboTipoRepresentacion.FormattingEnabled = True
         Me.cboTipoRepresentacion.Location = New System.Drawing.Point(425, 42)
+        Me.cboTipoRepresentacion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cboTipoRepresentacion.Name = "cboTipoRepresentacion"
         Me.cboTipoRepresentacion.Size = New System.Drawing.Size(110, 23)
         Me.cboTipoRepresentacion.TabIndex = 2
