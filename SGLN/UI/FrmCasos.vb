@@ -656,6 +656,39 @@ Public Class FrmCasos
         lblMensaje.ForeColor = If(exito, Color.ForestGreen, Color.Firebrick)
     End Sub
 
+    ''' <summary>
+    ''' Atajos de teclado para acelerar la consulta y gestión de expedientes.
+    ''' Los botones siguen siendo el punto único de entrada y conservan sus
+    ''' validaciones de permisos y protección contra doble ejecución.
+    ''' </summary>
+    Private Sub FrmCasos_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+        If e.Alt OrElse e.Shift Then Return
+
+        If e.Control Then
+            Select Case e.KeyCode
+                Case Keys.F
+                    txtFiltro.Focus()
+                    txtFiltro.SelectAll()
+                Case Keys.N
+                    If btnNuevo.Enabled Then btnNuevo.PerformClick()
+                Case Keys.S
+                    If btnGuardarCaso.Enabled Then btnGuardarCaso.PerformClick()
+                Case Else
+                    Return
+            End Select
+
+            e.Handled = True
+            e.SuppressKeyPress = True
+            Return
+        End If
+
+        If e.KeyCode = Keys.F5 Then
+            btnRefrescar.PerformClick()
+            e.Handled = True
+            e.SuppressKeyPress = True
+        End If
+    End Sub
+
     Private Sub btnNuevo_Click(sender As Object, e As EventArgs) Handles btnNuevo.Click
         Limpiar()
     End Sub
