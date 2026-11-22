@@ -97,8 +97,25 @@ jobs:
           $programa = Get-Content 'SGLN\\Program.vb' -Raw
           $servicioClientes = Get-Content 'SGLN\\Servicios\\ServicioClientes.vb' -Raw
           $servicioEntidades = Get-Content 'SGLN\\Servicios\\ServicioEntidades.vb' -Raw
+          $triggersObligatorios = @(
+            'trg_roles_protegido_bi',
+            'trg_roles_protegido_bu',
+            'trg_roles_protegido_bd',
+            'trg_usuarios_admin_bu',
+            'trg_usuarios_admin_bd',
+            'trg_usuarios_rol_activo_bi',
+            'trg_rol_permiso_admin_bi',
+            'trg_rol_permiso_admin_bu',
+            'trg_rol_permiso_admin_bd',
+            'trg_audit_log_no_update',
+            'trg_audit_log_no_delete'
+          )
+          foreach ($nombreTrigger in $triggersObligatorios) {
+            if ($triggersSql -notmatch ('(?i)CREATE TRIGGER\\s+' + [regex]::Escape($nombreTrigger) + '\\b')) {
+              throw "Falta el trigger de seguridad obligatorio: $nombreTrigger"
+            }
+          }
           if ($triggersSql -notmatch '(?i)CREATE PROCEDURE sp_EliminarUsuarioSeguro' -or
-              $triggersSql -notmatch '(?i)CREATE TRIGGER trg_rol_permiso_admin_bi' -or
               -not $triggersSql.Contains("NEW.Codigo LIKE 'config.%'") -or
               -not $triggersSql.Contains('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')) {
             throw 'Faltan los candados SQL de permisos administrativos o eliminación segura.'
