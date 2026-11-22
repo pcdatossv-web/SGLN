@@ -691,20 +691,20 @@ Public Class ProtocoloRepositorio
 
                 Dim detalleHistorico As String = Nothing
                 Using consultarDetalle As New MySqlCommand(
-                    "SELECT i.Numero_Escritura, cl.Nombres, cl.Apellidos, cl.DUI, c.Calidad " &
+                    "SELECT i.Numero_Escritura, c.ID_Cliente, c.Calidad " &
                     "FROM Comparecientes_Instrumento c " &
                     "INNER JOIN Instrumentos i ON i.ID = c.ID_Instrumento " &
-                    "INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
                     "WHERE c.ID = @id AND c.ID_Instrumento = @instrumento FOR UPDATE",
                     conexion, transaccion)
                     Parametro(consultarDetalle, "@id", id)
                     Parametro(consultarDetalle, "@instrumento", idInstrumento)
                     Using lector As MySqlDataReader = consultarDetalle.ExecuteReader()
                         If Not lector.Read() Then Return 0
+                        ' No copiar DUI ni otros datos personales al log de auditoría.
+                        ' Los identificadores permiten rastrear la relación sin duplicar PII.
                         detalleHistorico = "Escritura: " & Convert.ToString(lector("Numero_Escritura")) &
-                            "; compareciente: " & Convert.ToString(lector("Nombres")) & " " &
-                            Convert.ToString(lector("Apellidos")) & "; DUI: " &
-                            If(lector.IsDBNull(lector.GetOrdinal("DUI")), "No registrado", Convert.ToString(lector("DUI"))) &
+                            "; ID compareciente: " & id &
+                            "; ID cliente: " & Convert.ToString(lector("ID_Cliente")) &
                             "; calidad: " & Convert.ToString(lector("Calidad"))
                     End Using
                 End Using
