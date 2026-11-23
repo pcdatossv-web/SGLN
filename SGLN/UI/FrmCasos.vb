@@ -15,6 +15,7 @@ Public Class FrmCasos
     Private _permisosInicializados As Boolean
     ' False hasta que el historial del expediente se haya consultado correctamente.
     Private _actuacionesDisponibles As Boolean
+    Private _tablaTiposActuacion As DataTable
     Private _fechaPropuesta As Date?
 
     ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
@@ -164,7 +165,9 @@ Public Class FrmCasos
             juzgados.Rows.InsertAt(sinJuzgado, 0)
             UtileriasUI.CargarCombo(cboJuzgado, juzgados, "Nombre", "ID")
 
-            UtileriasUI.CargarCombo(cboTipoActuacion, _servicio.TiposActuacionCombo(), "Nombre", "ID")
+            _tablaTiposActuacion = _servicio.TiposActuacionCombo()
+            UtileriasUI.CargarCombo(cboTipoActuacion, _tablaTiposActuacion, "Nombre", "ID")
+            FiltrarTiposActuacionPorMateria()
             AplicarPlazoDelTipo()
         Catch ex As Exception
             cboCliente.DataSource = Nothing
@@ -393,6 +396,42 @@ Public Class FrmCasos
         txtObservaciones.Clear()
         AplicarPlazoDelTipo()
         ActualizarAccionesPlazo()
+    End Sub
+
+    ''' <summary>
+    ''' Limita el catálogo visible a tipos genéricos o compatibles con la
+    ''' materia del expediente. El repositorio repite la validación al guardar.
+    ''' </summary>
+    Private Sub FiltrarTiposActuacionPorMateria()
+        If _tablaTiposActuacion Is Nothing OrElse Not _tablaTiposActuacion.Columns.Contains("Materia") Then Return
+
+        Dim idAnterior As Integer = UtileriasUI.ValorCombo(cboTipoActuacion)
+        Dim materia As String = Convert.ToString(cboMateria.SelectedItem).Trim()
+        Dim vista As DataView = _tablaTiposActuacion.DefaultView
+        Dim filtro As String = "Materia IS NULL OR Materia = ''"
+        If materia.Length > 0 Then
+            filtro &= " OR Materia = '" & materia.Replace("'", "''") & "'"
+        End If
+
+        _cargando = True
+        Try
+            vista.RowFilter = filtro
+            cboTipoActuacion.DataSource = Nothing
+            cboTipoActuacion.DisplayMember = "Nombre"
+            cboTipoActuacion.ValueMember = "ID"
+            cboTipoActuacion.DataSource = vista
+
+            If vista.Count = 0 Then
+                cboTipoActuacion.SelectedIndex = -1
+            ElseIf idAnterior > 0 Then
+                UtileriasUI.SeleccionarValor(cboTipoActuacion, idAnterior)
+                If cboTipoActuacion.SelectedIndex < 0 Then cboTipoActuacion.SelectedIndex = 0
+            Else
+                cboTipoActuacion.SelectedIndex = 0
+            End If
+        Finally
+            _cargando = False
+        End Try
     End Sub
 
     Private Sub AplicarPlazoDelTipo()
@@ -814,6 +853,16 @@ Public Class FrmCasos
 
     Private Sub btnMarcarCumplida_Click(sender As Object, e As EventArgs) Handles btnMarcarCumplida.Click
         UtileriasUI.EjecutarUnaVez(btnMarcarCumplida, AddressOf MarcarCumplida)
+    End Sub
+
+    Private Sub cboMateria_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMateria.SelectedIndexChanged
+        If _cargando Then Return
+        FiltrarTiposActuacionPorMateria()
+        _fechaPropuesta = Nothing
+        lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
+        lblPropuesta.ForeColor = Color.DimGray
+        AplicarPlazoDelTipo()
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub cboTipoActuacion_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboTipoActuacion.SelectedIndexChanged
