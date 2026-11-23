@@ -409,7 +409,7 @@ BEGIN
     DELETE FROM Usuarios WHERE ID = p_id;
     INSERT INTO Audit_Log (Usuario, Accion, Tabla_Afectada, ID_Registro, Detalle)
     VALUES (v_actor, 'ELIMINAR', 'Usuarios', p_id,
-            CONCAT('Cuenta eliminada tras validar historial y referencias: ', v_usuario));
+            'Cuenta eliminada tras validar historial y referencias.');
 
     /* No dejar variables de sesión ni SQL dinámico en conexiones reutilizables del pool. */
     SET @sgln_delete_sql = NULL;
