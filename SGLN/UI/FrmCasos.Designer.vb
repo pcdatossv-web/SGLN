@@ -410,6 +410,7 @@ Partial Class FrmCasos
         '
         Me.txtObservaciones.Location = New System.Drawing.Point(15, 98)
         Me.txtObservaciones.Multiline = True
+        Me.txtObservaciones.MaxLength = 500
         Me.txtObservaciones.Name = "txtObservaciones"
         Me.txtObservaciones.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtObservaciones.Size = New System.Drawing.Size(400, 45)
