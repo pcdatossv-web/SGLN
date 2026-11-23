@@ -2,9 +2,11 @@ Imports System
 Imports System.Collections.Generic
 
 ''' <summary>
-''' Calculadora de días hábiles conforme al Art. 145 del CPCM:
-''' se excluyen sábados, domingos y feriados, y el plazo empieza a correr
-''' el día siguiente a la notificación.
+''' Calculadora aritmética genérica de días hábiles: excluye sábados,
+''' domingos y feriados configurados, y comienza el conteo el día siguiente
+''' a la fecha inicial. No determina por sí sola la regla legal aplicable a
+''' cada materia, jurisdicción o tipo de actuación; el resultado es referencial
+''' y debe validarse conforme a la normativa y calendario correspondientes.
 ''' </summary>
 Public Class CalculadoraDiasHabiles
 
