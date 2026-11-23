@@ -176,6 +176,7 @@ Public Class FrmCasos
             RegistroErrores.Escribir("Casos - combos", ex)
             MostrarMensaje("No se pudieron cargar los catálogos. Verifique la conexión con la base de datos.", False)
         End Try
+        ActualizarAccionesPlazo()
     End Sub
 
     Private Sub CargarGrid(filtro As String, Optional cargarDetalleSeleccionado As Boolean = True)
