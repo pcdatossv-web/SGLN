@@ -103,7 +103,7 @@ Public Class CumplimientoRepositorio
                         AgregarParametrosOperacion(comando, operacion)
                     End Sub)
                 AuditarEnTransaccion(conexion, transaccion, "CREAR", "Operaciones_LDAFT", nuevoId,
-                    operacion.TipoOperacion & " por " & operacion.Monto.ToString("N2") & " " & operacion.Moneda)
+                    "Operación LDA/FT registrada")
                 Return nuevoId
             End Function)
     End Function
@@ -142,7 +142,7 @@ Public Class CumplimientoRepositorio
                 If filas > 0 Then
                     AuditarEnTransaccion(conexion, transaccion, "MODIFICAR",
                         "Operaciones_LDAFT", operacion.ID,
-                        operacion.TipoOperacion & " por " & operacion.Monto.ToString("N2") & " " & operacion.Moneda)
+                        "Datos de operación LDA/FT actualizados")
                     Return filas
                 End If
 
@@ -296,7 +296,7 @@ Public Class CumplimientoRepositorio
                         AgregarParametrosSolicitudEditable(comando, solicitud)
                     End Sub)
                 AuditarEnTransaccion(conexion, transaccion, "CREAR", "Solicitudes_ARCO", nuevoId,
-                    solicitud.TipoDerecho & " del cliente " & solicitud.IDCliente)
+                    "Solicitud ARCO registrada")
                 Return nuevoId
             End Function)
     End Function
