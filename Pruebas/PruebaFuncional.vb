@@ -2045,6 +2045,35 @@ Module PruebaFuncional
         Verificar("SiguienteDiaHabil del sábado 07/11 es lunes 09/11",
                   calculadora.SiguienteDiaHabil(New Date(2026, 11, 7)) = New Date(2026, 11, 9))
 
+        ' Validar en la capa de persistencia que un tipo de otra materia o
+        ' desactivado no pueda confirmarse aunque se invoque el servicio directamente.
+        Dim nombreTipoPrueba As String = "ZZ_TipoMateriaPrueba"
+        EjecutarSqlDirecto(
+            "INSERT INTO Tipos_Actuacion (Nombre, Plazo_Dias_Default, Materia, Activo) " &
+            "SELECT '" & nombreTipoPrueba & "', 5, 'Penal', 1 WHERE NOT EXISTS (" &
+            "SELECT 1 FROM Tipos_Actuacion WHERE Nombre = '" & nombreTipoPrueba & "')")
+        Dim idTipoPrueba As Integer = ContarSqlDirecto(
+            "SELECT IFNULL(MAX(ID), 0) FROM Tipos_Actuacion WHERE Nombre = '" & nombreTipoPrueba & "'")
+        EjecutarSqlDirecto(
+            "UPDATE Tipos_Actuacion SET Materia = 'Penal', Activo = 1 WHERE ID = " & idTipoPrueba.ToString())
+        Dim tipoOtraMateria As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .IDCaso = idCaso, .IDTipoActuacion = idTipoPrueba,
+            .FechaNotificacion = Date.Today, .PlazoLegalDias = 5})
+        Verificar("El repositorio rechaza tipos de actuación de otra materia",
+                  idTipoPrueba > 0 AndAlso Not tipoOtraMateria.Exito AndAlso
+                  tipoOtraMateria.Mensaje.IndexOf("materia", StringComparison.OrdinalIgnoreCase) >= 0,
+                  tipoOtraMateria.Mensaje)
+
+        EjecutarSqlDirecto(
+            "UPDATE Tipos_Actuacion SET Materia = 'Civil', Activo = 0 WHERE ID = " & idTipoPrueba.ToString())
+        Dim tipoInactivo As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .IDCaso = idCaso, .IDTipoActuacion = idTipoPrueba,
+            .FechaNotificacion = Date.Today, .PlazoLegalDias = 5})
+        Verificar("El repositorio rechaza tipos de actuación desactivados",
+                  idTipoPrueba > 0 AndAlso Not tipoInactivo.Exito AndAlso
+                  tipoInactivo.Mensaje.IndexOf("desactivado", StringComparison.OrdinalIgnoreCase) >= 0,
+                  tipoInactivo.Mensaje)
+
         Dim excepcionPlazo As String = ""
         Try
             plazos.CalcularVencimiento(New Date(2026, 11, 6), 0)
