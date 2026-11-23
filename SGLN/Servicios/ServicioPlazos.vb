@@ -62,6 +62,9 @@ Public Class ServicioPlazos
         If actuacion.FechaNotificacion.Date > Date.Today Then
             Return Respuesta.Fallo("La fecha de notificación no puede ser futura.")
         End If
+        If If(actuacion.Observaciones, "").Length > 500 Then
+            Return Respuesta.Fallo("Las observaciones no pueden superar 500 caracteres.")
+        End If
 
         Try
             ' Se recalcula en el servidor de aplicación para que la fecha no
