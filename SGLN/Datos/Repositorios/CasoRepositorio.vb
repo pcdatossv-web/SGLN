@@ -67,7 +67,7 @@ Public Class CasoRepositorio
                     Sub(comando As MySqlCommand)
                         AgregarParametros(comando, caso)
                     End Sub)
-                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Casos", nuevoId, caso.NumeroExpediente)
+                AuditarEnTransaccion(conexion, transaccion, "CREAR", "Casos", nuevoId, "Expediente judicial registrado")
                 Return nuevoId
             End Function)
     End Function
@@ -141,7 +141,7 @@ Public Class CasoRepositorio
                         Parametro(comando, "@id", caso.ID)
                     End Sub)
                 If filas > 0 Then
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, caso.NumeroExpediente)
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, "Datos del expediente actualizados")
                     Return filas
                 End If
 
