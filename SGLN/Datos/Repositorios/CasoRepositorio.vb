@@ -179,6 +179,10 @@ Public Class CasoRepositorio
                 ' Así se evita confirmar plazos sobre expedientes cerrados/archivados,
                 ' incluso si otro usuario cambia el estado simultáneamente.
                 ValidarCasoAdmiteActuaciones(conexion, transaccion, actuacion.IDCaso)
+                ' El catálogo puede cambiar después de cargar el formulario. Revalidar
+                ' estado y materia bajo bloqueo para impedir tipos inactivos o ajenos
+                ' a la materia del expediente, incluso ante llamadas directas al repo.
+                ValidarTipoActuacion(conexion, transaccion, actuacion.IDTipoActuacion, actuacion.IDCaso)
 
                 If actuacion.ID = 0 Then
                     Dim nuevoId As Integer = InsertarYObtenerId(conexion, transaccion,
@@ -314,6 +318,43 @@ Public Class CasoRepositorio
                 Throw New InvalidOperationException(
                     "No se pueden registrar, modificar ni cumplir actuaciones en un expediente cerrado o archivado.")
             End If
+        End Using
+    End Sub
+
+    ''' <summary>
+    ''' Bloquea y valida el tipo de actuación frente al expediente.
+    ''' Los tipos sin materia asignada son genéricos; los demás solo aplican
+    ''' a expedientes de la misma materia.
+    ''' </summary>
+    Private Sub ValidarTipoActuacion(conexion As MySqlConnection,
+                                     transaccion As MySqlTransaction,
+                                     idTipo As Integer,
+                                     idCaso As Integer)
+        Using comando As New MySqlCommand(
+            "SELECT t.Activo, t.Materia AS MateriaTipo, c.Materia AS MateriaCaso " &
+            "FROM Tipos_Actuacion t " &
+            "INNER JOIN Casos c ON c.ID = @caso " &
+            "WHERE t.ID = @tipo FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@caso", idCaso)
+            Parametro(comando, "@tipo", idTipo)
+            Using lector As MySqlDataReader = comando.ExecuteReader()
+                If Not lector.Read() Then
+                    Throw New InvalidOperationException("El tipo de actuación seleccionado ya no existe.")
+                End If
+
+                If Not Convert.ToBoolean(lector("Activo")) Then
+                    Throw New InvalidOperationException("El tipo de actuación está desactivado. Actualice el catálogo y seleccione uno vigente.")
+                End If
+
+                If Not lector.IsDBNull(1) Then
+                    Dim materiaTipo As String = Convert.ToString(lector("MateriaTipo")).Trim()
+                    Dim materiaCaso As String = Convert.ToString(lector("MateriaCaso")).Trim()
+                    If Not String.Equals(materiaTipo, materiaCaso, StringComparison.OrdinalIgnoreCase) Then
+                        Throw New InvalidOperationException("El tipo de actuación no corresponde a la materia del expediente.")
+                    End If
+                End If
+            End Using
         End Using
     End Sub
 
