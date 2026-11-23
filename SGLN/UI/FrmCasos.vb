@@ -413,6 +413,7 @@ Public Class FrmCasos
             filtro &= " OR Materia = '" & materia.Replace("'", "''") & "'"
         End If
 
+        Dim cargandoAnterior As Boolean = _cargando
         _cargando = True
         Try
             vista.RowFilter = filtro
@@ -430,7 +431,7 @@ Public Class FrmCasos
                 cboTipoActuacion.SelectedIndex = 0
             End If
         Finally
-            _cargando = False
+            _cargando = cargandoAnterior
         End Try
     End Sub
 
