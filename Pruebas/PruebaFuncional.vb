@@ -2074,6 +2074,25 @@ Module PruebaFuncional
                   tipoInactivo.Mensaje.IndexOf("desactivado", StringComparison.OrdinalIgnoreCase) >= 0,
                   tipoInactivo.Mensaje)
 
+        Dim tipoGeneral As DataRow = Nothing
+        For Each filaTipo As DataRow In casos.TiposActuacionCombo().Rows
+            If String.Equals(UtileriasUI.Texto(filaTipo, "Materia"), "General", StringComparison.OrdinalIgnoreCase) Then
+                tipoGeneral = filaTipo
+                Exit For
+            End If
+        Next
+        Dim actuacionGeneral As New ActuacionProcesal With {
+            .IDCaso = idCaso,
+            .IDTipoActuacion = If(tipoGeneral Is Nothing, 0, UtileriasUI.Entero(tipoGeneral, "ID")),
+            .FechaNotificacion = Date.Today,
+            .PlazoLegalDias = 5
+        }
+        Dim respuestaTipoGeneral As Respuesta = plazos.Confirmar(actuacionGeneral)
+        Verificar("Los tipos generales pueden utilizarse en expedientes de cualquier materia",
+                  tipoGeneral IsNot Nothing AndAlso respuestaTipoGeneral.Exito,
+                  respuestaTipoGeneral.Mensaje)
+        If respuestaTipoGeneral.Exito Then plazos.MarcarCumplida(actuacionGeneral.ID)
+
         Dim excepcionPlazo As String = ""
         Try
             plazos.CalcularVencimiento(New Date(2026, 11, 6), 0)
