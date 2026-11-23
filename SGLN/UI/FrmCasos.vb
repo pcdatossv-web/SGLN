@@ -409,7 +409,7 @@ Public Class FrmCasos
         Dim idAnterior As Integer = UtileriasUI.ValorCombo(cboTipoActuacion)
         Dim materia As String = Convert.ToString(cboMateria.SelectedItem).Trim()
         Dim vista As DataView = _tablaTiposActuacion.DefaultView
-        Dim filtro As String = "Materia IS NULL OR Materia = ''"
+        Dim filtro As String = "Materia IS NULL OR Materia = '' OR Materia = 'General'"
         If materia.Length > 0 Then
             filtro &= " OR Materia = '" & materia.Replace("'", "''") & "'"
         End If
