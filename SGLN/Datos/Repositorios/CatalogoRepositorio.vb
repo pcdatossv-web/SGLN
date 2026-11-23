@@ -23,7 +23,7 @@ Public Class CatalogoRepositorio
         If Not Permisos.TieneAccesoAlguno("casos.ver", "casos.gestionar") Then Return New DataTable()
         Return Consultar(
             "SELECT ID, CONCAT(Nombre, ' - ', Plazo_Dias_Default, ' días') AS Nombre, " &
-            "Plazo_Dias_Default FROM Tipos_Actuacion WHERE Activo = 1 ORDER BY Nombre")
+            "Plazo_Dias_Default, Materia FROM Tipos_Actuacion WHERE Activo = 1 ORDER BY Nombre")
     End Function
 
     Public Function Feriados() As DataTable
