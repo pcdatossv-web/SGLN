@@ -443,6 +443,11 @@ Public Class FrmCasos
             ' No conservar el plazo del tipo anterior cuando el nuevo catálogo
             ' no tenga un valor referencial definido.
             nudPlazoDias.Value = nudPlazoDias.Minimum
+            If cboTipoActuacion.Items.Count = 0 Then
+                lblPropuesta.Text = "No hay tipos de actuación vigentes para la materia seleccionada."
+                lblPropuesta.ForeColor = Color.DarkOrange
+            End If
+            ActualizarAccionesPlazo()
             Return
         End If
 
@@ -534,7 +539,10 @@ Public Class FrmCasos
 
     Private Sub ActualizarAccionesPlazo()
         Dim historialDisponible As Boolean = _actuacionesDisponibles AndAlso _idCaso > 0
-        btnConfirmarPlazo.Enabled = _puedeConfirmarPlazo AndAlso historialDisponible AndAlso _fechaPropuesta.HasValue
+        Dim tipoActuacionValido As Boolean = UtileriasUI.ValorCombo(cboTipoActuacion) > 0
+        btnCalcular.Enabled = _puedeConfirmarPlazo AndAlso tipoActuacionValido
+        btnConfirmarPlazo.Enabled = _puedeConfirmarPlazo AndAlso historialDisponible AndAlso
+                                    tipoActuacionValido AndAlso _fechaPropuesta.HasValue
 
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvActuaciones)
         Dim estado As String = If(fila Is Nothing, "", UtileriasUI.Texto(fila, "Estado"))
