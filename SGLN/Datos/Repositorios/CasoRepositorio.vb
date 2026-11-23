@@ -429,8 +429,8 @@ Public Class CasoRepositorio
            actuacion.FechaVencimiento.Value.Date < actuacion.FechaNotificacion.Date Then
             Throw New ArgumentException("La fecha de vencimiento calculada no es válida.", NameOf(actuacion))
         End If
-        If If(actuacion.Observaciones, "").Length > 1000 Then
-            Throw New ArgumentException("Las observaciones no pueden superar 1000 caracteres.", NameOf(actuacion))
+        If If(actuacion.Observaciones, "").Length > 500 Then
+            Throw New ArgumentException("Las observaciones no pueden superar 500 caracteres.", NameOf(actuacion))
         End If
     End Sub
 
