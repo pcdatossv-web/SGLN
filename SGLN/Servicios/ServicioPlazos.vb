@@ -2,8 +2,10 @@ Imports System
 Imports System.Data
 
 ''' <summary>
-''' Servicio de plazos procesales. La fecha de vencimiento SIEMPRE la calcula
-''' el sistema con días hábiles y feriados; el abogado solo la confirma.
+''' Servicio de apoyo para proponer fechas de vencimiento con días hábiles
+''' y feriados configurados. El cálculo es aritmético y referencial: no
+''' determina el plazo legal aplicable ni sustituye la validación profesional
+''' según la materia, jurisdicción y tipo de actuación.
 ''' </summary>
 Public Class ServicioPlazos
 
