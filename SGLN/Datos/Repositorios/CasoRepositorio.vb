@@ -351,6 +351,7 @@ Public Class CasoRepositorio
                     Dim materiaTipo As String = Convert.ToString(lector("MateriaTipo")).Trim()
                     Dim materiaCaso As String = Convert.ToString(lector("MateriaCaso")).Trim()
                     If materiaTipo.Length > 0 AndAlso
+                       Not String.Equals(materiaTipo, "General", StringComparison.OrdinalIgnoreCase) AndAlso
                        Not String.Equals(materiaTipo, materiaCaso, StringComparison.OrdinalIgnoreCase) Then
                         Throw New InvalidOperationException("El tipo de actuación no corresponde a la materia del expediente.")
                     End If
