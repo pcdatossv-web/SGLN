@@ -69,7 +69,7 @@ Public Class ClienteRepositorio
                         End Sub)
 
                     AuditarEnTransaccion(conexion, transaccion, "CREAR", "Clientes",
-                                         idCliente, cliente.Nombres & " " & cliente.Apellidos)
+                                         idCliente, "Registro de cliente creado")
                 Else
                     Dim nombresActuales As String = ""
                     Dim apellidosActuales As String = ""
@@ -163,7 +163,7 @@ Public Class ClienteRepositorio
 
                     If datosClienteModificados Then
                         AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Clientes",
-                                             idCliente, cliente.Nombres & " " & cliente.Apellidos)
+                                             idCliente, "Datos del cliente actualizados")
                     End If
                 End If
 
