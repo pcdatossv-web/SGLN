@@ -2098,6 +2098,28 @@ Module PruebaFuncional
             .PlazoLegalDias = 15,
             .Observaciones = "Notificación del traslado de la demanda"
         }
+        Dim observaciones501 As String = New String("X"c, 501)
+        Dim observacionesExcesivasServicio As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .IDCaso = idCaso, .IDTipoActuacion = actuacion.IDTipoActuacion,
+            .FechaNotificacion = Date.Today, .PlazoLegalDias = 5,
+            .Observaciones = observaciones501})
+        Verificar("El servicio rechaza observaciones superiores a 500 caracteres",
+                  Not observacionesExcesivasServicio.Exito AndAlso
+                  observacionesExcesivasServicio.Mensaje.Contains("500"))
+
+        Dim observacionesExcesivasRepositorio As Boolean = False
+        Try
+            repositorioCasosDirecto.GuardarActuacion(New ActuacionProcesal With {
+                .IDCaso = idCaso, .IDTipoActuacion = actuacion.IDTipoActuacion,
+                .FechaNotificacion = Date.Today, .PlazoLegalDias = 5,
+                .FechaVencimiento = plazos.CalcularVencimiento(Date.Today, 5),
+                .Observaciones = observaciones501})
+        Catch ex As ArgumentException
+            observacionesExcesivasRepositorio = ex.Message.Contains("500")
+        End Try
+        Verificar("El repositorio rechaza directamente observaciones superiores a 500 caracteres",
+                  observacionesExcesivasRepositorio)
+
         Dim actuacionIdNegativo As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
             .ID = -1, .IDCaso = idCaso,
             .IDTipoActuacion = UtileriasUI.Entero(tipoContestacion, "ID"),
