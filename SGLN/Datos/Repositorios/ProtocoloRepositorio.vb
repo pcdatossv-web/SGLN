@@ -185,7 +185,7 @@ Public Class ProtocoloRepositorio
                         Parametro(comando, "@fecha", fechaCierre)
                         Parametro(comando, "@id", id)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CERRAR", "Libros_Protocolo", id, razon)
+                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CERRAR", "Libros_Protocolo", id, "Libro de protocolo cerrado")
                 Return filas
             End Function)
     End Function
@@ -657,7 +657,7 @@ Public Class ProtocoloRepositorio
                         Parametro(comando, "@calidad", calidad)
                     End Sub)
                 AuditarEnTransaccion(conexion, transaccion, "AGREGAR COMPARECIENTE", "Comparecientes_Instrumento",
-                    idInstrumento, "Cliente " & idCliente & " como " & calidad)
+                    idInstrumento, "Compareciente agregado; calidad: " & calidad)
                 Return 1
             End Function)
     End Sub
@@ -702,10 +702,7 @@ Public Class ProtocoloRepositorio
                         If Not lector.Read() Then Return 0
                         ' No copiar DUI ni otros datos personales al log de auditoría.
                         ' Los identificadores permiten rastrear la relación sin duplicar PII.
-                        detalleHistorico = "Escritura: " & Convert.ToString(lector("Numero_Escritura")) &
-                            "; ID compareciente: " & id &
-                            "; ID cliente: " & Convert.ToString(lector("ID_Cliente")) &
-                            "; calidad: " & Convert.ToString(lector("Calidad"))
+                        detalleHistorico = "Compareciente eliminado; calidad: " & Convert.ToString(lector("Calidad"))
                     End Using
                 End Using
 
