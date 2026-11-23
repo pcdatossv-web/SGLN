@@ -65,7 +65,7 @@ Public Class EntidadRepositorio
                         End Sub)
 
                     AuditarEnTransaccion(conexion, transaccion, "CREAR", "Entidades_Legales",
-                                         idEntidad, entidad.RazonSocial)
+                                         idEntidad, "Entidad legal registrada")
                 Else
                     Dim razonActual As String = Nothing
                     Dim nitActual As String = Nothing
@@ -125,7 +125,7 @@ Public Class EntidadRepositorio
 
                     If datosEntidadModificados Then
                         AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Entidades_Legales",
-                                             idEntidad, entidad.RazonSocial)
+                                             idEntidad, "Datos de entidad legal actualizados")
                     End If
                 End If
 
