@@ -216,9 +216,10 @@ Public MustInherit Class RepositorioBase
             ' Las operaciones antiguas que aún auditan después del COMMIT no se
             ' revierten, pero la pérdida del evento queda identificada en el log local.
             Dim idTexto As String = If(idRegistro.HasValue, idRegistro.Value.ToString(), "N/D")
-            Dim contexto As String = "No se pudo registrar auditoría: usuario=" & If(usuario, "sistema") &
-                                     "; acción=" & accion & "; tabla=" & tabla &
-                                     "; ID=" & idTexto & "; detalle=" & If(detalle, "")
+            ' No replicar usuario ni detalle funcional en el log local: pueden
+            ' contener datos personales, financieros o información confidencial.
+            Dim contexto As String = "No se pudo registrar auditoría: acción=" & If(accion, "N/D") &
+                                     "; tabla=" & If(tabla, "N/D") & "; ID=" & idTexto
             RegistroErrores.Escribir(contexto, ex)
         End Try
     End Sub
