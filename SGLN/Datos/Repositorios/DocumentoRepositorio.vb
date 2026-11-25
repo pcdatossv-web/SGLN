@@ -174,13 +174,21 @@ Public Class DocumentoRepositorio
         End If
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
-                ' Bloquear primero la fila para distinguir un documento inexistente
-                ' de una edición válida cuyos metadatos ya tenían esos valores.
+                ' Bloquear primero la fila y conservar los metadatos anteriores
+                ' para registrar una rectificación trazable sin incluir rutas ni datos personales.
+                Dim tipoAnterior As String = Nothing
+                Dim casoAnterior As Integer? = Nothing
+                Dim instrumentoAnterior As Integer? = Nothing
                 Using comandoExiste As New MySqlCommand(
-                    "SELECT ID FROM Documentos WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                    "SELECT Tipo_Documento, ID_Caso, ID_Instrumento FROM Documentos WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
                     Parametro(comandoExiste, "@id", documento.ID)
-                    Dim idExistente As Object = comandoExiste.ExecuteScalar()
-                    If idExistente Is Nothing OrElse idExistente Is DBNull.Value Then Return 0
+                    Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        tipoAnterior = Convert.ToString(lector("Tipo_Documento"))
+                        If Not lector.IsDBNull(1) Then casoAnterior = Convert.ToInt32(lector("ID_Caso"))
+                        If Not lector.IsDBNull(2) Then instrumentoAnterior = Convert.ToInt32(lector("ID_Instrumento"))
+                    End Using
                 End Using
 
                 ValidarReferenciasEnTransaccion(conexion, transaccion,
@@ -197,8 +205,13 @@ Public Class DocumentoRepositorio
                     End Sub)
 
                 If filas > 0 Then
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Documentos", documento.ID,
-                        "Metadatos del documento actualizados")
+                    Dim detalle As String =
+                        "Metadatos rectificados; tipo: " & tipoAnterior & " -> " & documento.TipoDocumento &
+                        "; caso: " & If(casoAnterior.HasValue, casoAnterior.Value.ToString(), "ninguno") &
+                        " -> " & If(documento.IDCaso.HasValue, documento.IDCaso.Value.ToString(), "ninguno") &
+                        "; instrumento: " & If(instrumentoAnterior.HasValue, instrumentoAnterior.Value.ToString(), "ninguno") &
+                        " -> " & If(documento.IDInstrumento.HasValue, documento.IDInstrumento.Value.ToString(), "ninguno")
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Documentos", documento.ID, detalle)
                     Return filas
                 End If
 
