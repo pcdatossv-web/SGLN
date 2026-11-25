@@ -238,6 +238,18 @@ Public Class ServicioDocumentos
     End Function
 
     ''' <summary>
+    ''' Intenta dejar constancia de una alerta de integridad sin ocultar el
+    ''' resultado de la verificación si la propia auditoría no está disponible.
+    ''' </summary>
+    Private Sub RegistrarAlertaIntegridad(id As Integer, detalle As String)
+        Try
+            _repositorio.RegistrarAlertaIntegridad(id, detalle)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Documentos - auditoría de alerta de integridad", ex)
+        End Try
+    End Sub
+
+    ''' <summary>
     ''' Recalcula el hash del archivo y lo compara con el registrado.
     ''' </summary>
     Public Function VerificarIntegridad(id As Integer) As Respuesta
@@ -251,9 +263,11 @@ Public Class ServicioDocumentos
             Dim fila As DataRow = tabla.Rows(0)
             Dim ruta As String = RutaCompletaInterna(Convert.ToString(fila("Ruta_Archivo")))
             If Not File.Exists(ruta) Then
+                RegistrarAlertaIntegridad(id, "El archivo no existe en la ruta registrada.")
                 Return Respuesta.Fallo("El archivo no se encuentra en la ruta registrada.")
             End If
             If Not ValidarContenidoArchivo(ruta, Path.GetExtension(ruta)) Then
+                RegistrarAlertaIntegridad(id, "El contenido no corresponde al formato documental registrado.")
                 Return Respuesta.Fallo("El contenido del archivo no corresponde al formato registrado.")
             End If
 
@@ -264,6 +278,7 @@ Public Class ServicioDocumentos
                 Return Respuesta.Ok("Integridad verificada: el archivo coincide con el hash registrado.")
             End If
 
+            RegistrarAlertaIntegridad(id, "El hash SHA-256 no coincide con el valor registrado.")
             Return Respuesta.Fallo("ALERTA: el hash no coincide. El archivo pudo ser alterado.")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - verificar integridad", ex)
@@ -281,8 +296,12 @@ Public Class ServicioDocumentos
 
         Dim fila As DataRow = tabla.Rows(0)
         Dim ruta As String = RutaCompletaInterna(Convert.ToString(fila("Ruta_Archivo")))
-        If Not File.Exists(ruta) Then Return ""
+        If Not File.Exists(ruta) Then
+            RegistrarAlertaIntegridad(id, "El archivo no existe al intentar abrirlo.")
+            Return ""
+        End If
         If Not ValidarContenidoArchivo(ruta, Path.GetExtension(ruta)) Then
+            RegistrarAlertaIntegridad(id, "El contenido no corresponde al formato al intentar abrirlo.")
             Throw New InvalidDataException(
                 "El contenido del archivo no corresponde a un formato documental permitido.")
         End If
@@ -290,6 +309,7 @@ Public Class ServicioDocumentos
         Dim hashRegistrado As String = Convert.ToString(fila("Hash"))
         Dim hashActual As String = CalcularHashSha256(ruta)
         If Not String.Equals(hashRegistrado, hashActual, StringComparison.OrdinalIgnoreCase) Then
+            RegistrarAlertaIntegridad(id, "El hash SHA-256 no coincide al intentar abrir el documento.")
             Throw New InvalidDataException(
                 "El hash SHA-256 no coincide. Por seguridad, el documento no se abrirá.")
         End If
