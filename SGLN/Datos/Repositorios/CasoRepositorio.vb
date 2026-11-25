@@ -302,6 +302,7 @@ Public Class CasoRepositorio
                     End Using
                 End Using
 
+                Dim actualizados As Integer = 0
                 For Each idActuacion As Integer In ids
                     Dim filas As Integer = Ejecutar(conexion, transaccion,
                         "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
@@ -314,6 +315,7 @@ Public Class CasoRepositorio
                         End Sub)
 
                     If filas > 0 Then
+                        actualizados += filas
                         AuditarEnTransaccion(conexion, transaccion, "ACTUALIZAR",
                             "Actuaciones_Procesales", idActuacion,
                             "Estado actualizado automáticamente de Pendiente a Vencido; fecha de corte: " &
@@ -321,7 +323,7 @@ Public Class CasoRepositorio
                     End If
                 Next
 
-                Return ids.Count
+                Return actualizados
             End Function)
     End Function
 
