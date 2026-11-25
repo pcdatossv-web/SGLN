@@ -58,6 +58,9 @@ Public Class CasoRepositorio
         If Not Permisos.TieneAcceso("casos.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar casos.")
         If caso Is Nothing Then Throw New ArgumentNullException(NameOf(caso))
         If caso.ID <> 0 Then Throw New ArgumentException("Para insertar un caso nuevo, el identificador debe ser cero.", NameOf(caso))
+        If Not String.Equals(caso.Estado, "Activo", StringComparison.Ordinal) Then
+            Throw New InvalidOperationException("Un expediente nuevo debe iniciar en estado Activo.")
+        End If
         ValidarDatosCaso(caso)
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
