@@ -2943,6 +2943,10 @@ Module PruebaFuncional
         Dim rAlterado As Respuesta = documentos.VerificarIntegridad(idDocumento)
         Verificar("Un archivo alterado dispara la alerta de integridad",
                   Not rAlterado.Exito AndAlso rAlterado.Mensaje.Contains("ALERTA"), rAlterado.Mensaje)
+        Verificar("El intento de verificación con hash alterado queda registrado en auditoría",
+                  ContarSqlDirecto(
+                      "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Documentos' " &
+                      "AND ID_Registro = " & idDocumento.ToString() & " AND Accion = 'ALERTA INTEGRIDAD'") >= 1)
         Dim aperturaAlteradaBloqueada As Boolean = False
         Try
             documentos.RutaDelDocumento(idDocumento)
