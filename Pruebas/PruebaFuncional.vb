@@ -1982,6 +1982,35 @@ Module PruebaFuncional
         Verificar("Guardar caso válido", rCaso.Exito, rCaso.Mensaje)
         Dim idCaso As Integer = 0
         If rCaso.ID.HasValue Then idCaso = rCaso.ID.Value
+        caso.Estado = "Activo"
+
+        Dim transicionDirectaNoPermitida As Boolean = False
+        Try
+            repositorioCasosDirecto.Actualizar(New Caso With {
+                .ID = idCaso, .IDCliente = idCliente, .NumeroExpediente = caso.NumeroExpediente,
+                .Materia = caso.Materia, .IDJuzgado = idJuzgado, .Descripcion = caso.Descripcion,
+                .Estado = "Archivado", .FechaApertura = caso.FechaApertura, .Responsable = caso.Responsable
+            })
+        Catch ex As InvalidOperationException
+            transicionDirectaNoPermitida =
+                ex.Message.IndexOf("transición de estado", StringComparison.OrdinalIgnoreCase) >= 0
+        End Try
+        Verificar("El repositorio impide archivar directamente un expediente Activo",
+                  transicionDirectaNoPermitida)
+
+        Dim suspensionCaso As Respuesta = casos.Guardar(New Caso With {
+            .ID = idCaso, .IDCliente = idCliente, .NumeroExpediente = caso.NumeroExpediente,
+            .Materia = caso.Materia, .IDJuzgado = idJuzgado, .Descripcion = caso.Descripcion,
+            .Estado = "Suspendido", .FechaApertura = caso.FechaApertura, .Responsable = caso.Responsable
+        })
+        Verificar("Un expediente Activo puede pasar a Suspendido", suspensionCaso.Exito, suspensionCaso.Mensaje)
+
+        Dim reactivacionCaso As Respuesta = casos.Guardar(New Caso With {
+            .ID = idCaso, .IDCliente = idCliente, .NumeroExpediente = caso.NumeroExpediente,
+            .Materia = caso.Materia, .IDJuzgado = idJuzgado, .Descripcion = caso.Descripcion,
+            .Estado = "Activo", .FechaApertura = caso.FechaApertura, .Responsable = caso.Responsable
+        })
+        Verificar("Un expediente Suspendido puede volver a Activo", reactivacionCaso.Exito, reactivacionCaso.Mensaje)
 
         ' La referencia histórica en Casos.Responsable puede guardar el nombre
         ' completo y no el login; la eliminación debe detectar ambos formatos.
