@@ -42,9 +42,7 @@ Public Class FrmCasos
             "Civil", "Mercantil", "Laboral", "Familia", "Penal", "Administrativo", "Notarial"})
         cboMateria.SelectedIndex = 0
 
-        cboEstado.Items.Clear()
-        cboEstado.Items.AddRange(New Object() {"Activo", "Suspendido", "Cerrado", "Archivado"})
-        cboEstado.SelectedIndex = 0
+        ConfigurarEstadosPermitidos("Activo")
 
         _cargando = True
         CargarCombos()
@@ -285,6 +283,7 @@ Public Class FrmCasos
             SeleccionarTexto(cboMateria, UtileriasUI.Texto(fila, "Materia"))
             UtileriasUI.SeleccionarValor(cboJuzgado, If(fila.IsNull("ID_Juzgado"), 0, fila("ID_Juzgado")))
             dtpFechaApertura.Value = UtileriasUI.Fecha(fila, "Fecha_Apertura").GetValueOrDefault(Date.Today)
+            ConfigurarEstadosPermitidos(UtileriasUI.Texto(fila, "Estado"))
             SeleccionarTexto(cboEstado, UtileriasUI.Texto(fila, "Estado"))
             txtResponsable.Text = UtileriasUI.Texto(fila, "Responsable")
             txtDescripcion.Text = UtileriasUI.Texto(fila, "Descripcion")
@@ -407,6 +406,32 @@ Public Class FrmCasos
 
     End Sub
 
+    ''' <summary>
+    ''' Muestra únicamente los estados válidos para el ciclo de vida actual.
+    ''' La validación definitiva permanece en CasoRepositorio.
+    ''' </summary>
+    Private Sub ConfigurarEstadosPermitidos(estadoActual As String)
+        cboEstado.BeginUpdate()
+        Try
+            cboEstado.Items.Clear()
+            Select Case If(estadoActual, "").Trim()
+                Case "Activo"
+                    cboEstado.Items.AddRange(New Object() {"Activo", "Suspendido", "Cerrado"})
+                Case "Suspendido"
+                    cboEstado.Items.AddRange(New Object() {"Suspendido", "Activo", "Cerrado"})
+                Case "Cerrado"
+                    cboEstado.Items.AddRange(New Object() {"Cerrado", "Archivado"})
+                Case "Archivado"
+                    cboEstado.Items.Add("Archivado")
+                Case Else
+                    cboEstado.Items.Add("Activo")
+            End Select
+            If cboEstado.Items.Count > 0 Then cboEstado.SelectedIndex = 0
+        Finally
+            cboEstado.EndUpdate()
+        End Try
+    End Sub
+
     Private Sub Limpiar()
         _idCaso = 0
         txtExpediente.Clear()
@@ -414,7 +439,7 @@ Public Class FrmCasos
         If cboCliente.Items.Count > 0 Then cboCliente.SelectedIndex = 0
         If cboJuzgado.Items.Count > 0 Then cboJuzgado.SelectedIndex = 0
         dtpFechaApertura.Value = Date.Today
-        cboEstado.SelectedIndex = 0
+        ConfigurarEstadosPermitidos("Activo")
         txtResponsable.Clear()
         txtDescripcion.Clear()
         dgvActuaciones.DataSource = Nothing
