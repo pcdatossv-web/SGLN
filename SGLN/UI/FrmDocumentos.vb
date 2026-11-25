@@ -321,9 +321,10 @@ Public Class FrmDocumentos
             dialogo.Filter = "Documentos (*.pdf;*.doc;*.docx;*.jpg;*.jpeg;*.png;*.tif;*.tiff)|*.pdf;*.doc;*.docx;*.jpg;*.jpeg;*.png;*.tif;*.tiff"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
 
-            ' Solo abandonar el documento actual cuando el usuario confirma
-            ' la selección de un archivo. Cancelar el diálogo conserva contexto
-            ' y selección, evitando perder el trabajo de metadatos en pantalla.
+            ' Conservar el contexto del documento anterior. Si la importación
+            ' falla, se restaurará su selección y sus metadatos en pantalla.
+            Dim idDocumentoAnterior As Integer = _idDocumento
+
             _cargando = True
             _idDocumento = 0
             dgvDocumentos.ClearSelection()
@@ -343,6 +344,9 @@ Public Class FrmDocumentos
                 IdOpcional(cboInstrumento))
 
             If Not respuesta.Exito Then
+                If idDocumentoAnterior > 0 Then
+                    SeleccionarDocumento(idDocumentoAnterior)
+                End If
                 MostrarMensaje(respuesta.Mensaje, False)
                 Return
             End If
