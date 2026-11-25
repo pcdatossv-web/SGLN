@@ -1,5 +1,6 @@
 Imports System
 Imports System.Data
+Imports System.Collections.Generic
 Imports MySql.Data.MySqlClient
 
 ''' <summary>
@@ -283,16 +284,44 @@ Public Class CasoRepositorio
                 ' del servidor MySQL adelante o retrase el vencimiento respecto
                 ' de la fecha que ve el usuario en el sistema.
                 Dim fechaLocal As Date = Date.Today
-                Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
+                Dim ids As New List(Of Integer)()
+
+                ' Bloquear las filas candidatas y conservar sus identificadores.
+                ' La actualización y la auditoría individual se ejecutan en la
+                ' misma transacción para no dejar estados sin trazabilidad.
+                Using comando As New MySqlCommand(
+                    "SELECT ID FROM Actuaciones_Procesales " &
                     "WHERE Estado = 'Pendiente' AND Fecha_Vencimiento_Calculada IS NOT NULL " &
-                    "AND Fecha_Vencimiento_Calculada < @hoy",
-                    Sub(comando As MySqlCommand)
-                        Parametro(comando, "@hoy", fechaLocal)
-                    End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ACTUALIZAR", "Actuaciones_Procesales",
-                    Nothing, filas & " plazos marcados como vencidos")
-                Return filas
+                    "AND Fecha_Vencimiento_Calculada < @hoy ORDER BY ID FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(comando, "@hoy", fechaLocal)
+                    Using lector As MySqlDataReader = comando.ExecuteReader()
+                        While lector.Read()
+                            ids.Add(Convert.ToInt32(lector("ID")))
+                        End While
+                    End Using
+                End Using
+
+                For Each idActuacion As Integer In ids
+                    Dim filas As Integer = Ejecutar(conexion, transaccion,
+                        "UPDATE Actuaciones_Procesales SET Estado = 'Vencido' " &
+                        "WHERE ID = @id AND Estado = 'Pendiente' " &
+                        "AND Fecha_Vencimiento_Calculada IS NOT NULL " &
+                        "AND Fecha_Vencimiento_Calculada < @hoy",
+                        Sub(comando As MySqlCommand)
+                            Parametro(comando, "@id", idActuacion)
+                            Parametro(comando, "@hoy", fechaLocal)
+                        End Sub)
+
+                    If filas > 0 Then
+                        AuditarEnTransaccion(conexion, transaccion, "ACTUALIZAR",
+                            "Actuaciones_Procesales", idActuacion,
+                            "Estado actualizado automáticamente de Pendiente a Vencido; fecha de corte: " &
+                            fechaLocal.ToString("dd/MM/yyyy"))
+                    End If
+                Next
+
+                Return ids.Count
             End Function)
     End Function
 
