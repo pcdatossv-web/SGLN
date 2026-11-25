@@ -1927,6 +1927,11 @@ Module PruebaFuncional
                       .IDCliente = idCliente, .NumeroExpediente = "FECHA-MYSQL-1",
                       .Materia = "Civil", .FechaApertura = New Date(999, 12, 31)
                   }).Exito)
+        Verificar("El servicio impide crear expedientes directamente en estado terminal",
+                  Not casos.Guardar(New Caso With {
+                      .IDCliente = idCliente, .NumeroExpediente = "ALTA-ARCHIVADA",
+                      .Materia = "Civil", .Estado = "Archivado", .FechaApertura = Date.Today
+                  }).Exito)
         Dim casoDirectoInvalidoRechazado As Boolean = False
         Try
             repositorioCasosDirecto.Insertar(New Caso With {
@@ -1937,6 +1942,18 @@ Module PruebaFuncional
         End Try
         Verificar("El repositorio de casos rechaza directamente expedientes fuera de longitud",
                   casoDirectoInvalidoRechazado)
+
+        Dim altaEstadoTerminalDirectaRechazada As Boolean = False
+        Try
+            repositorioCasosDirecto.Insertar(New Caso With {
+                .IDCliente = idCliente, .NumeroExpediente = "ALTA-ARCHIVADA-DIRECTA",
+                .Materia = "Civil", .Estado = "Archivado", .FechaApertura = Date.Today})
+        Catch ex As InvalidOperationException
+            altaEstadoTerminalDirectaRechazada = ex.Message.IndexOf("iniciar en estado Activo",
+                StringComparison.OrdinalIgnoreCase) >= 0
+        End Try
+        Verificar("El repositorio impide altas directas de expedientes en estado terminal",
+                  altaEstadoTerminalDirectaRechazada)
 
         Dim juzgadoNegativoRechazado As Boolean = False
         Try
