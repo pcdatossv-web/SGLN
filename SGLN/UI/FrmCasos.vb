@@ -397,6 +397,38 @@ Public Class FrmCasos
                 .DefaultCellStyle.WrapMode = DataGridViewTriState.True
             End With
         End If
+
+        If dgvActuaciones.Columns.Contains("Estado") Then
+            With dgvActuaciones.Columns("Estado").DefaultCellStyle
+                .Alignment = DataGridViewContentAlignment.MiddleCenter
+                .Font = New Font(dgvActuaciones.Font, FontStyle.Bold)
+            End With
+        End If
+
+        ' Evitar suscripciones duplicadas cuando se recarga el expediente.
+        RemoveHandler dgvActuaciones.CellFormatting, AddressOf dgvActuaciones_CellFormatting
+        AddHandler dgvActuaciones.CellFormatting, AddressOf dgvActuaciones_CellFormatting
+    End Sub
+
+    ''' <summary>
+    ''' Diferencia visualmente los estados sin modificar los valores de negocio.
+    ''' </summary>
+    Private Sub dgvActuaciones_CellFormatting(sender As Object,
+                                               e As DataGridViewCellFormattingEventArgs)
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
+        If dgvActuaciones.Columns(e.ColumnIndex).Name <> "Estado" OrElse e.Value Is Nothing Then Return
+
+        Select Case Convert.ToString(e.Value)
+            Case "Pendiente"
+                e.CellStyle.BackColor = Color.AliceBlue
+                e.CellStyle.ForeColor = Color.DarkSlateGray
+            Case "Vencido"
+                e.CellStyle.BackColor = Color.MistyRose
+                e.CellStyle.ForeColor = Color.Maroon
+            Case "Cumplido"
+                e.CellStyle.BackColor = Color.Honeydew
+                e.CellStyle.ForeColor = Color.DarkGreen
+        End Select
     End Sub
 
     Private Sub Limpiar()
