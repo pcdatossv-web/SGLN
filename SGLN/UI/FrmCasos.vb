@@ -349,21 +349,53 @@ Public Class FrmCasos
             End If
         Next
 
+        ' La grilla es exclusivamente de consulta: selección por fila y sin
+        ' edición accidental. Las dimensiones explícitas evitan que una
+        ' observación extensa desplace las fechas y el estado fuera de vista.
+        dgvActuaciones.ReadOnly = True
+        dgvActuaciones.MultiSelect = False
+        dgvActuaciones.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvActuaciones.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
+        dgvActuaciones.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+        dgvActuaciones.DefaultCellStyle.WrapMode = DataGridViewTriState.True
+
+        Dim anchos As New Dictionary(Of String, Integer) From {
+            {"Tipo", 175},
+            {"Fecha_Notificacion", 100},
+            {"Plazo_Legal_Dias", 85},
+            {"Fecha_Vencimiento_Calculada", 105},
+            {"Estado", 95},
+            {"Fecha_Confirmacion", 105},
+            {"Usuario_Confirma", 120}
+        }
+
+        For Each par As KeyValuePair(Of String, Integer) In anchos
+            If dgvActuaciones.Columns.Contains(par.Key) Then
+                dgvActuaciones.Columns(par.Key).Width = par.Value
+                dgvActuaciones.Columns(par.Key).MinimumWidth = Math.Min(par.Value, 75)
+            End If
+        Next
+
         For Each nombre As String In {"Fecha_Notificacion", "Fecha_Vencimiento_Calculada", "Fecha_Confirmacion"}
             If dgvActuaciones.Columns.Contains(nombre) Then
                 With dgvActuaciones.Columns(nombre)
                     .DefaultCellStyle.Format = "dd/MM/yyyy"
-                    .MinimumWidth = 90
                     .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
                 End With
             End If
         Next
 
         If dgvActuaciones.Columns.Contains("Plazo_Legal_Dias") Then
-            dgvActuaciones.Columns("Plazo_Legal_Dias").Width = 80
+            dgvActuaciones.Columns("Plazo_Legal_Dias").DefaultCellStyle.Alignment =
+                DataGridViewContentAlignment.MiddleCenter
         End If
-        If dgvActuaciones.Columns.Contains("Estado") Then
-            dgvActuaciones.Columns("Estado").Width = 90
+
+        If dgvActuaciones.Columns.Contains("Observaciones") Then
+            With dgvActuaciones.Columns("Observaciones")
+                .MinimumWidth = 180
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
         End If
     End Sub
 
