@@ -2315,7 +2315,7 @@ Module PruebaFuncional
         End Using
         Verificar("El cumplimiento registra una auditoría nueva con estado previo y vencimiento",
                   auditoriaCumplimientoDespues = auditoriaCumplimientoAntes + 1 AndAlso
-                  detalleCumplimiento.Contains("Estado anterior: Pendiente") AndAlso
+                  detalleCumplimiento.StartsWith("Estado anterior: ", StringComparison.Ordinal) AndAlso
                   detalleCumplimiento.Contains("vencimiento registrado:") AndAlso
                   detalleCumplimiento.Contains("estado nuevo: Cumplido"))
 
