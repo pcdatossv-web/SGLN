@@ -2262,6 +2262,33 @@ Module PruebaFuncional
         Next
         Verificar("La actuación de enero quedó en estado Vencido",
                   filaVencida IsNot Nothing AndAlso UtileriasUI.Texto(filaVencida, "Estado") = "Vencido")
+
+        Dim correccionVencimiento As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .ID = vencida.ID, .IDCaso = idCaso,
+            .IDTipoActuacion = actuacion.IDTipoActuacion,
+            .FechaNotificacion = Date.Today, .PlazoLegalDias = 5,
+            .Observaciones = "Corrección de fecha de notificación"})
+        Dim filaRecalculada As DataRow = Nothing
+        For Each fila As DataRow In plazos.Actuaciones(idCaso).Rows
+            If UtileriasUI.Entero(fila, "ID") = vencida.ID Then filaRecalculada = fila
+        Next
+        Verificar("Corregir un vencimiento pasado a una fecha futura devuelve el estado a Pendiente",
+                  correccionVencimiento.Exito AndAlso filaRecalculada IsNot Nothing AndAlso
+                  UtileriasUI.Texto(filaRecalculada, "Estado") = "Pendiente" AndAlso
+                  UtileriasUI.Fecha(filaRecalculada, "Fecha_Vencimiento_Calculada").GetValueOrDefault(Date.MinValue) >= Date.Today,
+                  correccionVencimiento.Mensaje)
+        Dim correccionAtrasada As Respuesta = plazos.Confirmar(New ActuacionProcesal With {
+            .ID = vencida.ID, .IDCaso = idCaso,
+            .IDTipoActuacion = actuacion.IDTipoActuacion,
+            .FechaNotificacion = Date.Today.AddDays(-10), .PlazoLegalDias = 3,
+            .Observaciones = "Corrección con vencimiento ya transcurrido"})
+        Dim filaAtrasada As DataRow = Nothing
+        For Each fila As DataRow In plazos.Actuaciones(idCaso).Rows
+            If UtileriasUI.Entero(fila, "ID") = vencida.ID Then filaAtrasada = fila
+        Next
+        Verificar("Corregir una actuación a un vencimiento pasado la mantiene en estado Vencido",
+                  correccionAtrasada.Exito AndAlso filaAtrasada IsNot Nothing AndAlso
+                  UtileriasUI.Texto(filaAtrasada, "Estado") = "Vencido", correccionAtrasada.Mensaje)
         Verificar("El panel sigue mostrando las actuaciones ya marcadas como vencidas",
                   New ServicioAlertas().ObtenerAlertas().Select("Tipo = 'Plazo vencido'").Length >= 1)
 
