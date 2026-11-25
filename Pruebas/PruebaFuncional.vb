@@ -2292,7 +2292,33 @@ Module PruebaFuncional
         Verificar("El panel sigue mostrando las actuaciones ya marcadas como vencidas",
                   New ServicioAlertas().ObtenerAlertas().Select("Tipo = 'Plazo vencido'").Length >= 1)
 
+        Dim auditoriaCumplimientoAntes As Integer = ContarSqlDirecto(
+            "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
+            "AND ID_Registro = " & idActuacion.ToString() & " AND Accion = 'CUMPLIR PLAZO'")
         plazos.MarcarCumplida(idActuacion)
+        Dim auditoriaCumplimientoDespues As Integer = ContarSqlDirecto(
+            "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
+            "AND ID_Registro = " & idActuacion.ToString() & " AND Accion = 'CUMPLIR PLAZO'")
+        Dim detalleCumplimiento As String = ""
+        Using conexionAuditoria As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexionAuditoria.Open()
+            Using comandoAuditoria As New MySqlCommand(
+                "SELECT Detalle FROM Audit_Log WHERE Tabla_Afectada = 'Actuaciones_Procesales' " &
+                "AND ID_Registro = @id AND Accion = 'CUMPLIR PLAZO' ORDER BY ID DESC LIMIT 1",
+                conexionAuditoria)
+                comandoAuditoria.Parameters.AddWithValue("@id", idActuacion)
+                Dim valorDetalle As Object = comandoAuditoria.ExecuteScalar()
+                If valorDetalle IsNot Nothing AndAlso Not Convert.IsDBNull(valorDetalle) Then
+                    detalleCumplimiento = Convert.ToString(valorDetalle)
+                End If
+            End Using
+        End Using
+        Verificar("El cumplimiento registra una auditoría nueva con estado previo y vencimiento",
+                  auditoriaCumplimientoDespues = auditoriaCumplimientoAntes + 1 AndAlso
+                  detalleCumplimiento.Contains("Estado anterior: Pendiente") AndAlso
+                  detalleCumplimiento.Contains("vencimiento registrado:") AndAlso
+                  detalleCumplimiento.Contains("estado nuevo: Cumplido"))
+
         Dim filaCumplida As DataRow = Nothing
         For Each fila As DataRow In plazos.Actuaciones(idCaso).Rows
             If UtileriasUI.Entero(fila, "ID") = idActuacion Then filaCumplida = fila
