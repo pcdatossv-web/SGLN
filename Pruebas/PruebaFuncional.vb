@@ -2953,6 +2953,24 @@ Module PruebaFuncional
 
         Dim rMeta As Respuesta = documentos.ActualizarMetadatos(idDocumento, "Escritura", Nothing, idInstrumento1)
         Verificar("Actualizar metadatos del documento", rMeta.Exito, rMeta.Mensaje)
+        Dim detalleMetadatos As String = ""
+        Using conexionMetadatos As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexionMetadatos.Open()
+            Using comandoMetadatos As New MySqlCommand(
+                "SELECT Detalle FROM Audit_Log WHERE Tabla_Afectada = 'Documentos' " &
+                "AND ID_Registro = @id AND Accion = 'MODIFICAR' ORDER BY ID DESC LIMIT 1",
+                conexionMetadatos)
+                comandoMetadatos.Parameters.AddWithValue("@id", idDocumento)
+                Dim valorDetalle As Object = comandoMetadatos.ExecuteScalar()
+                If valorDetalle IsNot Nothing AndAlso valorDetalle IsNot DBNull.Value Then
+                    detalleMetadatos = Convert.ToString(valorDetalle)
+                End If
+            End Using
+        End Using
+        Verificar("La rectificación de metadatos registra valores anteriores y nuevos en auditoría",
+                  rMeta.Exito AndAlso detalleMetadatos.Contains("tipo: Contrato -> Escritura") AndAlso
+                  detalleMetadatos.Contains("caso: " & idCaso.ToString() & " -> ninguno") AndAlso
+                  detalleMetadatos.Contains("instrumento: ninguno -> " & idInstrumento1.ToString()))
         Dim tablaDoc2 As DataTable = documentos.Obtener(idDocumento)
         Verificar("El documento queda vinculado a la escritura 1",
                   UtileriasUI.Entero(tablaDoc2.Rows(0), "ID_Instrumento") = idInstrumento1)
