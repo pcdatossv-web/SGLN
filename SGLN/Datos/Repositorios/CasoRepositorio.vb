@@ -81,20 +81,27 @@ Public Class CasoRepositorio
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim clienteActual As Integer = 0
                 Dim expedienteActual As String = Nothing
+                Dim estadoActual As String = Nothing
                 Using comandoExiste As New MySqlCommand(
-                    "SELECT ID_Cliente, Numero_Expediente FROM Casos WHERE ID = @id FOR UPDATE",
+                    "SELECT ID_Cliente, Numero_Expediente, Estado FROM Casos WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
                     Parametro(comandoExiste, "@id", caso.ID)
                     Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
                         If Not lector.Read() Then Return 0
                         clienteActual = Convert.ToInt32(lector("ID_Cliente"))
                         expedienteActual = Convert.ToString(lector("Numero_Expediente"))
+                        estadoActual = Convert.ToString(lector("Estado"))
                     End Using
                 End Using
 
                 If caso.IDCliente <> clienteActual Then
                     ValidarClienteActivo(conexion, transaccion, caso.IDCliente)
                 End If
+
+                ' El estado del expediente sigue un flujo controlado. No se permite
+                ' saltar etapas ni reabrir expedientes cerrados/archivados mediante
+                ' la edición general; una reapertura requiere un procedimiento formal.
+                ValidarTransicionEstado(estadoActual, caso.Estado)
 
                 ' No cerrar ni archivar un expediente mientras conserve plazos
                 ' pendientes o vencidos: primero deben regularizarse como cumplidos.
@@ -142,7 +149,11 @@ Public Class CasoRepositorio
                         Parametro(comando, "@id", caso.ID)
                     End Sub)
                 If filas > 0 Then
-                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, "Datos del expediente actualizados")
+                    Dim detalleAuditoria As String = "Datos del expediente actualizados"
+                    If Not String.Equals(estadoActual, caso.Estado, StringComparison.Ordinal) Then
+                        detalleAuditoria = "Cambio de estado del expediente: " & estadoActual & " -> " & caso.Estado
+                    End If
+                    AuditarEnTransaccion(conexion, transaccion, "MODIFICAR", "Casos", caso.ID, detalleAuditoria)
                     Return filas
                 End If
 
@@ -450,6 +461,37 @@ Public Class CasoRepositorio
                 End If
             End Using
         End Using
+    End Sub
+
+    ''' <summary>
+    ''' Valida las transiciones permitidas para el ciclo de vida del expediente.
+    ''' Activo y Suspendido pueden alternarse; ambos pueden cerrarse.
+    ''' Solo un expediente Cerrado puede archivarse. Un expediente Archivado
+    ''' es terminal. La reapertura de un expediente cerrado exige un flujo
+    ''' independiente, con autorización y motivo documentado.
+    ''' </summary>
+    Private Sub ValidarTransicionEstado(estadoActual As String, estadoNuevo As String)
+        If String.Equals(estadoActual, estadoNuevo, StringComparison.Ordinal) Then Return
+
+        Dim permitida As Boolean = False
+        Select Case If(estadoActual, "").Trim()
+            Case "Activo"
+                permitida = String.Equals(estadoNuevo, "Suspendido", StringComparison.Ordinal) OrElse
+                            String.Equals(estadoNuevo, "Cerrado", StringComparison.Ordinal)
+            Case "Suspendido"
+                permitida = String.Equals(estadoNuevo, "Activo", StringComparison.Ordinal) OrElse
+                            String.Equals(estadoNuevo, "Cerrado", StringComparison.Ordinal)
+            Case "Cerrado"
+                permitida = String.Equals(estadoNuevo, "Archivado", StringComparison.Ordinal)
+            Case "Archivado"
+                permitida = False
+        End Select
+
+        If Not permitida Then
+            Throw New InvalidOperationException(
+                "La transición de estado '" & If(estadoActual, "") & "' a '" & If(estadoNuevo, "") &
+                "' no está permitida. Los expedientes cerrados o archivados requieren un procedimiento formal para cualquier reapertura.")
+        End If
     End Sub
 
     Private Sub ValidarClienteActivo(conexion As MySqlConnection,
