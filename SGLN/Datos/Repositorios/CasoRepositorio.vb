@@ -232,10 +232,12 @@ Public Class CasoRepositorio
                 Ejecutar(conexion, transaccion,
                     "UPDATE Actuaciones_Procesales SET ID_Tipo_Actuacion = @tipo, Fecha_Notificacion = @notificacion, " &
                     "Plazo_Legal_Dias = @plazo, Fecha_Vencimiento_Calculada = @vencimiento, " &
+                    "Estado = CASE WHEN @vencimiento < @hoy THEN 'Vencido' ELSE 'Pendiente' END, " &
                     "Fecha_Confirmacion = NOW(), Usuario_Confirma = @usuario, Observaciones = @observaciones " &
                     "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         AgregarParametrosActuacion(comando, actuacion)
+                        Parametro(comando, "@hoy", Date.Today)
                         Parametro(comando, "@id", actuacion.ID)
                     End Sub)
 
