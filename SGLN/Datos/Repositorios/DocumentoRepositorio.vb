@@ -221,6 +221,33 @@ Public Class DocumentoRepositorio
             End Function)
     End Function
 
+    ''' <summary>
+    ''' Registra una alerta cuando un archivo documental no supera una comprobación
+    ''' de existencia, formato o hash. No almacena rutas ni contenido del archivo.
+    ''' </summary>
+    Public Sub RegistrarAlertaIntegridad(idDocumento As Integer, detalle As String)
+        If Not Permisos.TieneAccesoAlguno("documentos.ver", "documentos.verificar") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para registrar alertas de integridad documental.")
+        End If
+        If idDocumento <= 0 Then Throw New ArgumentOutOfRangeException(NameOf(idDocumento))
+        Dim detalleSeguro As String = If(detalle, "Fallo de integridad documental").Trim()
+        If detalleSeguro.Length > 300 Then detalleSeguro = detalleSeguro.Substring(0, 300)
+
+        EnTransaccion(
+            Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                Using comando As New MySqlCommand(
+                    "SELECT ID FROM Documentos WHERE ID = @id FOR UPDATE", conexion, transaccion)
+                    Parametro(comando, "@id", idDocumento)
+                    Dim existente As Object = comando.ExecuteScalar()
+                    If existente Is Nothing OrElse existente Is DBNull.Value Then Return 0
+                End Using
+
+                AuditarEnTransaccion(conexion, transaccion, "ALERTA INTEGRIDAD", "Documentos",
+                    idDocumento, detalleSeguro)
+                Return 1
+            End Function)
+    End Sub
+
     Public Function CasosCombo() As DataTable
         If Not PuedeCargarCombosDocumentos() Then Return New DataTable()
         Return Consultar(
