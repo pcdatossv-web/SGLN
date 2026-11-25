@@ -335,13 +335,46 @@ Public Class CasoRepositorio
                 ' Marcar como cumplida registra un hecho que pudo ocurrir antes
                 ' del cierre del expediente; por eso se permite regularizar una
                 ' actuación pendiente aunque el expediente ya esté cerrado.
+                ' Bloquear la fila permite auditar el estado y vencimiento reales
+                ' que se están regularizando, sin depender de datos enviados por UI.
+                Dim estadoAnterior As String = ""
+                Dim vencimientoAnterior As Nullable(Of Date) = Nothing
+                Using comandoExiste As New MySqlCommand(
+                    "SELECT Estado, Fecha_Vencimiento_Calculada " &
+                    "FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
+                    conexion, transaccion)
+                    Parametro(comandoExiste, "@id", id)
+                    Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
+                        If Not lector.Read() Then Return 0
+                        estadoAnterior = Convert.ToString(lector("Estado"))
+                        If Not Convert.IsDBNull(lector("Fecha_Vencimiento_Calculada")) Then
+                            vencimientoAnterior = Convert.ToDateTime(lector("Fecha_Vencimiento_Calculada"))
+                        End If
+                    End Using
+                End Using
+
+                If Not String.Equals(estadoAnterior, "Pendiente", StringComparison.Ordinal) AndAlso
+                   Not String.Equals(estadoAnterior, "Vencido", StringComparison.Ordinal) Then
+                    Return 0
+                End If
+
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
+                    "UPDATE Actuaciones_Procesales SET Estado = 'Cumplido' " &
+                    "WHERE ID = @id AND Estado IN ('Pendiente', 'Vencido')",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "CUMPLIR PLAZO", "Actuaciones_Procesales",
-                    id, "Actuación marcada como cumplida")
+                If filas > 0 Then
+                    Dim vencimientoTexto As String =
+                        If(vencimientoAnterior.HasValue,
+                           vencimientoAnterior.Value.ToString("dd/MM/yyyy"), "N/D")
+                    Dim detalle As String =
+                        "Estado anterior: " & estadoAnterior &
+                        "; vencimiento registrado: " & vencimientoTexto &
+                        "; estado nuevo: Cumplido"
+                    AuditarEnTransaccion(conexion, transaccion, "CUMPLIR PLAZO",
+                        "Actuaciones_Procesales", id, detalle)
+                End If
                 Return filas
             End Function)
     End Function
