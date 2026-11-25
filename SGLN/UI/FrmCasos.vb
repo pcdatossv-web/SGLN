@@ -724,13 +724,35 @@ Public Class FrmCasos
 
         If nombreColumna = "Estado" Then
             e.CellStyle.ForeColor = Color.Empty
+            e.CellStyle.BackColor = Color.Empty
             Select Case estado.Trim().ToUpperInvariant()
                 Case "VENCIDO"
                     e.CellStyle.ForeColor = Color.Firebrick
+                    e.CellStyle.BackColor = Color.MistyRose
                 Case "CUMPLIDO"
                     e.CellStyle.ForeColor = Color.DarkGreen
+                    e.CellStyle.BackColor = Color.Honeydew
                 Case "PENDIENTE"
                     e.CellStyle.ForeColor = Color.DarkOrange
+                    If dgvActuaciones.Columns.Contains("Fecha_Vencimiento_Calculada") Then
+                        Dim valorVencimiento As Object = fila.Cells("Fecha_Vencimiento_Calculada").Value
+                        If valorVencimiento IsNot Nothing AndAlso Not Convert.IsDBNull(valorVencimiento) Then
+                            Dim fechaVencimiento As Date
+                            If TypeOf valorVencimiento Is Date Then
+                                fechaVencimiento = CDate(valorVencimiento).Date
+                            ElseIf Date.TryParse(Convert.ToString(valorVencimiento), fechaVencimiento) Then
+                                fechaVencimiento = fechaVencimiento.Date
+                            Else
+                                Return
+                            End If
+                            If fechaVencimiento < Date.Today Then
+                                e.CellStyle.ForeColor = Color.Firebrick
+                                e.CellStyle.BackColor = Color.MistyRose
+                            ElseIf fechaVencimiento <= Date.Today.AddDays(3) Then
+                                e.CellStyle.BackColor = Color.LemonChiffon
+                            End If
+                        End If
+                    End If
             End Select
             Return
         End If
