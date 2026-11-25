@@ -201,14 +201,26 @@ Public Class CasoRepositorio
                 ' comprobación, un ID inexistente podía devolverse como exitoso.
                 Dim casoActual As Integer
                 Dim estadoActual As String = ""
+                Dim tipoAnterior As Integer
+                Dim fechaAnterior As Date
+                Dim plazoAnterior As Integer
+                Dim vencimientoAnterior As Nullable(Of Date) = Nothing
                 Using comandoExiste As New MySqlCommand(
-                    "SELECT ID_Caso, Estado FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
+                    "SELECT ID_Caso, Estado, ID_Tipo_Actuacion, Fecha_Notificacion, " &
+                    "Plazo_Legal_Dias, Fecha_Vencimiento_Calculada " &
+                    "FROM Actuaciones_Procesales WHERE ID = @id FOR UPDATE",
                     conexion, transaccion)
                     Parametro(comandoExiste, "@id", actuacion.ID)
                     Using lector As MySqlDataReader = comandoExiste.ExecuteReader()
                         If Not lector.Read() Then Return 0
                         casoActual = Convert.ToInt32(lector("ID_Caso"))
                         estadoActual = Convert.ToString(lector("Estado"))
+                        tipoAnterior = Convert.ToInt32(lector("ID_Tipo_Actuacion"))
+                        fechaAnterior = Convert.ToDateTime(lector("Fecha_Notificacion"))
+                        plazoAnterior = Convert.ToInt32(lector("Plazo_Legal_Dias"))
+                        If Not Convert.IsDBNull(lector("Fecha_Vencimiento_Calculada")) Then
+                            vencimientoAnterior = Convert.ToDateTime(lector("Fecha_Vencimiento_Calculada"))
+                        End If
                     End Using
                 End Using
 
@@ -243,8 +255,22 @@ Public Class CasoRepositorio
 
                 ' La confirmación es un evento de negocio: se audita aun si MySQL
                 ' informa cero filas modificadas porque los valores ya coincidían.
+                Dim vencimientoAnteriorTexto As String =
+                    If(vencimientoAnterior.HasValue, vencimientoAnterior.Value.ToString("dd/MM/yyyy"), "N/D")
+                Dim vencimientoNuevoTexto As String =
+                    If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D")
+                Dim detalleAuditoria As String =
+                    "Rectificación de actuación. Tipo: " & tipoAnterior.ToString() & " -> " &
+                    actuacion.IDTipoActuacion.ToString() & "; notificación: " &
+                    fechaAnterior.ToString("dd/MM/yyyy") & " -> " &
+                    actuacion.FechaNotificacion.ToString("dd/MM/yyyy") & "; plazo hábil: " &
+                    plazoAnterior.ToString() & " -> " & actuacion.PlazoLegalDias.ToString() &
+                    "; vencimiento: " & vencimientoAnteriorTexto & " -> " & vencimientoNuevoTexto &
+                    "; estado: " & estadoActual & " -> " &
+                    If(actuacion.FechaVencimiento.HasValue AndAlso actuacion.FechaVencimiento.Value.Date < Date.Today,
+                       "Vencido", "Pendiente")
                 AuditarEnTransaccion(conexion, transaccion, "CONFIRMAR PLAZO", "Actuaciones_Procesales",
-                    actuacion.ID, "Vencimiento " & If(actuacion.FechaVencimiento.HasValue, actuacion.FechaVencimiento.Value.ToString("dd/MM/yyyy"), "N/D"))
+                    actuacion.ID, detalleAuditoria)
                 Return actuacion.ID
             End Function)
     End Function
