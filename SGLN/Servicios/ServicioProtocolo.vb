@@ -446,7 +446,7 @@ Public Class ServicioProtocolo
         End Try
     End Function
 
-    Public Function ConfirmarIndiceGenerado(idLibro As Integer) As Respuesta
+    Public Function ConfirmarIndiceGenerado(idLibro As Integer, Optional indiceEsperado As DataTable = Nothing) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para registrar la generación del índice.")
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
 
@@ -463,7 +463,7 @@ Public Class ServicioProtocolo
             If _repositorio.IndiceLibro(idLibro).Rows.Count = 0 Then
                 Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
             End If
-            If _repositorio.MarcarIndiceGenerado(idLibro) = 0 Then
+            If _repositorio.MarcarIndiceGenerado(idLibro, indiceEsperado) = 0 Then
                 Dim actualizado As DataTable = _repositorio.ObtenerLibro(idLibro)
                 If actualizado.Rows.Count > 0 AndAlso Convert.ToBoolean(actualizado.Rows(0)("Indice_Generado")) Then
                     Return Respuesta.Ok("La generación del índice ya estaba registrada.")
