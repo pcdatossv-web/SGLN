@@ -466,12 +466,12 @@ Public Class ServicioProtocolo
             If _repositorio.IndiceLibro(idLibro).Rows.Count = 0 Then
                 Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
             End If
-            If _repositorio.MarcarIndiceGenerado(idLibro, indiceEsperado) = 0 Then
-                Dim actualizado As DataTable = _repositorio.ObtenerLibro(idLibro)
-                If actualizado.Rows.Count > 0 AndAlso Convert.ToBoolean(actualizado.Rows(0)("Indice_Generado")) Then
-                    Return Respuesta.Ok("La generación del índice ya estaba registrada.")
-                End If
+            Dim resultadoMarca As Integer = _repositorio.MarcarIndiceGenerado(idLibro, indiceEsperado)
+            If resultadoMarca = 0 Then
                 Return Respuesta.Fallo("El índice cambió durante la exportación o el libro cambió de estado. Actualice los datos y vuelva a exportarlo.")
+            End If
+            If resultadoMarca = 2 Then
+                Return Respuesta.Ok("La generación del índice ya estaba registrada y coincide con los datos actuales.")
             End If
             Return Respuesta.Ok("Generación del índice registrada correctamente.")
         Catch ex As Exception
