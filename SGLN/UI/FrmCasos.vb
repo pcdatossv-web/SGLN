@@ -17,6 +17,8 @@ Public Class FrmCasos
     Private _actuacionesDisponibles As Boolean
     Private _tablaTiposActuacion As DataTable
     Private _fechaPropuesta As Date?
+    ' Se reutiliza durante toda la vida del formulario para evitar crear fuentes GDI en cada selección.
+    Private _fuenteEstadoActuacion As Font
 
     ''' <summary>Identificador del expediente que debe seleccionarse al abrir desde una alerta.</summary>
     Public Property IDCasoInicial As Integer
@@ -355,7 +357,8 @@ Public Class FrmCasos
         dgvActuaciones.MultiSelect = False
         dgvActuaciones.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvActuaciones.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
-        dgvActuaciones.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+        ' Medir solo filas visibles evita recalcular alturas de todo el historial en cada carga.
+        dgvActuaciones.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvActuaciones.DefaultCellStyle.WrapMode = DataGridViewTriState.True
 
         Dim anchos As New Dictionary(Of String, Integer) From {
@@ -400,7 +403,10 @@ Public Class FrmCasos
         If dgvActuaciones.Columns.Contains("Estado") Then
             With dgvActuaciones.Columns("Estado").DefaultCellStyle
                 .Alignment = DataGridViewContentAlignment.MiddleCenter
-                .Font = New Font(dgvActuaciones.Font, FontStyle.Bold)
+                If _fuenteEstadoActuacion Is Nothing Then
+                    _fuenteEstadoActuacion = New Font(dgvActuaciones.Font, FontStyle.Bold)
+                End If
+                .Font = _fuenteEstadoActuacion
             End With
         End If
 
@@ -983,6 +989,13 @@ Public Class FrmCasos
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
         ActualizarAccionesPlazo()
+    End Sub
+
+    Private Sub FrmCasos_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        If _fuenteEstadoActuacion IsNot Nothing Then
+            _fuenteEstadoActuacion.Dispose()
+            _fuenteEstadoActuacion = Nothing
+        End If
     End Sub
 
 End Class
