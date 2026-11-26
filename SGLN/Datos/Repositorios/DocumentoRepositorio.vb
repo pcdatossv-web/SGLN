@@ -155,6 +155,31 @@ Public Class DocumentoRepositorio
             End Function)
     End Function
 
+    ''' <summary>
+    ''' Comprueba si una importación quedó confirmada en MySQL aunque el cliente
+    ''' haya perdido la respuesta del COMMIT. Se usa para no borrar un archivo
+    ''' que ya está referenciado por un registro persistido.
+    ''' </summary>
+    Public Function ExisteRegistroArchivo(rutaArchivo As String, hash As String) As Boolean
+        If Not Permisos.TieneAcceso("documentos.importar") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para reconciliar una importación documental.")
+        End If
+        If String.IsNullOrWhiteSpace(rutaArchivo) OrElse rutaArchivo.Trim().Length > 500 Then
+            Throw New ArgumentException("La ruta del documento no es válida.", NameOf(rutaArchivo))
+        End If
+        If String.IsNullOrWhiteSpace(hash) OrElse
+           Not Regex.IsMatch(hash, "\\A[0-9a-fA-F]{64}\\z") Then
+            Throw New ArgumentException("El hash del documento no es válido.", NameOf(hash))
+        End If
+
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Documentos WHERE Ruta_Archivo = @ruta AND Hash = @hash",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@ruta", rutaArchivo.Trim())
+                Parametro(comando, "@hash", hash.Trim())
+            End Sub) > 0
+    End Function
+
     Public Function ActualizarMetadatos(documento As Documento) As Integer
         If Not Permisos.TieneAcceso("documentos.metadatos") Then
             Throw New UnauthorizedAccessException("No tiene permiso para modificar metadatos de documentos.")
