@@ -207,7 +207,9 @@ Public Class ServicioCumplimiento
     End Function
 
     Public Function UmbralEfectivo() As Decimal
-        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then Return 10000D
+        If Not Permisos.TieneAccesoAlguno("cumplimiento.ver", "cumplimiento.operaciones", "cumplimiento.reportar_uif") Then
+            Throw New UnauthorizedAccessException("No tiene permiso para consultar el umbral de efectivo.")
+        End If
         Dim valor As String = _catalogo.ObtenerConfig("Umbral_Efectivo")
         Dim monto As Decimal
         If Decimal.TryParse(valor, monto) AndAlso monto > 0 Then Return monto
