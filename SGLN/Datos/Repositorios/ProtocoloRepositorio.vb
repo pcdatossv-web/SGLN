@@ -232,7 +232,7 @@ Public Class ProtocoloRepositorio
                     End Using
                 End Using
 
-                If (estado <> "Cerrado" AndAlso estado <> "Entregado") OrElse indiceGenerado Then Return 0
+                If estado <> "Cerrado" AndAlso estado <> "Entregado" Then Return 0
 
                 Dim cantidadInstrumentos As Integer
                 Using consultarInstrumentos As New MySqlCommand(
@@ -247,10 +247,11 @@ Public Class ProtocoloRepositorio
                 ' de la transacción. Comparar el snapshot esperado con los datos
                 ' actuales mientras el libro permanece bloqueado evita registrar
                 ' como generado un CSV que quedó obsoleto durante la exportación.
-                If indiceEsperado IsNot Nothing Then
-                    Dim indiceActual As DataTable = IndiceLibroEnTransaccion(conexion, transaccion, idLibro)
-                    If Not TablasIguales(indiceEsperado, indiceActual) Then Return 0
-                End If
+                Dim indiceActual As DataTable = IndiceLibroEnTransaccion(conexion, transaccion, idLibro)
+                If Not TablasIguales(indiceEsperado, indiceActual) Then Return 0
+                ' 2 identifica una generación previa que sigue correspondiendo
+                ' exactamente al snapshot actual; 0 significa estado obsoleto.
+                If indiceGenerado Then Return 2
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Indice_Generado = 1 " &
@@ -388,7 +389,26 @@ Public Class ProtocoloRepositorio
                         Parametro(comando, "@id", id)
                         Parametro(comando, "@libro", idLibro)
                     End Sub)
-                If filas > 0 Then AuditarEnTransaccion(conexion, transaccion, "ANULAR", "Instrumentos", id, "Instrumento anulado")
+                If filas > 0 Then
+                    AuditarEnTransaccion(conexion, transaccion, "ANULAR", "Instrumentos", id, "Instrumento anulado")
+
+                    ' La anulación está permitida después del cierre y modifica
+                    ' el estado visible en el índice. Invalidar su marca dentro
+                    ' de la misma transacción obliga a exportar una nueva versión.
+                    If estadoLibro = "Cerrado" Then
+                        Dim indicesInvalidados As Integer = Ejecutar(conexion, transaccion,
+                            "UPDATE Libros_Protocolo SET Indice_Generado = 0 " &
+                            "WHERE ID = @libro AND Indice_Generado = 1",
+                            Sub(comando As MySqlCommand)
+                                Parametro(comando, "@libro", idLibro)
+                            End Sub)
+                        If indicesInvalidados > 0 Then
+                            AuditarEnTransaccion(conexion, transaccion, "INVALIDAR ÍNDICE",
+                                "Libros_Protocolo", idLibro,
+                                "Índice invalidado por anulación de una escritura")
+                        End If
+                    End If
+                End If
                 Return filas
             End Function)
     End Function
