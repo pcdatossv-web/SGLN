@@ -3434,6 +3434,14 @@ Module PruebaFuncional
                   contenidoCsvFormula.Contains("-10") AndAlso
                   Not contenidoCsvFormula.Contains("'-10"))
 
+        Dim rutaCsvAtomico As String = Path.Combine(Path.GetTempPath(), "sgln_prueba_csv_atomico.csv")
+        File.WriteAllText(rutaCsvAtomico, "contenido anterior")
+        UtileriasUI.ExportarCsv(tablaCsvFormula, rutaCsvAtomico)
+        Dim contenidoCsvAtomico As String = File.ReadAllText(rutaCsvAtomico, Encoding.UTF8)
+        Verificar("La exportación CSV reemplaza el archivo anterior al publicar el nuevo resultado",
+                  contenidoCsvAtomico.Contains("'=HYPERLINK") AndAlso
+                  Not contenidoCsvAtomico.Contains("contenido anterior"))
+
         Dim tablaCsvObjeto As New DataTable()
         tablaCsvObjeto.Columns.Add("Valor", GetType(Object))
         tablaCsvObjeto.Columns.Add("Importe", GetType(Object))
