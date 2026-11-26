@@ -212,7 +212,7 @@ Public Class ProtocoloRepositorio
             End Function)
     End Function
 
-    Public Function MarcarIndiceGenerado(idLibro As Integer) As Integer
+    Public Function MarcarIndiceGenerado(idLibro As Integer, Optional indiceEsperado As DataTable = Nothing) As Integer
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
         If idLibro <= 0 Then Return 0
         Return EnTransaccion(
@@ -242,6 +242,15 @@ Public Class ProtocoloRepositorio
                     cantidadInstrumentos = Convert.ToInt32(consultarInstrumentos.ExecuteScalar())
                 End Using
                 If cantidadInstrumentos = 0 Then Return 0
+
+                ' La confirmación puede venir de una exportación realizada fuera
+                ' de la transacción. Comparar el snapshot esperado con los datos
+                ' actuales mientras el libro permanece bloqueado evita registrar
+                ' como generado un CSV que quedó obsoleto durante la exportación.
+                If indiceEsperado IsNot Nothing Then
+                    Dim indiceActual As DataTable = IndiceLibroEnTransaccion(conexion, transaccion, idLibro)
+                    If Not TablasIguales(indiceEsperado, indiceActual) Then Return 0
+                End If
 
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
                     "UPDATE Libros_Protocolo SET Indice_Generado = 1 " &
@@ -885,6 +894,54 @@ Public Class ProtocoloRepositorio
             Sub(comando As MySqlCommand)
                 Parametro(comando, "@libro", idLibro)
             End Sub)
+    End Function
+
+    Private Function IndiceLibroEnTransaccion(conexion As MySqlConnection,
+                                                   transaccion As MySqlTransaction,
+                                                   idLibro As Integer) As DataTable
+        Dim tabla As New DataTable()
+        Using comando As New MySqlCommand(
+            "SELECT i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
+            "       i.Objeto_Acto, i.Estado, " &
+            "       (SELECT IFNULL(GROUP_CONCAT(CONCAT(cl.Nombres, ' ', cl.Apellidos) " &
+            "                      ORDER BY cl.Apellidos SEPARATOR ', '), '') " &
+            "          FROM Comparecientes_Instrumento c " &
+            "          INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
+            "         WHERE c.ID_Instrumento = i.ID AND c.Calidad = 'Otorgante') AS Otorgantes " &
+            "FROM Instrumentos i WHERE i.ID_Libro = @libro ORDER BY i.Numero_Escritura",
+            conexion, transaccion)
+            Parametro(comando, "@libro", idLibro)
+            Using adaptador As New MySqlDataAdapter(comando)
+                adaptador.Fill(tabla)
+            End Using
+        End Using
+        Return tabla
+    End Function
+
+    Private Function TablasIguales(esperada As DataTable, actual As DataTable) As Boolean
+        If esperada Is Nothing OrElse actual Is Nothing Then Return False
+        If esperada.Columns.Count <> actual.Columns.Count OrElse
+           esperada.Rows.Count <> actual.Rows.Count Then Return False
+
+        For indiceColumna As Integer = 0 To esperada.Columns.Count - 1
+            If Not String.Equals(esperada.Columns(indiceColumna).ColumnName,
+                                 actual.Columns(indiceColumna).ColumnName,
+                                 StringComparison.Ordinal) Then Return False
+        Next
+
+        For indiceFila As Integer = 0 To esperada.Rows.Count - 1
+            For indiceColumna As Integer = 0 To esperada.Columns.Count - 1
+                Dim valorEsperado As Object = esperada.Rows(indiceFila)(indiceColumna)
+                Dim valorActual As Object = actual.Rows(indiceFila)(indiceColumna)
+                If valorEsperado Is DBNull.Value Then
+                    If valorActual IsNot DBNull.Value Then Return False
+                ElseIf valorActual Is DBNull.Value OrElse
+                       Not Object.Equals(valorEsperado, valorActual) Then
+                    Return False
+                End If
+            Next
+        Next
+        Return True
     End Function
 
     Public Function ClientesCombo() As DataTable
