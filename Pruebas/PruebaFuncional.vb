@@ -3015,6 +3015,10 @@ Module PruebaFuncional
         If rImportar.ID.HasValue Then idDocumento = rImportar.ID.Value
 
         Dim tablaDoc As DataTable = documentos.Obtener(idDocumento)
+        Verificar("La reconciliación reconoce la ruta y el hash ya confirmados en MySQL",
+                  documentosDirectos.ExisteRegistroArchivo(
+                      Convert.ToString(tablaDoc.Rows(0)("Ruta_Archivo")),
+                      Convert.ToString(tablaDoc.Rows(0)("Hash"))))
         Verificar("El documento queda registrado con su ruta",
                   tablaDoc.Rows.Count = 1 AndAlso UtileriasUI.Texto(tablaDoc.Rows(0), "Ruta_Archivo") <> "")
         Verificar("El hash SHA-256 queda registrado (64 caracteres)",
