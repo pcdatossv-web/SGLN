@@ -17,6 +17,9 @@ Public Class FrmDocumentos
     Private _puedeVerificar As Boolean
     Private _permisosInicializados As Boolean
     Private _catalogosDisponibles As Boolean
+    Private _paginaActual As Integer = 1
+    Private _totalDocumentos As Integer
+    Private Const TamanoPagina As Integer = 100
 
     Private Sub FrmDocumentos_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Revalidar la sesión una vez al abrir y evaluar la matriz recién cargada.
@@ -152,10 +155,14 @@ Public Class FrmDocumentos
             Dim tipo As String = ""
             If cboFiltroTipo.SelectedIndex > 0 Then tipo = Convert.ToString(cboFiltroTipo.SelectedItem)
 
+            _totalDocumentos = _servicio.Contar(txtFiltro.Text, tipo)
+            Dim totalPaginas As Integer = Math.Max(1, CInt(Math.Ceiling(_totalDocumentos / CDbl(TamanoPagina))))
+            If _paginaActual > totalPaginas Then _paginaActual = totalPaginas
             _cargando = True
-            dgvDocumentos.DataSource = _servicio.Buscar(txtFiltro.Text, tipo)
+            dgvDocumentos.DataSource = _servicio.Buscar(txtFiltro.Text, tipo, _paginaActual)
             ConfigurarColumnasDocumentos()
             _cargando = False
+            ActualizarPaginacion(totalPaginas)
 
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
             If actual IsNot Nothing Then
@@ -173,6 +180,7 @@ Public Class FrmDocumentos
             dgvDocumentos.DataSource = Nothing
             If cargarDetalleSeleccionado Then CargarCombos()
             _cargando = False
+            ActualizarPaginacion(1)
             Limpiar()
             RegistroErrores.Escribir("Documentos - cargar", ex)
             MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
@@ -184,6 +192,13 @@ Public Class FrmDocumentos
     ''' metadatos útiles para localizar documentos sin saturar la grilla.
     ''' Los valores completos siguen disponibles en el panel de detalle.
     ''' </summary>
+    Private Sub ActualizarPaginacion(totalPaginas As Integer)
+        lblPaginacion.Text = "Página " & _paginaActual.ToString() & " de " & totalPaginas.ToString() &
+            " | " & _totalDocumentos.ToString("N0") & " documentos"
+        btnAnterior.Enabled = _paginaActual > 1 AndAlso _totalDocumentos > 0
+        btnSiguiente.Enabled = _paginaActual < totalPaginas AndAlso _totalDocumentos > 0
+    End Sub
+
     Private Sub ConfigurarColumnasDocumentos()
         OcultarColumnas("ID", "ID_Caso", "ID_Instrumento", "Ruta_Archivo", "Hash")
 
@@ -351,6 +366,7 @@ Public Class FrmDocumentos
                 Return
             End If
 
+            _paginaActual = 1
             CargarGrid()
             If respuesta.ID.HasValue Then SeleccionarDocumento(respuesta.ID.Value)
             MostrarMensaje(respuesta.Mensaje, True)
@@ -511,6 +527,7 @@ Public Class FrmDocumentos
     Private Sub txtFiltro_KeyDown(sender As Object, e As KeyEventArgs) Handles txtFiltro.KeyDown
         If e.KeyCode = Keys.Enter Then
             e.SuppressKeyPress = True
+            _paginaActual = 1
             CargarGrid()
         ElseIf e.KeyCode = Keys.Escape Then
             e.SuppressKeyPress = True
@@ -521,6 +538,7 @@ Public Class FrmDocumentos
     Private Sub LimpiarFiltro()
         txtFiltro.Clear()
         If cboFiltroTipo.Items.Count > 0 Then cboFiltroTipo.SelectedIndex = 0
+        _paginaActual = 1
         CargarGrid()
         txtFiltro.Focus()
     End Sub
@@ -564,6 +582,20 @@ Public Class FrmDocumentos
 
     Private Sub cboFiltroTipo_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboFiltroTipo.SelectedIndexChanged
         If _cargando Then Return
+        _paginaActual = 1
+        CargarGrid()
+    End Sub
+
+    Private Sub btnAnterior_Click(sender As Object, e As EventArgs) Handles btnAnterior.Click
+        If _paginaActual <= 1 Then Return
+        _paginaActual -= 1
+        CargarGrid()
+    End Sub
+
+    Private Sub btnSiguiente_Click(sender As Object, e As EventArgs) Handles btnSiguiente.Click
+        Dim totalPaginas As Integer = Math.Max(1, CInt(Math.Ceiling(_totalDocumentos / CDbl(TamanoPagina))))
+        If _paginaActual >= totalPaginas Then Return
+        _paginaActual += 1
         CargarGrid()
     End Sub
 
