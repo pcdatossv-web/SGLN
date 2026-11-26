@@ -900,26 +900,43 @@ Public Class ProtocoloRepositorio
 
     Public Function IndiceLibro(idLibro As Integer) As DataTable
         If idLibro <= 0 OrElse Not Permisos.TieneAccesoAlguno("protocolo.ver", "protocolo.gestionar") Then Return New DataTable()
-        ' GROUP_CONCAT reemplaza el STUFF/FOR XML de SQL Server: agrupa los
-        ' otorgantes de cada escritura en una sola celda.
-        Return Consultar(
-            "SELECT i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
-            "       i.Objeto_Acto, i.Estado, " &
-            "       (SELECT IFNULL(GROUP_CONCAT(CONCAT(cl.Nombres, ' ', cl.Apellidos) " &
-            "                      ORDER BY cl.Apellidos SEPARATOR ', '), '') " &
-            "          FROM Comparecientes_Instrumento c " &
-            "          INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
-            "         WHERE c.ID_Instrumento = i.ID AND c.Calidad = 'Otorgante') AS Otorgantes " &
-            "FROM Instrumentos i WHERE i.ID_Libro = @libro ORDER BY i.Numero_Escritura",
-            Sub(comando As MySqlCommand)
+
+        ' GROUP_CONCAT tiene un límite de sesión (habitualmente 1024 bytes).
+        ' Elevarlo en esta misma conexión evita truncar listas de otorgantes
+        ' sin error y mantiene el resultado idéntico al snapshot transaccional.
+        Dim tabla As New DataTable()
+        Using conexion As MySqlConnection = CrearConexion()
+            Using configurar As New MySqlCommand(
+                "SET SESSION group_concat_max_len = 1048576", conexion)
+                configurar.ExecuteNonQuery()
+            End Using
+            Using comando As New MySqlCommand(
+                "SELECT i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
+                "       i.Objeto_Acto, i.Estado, " &
+                "       (SELECT IFNULL(GROUP_CONCAT(CONCAT(cl.Nombres, ' ', cl.Apellidos) " &
+                "                      ORDER BY cl.Apellidos SEPARATOR ', '), '') " &
+                "          FROM Comparecientes_Instrumento c " &
+                "          INNER JOIN Clientes cl ON cl.ID = c.ID_Cliente " &
+                "         WHERE c.ID_Instrumento = i.ID AND c.Calidad = 'Otorgante') AS Otorgantes " &
+                "FROM Instrumentos i WHERE i.ID_Libro = @libro ORDER BY i.Numero_Escritura",
+                conexion)
                 Parametro(comando, "@libro", idLibro)
-            End Sub)
+                Using adaptador As New MySqlDataAdapter(comando)
+                    adaptador.Fill(tabla)
+                End Using
+            End Using
+        End Using
+        Return tabla
     End Function
 
     Private Function IndiceLibroEnTransaccion(conexion As MySqlConnection,
                                                    transaccion As MySqlTransaction,
                                                    idLibro As Integer) As DataTable
         Dim tabla As New DataTable()
+        Using configurar As New MySqlCommand(
+            "SET SESSION group_concat_max_len = 1048576", conexion, transaccion)
+            configurar.ExecuteNonQuery()
+        End Using
         Using comando As New MySqlCommand(
             "SELECT i.Numero_Escritura, i.Fecha_Hora_Otorgamiento, i.Folio_Inicio, i.Folio_Fin, " &
             "       i.Objeto_Acto, i.Estado, " &
