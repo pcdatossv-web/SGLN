@@ -1103,6 +1103,34 @@ Public Class FrmProtocolo
         End If
         If grid.Columns.Contains("Destinatario") Then grid.Columns("Destinatario").HeaderText = "Destinatario"
         If grid.Columns.Contains("Usuario") Then grid.Columns("Usuario").HeaderText = "Registrado por"
+        If grid.Columns.Contains("Destinatario") Then
+            With grid.Columns("Destinatario")
+                .HeaderText = "Destinatario"
+                .MinimumWidth = 170
+                .FillWeight = 180
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End With
+        End If
+        If grid.Columns.Contains("Usuario") Then
+            With grid.Columns("Usuario")
+                .MinimumWidth = 120
+                .FillWeight = 110
+            End With
+        End If
+        If grid.Columns.Contains("Tipo_Testimonio") Then
+            With grid.Columns("Tipo_Testimonio")
+                .MinimumWidth = 95
+                .FillWeight = 75
+                .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End With
+        End If
+        If grid.Columns.Contains("Fecha_Expedicion") Then
+            With grid.Columns("Fecha_Expedicion")
+                .MinimumWidth = 105
+                .FillWeight = 85
+                .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End With
+        End If
         If grid.Columns.Contains("Otorgantes") Then grid.Columns("Otorgantes").HeaderText = "Otorgantes"
         If grid.Columns.Contains("Estado") Then grid.Columns("Estado").HeaderText = "Estado"
     End Sub
