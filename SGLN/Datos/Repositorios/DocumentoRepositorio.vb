@@ -38,12 +38,19 @@ Public Class DocumentoRepositorio
 
     Private Const TamanoPaginaDocumentos As Integer = 100
 
-    Private Sub AplicarFiltroDocumentos(comando As MySqlCommand, filtro As String, tipo As String)
+    Private Shared Function EsHashSha256Completo(valor As String) As Boolean
+        Return Not String.IsNullOrWhiteSpace(valor) AndAlso
+               Regex.IsMatch(valor.Trim(), "\A[0-9a-fA-F]{64}\z")
+    End Function
+
+    Private Sub AplicarFiltroDocumentos(comando As MySqlCommand, filtro As String,
+                                        tipo As String, hashExacto As Boolean)
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
         Parametro(comando, "@filtro", If(texto = "", DBNull.Value, CObj(texto)))
         Parametro(comando, "@like", "%" & texto & "%")
         Parametro(comando, "@tipo", If(tipoFiltro = "", DBNull.Value, CObj(tipoFiltro)))
+        If hashExacto Then Parametro(comando, "@hashExacto", texto)
     End Sub
 
     Public Function Buscar(filtro As String, tipo As String, pagina As Integer) As DataTable
@@ -51,6 +58,13 @@ Public Class DocumentoRepositorio
         If pagina < 1 Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
         Dim offset As Long = CLng(pagina - 1) * TamanoPaginaDocumentos
         If offset > Integer.MaxValue Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
+
+        Dim hashExacto As Boolean = EsHashSha256Completo(filtro)
+        Dim condicionBusqueda As String =
+            If(hashExacto,
+               "d.Hash = @hashExacto",
+               "(@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
+               " OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like)")
 
         Return Consultar(
             "SELECT d.ID, d.Tipo_Documento, d.Ruta_Archivo, d.Hash, d.Estado_Procesamiento_IA, " &
@@ -61,12 +75,11 @@ Public Class DocumentoRepositorio
             "FROM Documentos d " &
             "LEFT JOIN Casos c ON c.ID = d.ID_Caso " &
             "LEFT JOIN Instrumentos i ON i.ID = d.ID_Instrumento " &
-            "WHERE (@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
-            "       OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like) " &
+            "WHERE " & condicionBusqueda & " " &
             "  AND (@tipo IS NULL OR d.Tipo_Documento = @tipo) " &
             "ORDER BY d.Fecha_Carga DESC, d.ID DESC LIMIT @limite OFFSET @offset",
             Sub(comando As MySqlCommand)
-                AplicarFiltroDocumentos(comando, filtro, tipo)
+                AplicarFiltroDocumentos(comando, filtro, tipo, hashExacto)
                 Parametro(comando, "@limite", TamanoPaginaDocumentos)
                 Parametro(comando, "@offset", CInt(offset))
             End Sub)
@@ -74,14 +87,20 @@ Public Class DocumentoRepositorio
 
     Public Function Contar(filtro As String, tipo As String) As Integer
         If Not PuedeConsultarDocumentos() Then Return 0
+        Dim hashExacto As Boolean = EsHashSha256Completo(filtro)
+        Dim condicionBusqueda As String =
+            If(hashExacto,
+               "d.Hash = @hashExacto",
+               "(@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
+               " OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like)")
+
         Return Escalar(Of Integer)(
             "SELECT COUNT(*) FROM Documentos d " &
             "LEFT JOIN Casos c ON c.ID = d.ID_Caso " &
-            "WHERE (@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
-            "       OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like) " &
+            "WHERE " & condicionBusqueda & " " &
             "  AND (@tipo IS NULL OR d.Tipo_Documento = @tipo)",
             Sub(comando As MySqlCommand)
-                AplicarFiltroDocumentos(comando, filtro, tipo)
+                AplicarFiltroDocumentos(comando, filtro, tipo, hashExacto)
             End Sub)
     End Function
 
