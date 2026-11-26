@@ -936,14 +936,16 @@ Public Class FrmProtocolo
             UtileriasUI.MostrarError("No hay índice para exportar.")
             Return
         End If
+        Dim snapshotInicial As DataTable = tabla.Copy()
 
         Using dialogo As New SaveFileDialog()
             dialogo.Filter = "Archivo CSV (*.csv)|*.csv"
             dialogo.FileName = "Indice_Libro_" & _idLibro & ".csv"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
 
-            ' El usuario puede permanecer en el diálogo mientras un administrador
-            ' revoca el permiso desde otra sesión o estación.
+            ' El usuario puede permanecer en el diálogo mientras otra sesión
+            ' modifica una escritura. Nunca exportar silenciosamente el snapshot
+            ' que estaba cargado antes de abrir el diálogo.
             If confirmarGeneracion Then
                 If Not Permisos.TieneAcceso("protocolo.gestionar") Then
                     MostrarMensaje("El permiso para generar el índice fue revocado. No se exportó el archivo.", False)
@@ -955,13 +957,34 @@ Public Class FrmProtocolo
             End If
 
             Try
+                Dim indiceActual As DataTable = _servicio.IndiceLibro(_idLibro)
+                If Not TablasIguales(snapshotInicial, indiceActual) Then
+                    dgvIndice.DataSource = indiceActual
+                    ConfigurarPresentacionGrid(dgvIndice)
+                    If dgvIndice.Columns.Contains("Fecha_Hora_Otorgamiento") Then
+                        dgvIndice.Columns("Fecha_Hora_Otorgamiento").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"
+                    End If
+                    ActualizarEstadoAccionesContextuales()
+                    MostrarMensaje("El índice cambió mientras seleccionaba el destino. Se actualizó la vista; revise los datos y vuelva a exportar.", False)
+                    Return
+                End If
+
+                tabla = indiceActual
+                If tabla.Rows.Count = 0 Then
+                    MostrarMensaje("El libro ya no contiene instrumentos para exportar.", False)
+                    Return
+                End If
+
                 UtileriasUI.ExportarCsv(tabla, dialogo.FileName)
 
                 If confirmarGeneracion Then
-                    Dim confirmacion As Respuesta = _servicio.ConfirmarIndiceGenerado(_idLibro)
+                    ' El repositorio vuelve a comparar el snapshot dentro de una
+                    ' transacción que bloquea el libro. Si hubo una modificación
+                    ' durante la escritura del archivo, no registra la generación.
+                    Dim confirmacion As Respuesta = _servicio.ConfirmarIndiceGenerado(_idLibro, tabla.Copy())
                     If Not confirmacion.Exito Then
                         MostrarMensaje("El CSV se exportó en " & dialogo.FileName &
-                                       ", pero no se pudo registrar la generación: " &
+                                       ", pero no se registró como índice generado: " &
                                        confirmacion.Mensaje, False)
                         Return
                     End If
@@ -980,6 +1003,32 @@ Public Class FrmProtocolo
             End Try
         End Using
     End Sub
+
+    Private Function TablasIguales(esperada As DataTable, actual As DataTable) As Boolean
+        If esperada Is Nothing OrElse actual Is Nothing Then Return False
+        If esperada.Columns.Count <> actual.Columns.Count OrElse
+           esperada.Rows.Count <> actual.Rows.Count Then Return False
+
+        For indiceColumna As Integer = 0 To esperada.Columns.Count - 1
+            If Not String.Equals(esperada.Columns(indiceColumna).ColumnName,
+                                 actual.Columns(indiceColumna).ColumnName,
+                                 StringComparison.Ordinal) Then Return False
+        Next
+
+        For indiceFila As Integer = 0 To esperada.Rows.Count - 1
+            For indiceColumna As Integer = 0 To esperada.Columns.Count - 1
+                Dim valorEsperado As Object = esperada.Rows(indiceFila)(indiceColumna)
+                Dim valorActual As Object = actual.Rows(indiceFila)(indiceColumna)
+                If valorEsperado Is DBNull.Value Then
+                    If valorActual IsNot DBNull.Value Then Return False
+                ElseIf valorActual Is DBNull.Value OrElse
+                       Not Object.Equals(valorEsperado, valorActual) Then
+                    Return False
+                End If
+            Next
+        Next
+        Return True
+    End Function
 
     ' ------------------------------------------------------------------
     ' Utilidades
