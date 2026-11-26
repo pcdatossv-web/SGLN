@@ -176,7 +176,8 @@ Partial Class FrmProtocolo
         '
         ' dgvLibros
         '
-        Me.dgvLibros.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' La lista de libros permanece en la columna izquierda y no invade el panel de edición.
+        Me.dgvLibros.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvLibros.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvLibros.Location = New System.Drawing.Point(10, 10)
         Me.dgvLibros.Name = "dgvLibros"
@@ -185,6 +186,7 @@ Partial Class FrmProtocolo
         '
         ' grpLibro
         '
+        ' El editor permanece anclado al borde derecho.
         Me.grpLibro.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpLibro.Controls.Add(Me.lblNumeroLibro)
         Me.grpLibro.Controls.Add(Me.nudNumeroLibro)
@@ -420,7 +422,8 @@ Partial Class FrmProtocolo
         '
         ' dgvInstrumentos
         '
-        Me.dgvInstrumentos.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' La lista de instrumentos permanece en la columna izquierda.
+        Me.dgvInstrumentos.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvInstrumentos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvInstrumentos.AllowUserToAddRows = False
         Me.dgvInstrumentos.AllowUserToDeleteRows = False
@@ -455,6 +458,7 @@ Partial Class FrmProtocolo
         '
         ' grpInstrumento
         '
+        ' El editor de instrumentos permanece en la columna derecha.
         Me.grpInstrumento.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpInstrumento.Controls.Add(Me.lblNumeroEscritura)
         Me.grpInstrumento.Controls.Add(Me.nudNumeroEscritura)
@@ -621,7 +625,8 @@ Partial Class FrmProtocolo
         '
         ' grpComparecientes
         '
-        Me.grpComparecientes.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' El panel de comparecientes permanece en la columna derecha y conserva su altura.
+        Me.grpComparecientes.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpComparecientes.Controls.Add(Me.lblClienteComp)
         Me.grpComparecientes.Controls.Add(Me.cboClienteComp)
         Me.grpComparecientes.Controls.Add(Me.lblCalidad)
@@ -725,7 +730,8 @@ Partial Class FrmProtocolo
         '
         ' dgvTestimonios
         '
-        Me.dgvTestimonios.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' La lista de testimonios permanece en la columna izquierda.
+        Me.dgvTestimonios.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvTestimonios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvTestimonios.AllowUserToAddRows = False
         Me.dgvTestimonios.AllowUserToDeleteRows = False
@@ -759,6 +765,7 @@ Partial Class FrmProtocolo
         '
         ' grpTestimonio
         '
+        ' El editor de testimonios permanece en la columna derecha.
         Me.grpTestimonio.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpTestimonio.Controls.Add(Me.lblInstrumentoTest)
         Me.grpTestimonio.Controls.Add(Me.cboInstrumentoTest)
