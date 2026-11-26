@@ -44,6 +44,9 @@ Partial Class FrmDocumentos
         Me.btnVerificar = New System.Windows.Forms.Button()
         Me.btnProcesarIA = New System.Windows.Forms.Button()
         Me.lblNotaIA = New System.Windows.Forms.Label()
+        Me.btnAnterior = New System.Windows.Forms.Button()
+        Me.btnSiguiente = New System.Windows.Forms.Button()
+        Me.lblPaginacion = New System.Windows.Forms.Label()
         CType(Me.dgvDocumentos, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grpDetalle.SuspendLayout()
         Me.SuspendLayout()
@@ -112,8 +115,40 @@ Partial Class FrmDocumentos
         Me.dgvDocumentos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
         Me.dgvDocumentos.Location = New System.Drawing.Point(12, 50)
         Me.dgvDocumentos.Name = "dgvDocumentos"
-        Me.dgvDocumentos.Size = New System.Drawing.Size(760, 600)
+        Me.dgvDocumentos.Size = New System.Drawing.Size(760, 560)
         Me.dgvDocumentos.TabIndex = 5
+        '
+        ' btnAnterior
+        '
+        Me.btnAnterior.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnAnterior.Location = New System.Drawing.Point(12, 620)
+        Me.btnAnterior.Name = "btnAnterior"
+        Me.btnAnterior.Size = New System.Drawing.Size(90, 28)
+        Me.btnAnterior.TabIndex = 12
+        Me.btnAnterior.Text = "Anterior"
+        Me.btnAnterior.Enabled = False
+        Me.btnAnterior.UseVisualStyleBackColor = True
+        '
+        ' btnSiguiente
+        '
+        Me.btnSiguiente.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnSiguiente.Location = New System.Drawing.Point(108, 620)
+        Me.btnSiguiente.Name = "btnSiguiente"
+        Me.btnSiguiente.Size = New System.Drawing.Size(90, 28)
+        Me.btnSiguiente.TabIndex = 13
+        Me.btnSiguiente.Text = "Siguiente"
+        Me.btnSiguiente.Enabled = False
+        Me.btnSiguiente.UseVisualStyleBackColor = True
+        '
+        ' lblPaginacion
+        '
+        Me.lblPaginacion.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.lblPaginacion.Location = New System.Drawing.Point(210, 620)
+        Me.lblPaginacion.Name = "lblPaginacion"
+        Me.lblPaginacion.Size = New System.Drawing.Size(560, 28)
+        Me.lblPaginacion.TabIndex = 14
+        Me.lblPaginacion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.lblPaginacion.Text = "Página 1 de 1 | 0 documentos"
         '
         ' grpDetalle
         '
@@ -326,6 +361,9 @@ Partial Class FrmDocumentos
         Me.Controls.Add(Me.btnVerificar)
         Me.Controls.Add(Me.btnActualizar)
         Me.Controls.Add(Me.grpDetalle)
+        Me.Controls.Add(Me.lblPaginacion)
+        Me.Controls.Add(Me.btnSiguiente)
+        Me.Controls.Add(Me.btnAnterior)
         Me.Controls.Add(Me.dgvDocumentos)
         Me.Controls.Add(Me.lblMensaje)
         Me.Controls.Add(Me.btnLimpiarFiltro)
@@ -371,4 +409,7 @@ Partial Class FrmDocumentos
     Friend WithEvents btnVerificar As System.Windows.Forms.Button
     Friend WithEvents btnProcesarIA As System.Windows.Forms.Button
     Friend WithEvents lblNotaIA As System.Windows.Forms.Label
+    Friend WithEvents btnAnterior As System.Windows.Forms.Button
+    Friend WithEvents btnSiguiente As System.Windows.Forms.Button
+    Friend WithEvents lblPaginacion As System.Windows.Forms.Label
 End Class
