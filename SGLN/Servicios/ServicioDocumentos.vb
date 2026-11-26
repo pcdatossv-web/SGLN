@@ -82,6 +82,8 @@ Public Class ServicioDocumentos
         Dim rutaDestino As String = ""
         Dim rutaTemporal As String = ""
         Dim destinoPublicadoPorEstaImportacion As Boolean = False
+        Dim rutaRegistrada As String = ""
+        Dim hashRegistrado As String = ""
         Try
             Dim carpeta As String = RutaBaseDocumentosInterna()
 
@@ -161,6 +163,8 @@ Public Class ServicioDocumentos
                 .IDInstrumento = idInstrumento
             }
 
+            rutaRegistrada = documento.RutaArchivo
+            hashRegistrado = documento.Hash
             documento.ID = _repositorio.Insertar(documento)
 
             Return New Respuesta With {
@@ -183,13 +187,34 @@ Public Class ServicioDocumentos
                 End If
 
                 If destinoPublicadoPorEstaImportacion AndAlso File.Exists(rutaDestino) Then
-                    ' No borrar a través de una ruta que ahora resuelva mediante
-                    ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
-                    Dim rutaLimpieza As String = RutaCompletaInterna(rutaDestino)
-                    If String.Equals(Path.GetFullPath(rutaLimpieza),
-                                     Path.GetFullPath(rutaDestino),
-                                     StringComparison.OrdinalIgnoreCase) Then
-                        File.Delete(rutaLimpieza)
+                    ' El COMMIT puede haberse confirmado en MySQL aunque el cliente
+                    ' pierda la respuesta por una caída de red. Antes de borrar el
+                    ' archivo publicado, reconciliar por ruta y SHA-256. Si la
+                    ' consulta falla, conservar el archivo: una referencia rota
+                    ' en la base de datos es más grave que un posible huérfano.
+                    Dim archivoReferenciado As Boolean = False
+                    Try
+                        If Not String.IsNullOrWhiteSpace(rutaRegistrada) AndAlso
+                           Not String.IsNullOrWhiteSpace(hashRegistrado) Then
+                            archivoReferenciado = _repositorio.ExisteRegistroArchivo(
+                                rutaRegistrada, hashRegistrado)
+                        End If
+                    Catch exReconciliacion As Exception
+                        archivoReferenciado = True
+                        RegistroErrores.Escribir(
+                            "Documentos - resultado de importación no confirmado; archivo conservado",
+                            exReconciliacion)
+                    End Try
+
+                    If Not archivoReferenciado Then
+                        ' No borrar a través de una ruta que ahora resuelva mediante
+                        ' un enlace/punto de reanálisis: podría apuntar fuera del almacén.
+                        Dim rutaLimpieza As String = RutaCompletaInterna(rutaDestino)
+                        If String.Equals(Path.GetFullPath(rutaLimpieza),
+                                         Path.GetFullPath(rutaDestino),
+                                         StringComparison.OrdinalIgnoreCase) Then
+                            File.Delete(rutaLimpieza)
+                        End If
                     End If
                 End If
             Catch exLimpieza As Exception
