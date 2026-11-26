@@ -144,6 +144,9 @@ Public Module UtileriasUI
     End Function
 
     Public Sub ExportarCsv(tabla As DataTable, ruta As String)
+        If tabla Is Nothing Then Throw New ArgumentNullException(NameOf(tabla))
+        If String.IsNullOrWhiteSpace(ruta) Then Throw New ArgumentException("La ruta de exportación no es válida.", NameOf(ruta))
+
         Dim contenido As New StringBuilder()
 
         Dim encabezados As New List(Of String)()
@@ -168,7 +171,34 @@ Public Module UtileriasUI
             contenido.AppendLine(String.Join(",", valores.ToArray()))
         Next
 
-        File.WriteAllText(ruta, contenido.ToString(), Encoding.UTF8)
+        ' Publicar primero un temporal en el mismo directorio y reemplazar
+        ' atómicamente al final. Un fallo de escritura no debe truncar el CSV
+        ' anterior que ya existe en el destino.
+        Dim rutaCompleta As String = Path.GetFullPath(ruta)
+        Dim directorio As String = Path.GetDirectoryName(rutaCompleta)
+        If Not Directory.Exists(directorio) Then
+            Throw New DirectoryNotFoundException("La carpeta de destino no existe.")
+        End If
+        Dim temporal As String = Path.Combine(directorio,
+            "." & Path.GetFileName(rutaCompleta) & "." & Guid.NewGuid().ToString("N") & ".tmp")
+        Try
+            File.WriteAllText(temporal, contenido.ToString(), New UTF8Encoding(True))
+            If File.Exists(rutaCompleta) Then
+                File.Replace(temporal, rutaCompleta, Nothing)
+            Else
+                File.Move(temporal, rutaCompleta)
+            End If
+        Finally
+            If File.Exists(temporal) Then
+                Try
+                    File.Delete(temporal)
+                Catch ex As IOException
+                    RegistroErrores.Escribir("CSV - limpieza de archivo temporal", ex)
+                Catch ex As UnauthorizedAccessException
+                    RegistroErrores.Escribir("CSV - limpieza de archivo temporal", ex)
+                End Try
+            End If
+        End Try
     End Sub
 
     ''' <summary>
