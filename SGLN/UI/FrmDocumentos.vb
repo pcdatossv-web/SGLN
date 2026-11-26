@@ -181,13 +181,21 @@ Public Class FrmDocumentos
             Dim actual As DataRow = UtileriasUI.FilaActual(dgvDocumentos)
             If actual IsNot Nothing Then
                 If cargarDetalleSeleccionado Then CargarDetalle(actual)
-            ElseIf cargarDetalleSeleccionado Then
-                ' Al quedar sin resultados, restablecer el catálogo base para no
-                ' conservar instrumentos históricos de la selección anterior.
-                _cargando = True
-                CargarCombos()
-                _cargando = False
-                Limpiar()
+            Else
+                If cargarDetalleSeleccionado Then
+                    ' Al quedar sin resultados, restablecer el catálogo base para no
+                    ' conservar instrumentos históricos de la selección anterior.
+                    _cargando = True
+                    CargarCombos()
+                    _cargando = False
+                    Limpiar()
+                End If
+
+                If _totalDocumentos = 0 Then
+                    MostrarMensaje("No se encontraron documentos con los filtros actuales.", True)
+                Else
+                    MostrarMensaje("La página quedó sin registros por cambios recientes. Actualice la lista.", False)
+                End If
             End If
         Catch ex As Exception
             _cargando = True
