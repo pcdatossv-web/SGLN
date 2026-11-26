@@ -24,7 +24,12 @@ GRANT SELECT, INSERT, UPDATE ON sgln_sv.Libros_Protocolo TO 'sgln_app'@'localhos
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Instrumentos TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Comparecientes_Instrumento TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Testimonios_Expedidos TO 'sgln_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE ON sgln_sv.Documentos TO 'sgln_app'@'localhost';
+GRANT SELECT, INSERT ON sgln_sv.Documentos TO 'sgln_app'@'localhost';
+/* La aplicación solo puede rectificar metadatos documentales.
+   Ruta, hash, fecha de carga y usuario quedan protegidos contra UPDATE directo. */
+REVOKE UPDATE ON sgln_sv.Documentos FROM 'sgln_app'@'localhost';
+GRANT UPDATE (Tipo_Documento, ID_Caso, ID_Instrumento)
+    ON sgln_sv.Documentos TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Operaciones_LDAFT TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Solicitudes_ARCO TO 'sgln_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON sgln_sv.Plantillas_Documentos TO 'sgln_app'@'localhost';
