@@ -3016,6 +3016,7 @@ Module PruebaFuncional
 
         Dim tablaDoc As DataTable = documentos.Obtener(idDocumento)
         Verificar("La reconciliación reconoce la ruta y el hash ya confirmados en MySQL",
+                  tablaDoc.Rows.Count = 1 AndAlso
                   documentosDirectos.ExisteRegistroArchivo(
                       Convert.ToString(tablaDoc.Rows(0)("Ruta_Archivo")),
                       Convert.ToString(tablaDoc.Rows(0)("Hash"))))
