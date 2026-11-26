@@ -280,6 +280,7 @@ Public Class FrmAuditoria
             End If
 
             Try
+                Dim filasLeidas As Long = 0L
                 Dim exportados As Long = UtileriasUI.ExportarCsvPorPaginas(
                     dialogo.FileName,
                     paginasEsperadas,
@@ -288,17 +289,21 @@ Public Class FrmAuditoria
                            Not Permisos.Puede("auditoria.exportar") Then
                             Throw New UnauthorizedAccessException("Los permisos de auditoría cambiaron durante la exportación.")
                         End If
-                        Return _servicio.BuscarPagina(
+
+                        Dim datos As DataTable = _servicio.BuscarPagina(
                             usuario, tabla, accion, desde, hasta,
                             corteId, pagina, TamanoPagina)
-                    End Function)
+                        filasLeidas += CLng(datos.Rows.Count)
 
-                ' No publicar un archivo parcial o incoherente si una consulta
-                ' devolvió menos filas que el total calculado antes de exportar.
-                If exportados <> registrosEsperados Then
-                    Throw New InvalidOperationException(
-                        "La cantidad de registros cambió durante la exportación. El archivo anterior se conservó.")
-                End If
+                        ' Validar dentro del callback final: el exportador aún
+                        ' no ha publicado el temporal y puede cancelar de forma segura.
+                        If pagina = paginasEsperadas - 1L AndAlso
+                           filasLeidas <> registrosEsperados Then
+                            Throw New InvalidOperationException(
+                                "La cantidad de registros cambió durante la exportación. No se publicó el archivo.")
+                        End If
+                        Return datos
+                    End Function)
 
                 MostrarMensaje("Se exportaron " & exportados.ToString("N0") &
                                " registros de auditoría.", True)
