@@ -29,8 +29,8 @@
      mysql -u root -p sgln_sv < Migracion_Seguridad_Acceso.sql
      mysql -u root -p sgln_sv < Migracion_Indice_Documentos.sql
    La migración de seguridad crea la tabla de control de intentos fallidos.
-   La migración de documentos añade un índice para búsquedas SHA-256 exactas
-   sin modificar los archivos ni los registros existentes.
+   La migración de documentos añade índices para búsquedas SHA-256 exactas
+   y para ordenar la lista paginada por fecha, sin modificar datos existentes.
    Aplique también Privilegios_Minimos.sql para retirar permisos DELETE globales
    de cuentas sgln_app anteriores.
 
