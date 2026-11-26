@@ -367,7 +367,7 @@ CREATE TABLE IF NOT EXISTS Audit_Log (
     ID_Registro    INT NULL,
     Detalle        VARCHAR(1000) NULL,
     PRIMARY KEY (ID),
-    KEY IX_Audit_Fecha (Fecha_Hora)
+    KEY IX_Audit_Fecha_ID (Fecha_Hora, ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 /* ==================================================================
