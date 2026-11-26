@@ -446,9 +446,12 @@ Public Class ServicioProtocolo
         End Try
     End Function
 
-    Public Function ConfirmarIndiceGenerado(idLibro As Integer, Optional indiceEsperado As DataTable = Nothing) As Respuesta
+    Public Function ConfirmarIndiceGenerado(idLibro As Integer, indiceEsperado As DataTable) As Respuesta
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Return Respuesta.Fallo("No tiene permiso para registrar la generación del índice.")
         If idLibro <= 0 Then Return Respuesta.Fallo("Seleccione un libro.")
+        If indiceEsperado Is Nothing OrElse indiceEsperado.Rows.Count = 0 Then
+            Return Respuesta.Fallo("Debe proporcionar el snapshot exacto que se exportó para confirmar el índice.")
+        End If
 
         Try
             Dim libro As DataTable = _repositorio.ObtenerLibro(idLibro)
@@ -468,7 +471,7 @@ Public Class ServicioProtocolo
                 If actualizado.Rows.Count > 0 AndAlso Convert.ToBoolean(actualizado.Rows(0)("Indice_Generado")) Then
                     Return Respuesta.Ok("La generación del índice ya estaba registrada.")
                 End If
-                Return Respuesta.Fallo("El libro cambió de estado y no se pudo registrar la generación del índice.")
+                Return Respuesta.Fallo("El índice cambió durante la exportación o el libro cambió de estado. Actualice los datos y vuelva a exportarlo.")
             End If
             Return Respuesta.Ok("Generación del índice registrada correctamente.")
         Catch ex As Exception
