@@ -136,6 +136,7 @@ Partial Class FrmAuditoria
         Me.btnBuscar.TabIndex = 5
         Me.btnBuscar.Text = "Buscar"
         Me.btnBuscar.UseVisualStyleBackColor = True
+        Me.btnBuscar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         '
         ' btnRefrescar
         '
@@ -145,6 +146,7 @@ Partial Class FrmAuditoria
         Me.btnRefrescar.TabIndex = 6
         Me.btnRefrescar.Text = "Refrescar"
         Me.btnRefrescar.UseVisualStyleBackColor = True
+        Me.btnRefrescar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         '
         ' btnExportar
         '
@@ -154,6 +156,7 @@ Partial Class FrmAuditoria
         Me.btnExportar.TabIndex = 7
         Me.btnExportar.Text = "Exportar CSV"
         Me.btnExportar.UseVisualStyleBackColor = True
+        Me.btnExportar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         '
         '
         ' btnLimpiar
@@ -164,6 +167,7 @@ Partial Class FrmAuditoria
         Me.btnLimpiar.TabIndex = 8
         Me.btnLimpiar.Text = "Limpiar filtros"
         Me.btnLimpiar.UseVisualStyleBackColor = True
+        Me.btnLimpiar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         '
         ' lblMensaje
         '
