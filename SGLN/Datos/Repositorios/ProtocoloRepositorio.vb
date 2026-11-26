@@ -212,9 +212,9 @@ Public Class ProtocoloRepositorio
             End Function)
     End Function
 
-    Public Function MarcarIndiceGenerado(idLibro As Integer, Optional indiceEsperado As DataTable = Nothing) As Integer
+    Public Function MarcarIndiceGenerado(idLibro As Integer, indiceEsperado As DataTable) As Integer
         If Not Permisos.TieneAcceso("protocolo.gestionar") Then Throw New UnauthorizedAccessException("No tiene permiso para gestionar el protocolo.")
-        If idLibro <= 0 Then Return 0
+        If idLibro <= 0 OrElse indiceEsperado Is Nothing Then Return 0
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 ' Validar dentro de la misma transacción: no permitir que una
