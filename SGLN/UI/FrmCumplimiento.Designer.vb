@@ -163,7 +163,8 @@ Partial Class FrmCumplimiento
         '
         ' dgvOperaciones
         '
-        Me.dgvOperaciones.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' Mantener la grilla en su columna izquierda; no debe crecer debajo del panel de edición.
+        Me.dgvOperaciones.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvOperaciones.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvOperaciones.Location = New System.Drawing.Point(10, 45)
         Me.dgvOperaciones.Name = "dgvOperaciones"
@@ -172,7 +173,8 @@ Partial Class FrmCumplimiento
         '
         ' grpOperacion
         '
-        Me.grpOperacion.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' El panel de edición conserva su columna derecha al redimensionar el formulario.
+        Me.grpOperacion.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpOperacion.Controls.Add(Me.lblTipoOperacion)
         Me.grpOperacion.Controls.Add(Me.cboTipoOperacion)
         Me.grpOperacion.Controls.Add(Me.lblMonto)
@@ -514,7 +516,8 @@ Partial Class FrmCumplimiento
         '
         ' dgvArco
         '
-        Me.dgvArco.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' Mantener la grilla en su columna izquierda; no debe crecer debajo del panel ARCO.
+        Me.dgvArco.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dgvArco.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvArco.Location = New System.Drawing.Point(10, 45)
         Me.dgvArco.Name = "dgvArco"
@@ -523,7 +526,8 @@ Partial Class FrmCumplimiento
         '
         ' grpArco
         '
-        Me.grpArco.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        ' El panel ARCO conserva su columna derecha al redimensionar el formulario.
+        Me.grpArco.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpArco.Controls.Add(Me.lblClienteArco)
         Me.grpArco.Controls.Add(Me.cboClienteArco)
         Me.grpArco.Controls.Add(Me.lblTipoDerecho)
