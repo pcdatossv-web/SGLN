@@ -155,22 +155,28 @@ Public Class FrmCumplimiento
         End If
         _cargando = False
 
-        Try
-            _umbral = _servicio.UmbralEfectivo()
-            _umbralDisponible = True
-        Catch ex As Exception
-            ' Mantener la pantalla consultable, pero nunca presentar un umbral
-            ' alternativo como si fuera el valor efectivo configurado.
+        If puedeVerOperaciones Then
+            Try
+                _umbral = _servicio.UmbralEfectivo()
+                _umbralDisponible = True
+            Catch ex As Exception
+                ' Mantener la pantalla consultable, pero nunca presentar un umbral
+                ' alternativo como si fuera el valor efectivo configurado.
+                _umbral = 0D
+                _umbralDisponible = False
+                errorUmbral = True
+                RegistroErrores.Escribir("Cumplimiento - cargar umbral inicial", ex)
+            End Try
+            If errorUmbral Then
+                lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. La evaluación automática de montos queda no disponible hasta restablecer la configuración."
+            Else
+                lblNotaUmbral.Text = "Umbral efectivo aplicado (configurado o predeterminado): $" & _umbral.ToString("N2") &
+                    ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
+            End If
+        Else
+            ' Usuarios con acceso exclusivo a ARCO no consultan ni reciben el umbral LDA/FT.
             _umbral = 0D
             _umbralDisponible = False
-            errorUmbral = True
-            RegistroErrores.Escribir("Cumplimiento - cargar umbral inicial", ex)
-        End Try
-        If errorUmbral Then
-            lblNotaUmbral.Text = "No se pudo recuperar el umbral configurado. La evaluación automática de montos queda no disponible hasta restablecer la configuración."
-        Else
-            lblNotaUmbral.Text = "Umbral efectivo aplicado (configurado o predeterminado): $" & _umbral.ToString("N2") &
-                ". Los plazos de análisis y reporte son configurables y deben validarse con el oficial de cumplimiento."
         End If
 
         LimpiarOperacion()
