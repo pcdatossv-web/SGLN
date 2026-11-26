@@ -2810,7 +2810,7 @@ Module PruebaFuncional
         Verificar("El índice no se genera mientras el libro sigue vigente",
                   Not protocolo.GenerarIndice(idLibro).Exito)
         Verificar("El repositorio tampoco permite marcar un índice antes del cierre",
-                  New ProtocoloRepositorio().MarcarIndiceGenerado(idLibro) = 0)
+                  New ProtocoloRepositorio().MarcarIndiceGenerado(idLibro, New DataTable()) = 0)
 
         Dim rComp2 As Respuesta = protocolo.AgregarCompareciente(idInstrumento2, idCliente, "Otorgante")
         Verificar("Agregar otorgante a la escritura 2", rComp2.Exito, rComp2.Mensaje)
@@ -2915,7 +2915,7 @@ Module PruebaFuncional
         Verificar("Confirmar la generación solo con el snapshot exportado vigente",
                   confirmacionIndice.Exito, confirmacionIndice.Mensaje)
         Verificar("Confirmar nuevamente un índice ya generado es idempotente",
-                  protocolo.ConfirmarIndiceGenerado(idLibro).Exito)
+                  protocolo.ConfirmarIndiceGenerado(idLibro, protocolo.IndiceLibro(idLibro)).Exito)
         Dim indice As DataTable = protocolo.IndiceLibro(idLibro)
         Verificar("El índice conserva las 3 escrituras, incluida la anulada", indice.Rows.Count = 3)
         Dim escrituraAnuladaEnIndice As Boolean = False
