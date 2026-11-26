@@ -1101,8 +1101,6 @@ Public Class FrmProtocolo
             grid.Columns("Fecha_Expedicion").HeaderText = "Expedición"
             grid.Columns("Fecha_Expedicion").DefaultCellStyle.Format = "dd/MM/yyyy"
         End If
-        If grid.Columns.Contains("Destinatario") Then grid.Columns("Destinatario").HeaderText = "Destinatario"
-        If grid.Columns.Contains("Usuario") Then grid.Columns("Usuario").HeaderText = "Registrado por"
         If grid.Columns.Contains("Destinatario") Then
             With grid.Columns("Destinatario")
                 .HeaderText = "Destinatario"
