@@ -2706,6 +2706,23 @@ Module PruebaFuncional
 
         Dim rComp1 As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Otorgante")
         Verificar("Agregar compareciente otorgante a la escritura 1", rComp1.Exito, rComp1.Mensaje)
+        Dim comparecientesAuditoria As DataTable = protocolo.Comparecientes(idInstrumento1)
+        Dim idRelacionCompareciente As Integer = If(comparecientesAuditoria.Rows.Count > 0,
+            UtileriasUI.Entero(comparecientesAuditoria.Rows(0), "ID"), 0)
+        Dim idRegistroAuditoriaCompareciente As Integer = 0
+        If idRelacionCompareciente > 0 Then
+            Using conexionAuditoriaCompareciente As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexionAuditoriaCompareciente.Open()
+                Using comandoAuditoriaCompareciente As New MySqlCommand(
+                    "SELECT ID_Registro FROM Audit_Log WHERE Tabla_Afectada = 'Comparecientes_Instrumento' " &
+                    "AND Accion = 'AGREGAR COMPARECIENTE' ORDER BY ID DESC LIMIT 1",
+                    conexionAuditoriaCompareciente)
+                    idRegistroAuditoriaCompareciente = Convert.ToInt32(comandoAuditoriaCompareciente.ExecuteScalar())
+                End Using
+            End Using
+        End If
+        Verificar("La auditoría identifica el registro individual del compareciente agregado",
+                  idRelacionCompareciente > 0 AndAlso idRegistroAuditoriaCompareciente = idRelacionCompareciente)
 
         Dim clienteIdentidadAlterada As New Cliente With {
             .ID = idCliente, .Nombres = "Ana María Modificada", .Apellidos = cliente.Apellidos,
