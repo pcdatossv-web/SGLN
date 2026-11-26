@@ -296,6 +296,7 @@ CREATE TABLE IF NOT EXISTS Documentos (
     Fecha_Carga             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Usuario                 VARCHAR(50) NULL,
     PRIMARY KEY (ID),
+    KEY IX_Documentos_Hash (Hash),
     CONSTRAINT FK_Documentos_Caso FOREIGN KEY (ID_Caso) REFERENCES Casos(ID),
     CONSTRAINT FK_Documentos_Instrumento FOREIGN KEY (ID_Instrumento) REFERENCES Instrumentos(ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
