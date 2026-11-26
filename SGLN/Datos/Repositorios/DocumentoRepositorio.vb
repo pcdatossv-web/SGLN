@@ -168,7 +168,7 @@ Public Class DocumentoRepositorio
             Throw New ArgumentException("La ruta del documento no es válida.", NameOf(rutaArchivo))
         End If
         If String.IsNullOrWhiteSpace(hash) OrElse
-           Not Regex.IsMatch(hash, "\\A[0-9a-fA-F]{64}\\z") Then
+           Not Regex.IsMatch(hash, "\A[0-9a-fA-F]{64}\z") Then
             Throw New ArgumentException("El hash del documento no es válido.", NameOf(hash))
         End If
 
