@@ -160,7 +160,7 @@ Public Class ProtocoloRepositorio
                 End Using
                 If ultimaEscritura IsNot Nothing AndAlso Not Convert.IsDBNull(ultimaEscritura) AndAlso
                    fechaCierre.Date < Convert.ToDateTime(ultimaEscritura).Date Then
-                    Throw New ArgumentException("La fecha de cierre no puede ser anterior a la última escritura vigente.", NameOf(fechaCierre))
+                    Throw New ArgumentException("La fecha de cierre no puede ser anterior a la última escritura registrada en el libro, incluidas las anuladas.", NameOf(fechaCierre))
                 End If
 
                 ' El bloqueo del libro serializa el cierre con las altas y bajas
