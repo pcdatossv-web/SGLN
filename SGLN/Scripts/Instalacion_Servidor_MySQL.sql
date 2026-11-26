@@ -28,9 +28,12 @@
      mysql -u root -p sgln_sv < Migracion_Integridad_Clientes_LDAFT.sql
      mysql -u root -p sgln_sv < Migracion_Seguridad_Acceso.sql
      mysql -u root -p sgln_sv < Migracion_Indice_Documentos.sql
+     mysql -u root -p sgln_sv < Migracion_Indice_Auditoria.sql
    La migración de seguridad crea la tabla de control de intentos fallidos.
    La migración de documentos añade índices para búsquedas SHA-256 exactas
-   y para ordenar la lista paginada por fecha, sin modificar datos existentes.
+   y para ordenar la lista paginada por fecha. La migración de auditoría
+   optimiza el orden cronológico de la bitácora. Ambas son idempotentes y
+   no modifican los registros de negocio.
    Aplique también Privilegios_Minimos.sql para retirar permisos DELETE globales
    de cuentas sgln_app anteriores.
 
