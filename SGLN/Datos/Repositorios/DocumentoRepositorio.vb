@@ -36,10 +36,21 @@ Public Class DocumentoRepositorio
                                  "documentos.metadatos")
     End Function
 
-    Public Function Buscar(filtro As String, tipo As String) As DataTable
-        If Not PuedeConsultarDocumentos() Then Return New DataTable()
+    Private Const TamanoPaginaDocumentos As Integer = 100
+
+    Private Sub AplicarFiltroDocumentos(comando As MySqlCommand, filtro As String, tipo As String)
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
+        Parametro(comando, "@filtro", If(texto = "", DBNull.Value, CObj(texto)))
+        Parametro(comando, "@like", "%" & texto & "%")
+        Parametro(comando, "@tipo", If(tipoFiltro = "", DBNull.Value, CObj(tipoFiltro)))
+    End Sub
+
+    Public Function Buscar(filtro As String, tipo As String, pagina As Integer) As DataTable
+        If Not PuedeConsultarDocumentos() Then Return New DataTable()
+        If pagina < 1 Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
+        Dim offset As Long = CLng(pagina - 1) * TamanoPaginaDocumentos
+        If offset > Integer.MaxValue Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
 
         Return Consultar(
             "SELECT d.ID, d.Tipo_Documento, d.Ruta_Archivo, d.Hash, d.Estado_Procesamiento_IA, " &
@@ -53,11 +64,24 @@ Public Class DocumentoRepositorio
             "WHERE (@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
             "       OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like) " &
             "  AND (@tipo IS NULL OR d.Tipo_Documento = @tipo) " &
-            "ORDER BY d.Fecha_Carga DESC, d.ID DESC",
+            "ORDER BY d.Fecha_Carga DESC, d.ID DESC LIMIT @limite OFFSET @offset",
             Sub(comando As MySqlCommand)
-                Parametro(comando, "@filtro", texto)
-                Parametro(comando, "@like", "%" & texto & "%")
-                Parametro(comando, "@tipo", tipoFiltro)
+                AplicarFiltroDocumentos(comando, filtro, tipo)
+                Parametro(comando, "@limite", TamanoPaginaDocumentos)
+                Parametro(comando, "@offset", CInt(offset))
+            End Sub)
+    End Function
+
+    Public Function Contar(filtro As String, tipo As String) As Integer
+        If Not PuedeConsultarDocumentos() Then Return 0
+        Return Escalar(Of Integer)(
+            "SELECT COUNT(*) FROM Documentos d " &
+            "LEFT JOIN Casos c ON c.ID = d.ID_Caso " &
+            "WHERE (@filtro IS NULL OR d.Tipo_Documento LIKE @like OR d.Ruta_Archivo LIKE @like " &
+            "       OR d.Hash LIKE @like OR IFNULL(c.Numero_Expediente, '') LIKE @like) " &
+            "  AND (@tipo IS NULL OR d.Tipo_Documento = @tipo)",
+            Sub(comando As MySqlCommand)
+                AplicarFiltroDocumentos(comando, filtro, tipo)
             End Sub)
     End Function
 
