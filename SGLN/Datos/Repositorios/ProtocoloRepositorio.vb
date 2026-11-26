@@ -502,8 +502,8 @@ Public Class ProtocoloRepositorio
 
                         detalleAuditoria =
                             "Escritura: " & numeroAnterior.ToString() & " -> " & instrumento.NumeroEscritura.ToString() &
-                            "; otorgamiento: " & fechaAnterior.ToString("dd/MM/yyyy HH:mm:ss") &
-                            " -> " & instrumento.FechaHoraOtorgamiento.ToString("dd/MM/yyyy HH:mm:ss") &
+                            "; otorgamiento: " & fechaAnterior.ToString("dd\'/\'MM\'/\'yyyy HH\':\'mm\':\'ss") &
+                            " -> " & instrumento.FechaHoraOtorgamiento.ToString("dd\'/\'MM\'/\'yyyy HH\':\'mm\':\'ss") &
                             "; folios: " & folioInicioAnterior.ToString() & "-" & folioFinAnterior.ToString() &
                             " -> " & instrumento.FolioInicio.ToString() & "-" & instrumento.FolioFin.ToString()
                     End If
