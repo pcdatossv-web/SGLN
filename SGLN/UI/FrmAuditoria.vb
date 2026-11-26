@@ -96,8 +96,9 @@ Public Class FrmAuditoria
     Private Sub Buscar()
         _paginaActual = 0
         Try
-            ' Congelar el conjunto al iniciar una búsqueda: la bitácora es
-            ' append-only y los nuevos eventos no deben desplazar páginas.
+            ' Establecer un límite superior de ID para excluir la mayoría de
+            ' eventos posteriores. No es un snapshot transaccional: una inserción
+            ' concurrente puede confirmar después con un ID ya asignado.
             _snapshotMaxId = _servicio.ObtenerMaximoId()
         Catch ex As Exception
             _snapshotMaxId = 0
@@ -217,7 +218,9 @@ Public Class FrmAuditoria
                 .MinimumWidth = 220
                 .DefaultCellStyle.WrapMode = DataGridViewTriState.True
             End With
-            dgvAuditoria.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+            ' Medir solo las filas visibles evita recalcular la altura de
+            ' todas las filas al cargar páginas con detalles extensos.
+            dgvAuditoria.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         End If
     End Sub
 
