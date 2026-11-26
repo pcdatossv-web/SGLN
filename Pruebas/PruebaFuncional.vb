@@ -2724,6 +2724,36 @@ Module PruebaFuncional
         Verificar("La auditoría identifica el registro individual del compareciente agregado",
                   idRelacionCompareciente > 0 AndAlso idRegistroAuditoriaCompareciente = idRelacionCompareciente)
 
+        Dim rCompTemporal As Respuesta = protocolo.AgregarCompareciente(idInstrumento1, idCliente, "Testigo")
+        Dim idRelacionTemporal As Integer = 0
+        If rCompTemporal.Exito Then
+            Dim tablaTemporal As DataTable = protocolo.Comparecientes(idInstrumento1)
+            For Each filaTemporal As DataRow In tablaTemporal.Rows
+                If Convert.ToString(filaTemporal("Calidad")) = "Testigo" Then
+                    idRelacionTemporal = UtileriasUI.Entero(filaTemporal, "ID")
+                    Exit For
+                End If
+            Next
+        End If
+        Dim rQuitarTemporal As Respuesta = If(idRelacionTemporal > 0,
+            protocolo.QuitarCompareciente(idRelacionTemporal), Respuesta.Fallo("No se obtuvo el ID del compareciente temporal."))
+        Dim auditoriaQuitarCorrecta As Boolean = False
+        If rQuitarTemporal.Exito Then
+            Using conexionAuditoriaQuitar As New MySqlConnection(ConexionBD.CadenaConexion)
+                conexionAuditoriaQuitar.Open()
+                Using comandoAuditoriaQuitar As New MySqlCommand(
+                    "SELECT COUNT(*) FROM Audit_Log WHERE Tabla_Afectada = 'Comparecientes_Instrumento' " &
+                    "AND ID_Registro = @id AND Accion = 'QUITAR COMPARECIENTE' " &
+                    "AND Detalle LIKE '%calidad: Testigo%'",
+                    conexionAuditoriaQuitar)
+                    comandoAuditoriaQuitar.Parameters.AddWithValue("@id", idRelacionTemporal)
+                    auditoriaQuitarCorrecta = Convert.ToInt32(comandoAuditoriaQuitar.ExecuteScalar()) > 0
+                End Using
+            End Using
+        End If
+        Verificar("Quitar compareciente conserva auditoría individual con su calidad",
+                  rCompTemporal.Exito AndAlso rQuitarTemporal.Exito AndAlso auditoriaQuitarCorrecta)
+
         Dim clienteIdentidadAlterada As New Cliente With {
             .ID = idCliente, .Nombres = "Ana María Modificada", .Apellidos = cliente.Apellidos,
             .DUI = cliente.DUI, .NIT = cliente.NIT, .Nacionalidad = cliente.Nacionalidad,
