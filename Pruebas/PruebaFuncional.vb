@@ -2899,8 +2899,20 @@ Module PruebaFuncional
                   Not Convert.ToBoolean(libroAntesDeExportarIndice.Rows(0)("Indice_Generado")))
         Verificar("Volver a preparar el índice antes de exportarlo no produce un falso error",
                   protocolo.GenerarIndice(idLibro).Exito)
-        Dim confirmacionIndice As Respuesta = protocolo.ConfirmarIndiceGenerado(idLibro)
-        Verificar("Confirmar la generación después de exportar el índice",
+        Dim snapshotIndiceEsperado As DataTable = protocolo.IndiceLibro(idLibro)
+        Dim snapshotIndiceAlterado As DataTable = snapshotIndiceEsperado.Copy()
+        snapshotIndiceAlterado.Rows(0)("Objeto_Acto") =
+            Convert.ToString(snapshotIndiceAlterado.Rows(0)("Objeto_Acto")) & " - CAMBIO NO EXPORTADO"
+        Verificar("El repositorio rechaza registrar un índice con snapshot desactualizado",
+                  New ProtocoloRepositorio().MarcarIndiceGenerado(idLibro, snapshotIndiceAlterado) = 0)
+        Dim libroTrasSnapshotRechazado As DataTable = protocolo.ObtenerLibro(idLibro)
+        Verificar("Un snapshot desactualizado no marca el índice como generado",
+                  libroTrasSnapshotRechazado.Rows.Count = 1 AndAlso
+                  Not Convert.ToBoolean(libroTrasSnapshotRechazado.Rows(0)("Indice_Generado")))
+
+        Dim confirmacionIndice As Respuesta =
+            protocolo.ConfirmarIndiceGenerado(idLibro, snapshotIndiceEsperado)
+        Verificar("Confirmar la generación solo con el snapshot exportado vigente",
                   confirmacionIndice.Exito, confirmacionIndice.Mensaje)
         Verificar("Confirmar nuevamente un índice ya generado es idempotente",
                   protocolo.ConfirmarIndiceGenerado(idLibro).Exito)
