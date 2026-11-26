@@ -1001,6 +1001,9 @@ Public Class FrmProtocolo
         Dim fila As DataGridViewRow = grid.Rows(e.RowIndex)
         Dim estado As String = Convert.ToString(fila.Cells("Estado").Value)
         Select Case estado.Trim().ToUpperInvariant()
+            Case "VIGENTE"
+                fila.DefaultCellStyle.BackColor = Color.AliceBlue
+                fila.DefaultCellStyle.ForeColor = Color.DarkBlue
             Case "ANULADO"
                 fila.DefaultCellStyle.BackColor = Color.Gainsboro
                 fila.DefaultCellStyle.ForeColor = Color.DimGray
