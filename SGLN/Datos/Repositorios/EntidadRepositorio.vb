@@ -150,13 +150,23 @@ Public Class EntidadRepositorio
                                 riesgoActual = Convert.ToString(lectorPerfil("Nivel_Riesgo"))
                                 origenActual = Convert.ToBoolean(lectorPerfil("Origen_Fondos_Verificado"))
                                 detalleActual = Convert.ToString(lectorPerfil("Detalle_Origen_Fondos"))
-                                observacionesActual = Convert.ToString(lectorPerfil("Observaciones"))
+                                observacionesActual = If(
+                                    lectorPerfil.IsDBNull(lectorPerfil.GetOrdinal("Observaciones")),
+                                    Nothing,
+                                    Convert.ToString(lectorPerfil("Observaciones")))
                                 If Not lectorPerfil.IsDBNull(lectorPerfil.GetOrdinal("Fecha_Verificacion_Listas")) Then
                                     fechaActual = Convert.ToDateTime(lectorPerfil("Fecha_Verificacion_Listas")).Date
                                 End If
                             End If
                         End Using
                     End Using
+
+                    ' FrmEntidades no ofrece un campo para editar Observaciones.
+                    ' Si el formulario omite ese dato, conservar el valor persistido
+                    ' en lugar de sobrescribirlo accidentalmente con NULL.
+                    If perfilExiste AndAlso perfil.Observaciones Is Nothing Then
+                        perfil.Observaciones = observacionesActual
+                    End If
 
                     If perfilExiste Then accionPerfil = "MODIFICAR"
                     Dim perfilModificado As Boolean =
