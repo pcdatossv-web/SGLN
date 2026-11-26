@@ -678,8 +678,12 @@ Public Class ProtocoloRepositorio
                         Parametro(comando, "@cliente", idCliente)
                         Parametro(comando, "@calidad", calidad)
                     End Sub)
+                Dim idCompareciente As Integer
+                Using comandoId As New MySqlCommand("SELECT LAST_INSERT_ID()", conexion, transaccion)
+                    idCompareciente = Convert.ToInt32(comandoId.ExecuteScalar())
+                End Using
                 AuditarEnTransaccion(conexion, transaccion, "AGREGAR COMPARECIENTE", "Comparecientes_Instrumento",
-                    idInstrumento, "Compareciente agregado; calidad: " & calidad)
+                    idCompareciente, "Compareciente agregado; calidad: " & calidad)
                 Return 1
             End Function)
     End Sub
