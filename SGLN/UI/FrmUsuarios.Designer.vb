@@ -83,6 +83,8 @@ Partial Class FrmUsuarios
         '
         ' grpDatos
         '
+        ' El formulario de datos se mantiene junto al borde derecho al redimensionar.
+        Me.grpDatos.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpDatos.Controls.Add(Me.lblUsuario)
         Me.grpDatos.Controls.Add(Me.txtUsuario)
         Me.grpDatos.Controls.Add(Me.lblNombre)
@@ -181,6 +183,8 @@ Partial Class FrmUsuarios
         '
         ' grpClave
         '
+        ' El panel de clave se mantiene junto al borde derecho.
+        Me.grpClave.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpClave.Controls.Add(Me.lblClaveNueva)
         Me.grpClave.Controls.Add(Me.txtClaveNueva)
         Me.grpClave.Controls.Add(Me.lblClaveConfirmar)
@@ -251,6 +255,8 @@ Partial Class FrmUsuarios
         '
         ' btnDesactivar
         '
+        ' Las acciones de usuario permanecen alineadas al borde derecho.
+        Me.btnDesactivar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnDesactivar.Location = New System.Drawing.Point(715, 485)
         Me.btnDesactivar.Name = "btnDesactivar"
         Me.btnDesactivar.Size = New System.Drawing.Size(200, 32)
@@ -261,6 +267,8 @@ Partial Class FrmUsuarios
 
         ' btnEliminar
         '
+        ' El botón de eliminación permanece alineado al borde derecho.
+        Me.btnEliminar.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnEliminar.Location = New System.Drawing.Point(930, 485)
         Me.btnEliminar.Name = "btnEliminar"
         Me.btnEliminar.Size = New System.Drawing.Size(243, 32)
@@ -270,6 +278,8 @@ Partial Class FrmUsuarios
         Me.btnEliminar.Enabled = False
         ' lblMensaje
         '
+        ' El mensaje permanece alineado con los paneles de edición.
+        Me.lblMensaje.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblMensaje.Location = New System.Drawing.Point(715, 530)
         Me.lblMensaje.Name = "lblMensaje"
         Me.lblMensaje.Size = New System.Drawing.Size(458, 60)
