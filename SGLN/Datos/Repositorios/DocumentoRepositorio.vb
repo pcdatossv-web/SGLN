@@ -47,10 +47,13 @@ Public Class DocumentoRepositorio
                                         tipo As String, hashExacto As Boolean)
         Dim texto As String = If(filtro, "").Trim()
         Dim tipoFiltro As String = If(tipo, "").Trim()
-        Parametro(comando, "@filtro", If(texto = "", DBNull.Value, CObj(texto)))
-        Parametro(comando, "@like", "%" & texto & "%")
+        If hashExacto Then
+            Parametro(comando, "@hashExacto", texto)
+        Else
+            Parametro(comando, "@filtro", If(texto = "", DBNull.Value, CObj(texto)))
+            Parametro(comando, "@like", "%" & texto & "%")
+        End If
         Parametro(comando, "@tipo", If(tipoFiltro = "", DBNull.Value, CObj(tipoFiltro)))
-        If hashExacto Then Parametro(comando, "@hashExacto", texto)
     End Sub
 
     Public Function Buscar(filtro As String, tipo As String, pagina As Integer) As DataTable
