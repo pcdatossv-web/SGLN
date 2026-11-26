@@ -86,12 +86,26 @@ Public Class FrmDocumentos
         btnBuscar.Enabled = puedeConsultar
         btnRefrescar.Enabled = puedeConsultar
         btnLimpiarFiltro.Enabled = puedeConsultar
-        btnImportar.Enabled = _puedeImportar
+        btnAnterior.Enabled = puedeConsultar AndAlso _paginaActual > 1 AndAlso _totalDocumentos > 0
+        btnSiguiente.Enabled = puedeConsultar AndAlso _paginaActual < Math.Max(1, CInt(Math.Ceiling(_totalDocumentos / CDbl(TamanoPagina)))) AndAlso _totalDocumentos > 0
         txtFiltro.Enabled = puedeConsultar
         cboFiltroTipo.Enabled = puedeConsultar
 
-        ActualizarEdicionMetadatos(_idDocumento <= 0)
-        ActualizarAccionesDocumento()
+        If Not puedeConsultar Then
+            ' Al revocar lectura, no conservar en pantalla datos obtenidos con
+            ' permisos anteriores. Importar por sí solo no habilita consultar.
+            _cargando = True
+            dgvDocumentos.DataSource = Nothing
+            dgvDocumentos.CurrentCell = Nothing
+            _cargando = False
+            _paginaActual = 1
+            _totalDocumentos = 0
+            ActualizarPaginacion(1)
+            Limpiar()
+        Else
+            ActualizarEdicionMetadatos(_idDocumento <= 0)
+            ActualizarAccionesDocumento()
+        End If
     End Sub
 
     Private Sub FrmDocumentos_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
@@ -178,6 +192,8 @@ Public Class FrmDocumentos
         Catch ex As Exception
             _cargando = True
             dgvDocumentos.DataSource = Nothing
+            _totalDocumentos = 0
+            _paginaActual = 1
             If cargarDetalleSeleccionado Then CargarCombos()
             _cargando = False
             ActualizarPaginacion(1)
