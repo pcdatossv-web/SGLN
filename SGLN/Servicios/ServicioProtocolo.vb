@@ -460,9 +460,6 @@ Public Class ServicioProtocolo
             If estado <> "Cerrado" AndAlso estado <> "Entregado" Then
                 Return Respuesta.Fallo("El libro debe estar cerrado o entregado para registrar su índice.")
             End If
-            If Convert.ToBoolean(libro.Rows(0)("Indice_Generado")) Then
-                Return Respuesta.Ok("La generación del índice ya estaba registrada.")
-            End If
             If _repositorio.IndiceLibro(idLibro).Rows.Count = 0 Then
                 Return Respuesta.Fallo("El libro no tiene instrumentos para indexar.")
             End If
