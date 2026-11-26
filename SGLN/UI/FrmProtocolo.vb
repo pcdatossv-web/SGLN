@@ -1117,7 +1117,8 @@ Public Class FrmProtocolo
         If grid.Columns.Contains("Objeto_Acto") OrElse
            grid.Columns.Contains("Destinatario") OrElse
            grid.Columns.Contains("Otorgantes") Then
-            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+            ' Los historiales extensos solo miden las filas visibles; el texto mantiene ajuste de línea.
+            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         Else
             grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None
             grid.RowTemplate.Height = 26
