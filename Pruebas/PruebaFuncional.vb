@@ -2543,6 +2543,33 @@ Module PruebaFuncional
                   cambioEstadoEscrituraBloqueado AndAlso escrituraTrasCambioEstado.Rows.Count = 1 AndAlso
                   Convert.ToString(escrituraTrasCambioEstado.Rows(0)("Estado")) = "Vigente")
 
+        Dim escrituraParaAuditoria As DataRow = repositorioProtocoloDirecto.ObtenerInstrumento(idInstrumento1).Rows(0)
+        Dim edicionAuditoriaInstrumento As Respuesta = protocolo.GuardarInstrumento(New Instrumento With {
+            .ID = idInstrumento1, .IDLibro = idLibro,
+            .NumeroEscritura = UtileriasUI.Entero(escrituraParaAuditoria, "Numero_Escritura"),
+            .FechaHoraOtorgamiento = New Date(2026, 2, 11, 10, 30, 0),
+            .FolioInicio = UtileriasUI.Entero(escrituraParaAuditoria, "Folio_Inicio"),
+            .FolioFin = UtileriasUI.Entero(escrituraParaAuditoria, "Folio_Fin"),
+            .ObjetoActo = UtileriasUI.Texto(escrituraParaAuditoria, "Objeto_Acto")})
+        Dim detalleAuditoriaInstrumento As String = ""
+        Using conexionAuditoriaInstrumento As New MySqlConnection(ConexionBD.CadenaConexion)
+            conexionAuditoriaInstrumento.Open()
+            Using comandoAuditoriaInstrumento As New MySqlCommand(
+                "SELECT Detalle FROM Audit_Log WHERE Tabla_Afectada = 'Instrumentos' " &
+                "AND ID_Registro = @id AND Accion = 'MODIFICAR' ORDER BY ID DESC LIMIT 1",
+                conexionAuditoriaInstrumento)
+                comandoAuditoriaInstrumento.Parameters.AddWithValue("@id", idInstrumento1)
+                Dim valorDetalle As Object = comandoAuditoriaInstrumento.ExecuteScalar()
+                If valorDetalle IsNot Nothing AndAlso Not Convert.IsDBNull(valorDetalle) Then
+                    detalleAuditoriaInstrumento = Convert.ToString(valorDetalle)
+                End If
+            End Using
+        End Using
+        Verificar("La auditoría de escrituras conserva fecha y rango de folios anteriores y nuevos",
+                  edicionAuditoriaInstrumento.Exito AndAlso
+                  detalleAuditoriaInstrumento.Contains("otorgamiento: 10/02/2026 10:30:00 -> 11/02/2026 10:30:00") AndAlso
+                  detalleAuditoriaInstrumento.Contains("folios: 1-15 -> 1-15"))
+
         Verificar("Escritura duplicada en el libro se rechaza con mensaje",
                   Not protocolo.GuardarInstrumento(New Instrumento With {
                       .IDLibro = idLibro, .NumeroEscritura = 1,
