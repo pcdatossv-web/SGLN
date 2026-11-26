@@ -466,15 +466,28 @@ Public Class ProtocoloRepositorio
                         Return False
                     End If
 
+                    Dim detalleAuditoria As String = ""
                     If instrumento.ID > 0 Then
                         Dim estadoExistente As String = Nothing
+                        Dim numeroAnterior As Integer = 0
+                        Dim fechaAnterior As Date = Date.MinValue
+                        Dim folioInicioAnterior As Integer = 0
+                        Dim folioFinAnterior As Integer = 0
                         Using comandoExiste As New MySqlCommand(
-                            "SELECT Estado FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
+                            "SELECT Estado, Numero_Escritura, Fecha_Hora_Otorgamiento, Folio_Inicio, Folio_Fin " &
+                            "FROM Instrumentos WHERE ID = @id AND ID_Libro = @libro FOR UPDATE",
                             conexion, transaccion)
                             Parametro(comandoExiste, "@id", instrumento.ID)
                             Parametro(comandoExiste, "@libro", instrumento.IDLibro)
-                            Dim valor As Object = comandoExiste.ExecuteScalar()
-                            If valor IsNot Nothing AndAlso Not Convert.IsDBNull(valor) Then estadoExistente = Convert.ToString(valor)
+                            Using lectorExiste As MySqlDataReader = comandoExiste.ExecuteReader()
+                                If lectorExiste.Read() Then
+                                    estadoExistente = Convert.ToString(lectorExiste("Estado"))
+                                    numeroAnterior = Convert.ToInt32(lectorExiste("Numero_Escritura"))
+                                    fechaAnterior = Convert.ToDateTime(lectorExiste("Fecha_Hora_Otorgamiento"))
+                                    folioInicioAnterior = Convert.ToInt32(lectorExiste("Folio_Inicio"))
+                                    folioFinAnterior = Convert.ToInt32(lectorExiste("Folio_Fin"))
+                                End If
+                            End Using
                         End Using
                         If estadoExistente <> "Vigente" Then
                             motivo = "El instrumento no existe en el libro seleccionado o ya fue anulado."
@@ -486,6 +499,13 @@ Public Class ProtocoloRepositorio
                             transaccion.Rollback()
                             Return False
                         End If
+
+                        detalleAuditoria =
+                            "Escritura: " & numeroAnterior.ToString() & " -> " & instrumento.NumeroEscritura.ToString() &
+                            "; otorgamiento: " & fechaAnterior.ToString("dd/MM/yyyy HH:mm:ss") &
+                            " -> " & instrumento.FechaHoraOtorgamiento.ToString("dd/MM/yyyy HH:mm:ss") &
+                            "; folios: " & folioInicioAnterior.ToString() & "-" & folioFinAnterior.ToString() &
+                            " -> " & instrumento.FolioInicio.ToString() & "-" & instrumento.FolioFin.ToString()
                     End If
 
                     ' El número de escritura es único dentro del libro y no debe
@@ -557,7 +577,9 @@ Public Class ProtocoloRepositorio
 
                     AuditarEnTransaccion(conexion, transaccion,
                         If(instrumento.ID = 0, "CREAR", "MODIFICAR"), "Instrumentos", idGuardado,
-                        "Escritura " & instrumento.NumeroEscritura)
+                        If(instrumento.ID = 0,
+                           "Escritura " & instrumento.NumeroEscritura,
+                           detalleAuditoria))
                     transaccion.Commit()
                 Catch
                     Try
