@@ -256,30 +256,59 @@ Public Class FrmAuditoria
             dialogo.FileName = "Auditoria_" & Date.Now.ToString("yyyyMMdd_HHmm") & ".csv"
             If dialogo.ShowDialog(Me) <> DialogResult.OK Then Return
 
-            ' Exportar todos los resultados del filtro, no solo la página visible.
-            ' Revalidar el permiso después del diálogo modal.
+            ' Capturar los criterios antes del diálogo. La exportación debe
+            ' corresponder exactamente a la consulta que el usuario solicitó.
+            Dim usuario As String = txtUsuario.Text
+            Dim tabla As String = ValorFiltro(cboTabla)
+            Dim accion As String = ValorFiltro(cboAccion)
+            Dim desde As Date = dtpDesde.Value.Date
+            Dim hasta As Date = dtpHasta.Value.Date
+            Dim corteId As Long = _snapshotMaxId
+            Dim paginasEsperadas As Long = _totalPaginas
+            Dim registrosEsperados As Long = _totalRegistros
+
+            ' El permiso de exportar no sustituye al de consultar datos sensibles.
+            ' Ambos se revalidan después del diálogo modal y antes de cada página.
+            If Not Permisos.Puede("auditoria.ver") Then
+                ActualizarEstadoExportacion()
+                UtileriasUI.MostrarError("Su sesión ya no tiene permiso para consultar la bitácora.")
+                Return
+            End If
             If Not Permisos.ExigirAccion("auditoria.exportar") Then
                 ActualizarEstadoExportacion()
                 Return
             End If
 
             Try
-                Dim usuario As String = txtUsuario.Text
-                Dim tabla As String = ValorFiltro(cboTabla)
-                Dim accion As String = ValorFiltro(cboAccion)
-                Dim desde As Date = dtpDesde.Value.Date
-                Dim hasta As Date = dtpHasta.Value.Date
                 Dim exportados As Long = UtileriasUI.ExportarCsvPorPaginas(
                     dialogo.FileName,
-                    _totalPaginas,
-                    Function(pagina As Long) _servicio.BuscarPagina(
-                        usuario, tabla, accion, desde, hasta,
-                        _snapshotMaxId, pagina, TamanoPagina))
+                    paginasEsperadas,
+                    Function(pagina As Long)
+                        If Not Permisos.Puede("auditoria.ver") OrElse
+                           Not Permisos.Puede("auditoria.exportar") Then
+                            Throw New UnauthorizedAccessException("Los permisos de auditoría cambiaron durante la exportación.")
+                        End If
+                        Return _servicio.BuscarPagina(
+                            usuario, tabla, accion, desde, hasta,
+                            corteId, pagina, TamanoPagina)
+                    End Function)
+
+                ' No publicar un archivo parcial o incoherente si una consulta
+                ' devolvió menos filas que el total calculado antes de exportar.
+                If exportados <> registrosEsperados Then
+                    Throw New InvalidOperationException(
+                        "La cantidad de registros cambió durante la exportación. El archivo anterior se conservó.")
+                End If
+
                 MostrarMensaje("Se exportaron " & exportados.ToString("N0") &
                                " registros de auditoría.", True)
+            Catch ex As UnauthorizedAccessException
+                RegistroErrores.Escribir("Auditoría - autorización de exportación", ex)
+                ActualizarEstadoExportacion()
+                MostrarMensaje("La exportación se canceló porque los permisos de auditoría cambiaron.", False)
             Catch ex As Exception
                 RegistroErrores.Escribir("Auditoría - exportar", ex)
-                MostrarMensaje("No se pudo exportar la bitácora. Verifique la ruta y los permisos de escritura.", False)
+                MostrarMensaje("No se pudo completar la exportación. No se publicó un archivo parcial; verifique la conexión, la ruta y los permisos.", False)
             End Try
         End Using
     End Sub
