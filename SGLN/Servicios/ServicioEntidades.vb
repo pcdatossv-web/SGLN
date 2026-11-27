@@ -56,7 +56,11 @@ Public Class ServicioEntidades
         entidad.Domicilio = If(entidad.Domicilio, "").Trim()
         If perfil IsNot Nothing Then
             perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
-            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+            ' Nothing significa que el formulario no envió Observaciones.
+            ' Se conserva como señal para que el repositorio mantenga el valor actual.
+            If perfil.Observaciones IsNot Nothing Then
+                perfil.Observaciones = perfil.Observaciones.Trim()
+            End If
         End If
         If Not String.IsNullOrWhiteSpace(entidad.NIT) Then
             entidad.NIT = ValidadorIdentidad.FormatearNit(entidad.NIT)
