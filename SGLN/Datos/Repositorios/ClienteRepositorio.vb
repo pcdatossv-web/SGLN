@@ -245,7 +245,7 @@ Public Class ClienteRepositorio
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Clientes SET Activo = 0 WHERE ID = @id",
+                    "UPDATE Clientes SET Activo = 0 WHERE ID = @id AND Activo = 1",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
