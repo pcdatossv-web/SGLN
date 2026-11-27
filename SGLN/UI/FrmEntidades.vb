@@ -352,6 +352,7 @@ Public Class FrmEntidades
         If Not PuedeConsultarEntidades() Then Return
         If _idEntidad <= 0 Then
             dgvRepresentantes.DataSource = Nothing
+            ActualizarEstadoRepresentantes()
             Return
         End If
 
@@ -361,6 +362,7 @@ Public Class FrmEntidades
             ActualizarEstadoRepresentantes()
         Catch ex As Exception
             dgvRepresentantes.DataSource = Nothing
+            ActualizarEstadoRepresentantes()
             RegistroErrores.Escribir("Entidades - representantes", ex)
         End Try
     End Sub
