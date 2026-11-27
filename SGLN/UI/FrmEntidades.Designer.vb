@@ -194,6 +194,7 @@ Partial Class FrmEntidades
         ' lblNIT
         '
         Me.lblNIT.AutoSize = True
+        Me.lblNIT.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblNIT.Location = New System.Drawing.Point(450, 20)
         Me.lblNIT.Name = "lblNIT"
         Me.lblNIT.Size = New System.Drawing.Size(28, 15)
@@ -202,6 +203,7 @@ Partial Class FrmEntidades
         '
         ' txtNIT
         '
+        Me.txtNIT.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtNIT.Location = New System.Drawing.Point(450, 40)
         Me.txtNIT.MaxLength = 17
         Me.txtNIT.Name = "txtNIT"
@@ -236,6 +238,7 @@ Partial Class FrmEntidades
         '
         ' txtDomicilio
         '
+        Me.txtDomicilio.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtDomicilio.Location = New System.Drawing.Point(210, 95)
         Me.txtDomicilio.MaxLength = 300
         Me.txtDomicilio.Name = "txtDomicilio"
@@ -292,6 +295,7 @@ Partial Class FrmEntidades
         '
         ' txtDetalleOrigen
         '
+        Me.txtDetalleOrigen.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtDetalleOrigen.Location = New System.Drawing.Point(15, 240)
         Me.txtDetalleOrigen.MaxLength = 500
         Me.txtDetalleOrigen.Multiline = True
@@ -322,6 +326,7 @@ Partial Class FrmEntidades
         '
         Me.lblAlerta.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblAlerta.ForeColor = System.Drawing.Color.Firebrick
+        Me.lblAlerta.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblAlerta.Location = New System.Drawing.Point(210, 288)
         Me.lblAlerta.Name = "lblAlerta"
         Me.lblAlerta.Size = New System.Drawing.Size(450, 50)
@@ -404,6 +409,7 @@ Partial Class FrmEntidades
         '
         ' btnAgregarRep
         '
+        Me.btnAgregarRep.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnAgregarRep.Location = New System.Drawing.Point(545, 40)
         Me.btnAgregarRep.Name = "btnAgregarRep"
         Me.btnAgregarRep.Size = New System.Drawing.Size(115, 27)
@@ -413,6 +419,7 @@ Partial Class FrmEntidades
         '
         ' btnQuitarRep
         '
+        Me.btnQuitarRep.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnQuitarRep.Location = New System.Drawing.Point(545, 74)
         Me.btnQuitarRep.Name = "btnQuitarRep"
         Me.btnQuitarRep.Size = New System.Drawing.Size(115, 27)
