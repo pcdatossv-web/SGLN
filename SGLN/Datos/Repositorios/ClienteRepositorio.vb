@@ -197,6 +197,11 @@ Public Class ClienteRepositorio
                     End Using
 
                     If perfilExiste Then accionPerfil = "MODIFICAR"
+                    ' Nothing indica que el llamador no envió este campo; conservar el valor persistido.
+                    If perfilExiste AndAlso perfil.Observaciones Is Nothing Then
+                        perfil.Observaciones = observacionesActual
+                    End If
+
                     Dim perfilModificado As Boolean =
                         Not perfilExiste OrElse
                         Not String.Equals(perfil.NivelRiesgo, riesgoActual, StringComparison.Ordinal) OrElse
