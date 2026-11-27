@@ -140,7 +140,9 @@ Public Class ServicioClientes
         cliente.Email = If(cliente.Email, "").Trim()
         If perfil IsNot Nothing Then
             perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
-            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+            If perfil.Observaciones IsNot Nothing Then
+                perfil.Observaciones = perfil.Observaciones.Trim()
+            End If
         End If
     End Sub
 
