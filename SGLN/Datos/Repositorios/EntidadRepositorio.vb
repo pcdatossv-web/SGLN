@@ -217,7 +217,7 @@ Public Class EntidadRepositorio
         Return EnTransaccion(
             Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                 Dim filas As Integer = Ejecutar(conexion, transaccion,
-                    "UPDATE Entidades_Legales SET Activo = 0 WHERE ID = @id",
+                    "UPDATE Entidades_Legales SET Activo = 0 WHERE ID = @id AND Activo = 1",
                     Sub(comando As MySqlCommand)
                         Parametro(comando, "@id", id)
                     End Sub)
