@@ -79,9 +79,9 @@ Public Class FrmEntidades
         chkOrigenVerificado.Enabled = puedeGestionar
         txtDetalleOrigen.ReadOnly = Not puedeGestionar
         dtpVerificacionListas.Enabled = puedeGestionar
-        cboRepCliente.Enabled = puedeGestionar
         txtCargo.ReadOnly = Not puedeGestionar
         cboTipoRepresentacion.Enabled = puedeGestionar
+        ActualizarEstadoRepresentantes()
     End Sub
 
     Private Sub FrmEntidades_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
@@ -148,18 +148,27 @@ Public Class FrmEntidades
 
         Try
             UtileriasUI.CargarCombo(cboRepCliente, _servicio.ClientesCombo(), "Nombre", "ID")
-            btnAgregarRep.Enabled = Permisos.Puede("entidades.gestionar") AndAlso cboRepCliente.Items.Count > 0
+            ActualizarEstadoRepresentantes()
         Catch ex As Exception
             cboRepCliente.DataSource = Nothing
-            btnAgregarRep.Enabled = False
+            ActualizarEstadoRepresentantes()
             RegistroErrores.Escribir("Entidades - clientes", ex)
             MostrarMensaje("No se pudo cargar la lista de clientes para representantes. No se puede asignar un representante hasta actualizar la lista.", False)
         End Try
     End Sub
 
     Private Sub ActualizarEstadoRepresentantes()
-        btnQuitarRep.Enabled = Permisos.Puede("entidades.gestionar") AndAlso
-                              _idEntidad > 0 AndAlso
+        Dim puedeGestionar As Boolean = Permisos.Puede("entidades.gestionar")
+        Dim entidadActiva As Boolean = _idEntidad > 0 AndAlso chkActivo.Checked
+        Dim hayClientes As Boolean = cboRepCliente.Items.Count > 0 AndAlso
+                                     UtileriasUI.ValorCombo(cboRepCliente) > 0
+
+        ' No habilitar la asignación hasta que exista una entidad activa guardada.
+        cboRepCliente.Enabled = puedeGestionar AndAlso entidadActiva AndAlso hayClientes
+        txtCargo.Enabled = puedeGestionar AndAlso entidadActiva
+        cboTipoRepresentacion.Enabled = puedeGestionar AndAlso entidadActiva
+        btnAgregarRep.Enabled = puedeGestionar AndAlso entidadActiva AndAlso hayClientes
+        btnQuitarRep.Enabled = puedeGestionar AndAlso _idEntidad > 0 AndAlso
                               UtileriasUI.FilaActual(dgvRepresentantes) IsNot Nothing
     End Sub
 
@@ -320,6 +329,7 @@ Public Class FrmEntidades
             txtDomicilio.Text = UtileriasUI.Texto(fila, "Domicilio")
             chkActivo.Checked = UtileriasUI.Booleano(fila, "Activo")
             btnDesactivar.Enabled = Permisos.Puede("entidades.gestionar") AndAlso chkActivo.Checked
+            ActualizarEstadoRepresentantes()
 
             Dim riesgo As String = UtileriasUI.Texto(fila, "Nivel_Riesgo")
             If riesgo = "" Then riesgo = "Bajo"
@@ -370,6 +380,7 @@ Public Class FrmEntidades
         dtpVerificacionListas.Checked = False
         lblAlerta.Text = ""
         dgvRepresentantes.DataSource = Nothing
+        ActualizarEstadoRepresentantes()
         MostrarMensaje("", True)
 
         _cargando = True
@@ -449,6 +460,10 @@ Public Class FrmEntidades
 
         If _idEntidad <= 0 Then
             UtileriasUI.MostrarError("Guarde primero la entidad para poder agregar representantes.")
+            Return
+        End If
+        If Not chkActivo.Checked Then
+            UtileriasUI.MostrarError("No se pueden agregar representantes a una entidad inactiva.")
             Return
         End If
 
