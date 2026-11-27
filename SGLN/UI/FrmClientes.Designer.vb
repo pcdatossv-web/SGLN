@@ -464,6 +464,7 @@ Partial Class FrmClientes
         '
         ' txtDetalleOrigen
         '
+        Me.txtDetalleOrigen.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtDetalleOrigen.Location = New System.Drawing.Point(20, 135)
         Me.txtDetalleOrigen.MaxLength = 500
         Me.txtDetalleOrigen.Multiline = True
@@ -501,6 +502,7 @@ Partial Class FrmClientes
         '
         ' txtObservaciones
         '
+        Me.txtObservaciones.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtObservaciones.Location = New System.Drawing.Point(20, 290)
         Me.txtObservaciones.MaxLength = 500
         Me.txtObservaciones.Multiline = True
@@ -513,6 +515,7 @@ Partial Class FrmClientes
         '
         Me.lblAlerta.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblAlerta.ForeColor = System.Drawing.Color.Firebrick
+        Me.lblAlerta.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblAlerta.Location = New System.Drawing.Point(20, 365)
         Me.lblAlerta.Name = "lblAlerta"
         Me.lblAlerta.Size = New System.Drawing.Size(560, 70)
@@ -521,6 +524,7 @@ Partial Class FrmClientes
         ' lblNota
         '
         Me.lblNota.ForeColor = System.Drawing.Color.DimGray
+        Me.lblNota.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblNota.Location = New System.Drawing.Point(20, 450)
         Me.lblNota.Name = "lblNota"
         Me.lblNota.Size = New System.Drawing.Size(560, 120)
