@@ -412,7 +412,7 @@ Public Class FrmEntidades
             End If
 
             _idEntidad = entidad.ID
-            CargarGrid("")
+            CargarGrid(txtBuscarEntidad.Text.Trim())
             If respuesta.ID.HasValue Then SeleccionarEntidad(respuesta.ID.Value)
             CargarRepresentantes()
             EvaluarAlertaLdaft()
@@ -440,7 +440,7 @@ Public Class FrmEntidades
         End If
 
         Limpiar()
-        CargarGrid("")
+        CargarGrid(txtBuscarEntidad.Text.Trim())
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
