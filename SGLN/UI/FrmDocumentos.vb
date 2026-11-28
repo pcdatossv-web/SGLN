@@ -44,6 +44,9 @@ Public Class FrmDocumentos
         UtileriasUI.ConfigurarGrid(dgvDocumentos)
 
         Dim tipos As String() = TiposDocumento()
+        ' Evitar que el cambio programático del filtro dispare una consulta
+        ' antes de terminar la inicialización y vuelva a cargarla enseguida.
+        _cargando = True
         cboTipoDocumento.Items.Clear()
         cboTipoDocumento.Items.AddRange(CType(tipos, Object()))
         cboTipoDocumento.SelectedIndex = 0
@@ -52,6 +55,7 @@ Public Class FrmDocumentos
         cboFiltroTipo.Items.Add("Todos")
         cboFiltroTipo.Items.AddRange(CType(tipos, Object()))
         cboFiltroTipo.SelectedIndex = 0
+        _cargando = False
 
         ' Cargar solo la lista al iniciar; no consultar el detalle de la primera
         ' fila para borrarlo inmediatamente. Limpiar deja los combos en modo alta.
