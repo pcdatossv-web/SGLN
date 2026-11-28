@@ -188,7 +188,10 @@ Public Class ClienteRepositorio
                                 riesgoActual = Convert.ToString(lectorPerfil("Nivel_Riesgo"))
                                 origenActual = Convert.ToBoolean(lectorPerfil("Origen_Fondos_Verificado"))
                                 detalleActual = Convert.ToString(lectorPerfil("Detalle_Origen_Fondos"))
-                                observacionesActual = Convert.ToString(lectorPerfil("Observaciones"))
+                                observacionesActual = If(
+                                    lectorPerfil.IsDBNull(lectorPerfil.GetOrdinal("Observaciones")),
+                                    Nothing,
+                                    Convert.ToString(lectorPerfil("Observaciones")))
                                 If Not lectorPerfil.IsDBNull(lectorPerfil.GetOrdinal("Fecha_Verificacion_Listas")) Then
                                     fechaActual = Convert.ToDateTime(lectorPerfil("Fecha_Verificacion_Listas")).Date
                                 End If
@@ -331,7 +334,11 @@ Public Class ClienteRepositorio
         If Not String.IsNullOrWhiteSpace(cliente.NIT) Then cliente.NIT = ValidadorIdentidad.FormatearNit(cliente.NIT)
         If perfil IsNot Nothing Then
             perfil.DetalleOrigenFondos = If(perfil.DetalleOrigenFondos, "").Trim()
-            perfil.Observaciones = If(perfil.Observaciones, "").Trim()
+            ' Nothing indica que el llamador no envió Observaciones; el repositorio
+            ' recupera el valor persistido antes de decidir si debe actualizarlo.
+            If perfil.Observaciones IsNot Nothing Then
+                perfil.Observaciones = perfil.Observaciones.Trim()
+            End If
         End If
     End Sub
 
