@@ -249,17 +249,28 @@ Public Class ConfiguracionConexion
             Throw New InvalidOperationException(
                 "La configuración por registro está desactivada en este ejecutable (modo pruebas).")
         End If
+        If datos Is Nothing Then
+            Throw New ArgumentNullException(NameOf(datos), "Debe proporcionar una configuración de conexión.")
+        End If
 
         If usarEquipo Then
-            If EscribirRegistro(RegistryHive.LocalMachine, datos, False) Then
-                ' Los parámetros no secretos se comparten en HKLM, pero las
-                ' contraseñas quedan cifradas para el usuario Windows actual.
-                If EscribirRegistro(RegistryHive.CurrentUser, datos, True, True) Then
-                    Return "HKLM+HKCU"
+            ' Primero asegurar una configuración completa para el usuario actual.
+            ' La preferencia compartida permanece desactivada hasta que HKLM
+            ' esté escrito correctamente; así no se publica una configuración
+            ' compartida si falla el almacenamiento de las credenciales DPAPI.
+            If EscribirRegistro(RegistryHive.CurrentUser, datos, True, False) Then
+                If EscribirRegistro(RegistryHive.LocalMachine, datos, False) Then
+                    ' Si esta última escritura falla, la configuración previa
+                    ' de HKCU sigue siendo válida y no apunta a HKLM.
+                    If EscribirRegistro(RegistryHive.CurrentUser, datos, True, True) Then
+                        Return "HKLM+HKCU"
+                    End If
+                    Return "HKCU"
                 End If
-                Throw New InvalidOperationException(
-                    "Se guardaron los parámetros compartidos, pero no las credenciales del usuario actual. Vuelva a guardar la configuración.")
+                Return "HKCU"
             End If
+            Throw New InvalidOperationException(
+                "No se pudieron guardar las credenciales del usuario actual. No se modificó la configuración compartida.")
         End If
 
         If EscribirRegistro(RegistryHive.CurrentUser, datos, True, False) Then
