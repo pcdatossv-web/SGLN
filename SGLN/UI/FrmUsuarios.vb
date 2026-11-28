@@ -83,10 +83,35 @@ Public Class FrmUsuarios
 
             If dgvUsuarios.Columns.Contains("ID") Then dgvUsuarios.Columns("ID").Visible = False
             If dgvUsuarios.Columns.Contains("ID_Rol") Then dgvUsuarios.Columns("ID_Rol").Visible = False
-            If dgvUsuarios.Columns.Contains("Activo") Then dgvUsuarios.Columns("Activo").FillWeight = 40
-            If dgvUsuarios.Columns.Contains("Rol") Then dgvUsuarios.Columns("Rol").FillWeight = 90
+
+            Dim encabezados As New Dictionary(Of String, String) From {
+                {"Usuario", "Usuario"},
+                {"Nombre_Completo", "Nombre completo"},
+                {"Rol", "Rol asignado"},
+                {"Activo", "Estado"},
+                {"Fecha_Creacion", "Creado el"}
+            }
+
+            For Each par As KeyValuePair(Of String, String) In encabezados
+                If dgvUsuarios.Columns.Contains(par.Key) Then
+                    dgvUsuarios.Columns(par.Key).HeaderText = par.Value
+                    dgvUsuarios.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+                End If
+            Next
+
+            If dgvUsuarios.Columns.Contains("Usuario") Then dgvUsuarios.Columns("Usuario").FillWeight = 75
+            If dgvUsuarios.Columns.Contains("Nombre_Completo") Then dgvUsuarios.Columns("Nombre_Completo").FillWeight = 125
+            If dgvUsuarios.Columns.Contains("Rol") Then dgvUsuarios.Columns("Rol").FillWeight = 75
+            If dgvUsuarios.Columns.Contains("Activo") Then
+                dgvUsuarios.Columns("Activo").FillWeight = 55
+                dgvUsuarios.Columns("Activo").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
             If dgvUsuarios.Columns.Contains("Fecha_Creacion") Then
-                dgvUsuarios.Columns("Fecha_Creacion").DefaultCellStyle.Format = "dd/MM/yyyy"
+                With dgvUsuarios.Columns("Fecha_Creacion")
+                    .FillWeight = 75
+                    .DefaultCellStyle.Format = "dd/MM/yyyy"
+                    .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+                End With
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - listar", ex)
@@ -169,11 +194,29 @@ Public Class FrmUsuarios
             Return
         End Try
 
-        If activo Then Return
+        If String.Equals(dgvUsuarios.Columns(e.ColumnIndex).Name, "Activo", StringComparison.OrdinalIgnoreCase) Then
+            ' Mostrar un estado legible sin modificar el valor booleano de origen,
+            ' por lo que el ordenamiento sigue trabajando con el dato real.
+            e.Value = If(activo, "Activo", "Inactivo")
+            e.CellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            If fila.Selected Then
+                e.CellStyle.SelectionBackColor = dgvUsuarios.DefaultCellStyle.SelectionBackColor
+                e.CellStyle.SelectionForeColor = dgvUsuarios.DefaultCellStyle.SelectionForeColor
+            ElseIf activo Then
+                e.CellStyle.ForeColor = Color.DarkGreen
+                e.CellStyle.BackColor = Color.Honeydew
+            Else
+                e.CellStyle.ForeColor = Color.Firebrick
+                e.CellStyle.BackColor = Color.MistyRose
+            End If
+            e.FormattingApplied = True
+            Return
+        End If
+
+        If activo OrElse fila.Selected Then Return
 
         ' Diferenciar visualmente las cuentas inactivas sin ocultarlas
         ' ni alterar los colores de selección del tema del grid.
-        If fila.Selected Then Return
         e.CellStyle.ForeColor = Color.DimGray
         e.CellStyle.BackColor = Color.FromArgb(245, 245, 245)
     End Sub
