@@ -73,6 +73,8 @@ Public Class ServicioEntidades
                 .Mensaje = "Entidad y perfil guardados correctamente.",
                 .ID = entidad.ID
             }
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("La entidad o su perfil LDA/FT ya está registrado.")
         Catch ex As InvalidOperationException
@@ -91,6 +93,8 @@ Public Class ServicioEntidades
             Dim filas As Integer = _repositorio.Desactivar(id)
             If filas = 0 Then Return Respuesta.Fallo("La entidad no existe o ya estaba desactivada.")
             Return Respuesta.Ok("Entidad desactivada.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - desactivar", ex)
             Return Respuesta.Fallo("No se pudo desactivar la entidad. Verifique la conexión y vuelva a intentarlo.")
@@ -119,6 +123,8 @@ Public Class ServicioEntidades
         End If
         Try
             Return _repositorio.AgregarRepresentante(idEntidad, idCliente, If(cargo, "").Trim(), If(tipo, "").Trim())
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As InvalidOperationException
             ' El repositorio valida dentro de la transacción que entidad y cliente
             ' sigan activos; comunicar esa condición evita ocultar un conflicto funcional.
@@ -137,6 +143,8 @@ Public Class ServicioEntidades
             Dim filas As Integer = _repositorio.QuitarRepresentante(id)
             If filas = 0 Then Return Respuesta.Fallo("El representante ya no existe.")
             Return Respuesta.Ok("Representante removido.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Entidades - quitar representante", ex)
             Return Respuesta.Fallo("No se pudo quitar el representante. Verifique la conexión y vuelva a intentarlo.")
