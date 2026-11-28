@@ -11,6 +11,12 @@ Partial Public Class FrmPrimerAdministrador
         InitializeComponent()
     End Sub
 
+    Private Sub FrmPrimerAdministrador_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        ' Limpiar credenciales también al cerrar con la X o cancelar el asistente.
+        txtClave.Clear()
+        txtConfirmar.Clear()
+        chkMostrarClave.Checked = False
+    End Sub
     Private Sub MostrarOcultarClave(sender As Object, e As EventArgs) Handles chkMostrarClave.CheckedChanged
         Dim mostrar As Boolean = chkMostrarClave.Checked
         txtClave.UseSystemPasswordChar = Not mostrar
