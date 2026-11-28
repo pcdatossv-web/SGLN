@@ -20,7 +20,7 @@ Public Class ConfiguracionRepositorio
     ''' Revalida la sesión una vez y consulta los permisos desde la matriz vigente.
     ''' </summary>
     Public Function Listar() As DataTable
-        If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
+        If Not Permisos.TieneAccesoAlguno("config.ver", "config.editar") Then Return New DataTable()
         Return Consultar("SELECT Clave, Valor FROM Configuracion ORDER BY Clave")
     End Function
 
