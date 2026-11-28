@@ -53,10 +53,12 @@ Partial Class FrmCambioClave
         Me.txtConfirmar.Name = "txtConfirmar"
         Me.txtConfirmar.Size = New System.Drawing.Size(250, 23)
         Me.txtConfirmar.UseSystemPasswordChar = True
+        Me.lblMensaje.AutoSize = False
         Me.lblMensaje.ForeColor = System.Drawing.Color.DimGray
         Me.lblMensaje.Location = New System.Drawing.Point(24, 190)
         Me.lblMensaje.Name = "lblMensaje"
         Me.lblMensaje.Size = New System.Drawing.Size(410, 34)
+        Me.lblMensaje.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.lblMensaje.Text = "Entre 12 y 128 caracteres, con mayúsculas, minúsculas, números y símbolos. No puede repetir la clave actual."
         Me.btnGuardar.Location = New System.Drawing.Point(165, 238)
         Me.btnGuardar.Name = "btnGuardar"
