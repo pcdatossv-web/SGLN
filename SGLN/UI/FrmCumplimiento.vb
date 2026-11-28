@@ -321,16 +321,24 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub CargarOperaciones()
+        Dim idSeleccionado As Integer = _idOperacion
         Try
             _cargando = True
             dgvOperaciones.DataSource = _servicio.Operaciones(txtFiltroOp.Text)
             OcultarColumnas(dgvOperaciones, "ID", "ID_Caso", "ID_Instrumento")
             If dgvOperaciones.Columns.Contains("Monto") Then
                 dgvOperaciones.Columns("Monto").DefaultCellStyle.Format = "N2"
+                dgvOperaciones.Columns("Monto").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
             End If
+            ConfigurarGridCumplimiento(dgvOperaciones)
             _cargando = False
 
-            Dim actual As DataRow = UtileriasUI.FilaActual(dgvOperaciones)
+            Dim actual As DataRow = Nothing
+            If idSeleccionado > 0 AndAlso SeleccionarFilaPorId(dgvOperaciones, idSeleccionado) Then
+                actual = UtileriasUI.FilaActual(dgvOperaciones)
+            End If
+            If actual Is Nothing Then actual = UtileriasUI.FilaActual(dgvOperaciones)
+
             If actual IsNot Nothing Then
                 CargarOperacion(actual)
             Else
@@ -545,13 +553,20 @@ Public Class FrmCumplimiento
     ' ------------------------------------------------------------------
 
     Private Sub CargarSolicitudes()
+        Dim idSeleccionado As Integer = _idSolicitud
         Try
             _cargando = True
             dgvArco.DataSource = _servicio.SolicitudesArco(txtFiltroArco.Text)
             OcultarColumnas(dgvArco, "ID", "ID_Cliente")
+            ConfigurarGridCumplimiento(dgvArco)
             _cargando = False
 
-            Dim actual As DataRow = UtileriasUI.FilaActual(dgvArco)
+            Dim actual As DataRow = Nothing
+            If idSeleccionado > 0 AndAlso SeleccionarFilaPorId(dgvArco, idSeleccionado) Then
+                actual = UtileriasUI.FilaActual(dgvArco)
+            End If
+            If actual Is Nothing Then actual = UtileriasUI.FilaActual(dgvArco)
+
             If actual IsNot Nothing Then
                 CargarSolicitud(actual)
             Else
@@ -826,6 +841,60 @@ Public Class FrmCumplimiento
         If id <= 0 Then Return Nothing
         Return id
     End Function
+
+    ''' <summary>
+    ''' Conserva la selección de una fila por su clave primaria después de
+    ''' recargar el origen de datos. Nunca selecciona una fila por índice,
+    ''' porque el orden o el filtro pueden haber cambiado.
+    ''' </summary>
+    Private Function SeleccionarFilaPorId(grid As DataGridView, id As Integer) As Boolean
+        If grid Is Nothing OrElse id <= 0 OrElse Not grid.Columns.Contains("ID") Then Return False
+
+        For Each fila As DataGridViewRow In grid.Rows
+            If fila.IsNewRow OrElse fila.Cells("ID").Value Is Nothing OrElse
+               fila.Cells("ID").Value Is DBNull.Value Then Continue For
+
+            Dim idFila As Integer
+            If Not Integer.TryParse(Convert.ToString(fila.Cells("ID").Value), idFila) OrElse idFila <> id Then Continue For
+
+            grid.ClearSelection()
+            fila.Selected = True
+            For Each columna As DataGridViewColumn In grid.Columns
+                If columna.Visible Then
+                    grid.CurrentCell = fila.Cells(columna.Index)
+                    Exit For
+                End If
+            Next
+            Return True
+        Next
+
+        Return False
+    End Function
+
+    ''' <summary>Presentación uniforme de las grillas de operaciones y solicitudes.</summary>
+    Private Sub ConfigurarGridCumplimiento(grid As DataGridView)
+        If grid Is Nothing Then Return
+
+        For Each columna As DataGridViewColumn In grid.Columns
+            columna.SortMode = DataGridViewColumnSortMode.Automatic
+            columna.HeaderText = columna.HeaderText.Replace("_", " ")
+            columna.MinimumWidth = 55
+            columna.DefaultCellStyle.Padding = New Padding(3, 2, 3, 2)
+        Next
+
+        For Each nombre As String In New String() {"Estado", "Fecha_Operacion", "Fecha_Solicitud", "Fecha_Vencimiento"}
+            If grid.Columns.Contains(nombre) Then
+                grid.Columns(nombre).DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
+        Next
+
+        For Each nombre As String In New String() {"Descripcion", "Detalle"}
+            If grid.Columns.Contains(nombre) Then
+                grid.Columns(nombre).FillWeight = 160
+                grid.Columns(nombre).DefaultCellStyle.WrapMode = DataGridViewTriState.True
+            End If
+        Next
+    End Sub
 
     Private Sub OcultarColumnas(grid As DataGridView, ParamArray nombres As String())
         For Each nombre As String In nombres
