@@ -289,28 +289,36 @@ Public Class FrmConfiguracion
 
         If txtClaveNueva.Text <> txtConfirmarClave.Text Then
             UtileriasUI.MostrarError("La nueva clave y su confirmación no coinciden.")
+            LimpiarCamposClave()
             Return
         End If
         If String.IsNullOrWhiteSpace(txtClaveActual.Text) Then
             UtileriasUI.MostrarError("Escriba la clave actual del usuario.")
+            LimpiarCamposClave()
             txtClaveActual.Focus()
             Return
         End If
 
-        Dim respuesta As Respuesta = _servicio.CambiarClave(
-            Sesion.UsuarioActual.ID, txtClaveActual.Text, txtClaveNueva.Text)
+        Try
+            Dim respuesta As Respuesta = _servicio.CambiarClave(
+                Sesion.UsuarioActual.ID, txtClaveActual.Text, txtClaveNueva.Text)
 
-        If Not respuesta.Exito Then
-            MostrarMensaje(respuesta.Mensaje, False)
-            Return
-        End If
+            MostrarMensaje(respuesta.Mensaje, respuesta.Exito)
+        Catch ex As Exception
+            RegistroErrores.Escribir("Configuración - cambiar clave propia", ex)
+            MostrarMensaje("No se pudo cambiar la clave. Verifique la conexión y vuelva a intentarlo.", False)
+        Finally
+            ' No conservar claves en controles tras éxito, rechazo o excepción.
+            LimpiarCamposClave()
+        End Try
+    End Sub
 
+    ''' <summary>Elimina las credenciales temporales de los controles de seguridad.</summary>
+    Private Sub LimpiarCamposClave()
         txtClaveActual.Clear()
         txtClaveNueva.Clear()
         txtConfirmarClave.Clear()
-        MostrarMensaje(respuesta.Mensaje, True)
     End Sub
-
     ' ------------------------------------------------------------------
     ' Respaldos
     ' ------------------------------------------------------------------
