@@ -7,11 +7,24 @@ Public Class FrmLogin
 
     Private Sub FrmLogin_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Resuelve la conexión (registro o App.config) antes de tocar la base.
-        ' Si el servidor no responde, se ofrece configurarlo en este momento.
-        ConfiguracionConexion.Inicializar()
+        ' Un registro dañado o una configuración ilegible no debe cerrar el
+        ' formulario de acceso: el usuario todavía debe poder abrir el asistente
+        ' de conexión desde el enlace inferior.
+        Dim errorConfiguracion As Boolean = False
+        Try
+            ConfiguracionConexion.Inicializar()
+        Catch ex As Exception
+            errorConfiguracion = True
+            RegistroErrores.Escribir("Inicio de sesión - cargar configuración de conexión", ex)
+        End Try
 
         LimpiarCamposCredenciales()
         chkMostrarClave.Checked = False
+
+        If errorConfiguracion Then
+            lblError.Text = "No se pudo cargar la configuración de conexión. Abra «Configurar servidor de base de datos» para revisarla."
+        End If
+
         txtUsuario.Focus()
     End Sub
 
