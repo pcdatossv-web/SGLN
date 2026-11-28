@@ -259,12 +259,10 @@ Public Class UsuarioRepositorio
         Try
             EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim rolProtegidoActual As Boolean = False
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
-                    End If
-                    If rolProtegidoActual Then
-                        ExigirAdministradorEnTransaccion(conexion, transaccion)
                     End If
                     If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
@@ -328,6 +326,7 @@ Public Class UsuarioRepositorio
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim estadoActual As Object = Nothing
                     Dim rolActualProtegido As Boolean = False
                     Using comandoEstado As New MySqlCommand(
@@ -351,9 +350,6 @@ Public Class UsuarioRepositorio
                     Dim rolProtegidoActual As Boolean = False
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
-                    End If
-                    If rolActualProtegido OrElse rolProtegidoActual Then
-                        ExigirAdministradorEnTransaccion(conexion, transaccion)
                     End If
                     If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
@@ -424,6 +420,7 @@ Public Class UsuarioRepositorio
         Try
             Dim resultado As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim idRol As Integer
                     Dim activo As Boolean
                     Using comandoEstado As New MySqlCommand(
@@ -452,9 +449,6 @@ Public Class UsuarioRepositorio
                         End Using
                     End Using
                     If Not rolActivo Then Return -3
-                    If esAdministrador Then
-                        ExigirAdministradorEnTransaccion(conexion, transaccion)
-                    End If
                     If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
 
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
@@ -498,6 +492,7 @@ Public Class UsuarioRepositorio
         Try
             Dim resultado As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim estado As Object
                     Using comandoEstado As New MySqlCommand(
                         "SELECT u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
@@ -530,9 +525,6 @@ Public Class UsuarioRepositorio
                         Parametro(comandoRol, "@id", id)
                         esAdministrador = Convert.ToInt32(comandoRol.ExecuteScalar()) > 0
                     End Using
-                    If esAdministrador Then
-                        ExigirAdministradorEnTransaccion(conexion, transaccion)
-                    End If
                     If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
                     If esAdministrador AndAlso administradoresRestantes = 0 Then Return -1
 
