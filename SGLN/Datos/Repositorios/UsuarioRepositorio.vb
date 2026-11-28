@@ -263,6 +263,9 @@ Public Class UsuarioRepositorio
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
                     End If
+                    If rolProtegidoActual Then
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
+                    End If
                     If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
                     End If
@@ -282,6 +285,8 @@ Public Class UsuarioRepositorio
                     Return nuevoId
                 End Function)
             Return Respuesta.Ok("Usuario creado correctamente.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un usuario con ese nombre de acceso.")
         Catch ex As MySqlException When ex.Number = 1452
@@ -347,6 +352,9 @@ Public Class UsuarioRepositorio
                     If Not BloquearYValidarRolActivo(conexion, transaccion, idRol, rolProtegidoActual) Then
                         Throw New InvalidOperationException("El rol seleccionado ya no existe o fue desactivado.")
                     End If
+                    If rolActualProtegido OrElse rolProtegidoActual Then
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
+                    End If
                     If rolProtegidoActual AndAlso Not administradorAutenticado Then
                         Throw New InvalidOperationException("Solo un administrador puede asignar el rol protegido Administrador.")
                     End If
@@ -388,6 +396,8 @@ Public Class UsuarioRepositorio
             If filas = -1 Then Return Respuesta.Fallo("El estado Activo no se puede cambiar desde la edición general. Utilice la acción específica de desactivación.")
             If filas = 0 AndAlso Not Existe(id) Then Return Respuesta.Fallo("El usuario ya no existe.")
             Return Respuesta.Ok("Usuario actualizado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
@@ -442,6 +452,9 @@ Public Class UsuarioRepositorio
                         End Using
                     End Using
                     If Not rolActivo Then Return -3
+                    If esAdministrador Then
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
+                    End If
                     If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
 
                     Dim afectadas As Integer = Ejecutar(conexion, transaccion,
@@ -461,6 +474,8 @@ Public Class UsuarioRepositorio
             If resultado = -3 Then Return Respuesta.Fallo("No se puede reactivar el usuario porque su rol está desactivado. Active primero el rol correspondiente.")
             If resultado = 2 Then Return Respuesta.Ok("El usuario ya estaba activo.")
             Return Respuesta.Ok("Usuario reactivado correctamente.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
@@ -515,6 +530,9 @@ Public Class UsuarioRepositorio
                         Parametro(comandoRol, "@id", id)
                         esAdministrador = Convert.ToInt32(comandoRol.ExecuteScalar()) > 0
                     End Using
+                    If esAdministrador Then
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
+                    End If
                     If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
                     If esAdministrador AndAlso administradoresRestantes = 0 Then Return -1
 
@@ -535,6 +553,8 @@ Public Class UsuarioRepositorio
             If resultado = -2 Then Return Respuesta.Fallo("Solo un administrador puede desactivar otra cuenta Administrador.")
             If resultado = 2 Then Return Respuesta.Ok("El usuario ya estaba desactivado.")
             Return Respuesta.Ok("Usuario desactivado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
@@ -650,6 +670,7 @@ Public Class UsuarioRepositorio
             Dim credencial As SalHash = SeguridadClave.CrearHash(claveNueva)
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim existe As Object
                     Using comandoExiste As New MySqlCommand(
                         "SELECT ID FROM Usuarios WHERE ID = @id FOR UPDATE", conexion, transaccion)
@@ -678,6 +699,8 @@ Public Class UsuarioRepositorio
 
             If filas = 0 Then Return Respuesta.Fallo("El usuario ya no existe.")
             Return Respuesta.Ok("Clave actualizada correctamente.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - restablecer clave", ex)
             Return Respuesta.Fallo("No se pudo actualizar la clave. Verifique la conexión y vuelva a intentarlo.")
@@ -806,6 +829,34 @@ Public Class UsuarioRepositorio
         Dim delimitador As String = Convert.ToChar(96).ToString()
         Return delimitador & nombre.Replace(delimitador, delimitador & delimitador) & delimitador
     End Function
+
+    ''' <summary>
+    ''' Revalida y bloquea la cuenta administradora que ejecuta una operación
+    ''' privilegiada dentro de la misma transacción que modifica usuarios.
+    ''' </summary>
+    Private Sub ExigirAdministradorEnTransaccion(conexion As MySqlConnection,
+                                                  transaccion As MySqlTransaction)
+        Dim actor As UsuarioSesion = Sesion.UsuarioActual
+        If actor Is Nothing OrElse actor.ID <= 0 OrElse
+           Not actor.RolProtegido OrElse Not Permisos.AccesoTotal OrElse
+           Not Permisos.TieneAcceso("config.usuarios") Then
+            Throw New UnauthorizedAccessException("La sesión administrativa ya no está disponible.")
+        End If
+
+        Using comando As New MySqlCommand(
+            "SELECT u.ID FROM Usuarios u " &
+            "INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+            "WHERE u.ID = @id AND u.Activo = 1 AND r.Activo = 1 " &
+            "AND r.Protegido = 1 AND r.ID = @rol FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@id", actor.ID)
+            Parametro(comando, "@rol", actor.IDRol)
+            If comando.ExecuteScalar() Is Nothing Then
+                Throw New UnauthorizedAccessException(
+                    "La cuenta administradora fue desactivada o perdió el rol protegido. Vuelva a iniciar sesión.")
+            End If
+        End Using
+    End Sub
 
     Private Function EsAdministradorAutenticado() As Boolean
         Return Sesion.UsuarioActual IsNot Nothing AndAlso
