@@ -84,12 +84,45 @@ Public Class FrmPrincipal
     End Function
 
     Private Sub CargarPanel()
+        ' Conservar la alerta enfocada durante las actualizaciones automáticas.
+        ' Tipo + ID evita confundir registros de tablas distintas que comparten ID.
+        Dim tipoSeleccionado As String = String.Empty
+        Dim idSeleccionado As Integer = 0
+        Dim filaActual As DataGridViewRow = dgvAlertas.CurrentRow
+        If filaActual IsNot Nothing Then
+            Dim vistaActual As DataRowView = TryCast(filaActual.DataBoundItem, DataRowView)
+            If vistaActual IsNot Nothing AndAlso
+               vistaActual.Row.Table.Columns.Contains("Tipo") AndAlso
+               vistaActual.Row.Table.Columns.Contains("ID_Referencia") Then
+                tipoSeleccionado = Convert.ToString(vistaActual("Tipo"))
+                Integer.TryParse(Convert.ToString(vistaActual("ID_Referencia")), idSeleccionado)
+            End If
+        End If
+
         Try
             Dim servicio As New ServicioAlertas()
             Dim alertas As DataTable = servicio.ObtenerAlertas()
             dgvAlertas.DataSource = alertas.DefaultView
             ConfigurarColumnasAlertas()
             AplicarFiltroAlertas()
+
+            If tipoSeleccionado <> String.Empty AndAlso idSeleccionado > 0 Then
+                For Each fila As DataGridViewRow In dgvAlertas.Rows
+                    Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
+                    If vista Is Nothing Then Continue For
+                    If String.Equals(Convert.ToString(vista("Tipo")), tipoSeleccionado, StringComparison.OrdinalIgnoreCase) AndAlso
+                       Convert.ToInt32(vista("ID_Referencia")) = idSeleccionado Then
+                        fila.Selected = True
+                        For Each columna As DataGridViewColumn In dgvAlertas.Columns
+                            If columna.Visible Then
+                                dgvAlertas.CurrentCell = fila.Cells(columna.Index)
+                                Exit For
+                            End If
+                        Next
+                        Exit For
+                    End If
+                Next
+            End If
             lblResumen.Text = servicio.ObtenerResumen()
             lblFecha.Text = "Actualizado: " & Date.Now.ToString("dd/MM/yyyy HH:mm:ss")
 
