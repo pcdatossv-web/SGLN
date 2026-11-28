@@ -200,7 +200,7 @@ Public Class RolRepositorio
                             "UPDATE Roles SET Nombre = @nombre, Descripcion = @descripcion, Activo = @activo " &
                             "WHERE ID = @id", conexion, transaccion)
                             Parametro(comando, "@nombre", nombre.Trim())
-                            Parametro(comando, "@descripcion", descripcion)
+                            Parametro(comando, "@descripcion", descripcion.Trim())
                             Parametro(comando, "@activo", activo)
                             Parametro(comando, "@id", id)
                             comando.ExecuteNonQuery()
