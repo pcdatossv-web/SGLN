@@ -776,16 +776,27 @@ Public Class FrmCasos
     ''' </summary>
     Private Sub dgvCasos_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvCasos.CellFormatting
         If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse
-           dgvCasos.Columns(e.ColumnIndex).Name <> "Estado" Then Return
-        Dim estado As String = Convert.ToString(dgvCasos.Rows(e.RowIndex).Cells("Estado").Value)
-        Select Case estado.Trim().ToUpperInvariant()
+           Not String.Equals(dgvCasos.Columns(e.ColumnIndex).Name, "Estado", StringComparison.OrdinalIgnoreCase) Then Return
+
+        Dim estado As String = Convert.ToString(dgvCasos.Rows(e.RowIndex).Cells("Estado").Value).Trim().ToUpperInvariant()
+        Select Case estado
             Case "ACTIVO"
                 e.CellStyle.ForeColor = Color.DarkGreen
+                e.CellStyle.BackColor = Color.Honeydew
             Case "SUSPENDIDO"
-                e.CellStyle.ForeColor = Color.DarkOrange
+                e.CellStyle.ForeColor = Color.DarkGoldenrod
+                e.CellStyle.BackColor = Color.LemonChiffon
             Case "CERRADO", "ARCHIVADO"
                 e.CellStyle.ForeColor = Color.DimGray
+                e.CellStyle.BackColor = Color.Gainsboro
+            Case Else
+                Return
         End Select
+
+        ' Mantener contraste al seleccionar una fila para que el estado siga legible.
+        e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+        e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+        e.FormattingApplied = True
     End Sub
 
 
