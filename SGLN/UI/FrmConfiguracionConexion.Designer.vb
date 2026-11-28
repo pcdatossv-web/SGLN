@@ -104,6 +104,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtUsuarioRespaldo
         '
+        Me.txtUsuarioRespaldo.MaxLength = 32
         Me.txtUsuarioRespaldo.Location = New System.Drawing.Point(185, 260)
         Me.txtUsuarioRespaldo.Name = "txtUsuarioRespaldo"
         Me.txtUsuarioRespaldo.Size = New System.Drawing.Size(335, 23)
@@ -120,6 +121,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtPasswordRespaldo
         '
+        Me.txtPasswordRespaldo.MaxLength = 128
         Me.txtPasswordRespaldo.Location = New System.Drawing.Point(185, 294)
         Me.txtPasswordRespaldo.Name = "txtPasswordRespaldo"
         Me.txtPasswordRespaldo.Size = New System.Drawing.Size(335, 23)
@@ -137,6 +139,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtCertificadoCa
         '
+        Me.txtCertificadoCa.MaxLength = 500
         Me.txtCertificadoCa.Location = New System.Drawing.Point(185, 328)
         Me.txtCertificadoCa.Name = "txtCertificadoCa"
         Me.txtCertificadoCa.Size = New System.Drawing.Size(245, 23)
@@ -192,6 +195,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtPassword
         '
+        Me.txtPassword.MaxLength = 128
         Me.txtPassword.Location = New System.Drawing.Point(185, 166)
         Me.txtPassword.Name = "txtPassword"
         Me.txtPassword.Size = New System.Drawing.Size(335, 23)
@@ -209,6 +213,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtUsuario
         '
+        Me.txtUsuario.MaxLength = 32
         Me.txtUsuario.Location = New System.Drawing.Point(185, 132)
         Me.txtUsuario.Name = "txtUsuario"
         Me.txtUsuario.Size = New System.Drawing.Size(335, 23)
@@ -257,6 +262,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' txtServidor
         '
+        Me.txtServidor.MaxLength = 255
         Me.txtServidor.Location = New System.Drawing.Point(185, 30)
         Me.txtServidor.Name = "txtServidor"
         Me.txtServidor.Size = New System.Drawing.Size(335, 23)
