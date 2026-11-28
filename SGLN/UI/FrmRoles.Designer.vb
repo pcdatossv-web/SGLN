@@ -40,6 +40,12 @@ Partial Class FrmRoles
         '
         Me.dgvRoles.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.dgvRoles.AllowUserToAddRows = False
+        Me.dgvRoles.AllowUserToDeleteRows = False
+        Me.dgvRoles.MultiSelect = False
+        Me.dgvRoles.ReadOnly = True
+        Me.dgvRoles.RowHeadersVisible = False
+        Me.dgvRoles.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
         Me.dgvRoles.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvRoles.Location = New System.Drawing.Point(12, 48)
         Me.dgvRoles.Name = "dgvRoles"
@@ -57,6 +63,8 @@ Partial Class FrmRoles
         '
         ' txtBuscar
         '
+        Me.txtBuscar.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtBuscar.Location = New System.Drawing.Point(65, 12)
         Me.txtBuscar.MaxLength = 100
         Me.txtBuscar.Name = "txtBuscar"
@@ -65,6 +73,8 @@ Partial Class FrmRoles
         '
         ' grpEditor
         '
+        Me.grpEditor.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.grpEditor.Controls.Add(Me.lblNombre)
         Me.grpEditor.Controls.Add(Me.txtNombre)
         Me.grpEditor.Controls.Add(Me.chkActivo)
@@ -183,7 +193,8 @@ Partial Class FrmRoles
         '
         ' lblMensaje
         '
-        Me.lblMensaje.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.lblMensaje.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblMensaje.Location = New System.Drawing.Point(20, 580)
         Me.lblMensaje.Name = "lblMensaje"
         Me.lblMensaje.Size = New System.Drawing.Size(600, 65)
