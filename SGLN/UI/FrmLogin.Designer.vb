@@ -35,9 +35,9 @@ Partial Class FrmLogin
         '
         Me.lblTitulo.Font = New System.Drawing.Font("Segoe UI", 15.0!, System.Drawing.FontStyle.Bold)
         Me.lblTitulo.ForeColor = System.Drawing.Color.FromArgb(CType(CType(24, Byte), Integer), CType(CType(52, Byte), Integer), CType(CType(92, Byte), Integer))
-        Me.lblTitulo.Location = New System.Drawing.Point(22, 20)
+        Me.lblTitulo.Location = New System.Drawing.Point(22, 18)
         Me.lblTitulo.Name = "lblTitulo"
-        Me.lblTitulo.Size = New System.Drawing.Size(396, 30)
+        Me.lblTitulo.Size = New System.Drawing.Size(416, 30)
         Me.lblTitulo.TabIndex = 0
         Me.lblTitulo.Text = "SGLN El Salvador"
         Me.lblTitulo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -45,9 +45,9 @@ Partial Class FrmLogin
         ' lblSubtitulo
         '
         Me.lblSubtitulo.ForeColor = System.Drawing.Color.DimGray
-        Me.lblSubtitulo.Location = New System.Drawing.Point(22, 52)
+        Me.lblSubtitulo.Location = New System.Drawing.Point(22, 50)
         Me.lblSubtitulo.Name = "lblSubtitulo"
-        Me.lblSubtitulo.Size = New System.Drawing.Size(396, 20)
+        Me.lblSubtitulo.Size = New System.Drawing.Size(416, 20)
         Me.lblSubtitulo.TabIndex = 1
         Me.lblSubtitulo.Text = "Sistema de Gestión Legal y Notarial"
         Me.lblSubtitulo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -55,7 +55,7 @@ Partial Class FrmLogin
         ' lblUsuario
         '
         Me.lblUsuario.AutoSize = True
-        Me.lblUsuario.Location = New System.Drawing.Point(42, 100)
+        Me.lblUsuario.Location = New System.Drawing.Point(42, 91)
         Me.lblUsuario.Name = "lblUsuario"
         Me.lblUsuario.Size = New System.Drawing.Size(50, 15)
         Me.lblUsuario.TabIndex = 2
@@ -63,16 +63,16 @@ Partial Class FrmLogin
         '
         ' txtUsuario
         '
-        Me.txtUsuario.Location = New System.Drawing.Point(42, 120)
+        Me.txtUsuario.Location = New System.Drawing.Point(42, 111)
         Me.txtUsuario.MaxLength = 50
         Me.txtUsuario.Name = "txtUsuario"
-        Me.txtUsuario.Size = New System.Drawing.Size(210, 23)
+        Me.txtUsuario.Size = New System.Drawing.Size(376, 26)
         Me.txtUsuario.TabIndex = 0
         '
         ' lblClave
         '
         Me.lblClave.AutoSize = True
-        Me.lblClave.Location = New System.Drawing.Point(42, 155)
+        Me.lblClave.Location = New System.Drawing.Point(42, 153)
         Me.lblClave.Name = "lblClave"
         Me.lblClave.Size = New System.Drawing.Size(39, 15)
         Me.lblClave.TabIndex = 4
@@ -80,10 +80,10 @@ Partial Class FrmLogin
         '
         ' txtClave
         '
-        Me.txtClave.Location = New System.Drawing.Point(42, 175)
+        Me.txtClave.Location = New System.Drawing.Point(42, 173)
         Me.txtClave.MaxLength = 128
         Me.txtClave.Name = "txtClave"
-        Me.txtClave.Size = New System.Drawing.Size(210, 23)
+        Me.txtClave.Size = New System.Drawing.Size(376, 26)
         Me.txtClave.TabIndex = 1
         Me.txtClave.UseSystemPasswordChar = True
         '
@@ -99,9 +99,9 @@ Partial Class FrmLogin
         '
         ' btnIngresar
         '
-        Me.btnIngresar.Location = New System.Drawing.Point(275, 118)
+        Me.btnIngresar.Location = New System.Drawing.Point(42, 239)
         Me.btnIngresar.Name = "btnIngresar"
-        Me.btnIngresar.Size = New System.Drawing.Size(120, 32)
+        Me.btnIngresar.Size = New System.Drawing.Size(180, 34)
         Me.btnIngresar.TabIndex = 3
         Me.btnIngresar.Text = "Ingresar"
         Me.btnIngresar.UseVisualStyleBackColor = True
@@ -109,9 +109,9 @@ Partial Class FrmLogin
         ' btnSalir
         '
         Me.btnSalir.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnSalir.Location = New System.Drawing.Point(275, 158)
+        Me.btnSalir.Location = New System.Drawing.Point(238, 239)
         Me.btnSalir.Name = "btnSalir"
-        Me.btnSalir.Size = New System.Drawing.Size(120, 32)
+        Me.btnSalir.Size = New System.Drawing.Size(180, 34)
         Me.btnSalir.TabIndex = 4
         Me.btnSalir.Text = "Salir"
         Me.btnSalir.UseVisualStyleBackColor = True
@@ -119,15 +119,15 @@ Partial Class FrmLogin
         ' lblError
         '
         Me.lblError.ForeColor = System.Drawing.Color.Firebrick
-        Me.lblError.Location = New System.Drawing.Point(42, 232)
+        Me.lblError.Location = New System.Drawing.Point(42, 282)
         Me.lblError.Name = "lblError"
-        Me.lblError.Size = New System.Drawing.Size(353, 34)
+        Me.lblError.Size = New System.Drawing.Size(376, 34)
         Me.lblError.TabIndex = 8
         '
         ' lnkConfigurarServidor
         '
         Me.lnkConfigurarServidor.AutoSize = True
-        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 270)
+        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 324)
         Me.lnkConfigurarServidor.Name = "lnkConfigurarServidor"
         Me.lnkConfigurarServidor.Size = New System.Drawing.Size(190, 15)
         Me.lnkConfigurarServidor.TabIndex = 9
@@ -137,9 +137,9 @@ Partial Class FrmLogin
         ' lblPie
         '
         Me.lblPie.ForeColor = System.Drawing.Color.Gray
-        Me.lblPie.Location = New System.Drawing.Point(22, 304)
+        Me.lblPie.Location = New System.Drawing.Point(22, 356)
         Me.lblPie.Name = "lblPie"
-        Me.lblPie.Size = New System.Drawing.Size(396, 20)
+        Me.lblPie.Size = New System.Drawing.Size(416, 20)
         Me.lblPie.TabIndex = 10
         Me.lblPie.Text = "v1.0 · Fase 1 (IA/OCR planificada para la fase final)"
         Me.lblPie.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -150,7 +150,7 @@ Partial Class FrmLogin
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnSalir
-        Me.ClientSize = New System.Drawing.Size(440, 336)
+        Me.ClientSize = New System.Drawing.Size(460, 390)
         Me.Controls.Add(Me.lnkConfigurarServidor)
         Me.Controls.Add(Me.lblPie)
         Me.Controls.Add(Me.lblError)
