@@ -47,7 +47,9 @@ Public Class ServicioProtocolo
             Dim actual As DataTable
             Try
                 actual = _repositorio.ObtenerLibro(libro.ID)
-            Catch ex As Exception
+            Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
+        Catch ex As Exception
                 RegistroErrores.Escribir("Protocolo - consultar libro para edición", ex)
                 Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión.")
             End Try
@@ -70,6 +72,8 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Ya existe un libro con ese número para el mismo año.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - guardar libro", ex)
             Return Respuesta.Fallo("No se pudo guardar el libro. Verifique los datos y la conexión.")
@@ -91,6 +95,8 @@ Public Class ServicioProtocolo
         Dim libro As DataTable
         Try
             libro = _repositorio.ObtenerLibro(id)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - consultar libro para cierre", ex)
             Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión y vuelva a intentarlo.")
@@ -113,6 +119,8 @@ Public Class ServicioProtocolo
             If cierre = -1 Then Return Respuesta.Fallo("No se puede cerrar el libro: apareció una escritura sin otorgante durante la operación.")
             If cierre = 0 Then Return Respuesta.Fallo("El libro cambió de estado y ya no puede cerrarse.")
             Return Respuesta.Ok("Libro cerrado. Recuerde la entrega al Notariado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - CerrarLibro", ex)
             Return Respuesta.Fallo("No se pudo cerrar el libro. Verifique la conexión y vuelva a intentarlo.")
@@ -152,6 +160,8 @@ Public Class ServicioProtocolo
         Dim libro As DataTable
         Try
             libro = _repositorio.ObtenerLibro(id)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - consultar libro para entrega", ex)
             Return Respuesta.Fallo("No se pudo consultar el libro. Verifique la conexión y vuelva a intentarlo.")
@@ -189,6 +199,8 @@ Public Class ServicioProtocolo
             End If
 
             Return Respuesta.Ok("Entrega al Notariado registrada correctamente.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - RegistrarEntrega", ex)
             Return Respuesta.Fallo("No se pudo registrar la entrega. Verifique la conexión y vuelva a intentarlo.")
@@ -255,6 +267,8 @@ Public Class ServicioProtocolo
                     Return Respuesta.Fallo("Una escritura anulada no se puede modificar.")
                 End If
             End If
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - validar referencias de escritura", ex)
             Return Respuesta.Fallo("No se pudieron verificar el libro y la escritura. Compruebe la conexión y vuelva a intentarlo.")
@@ -273,6 +287,8 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Ya existe una escritura con ese número en el libro.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - GuardarInstrumento", ex)
             Return Respuesta.Fallo("No se pudo guardar la escritura. Verifique los datos y la conexión.")
@@ -299,6 +315,8 @@ Public Class ServicioProtocolo
                 Return Respuesta.Fallo("No se puede anular: el libro ya fue entregado, la escritura cambió de estado o tiene testimonios expedidos.")
             End If
             Return Respuesta.Ok("Instrumento anulado. El historial se conserva.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - AnularInstrumento", ex)
             Return Respuesta.Fallo("No se pudo anular la escritura. Verifique la conexión y vuelva a intentarlo.")
@@ -328,6 +346,8 @@ Public Class ServicioProtocolo
             Return Respuesta.Fallo("Ese cliente ya está registrado con la misma calidad en el instrumento.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - AgregarCompareciente", ex)
             Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
@@ -355,6 +375,8 @@ Public Class ServicioProtocolo
             Return Respuesta.Ok("Compareciente eliminado.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - QuitarCompareciente", ex)
             Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
@@ -402,6 +424,8 @@ Public Class ServicioProtocolo
             _repositorio.InsertarTestimonio(idInstrumento, tipo, fecha.Date, destinatario.Trim())
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - ExpedirTestimonio", ex)
             Return Respuesta.Fallo("No se pudo completar la operación del protocolo. Verifique la conexión y vuelva a intentarlo.")
@@ -440,6 +464,8 @@ Public Class ServicioProtocolo
             ' Preparar los datos no equivale a generar el archivo. La marca
             ' persistente se registra únicamente después de exportar el CSV.
             Return Respuesta.Ok("Índice listo para exportar con " & indice.Rows.Count & " instrumento(s).")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - GenerarIndice", ex)
             Return Respuesta.Fallo("No se pudo preparar el índice. Verifique la conexión y vuelva a intentarlo.")
@@ -471,6 +497,8 @@ Public Class ServicioProtocolo
                 Return Respuesta.Ok("La generación del índice ya estaba registrada y coincide con los datos actuales.")
             End If
             Return Respuesta.Ok("Generación del índice registrada correctamente.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Protocolo - ConfirmarIndiceGenerado", ex)
             Return Respuesta.Fallo("El CSV se exportó, pero no se pudo registrar la generación del índice. Verifique la conexión.")
