@@ -26,8 +26,6 @@ Public Class FrmCumplimiento
     Public Property IDOperacionInicial As Integer
 
     Private Sub FrmCumplimiento_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler btnLimpiarOp.Click, AddressOf btnLimpiarOp_Click
-        AddHandler btnLimpiarArco.Click, AddressOf btnLimpiarArco_Click
         ' La pantalla puede exponer dos secciones independientes. Validar la
         ' sesión una vez y consultar la matriz ya cargada evita cuatro viajes
         ' redundantes a MySQL durante la apertura del formulario.
