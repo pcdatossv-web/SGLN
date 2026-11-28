@@ -147,7 +147,7 @@ Public Class FrmLogin
             LimpiarClave()
             chkMostrarClave.Checked = False
             RegistroErrores.Escribir("Inicio de sesión", ex)
-            lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
+            lblError.Text = "No fue posible verificar el acceso en el servidor. Compruebe la conexión y vuelva a intentarlo. Si el problema continúa, revise el registro de errores."
         End Try
     End Sub
 
