@@ -221,7 +221,7 @@ Public Class FrmConfiguracionConexion
                 mensaje = "Configuración guardada solo para el usuario de Windows actual."
                 If chkEquipo.Checked Then
                     mensaje &= Environment.NewLine & Environment.NewLine &
-                               "No se pudo guardar la configuración compartida porque la sesión no tiene permisos de administrador."
+                               "No se pudo completar el guardado compartido. La configuración quedó disponible únicamente para este usuario de Windows. Revise los permisos del registro y vuelva a intentarlo si necesita compartir los parámetros."
                 End If
             End If
 
