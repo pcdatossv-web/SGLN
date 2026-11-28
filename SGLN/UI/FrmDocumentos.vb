@@ -219,12 +219,20 @@ Public Class FrmDocumentos
     Private Sub ActualizarPaginacion(totalPaginas As Integer)
         lblPaginacion.Text = "Página " & _paginaActual.ToString() & " de " & totalPaginas.ToString() &
             " | " & _totalDocumentos.ToString("N0") & " documentos"
-        btnAnterior.Enabled = _paginaActual > 1 AndAlso _totalDocumentos > 0
-        btnSiguiente.Enabled = _paginaActual < totalPaginas AndAlso _totalDocumentos > 0
+        Dim puedeConsultar As Boolean =
+            _puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos
+        btnAnterior.Enabled = puedeConsultar AndAlso _paginaActual > 1 AndAlso _totalDocumentos > 0
+        btnSiguiente.Enabled = puedeConsultar AndAlso _paginaActual < totalPaginas AndAlso _totalDocumentos > 0
     End Sub
 
     Private Sub ConfigurarColumnasDocumentos()
         OcultarColumnas("ID", "ID_Caso", "ID_Instrumento", "Ruta_Archivo", "Hash")
+
+        ' La consulta pagina y ordena en MySQL. Permitir ordenar localmente
+        ' solo la página visible produciría resultados engañosos al navegar.
+        For Each columna As DataGridViewColumn In dgvDocumentos.Columns
+            columna.SortMode = DataGridViewColumnSortMode.NotSortable
+        Next
 
         Dim encabezados As New Dictionary(Of String, String) From {
             {"Tipo_Documento", "Tipo de documento"},
@@ -238,7 +246,6 @@ Public Class FrmDocumentos
         For Each par As KeyValuePair(Of String, String) In encabezados
             If dgvDocumentos.Columns.Contains(par.Key) Then
                 dgvDocumentos.Columns(par.Key).HeaderText = par.Value
-                dgvDocumentos.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
             End If
         Next
 
