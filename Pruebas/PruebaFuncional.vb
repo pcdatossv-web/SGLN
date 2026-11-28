@@ -605,9 +605,15 @@ Module PruebaFuncional
                           idUsuarioBloqueo > 0 AndAlso restablecimientoBloqueo.Exito AndAlso
                           usuarios.Autenticar(usuarioBloqueo, "DesbloqueoSeguro99!") IsNot Nothing,
                           restablecimientoBloqueo.Mensaje)
-                Verificar("No se elimina una cuenta que conserva historial de intentos de acceso",
-                          idUsuarioBloqueo > 0 AndAlso
-                          Not servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo, "TemporalClave99!").Exito)
+                Dim desactivacionConHistorial As Respuesta = servicioUsuarios.Desactivar(idUsuarioBloqueo)
+                Verificar("La cuenta con intentos registrados se puede desactivar para probar el bloqueo histórico",
+                          desactivacionConHistorial.Exito, desactivacionConHistorial.Mensaje)
+                Dim eliminacionConHistorial As Respuesta =
+                    servicioUsuarios.EliminarDefinitivamente(idUsuarioBloqueo, "TemporalClave99!")
+                Verificar("No se elimina una cuenta inactiva que conserva historial de intentos de acceso",
+                          idUsuarioBloqueo > 0 AndAlso Not eliminacionConHistorial.Exito AndAlso
+                          eliminacionConHistorial.Mensaje.Contains("intentos"),
+                          eliminacionConHistorial.Mensaje)
             End If
         End If
 
