@@ -3,19 +3,37 @@ Imports System.Windows.Forms
 
 Public Class FrmLogin
 
+    Private _limpiandoCredenciales As Boolean
+
     Private Sub FrmLogin_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Resuelve la conexión (registro o App.config) antes de tocar la base.
         ' Si el servidor no responde, se ofrece configurarlo en este momento.
         ConfiguracionConexion.Inicializar()
 
-        txtUsuario.Clear()
-        txtClave.Clear()
+        LimpiarCamposCredenciales()
         chkMostrarClave.Checked = False
         txtUsuario.Focus()
     End Sub
 
     Private Sub chkMostrarClave_CheckedChanged(sender As Object, e As EventArgs) Handles chkMostrarClave.CheckedChanged
         txtClave.UseSystemPasswordChar = Not chkMostrarClave.Checked
+    End Sub
+
+    ' El mensaje de validación permanece visible hasta que el usuario modifica
+    ' alguno de los campos; los borrados programáticos no deben ocultarlo.
+    Private Sub Credenciales_TextChanged(sender As Object, e As EventArgs) _
+            Handles txtUsuario.TextChanged, txtClave.TextChanged
+        If Not _limpiandoCredenciales Then lblError.Text = ""
+    End Sub
+
+    Private Sub LimpiarCamposCredenciales()
+        _limpiandoCredenciales = True
+        Try
+            txtUsuario.Clear()
+            txtClave.Clear()
+        Finally
+            _limpiandoCredenciales = False
+        End Try
     End Sub
 
     Private Sub AbrirConfiguracionConexion()
@@ -57,7 +75,7 @@ Public Class FrmLogin
 
             If usuario Is Nothing Then
                 lblError.Text = "Usuario o clave incorrectos."
-                txtClave.Clear()
+                LimpiarCamposCredenciales()
                 chkMostrarClave.Checked = False
                 txtClave.Focus()
                 Return
@@ -67,7 +85,7 @@ Public Class FrmLogin
                 Dim claveNueva As String = SolicitarCambioClaveInicial()
                 If String.IsNullOrEmpty(claveNueva) Then
                     lblError.Text = "Debe cambiar la clave inicial para ingresar al sistema."
-                    txtClave.Clear()
+                    LimpiarCamposCredenciales()
                     chkMostrarClave.Checked = False
                     txtClave.Focus()
                     Return
@@ -104,7 +122,7 @@ Public Class FrmLogin
             ' Si falla la carga de permisos después de validar la contraseña,
             ' no debe quedar una sesión parcialmente inicializada en memoria.
             Sesion.Limpiar()
-            txtClave.Clear()
+            LimpiarCamposCredenciales()
             chkMostrarClave.Checked = False
             RegistroErrores.Escribir("Inicio de sesión", ex)
             lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
@@ -130,9 +148,8 @@ Public Class FrmLogin
     Private Sub FrmLogin_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
         ' Liberar credenciales visibles al cerrar el formulario, incluso si
         ' el usuario cancela el inicio de sesión o la autenticación termina bien.
-        txtClave.Clear()
+        LimpiarCamposCredenciales()
         chkMostrarClave.Checked = False
-        txtUsuario.Clear()
     End Sub
 
     Private Sub btnSalir_Click(sender As Object, e As EventArgs) Handles btnSalir.Click
