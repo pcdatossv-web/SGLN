@@ -185,32 +185,6 @@ Public Class FrmPrincipal
         dgvAlertas.DefaultCellStyle.SelectionForeColor = Color.FromArgb(24, 52, 92)
     End Sub
 
-    ''' <summary>
-    ''' Diferencia visualmente las alertas prioritarias sin alterar los datos
-    ''' ni depender de iconos externos. El formato se aplica solo a la celda
-    ''' de prioridad para mantener legible el resto de la fila.
-    ''' </summary>
-    Private Sub dgvAlertas_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvAlertas.CellFormatting
-        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
-        If dgvAlertas.Columns(e.ColumnIndex).Name <> "Prioridad" OrElse e.Value Is Nothing Then Return
-
-        Select Case Convert.ToString(e.Value)
-            Case "Alta"
-                e.CellStyle.ForeColor = Color.Firebrick
-                e.CellStyle.BackColor = Color.MistyRose
-                e.CellStyle.SelectionForeColor = Color.DarkRed
-                e.CellStyle.SelectionBackColor = Color.LightPink
-            Case "Media"
-                e.CellStyle.ForeColor = Color.DarkGoldenrod
-                e.CellStyle.BackColor = Color.LemonChiffon
-                e.CellStyle.SelectionForeColor = Color.SaddleBrown
-                e.CellStyle.SelectionBackColor = Color.Khaki
-            Case Else
-                e.CellStyle.ForeColor = dgvAlertas.DefaultCellStyle.ForeColor
-                e.CellStyle.BackColor = dgvAlertas.DefaultCellStyle.BackColor
-        End Select
-    End Sub
-
     Private Sub Abrir(Of T As {Form, New})()
         Try
             Using formulario As New T()
