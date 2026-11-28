@@ -346,7 +346,7 @@ Public Class FrmAuditoria
         txtUsuario.Focus()
     End Sub
 
-    Private Sub btnLimpiar_Click(sender As Object, e As EventArgs)
+    Private Sub btnLimpiar_Click(sender As Object, e As EventArgs) Handles btnLimpiar.Click
         LimpiarFiltros()
     End Sub
 
