@@ -7,7 +7,23 @@
 Public Class FrmConfiguracionConexion
 
     Private Sub FrmConfiguracionConexion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim datos As DatosConexion = ConfiguracionConexion.Cargar()
+        Dim datos As DatosConexion = Nothing
+        Dim errorLectura As Boolean = False
+
+        Try
+            datos = ConfiguracionConexion.Cargar()
+        Catch ex As Exception
+            errorLectura = True
+            RegistroErrores.Escribir("FrmConfiguracionConexion.Load", ex)
+        End Try
+
+        ' El asistente de recuperación debe seguir disponible incluso cuando
+        ' el origen de configuración no se pueda leer.
+        If datos Is Nothing Then
+            datos = New DatosConexion()
+            datos.Origen = "Defecto"
+            errorLectura = True
+        End If
 
         txtServidor.Text = datos.Servidor
         txtPuerto.Text = datos.Puerto.ToString()
@@ -17,6 +33,8 @@ Public Class FrmConfiguracionConexion
         txtUsuarioRespaldo.Text = datos.UsuarioRespaldo
         txtPasswordRespaldo.Text = datos.PasswordRespaldo
         chkMostrarClaves.Checked = False
+        txtPassword.UseSystemPasswordChar = True
+        txtPasswordRespaldo.UseSystemPasswordChar = True
         txtCertificadoCa.Text = datos.CertificadoCa
 
         ' Compatibilidad con instalaciones anteriores: TLS con validación de CA.
@@ -32,7 +50,16 @@ Public Class FrmConfiguracionConexion
 
         lblRuta.Text = "Origen actual: " & DescripcionOrigen(datos.Origen)
         lblEstado.ForeColor = System.Drawing.Color.DimGray
-        If datos.Origen = "HKLM" Then
+
+        If errorLectura Then
+            lblEstado.ForeColor = System.Drawing.Color.Firebrick
+            lblEstado.Text = "No se pudo leer la configuración anterior. Revise los datos, complete las credenciales y pruebe la conexión antes de guardar."
+        ElseIf datos.Origen = "Defecto" Then
+            lblEstado.ForeColor = System.Drawing.Color.DarkGoldenrod
+            lblEstado.Text = "No se encontró una configuración guardada. Complete los parámetros del servidor y pruebe la conexión."
+        ElseIf datos.Origen = "App.config" Then
+            lblEstado.Text = "Se cargó una configuración heredada de App.config. Verifique los parámetros y guárdela para almacenarla de forma segura en el registro."
+        ElseIf datos.Origen = "HKLM" Then
             lblEstado.Text = "Por seguridad, las contraseñas antiguas compartidas no se cargan. Ingrese las credenciales para este usuario Windows."
         Else
             lblEstado.Text = "Presione ""Probar conexión"" para verificar los datos."
