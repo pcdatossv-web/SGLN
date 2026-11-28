@@ -131,6 +131,8 @@ Partial Class FrmRoles
         '
         ' txtDescripcion
         '
+        Me.txtDescripcion.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtDescripcion.Location = New System.Drawing.Point(20, 103)
         Me.txtDescripcion.MaxLength = 200
         Me.txtDescripcion.Multiline = True
