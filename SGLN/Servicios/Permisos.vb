@@ -139,9 +139,10 @@ Public NotInheritable Class Permisos
             End If
             Return True
         Catch ex As Exception
-            ' Si no se puede comprobar el estado actual, se retira la sesión:
-            ' nunca se mantienen permisos de una cuenta que no pudo verificarse.
-            Limpiar()
+            ' Si no se puede comprobar el estado actual, se revoca la sesión
+            ' completa. Limpiar solo los permisos dejaría una identidad antigua
+            ' disponible para mensajes y comprobaciones posteriores.
+            Sesion.Limpiar()
             RegistroErrores.Escribir("Permisos - validar sesión", ex)
             Return False
         End Try
@@ -183,8 +184,12 @@ Public NotInheritable Class Permisos
     Public Shared Function Exigir(codigo As String, formulario As Form) As Boolean
         If TieneAcceso(codigo) Then Return True
 
-        Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para abrir esta opción." & Environment.NewLine &
-               "Solicite el acceso al administrador del sistema.")
+        If Sesion.UsuarioActual Is Nothing Then
+            Avisar("La sesión ya no está vigente o no se pudo verificar. Inicie sesión nuevamente.")
+        Else
+            Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para abrir esta opción." & Environment.NewLine &
+                   "Solicite el acceso al administrador del sistema.")
+        End If
         If formulario IsNot Nothing AndAlso Not Silencioso Then formulario.Close()
         Return False
     End Function
@@ -196,7 +201,11 @@ Public NotInheritable Class Permisos
     Public Shared Function ExigirAccion(codigo As String) As Boolean
         If TieneAcceso(codigo) Then Return True
 
-        Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para realizar esta acción.")
+        If Sesion.UsuarioActual Is Nothing Then
+            Avisar("La sesión ya no está vigente o no se pudo verificar. Inicie sesión nuevamente.")
+        Else
+            Avisar("Su rol (" & Sesion.RolActual & ") no tiene permiso para realizar esta acción.")
+        End If
         Return False
     End Function
 
