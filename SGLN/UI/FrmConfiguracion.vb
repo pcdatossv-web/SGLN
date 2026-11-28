@@ -153,12 +153,35 @@ Public Class FrmConfiguracion
     ' Configuración general
     ' ------------------------------------------------------------------
 
-    Private Sub CargarConfiguracion()
+    Private Sub CargarConfiguracion(Optional claveSeleccionada As String = Nothing)
         Try
             _cargando = True
             dgvConfig.DataSource = _servicio.Listar()
+            ConfigurarGridConfiguracion()
+
+            Dim filaSeleccionada As DataGridViewRow = Nothing
+            If Not String.IsNullOrWhiteSpace(claveSeleccionada) AndAlso dgvConfig.Columns.Contains("Clave") Then
+                For Each fila As DataGridViewRow In dgvConfig.Rows
+                    If String.Equals(Convert.ToString(fila.Cells("Clave").Value),
+                                     claveSeleccionada, StringComparison.OrdinalIgnoreCase) Then
+                        filaSeleccionada = fila
+                        Exit For
+                    End If
+                Next
+            End If
+
+            If filaSeleccionada Is Nothing AndAlso dgvConfig.Rows.Count > 0 Then
+                filaSeleccionada = dgvConfig.Rows(0)
+            End If
+
+            If filaSeleccionada IsNot Nothing AndAlso dgvConfig.Columns.Contains("Clave") Then
+                dgvConfig.ClearSelection()
+                filaSeleccionada.Selected = True
+                dgvConfig.CurrentCell = filaSeleccionada.Cells("Clave")
+            End If
             _cargando = False
-            If UtileriasUI.FilaActual(dgvConfig) Is Nothing Then
+
+            If filaSeleccionada Is Nothing Then
                 NuevaClaveConfig()
             Else
                 dgvConfig_SelectionChanged(dgvConfig, EventArgs.Empty)
@@ -170,6 +193,31 @@ Public Class FrmConfiguracion
             RegistroErrores.Escribir("Configuración - listar", ex)
             MostrarMensaje("No se pudo cargar la configuración. Verifique la conexión con la base de datos.", False)
         End Try
+    End Sub
+
+    Private Sub ConfigurarGridConfiguracion()
+        If dgvConfig.Columns.Contains("Clave") Then
+            With dgvConfig.Columns("Clave")
+                .HeaderText = "Clave"
+                .MinimumWidth = 150
+                .FillWeight = 30
+                .SortMode = DataGridViewColumnSortMode.Automatic
+            End With
+        End If
+
+        If dgvConfig.Columns.Contains("Valor") Then
+            With dgvConfig.Columns("Valor")
+                .HeaderText = "Valor"
+                .MinimumWidth = 280
+                .FillWeight = 70
+                .DefaultCellStyle.WrapMode = DataGridViewTriState.True
+                .SortMode = DataGridViewColumnSortMode.Automatic
+            End With
+        End If
+
+        dgvConfig.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
+        dgvConfig.DefaultCellStyle.Padding = New Padding(4)
+        dgvConfig.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft
     End Sub
 
     Private Sub dgvConfig_SelectionChanged(sender As Object, e As EventArgs) Handles dgvConfig.SelectionChanged
@@ -194,13 +242,15 @@ Public Class FrmConfiguracion
             Return
         End If
 
-        Dim respuesta As Respuesta = _servicio.Guardar(txtClave.Text, txtValor.Text)
+        Dim claveGuardada As String = txtClave.Text.Trim()
+        Dim respuesta As Respuesta = _servicio.Guardar(claveGuardada, txtValor.Text)
         If Not respuesta.Exito Then
             MostrarMensaje(respuesta.Mensaje, False)
             Return
         End If
 
-        CargarConfiguracion()
+        ' Mantener visible el registro que se acaba de crear o modificar.
+        CargarConfiguracion(claveGuardada)
         MostrarMensaje(respuesta.Mensaje, True)
     End Sub
 
@@ -225,10 +275,7 @@ Public Class FrmConfiguracion
         Try
             _cargando = True
             dgvFeriados.DataSource = _servicio.Feriados()
-            If dgvFeriados.Columns.Contains("ID") Then dgvFeriados.Columns("ID").Visible = False
-            If dgvFeriados.Columns.Contains("Fecha") Then
-                dgvFeriados.Columns("Fecha").DefaultCellStyle.Format = "dd/MM/yyyy"
-            End If
+            ConfigurarGridFeriados()
             _cargando = False
         Catch ex As Exception
             _cargando = False
@@ -237,6 +284,35 @@ Public Class FrmConfiguracion
             RegistroErrores.Escribir("Configuración - feriados", ex)
             MostrarMensaje("No se pudieron cargar los feriados. Verifique la conexión con la base de datos.", False)
         End Try
+    End Sub
+
+    Private Sub ConfigurarGridFeriados()
+        If dgvFeriados.Columns.Contains("ID") Then
+            dgvFeriados.Columns("ID").Visible = False
+        End If
+
+        If dgvFeriados.Columns.Contains("Fecha") Then
+            With dgvFeriados.Columns("Fecha")
+                .HeaderText = "Fecha"
+                .DefaultCellStyle.Format = "dd/MM/yyyy"
+                .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+                .MinimumWidth = 115
+                .FillWeight = 25
+                .SortMode = DataGridViewColumnSortMode.Automatic
+            End With
+        End If
+
+        If dgvFeriados.Columns.Contains("Descripcion") Then
+            With dgvFeriados.Columns("Descripcion")
+                .HeaderText = "Descripción"
+                .MinimumWidth = 220
+                .FillWeight = 75
+                .SortMode = DataGridViewColumnSortMode.Automatic
+            End With
+        End If
+
+        dgvFeriados.DefaultCellStyle.Padding = New Padding(4)
+        dgvFeriados.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft
     End Sub
 
     Private Sub AgregarFeriado()
