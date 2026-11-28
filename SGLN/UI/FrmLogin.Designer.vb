@@ -123,14 +123,15 @@ Partial Class FrmLogin
         Me.lblError.ForeColor = System.Drawing.Color.Firebrick
         Me.lblError.Location = New System.Drawing.Point(42, 282)
         Me.lblError.Name = "lblError"
-        Me.lblError.Size = New System.Drawing.Size(376, 52)
+        Me.lblError.Size = New System.Drawing.Size(376, 56)
         Me.lblError.TabIndex = 8
+        Me.lblError.Padding = New System.Windows.Forms.Padding(3)
         Me.lblError.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         ' lnkConfigurarServidor
         '
         Me.lnkConfigurarServidor.AutoSize = True
-        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 338)
+        Me.lnkConfigurarServidor.Location = New System.Drawing.Point(42, 342)
         Me.lnkConfigurarServidor.Name = "lnkConfigurarServidor"
         Me.lnkConfigurarServidor.Size = New System.Drawing.Size(190, 15)
         Me.lnkConfigurarServidor.TabIndex = 9
@@ -140,7 +141,7 @@ Partial Class FrmLogin
         ' lblPie
         '
         Me.lblPie.ForeColor = System.Drawing.Color.Gray
-        Me.lblPie.Location = New System.Drawing.Point(22, 370)
+        Me.lblPie.Location = New System.Drawing.Point(22, 374)
         Me.lblPie.Name = "lblPie"
         Me.lblPie.Size = New System.Drawing.Size(416, 20)
         Me.lblPie.TabIndex = 10
@@ -153,7 +154,7 @@ Partial Class FrmLogin
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnSalir
-        Me.ClientSize = New System.Drawing.Size(460, 402)
+        Me.ClientSize = New System.Drawing.Size(460, 406)
         Me.Controls.Add(Me.lnkConfigurarServidor)
         Me.Controls.Add(Me.lblPie)
         Me.Controls.Add(Me.lblError)
