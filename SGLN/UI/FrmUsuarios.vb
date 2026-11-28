@@ -1,4 +1,5 @@
 Imports System
+Imports System.Collections.Generic
 Imports System.Data
 Imports System.Drawing
 Imports System.Windows.Forms
@@ -181,7 +182,7 @@ Public Class FrmUsuarios
     End Function
 
     Private Sub dgvUsuarios_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvUsuarios.CellFormatting
-        If e.RowIndex < 0 OrElse Not dgvUsuarios.Columns.Contains("Activo") Then Return
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 OrElse Not dgvUsuarios.Columns.Contains("Activo") Then Return
 
         Dim fila As DataGridViewRow = dgvUsuarios.Rows(e.RowIndex)
         Dim valorEstado As Object = fila.Cells("Activo").Value
