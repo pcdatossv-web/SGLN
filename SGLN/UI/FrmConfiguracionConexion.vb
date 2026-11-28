@@ -101,14 +101,36 @@ Public Class FrmConfiguracionConexion
             Return Nothing
         End If
 
-        If String.IsNullOrWhiteSpace(txtUsuario.Text) Then
-            MessageBox.Show("Ingrese el usuario de MySQL.", "Validación",
+        If String.IsNullOrWhiteSpace(txtUsuario.Text) OrElse txtUsuario.Text.Trim().Length > 32 Then
+            MessageBox.Show("El usuario de MySQL debe contener entre 1 y 32 caracteres.", "Validación",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             txtUsuario.Focus()
             Return Nothing
         End If
 
+        If txtPassword.Text.Length > 128 Then
+            MessageBox.Show("La contraseña de MySQL no puede superar 128 caracteres.", "Validación",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtPassword.Focus()
+            Return Nothing
+        End If
+
+        If txtUsuarioRespaldo.Text.Trim().Length > 32 OrElse txtPasswordRespaldo.Text.Length > 128 Then
+            MessageBox.Show("Las credenciales de respaldo admiten un usuario de hasta 32 caracteres y una contraseña de hasta 128.", "Validación",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtUsuarioRespaldo.Focus()
+            Return Nothing
+        End If
+
+        If txtServidor.Text.Trim().Length > 255 Then
+            MessageBox.Show("El servidor no puede superar 255 caracteres.", "Validación",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            txtServidor.Focus()
+            Return Nothing
+        End If
+
         If String.IsNullOrWhiteSpace(txtCertificadoCa.Text) OrElse
+           txtCertificadoCa.Text.Trim().Length > 500 OrElse
            Not System.IO.File.Exists(txtCertificadoCa.Text.Trim()) Then
             MessageBox.Show("Seleccione el certificado CA PEM válido que firmó el certificado TLS del servidor MySQL.",
                             "Validación TLS", MessageBoxButtons.OK, MessageBoxIcon.Warning)
