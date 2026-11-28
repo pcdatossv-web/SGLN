@@ -882,11 +882,20 @@ Public Class FrmCumplimiento
             columna.DefaultCellStyle.Padding = New Padding(3, 2, 3, 2)
         Next
 
-        For Each nombre As String In New String() {"Estado", "Fecha_Operacion", "Fecha_Solicitud", "Fecha_Vencimiento"}
+        For Each nombre As String In New String() {"Estado", "Fecha_Operacion", "Fecha_Solicitud", "Fecha_Vencimiento", "Fecha_Vencimiento_Prorroga", "Fecha_Respuesta"}
             If grid.Columns.Contains(nombre) Then
                 grid.Columns(nombre).DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+                If nombre <> "Estado" Then
+                    grid.Columns(nombre).DefaultCellStyle.Format = "dd/MM/yyyy"
+                    grid.Columns(nombre).MinimumWidth = 95
+                End If
             End If
         Next
+
+        If grid.Columns.Contains("Monto") Then
+            grid.Columns("Monto").DefaultCellStyle.Format = "N2"
+            grid.Columns("Monto").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
+        End If
 
         For Each nombre As String In New String() {"Descripcion", "Detalle"}
             If grid.Columns.Contains(nombre) Then
