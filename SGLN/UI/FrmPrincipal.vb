@@ -505,6 +505,11 @@ Public Class FrmPrincipal
         End If
 
 
+        ' Mantener la revalidación de sesión incluso cuando la ventana está
+        ' minimizada, pero evitar consultas periódicas que no aportan valor
+        ' mientras el usuario no puede ver el panel.
+        If Me.WindowState = FormWindowState.Minimized Then Return
+
         AplicarPermisos()
         CargarPanel()
     End Sub
