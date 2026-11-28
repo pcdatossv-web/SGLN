@@ -137,7 +137,7 @@ Public Class ServicioCumplimiento
                     mensaje &= " Supera el umbral de efectivo configurado."
                 End If
             Catch ex As UnauthorizedAccessException
-                Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
+                mensaje &= " La operación quedó guardada, pero los permisos cambiaron y no fue posible verificar el umbral de efectivo."
             Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - consultar umbral de efectivo", ex)
                 mensaje &= " No fue posible verificar el umbral de efectivo; revise la configuración."
