@@ -92,6 +92,10 @@ Public Class FrmCumplimiento
         AddHandler dgvOperaciones.RowPrePaint, AddressOf dgvCumplimiento_RowPrePaint
         AddHandler dgvArco.RowPrePaint, AddressOf dgvCumplimiento_RowPrePaint
 
+        ' Suprimir eventos derivados de la configuración inicial de controles.
+        ' Los cálculos se ejecutan cuando la pantalla ya tiene catálogos y umbral.
+        _cargando = True
+
         ' Limitar la captura en pantalla a los mismos máximos que valida el servicio.
 
         ' Las operaciones registradas no pueden tener fecha futura.
@@ -917,10 +921,12 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub nudMonto_ValueChanged(sender As Object, e As EventArgs) Handles nudMonto.ValueChanged
+        If _cargando Then Return
         EvaluarUmbral()
     End Sub
 
     Private Sub cboTipoOperacion_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboTipoOperacion.SelectedIndexChanged
+        If _cargando Then Return
         EvaluarUmbral()
     End Sub
 
@@ -946,10 +952,12 @@ Public Class FrmCumplimiento
     End Sub
 
     Private Sub dtpFechaSolicitud_ValueChanged(sender As Object, e As EventArgs) Handles dtpFechaSolicitud.ValueChanged
+        If _cargando Then Return
         ActualizarFechasArco()
     End Sub
 
     Private Sub chkProrroga_CheckedChanged(sender As Object, e As EventArgs) Handles chkProrroga.CheckedChanged
+        If _cargando Then Return
         ActualizarFechasArco()
     End Sub
 
