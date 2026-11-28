@@ -60,9 +60,20 @@ Public Class FrmDocumentos
         ' Cargar solo la lista al iniciar; no consultar el detalle de la primera
         ' fila para borrarlo inmediatamente. Limpiar deja los combos en modo alta.
         _cargando = True
-        CargarGrid(False)
+        Dim puedeConsultarDocumentos As Boolean =
+            _puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos
+        If puedeConsultarDocumentos Then
+            CargarGrid(False)
+        Else
+            ' El permiso de importación no autoriza a enumerar documentos
+            ' existentes. Evitar una consulta que el servicio rechazará.
+            dgvDocumentos.DataSource = Nothing
+            _paginaActual = 1
+            _totalDocumentos = 0
+            ActualizarPaginacion(1)
+        End If
         _cargando = False
-        Dim errorCargaLista As Boolean = dgvDocumentos.DataSource Is Nothing
+        Dim errorCargaLista As Boolean = puedeConsultarDocumentos AndAlso dgvDocumentos.DataSource Is Nothing
         CargarCombos()
         Dim errorCargaCombos As Boolean =
             cboCaso.DataSource Is Nothing OrElse cboInstrumento.DataSource Is Nothing
@@ -72,6 +83,8 @@ Public Class FrmDocumentos
             MostrarMensaje("No se pudo cargar la lista de documentos. Verifique la conexión con la base de datos.", False)
         ElseIf errorCargaCombos Then
             MostrarMensaje("No se pudieron cargar los catálogos documentales. Verifique la conexión con la base de datos.", False)
+        ElseIf Not puedeConsultarDocumentos AndAlso _puedeImportar Then
+            MostrarMensaje("Su rol puede importar documentos, pero no consultar los documentos existentes.", True)
         End If
 
         btnProcesarIA.Enabled = False ' Integración IA/OCR aún no implementada.
