@@ -260,13 +260,19 @@ Public Class FrmEntidades
             Select Case Convert.ToString(e.Value).Trim().ToUpperInvariant()
                 Case "ALTO"
                     e.CellStyle.ForeColor = Color.DarkRed
+                    e.CellStyle.BackColor = Color.MistyRose
                 Case "MEDIO"
                     e.CellStyle.ForeColor = Color.DarkGoldenrod
+                    e.CellStyle.BackColor = Color.LemonChiffon
                 Case "BAJO"
                     e.CellStyle.ForeColor = Color.DarkGreen
+                    e.CellStyle.BackColor = Color.Honeydew
                 Case Else
-                    e.CellStyle.ForeColor = dgvEntidades.DefaultCellStyle.ForeColor
+                    Return
             End Select
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+            e.FormattingApplied = True
         ElseIf columna = "Activo" Then
             If e.Value Is Nothing OrElse Convert.IsDBNull(e.Value) Then Return
 
@@ -285,6 +291,9 @@ Public Class FrmEntidades
             e.Value = If(activo, "Activa", "Inactiva")
             e.FormattingApplied = True
             e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
+            e.CellStyle.BackColor = If(activo, Color.Honeydew, Color.Gainsboro)
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
         End If
     End Sub
 
