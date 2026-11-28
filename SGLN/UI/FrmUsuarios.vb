@@ -274,8 +274,10 @@ Public Class FrmUsuarios
 
         btnDesactivar.Text = If(chkActivo.Checked, "Desactivar usuario", "Reactivar usuario")
         btnDesactivar.Enabled = esOtroUsuario
-        ' El restablecimiento solo tiene sentido con otra cuenta seleccionada.
-        btnRestablecer.Enabled = esOtroUsuario
+        ' El repositorio exige una sesión Administrador para restablecer
+        ' credenciales de terceros. Reflejar esa misma regla en la interfaz
+        ' evita ofrecer una acción que terminaría rechazada por autorización.
+        btnRestablecer.Enabled = esOtroUsuario AndAlso EsAdministradorActual()
         ' La eliminación física exige que la cuenta ya esté desactivada.
         ' El procedimiento MySQL repite esta condición dentro de la transacción.
         btnEliminar.Enabled = EsAdministradorActual() AndAlso esOtroUsuario AndAlso Not chkActivo.Checked
