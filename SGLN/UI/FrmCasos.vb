@@ -39,6 +39,10 @@ Public Class FrmCasos
         UtileriasUI.ConfigurarGrid(dgvCasos)
         UtileriasUI.ConfigurarGrid(dgvActuaciones)
 
+        ' Suprimir eventos de selección mientras se construyen los catálogos.
+        ' La materia inicial no debe intentar filtrar un tipo de actuación
+        ' antes de que CargarCombos haya recuperado el catálogo desde MySQL.
+        _cargando = True
         cboMateria.Items.Clear()
         cboMateria.Items.AddRange(New Object() {
             "Civil", "Mercantil", "Laboral", "Familia", "Penal", "Administrativo", "Notarial"})
