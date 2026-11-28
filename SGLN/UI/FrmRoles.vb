@@ -135,6 +135,28 @@ Public Class FrmRoles
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Diferencia visualmente los roles inactivos sin ocultarlos del catálogo.
+    ''' Respeta los colores de selección para conservar la legibilidad del grid.
+    ''' </summary>
+    Private Sub dgvRoles_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvRoles.CellFormatting
+        If e.RowIndex < 0 OrElse Not dgvRoles.Columns.Contains("Activo") Then Return
+
+        Dim fila As DataGridViewRow = dgvRoles.Rows(e.RowIndex)
+        Dim valorEstado As Object = fila.Cells("Activo").Value
+        If valorEstado Is Nothing OrElse valorEstado Is DBNull.Value OrElse fila.Selected Then Return
+
+        Dim activo As Boolean
+        Try
+            activo = Convert.ToBoolean(valorEstado)
+        Catch
+            Return
+        End Try
+
+        If activo Then Return
+        e.CellStyle.ForeColor = Color.DimGray
+        e.CellStyle.BackColor = Color.FromArgb(245, 245, 245)
+    End Sub
     ''' <summary>Filtra roles por nombre o descripción sin consultar MySQL por cada tecla.</summary>
     Private Sub txtBuscar_TextChanged(sender As Object, e As EventArgs) Handles txtBuscar.TextChanged
         If _tablaRoles Is Nothing Then Return
