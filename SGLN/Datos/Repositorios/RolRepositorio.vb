@@ -97,6 +97,7 @@ Public Class RolRepositorio
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
                         Using comando As New MySqlCommand(
                             "INSERT INTO Roles (Nombre, Descripcion, Activo, Protegido) " &
                             "VALUES (@nombre, @descripcion, 1, 0)", conexion, transaccion)
@@ -122,6 +123,8 @@ Public Class RolRepositorio
             Return Respuesta.Ok("Rol creado correctamente.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
@@ -149,6 +152,7 @@ Public Class RolRepositorio
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
                         ' Bloquea la fila y comprueba su existencia dentro de la
                         ' misma transacción que actualizará los permisos.
                         Dim rolProtegido As Boolean = False
@@ -222,6 +226,8 @@ Public Class RolRepositorio
             Return Respuesta.Ok("Rol actualizado.")
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un rol con ese nombre.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
@@ -243,6 +249,7 @@ Public Class RolRepositorio
         Try
             Dim filas As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
+                    ExigirAdministradorEnTransaccion(conexion, transaccion)
                     Dim protegido As Object
                     Using comandoExiste As New MySqlCommand(
                         "SELECT Protegido FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
@@ -273,6 +280,8 @@ Public Class RolRepositorio
             If filas = -1 Then Return Respuesta.Fallo("El rol Administrador protegido no se puede eliminar.")
             If filas = -2 Then Return Respuesta.Fallo("No se puede eliminar un rol con usuarios asignados.")
             Return Respuesta.Ok("Rol eliminado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1451
@@ -298,6 +307,7 @@ Public Class RolRepositorio
             Using conexion As MySqlConnection = CrearConexion()
                 Using transaccion As MySqlTransaction = conexion.BeginTransaction()
                     Try
+                        ExigirAdministradorEnTransaccion(conexion, transaccion)
                         Dim existeRol As Boolean
                         Using comandoExiste As New MySqlCommand(
                             "SELECT ID FROM Roles WHERE ID = @id FOR UPDATE", conexion, transaccion)
@@ -323,6 +333,8 @@ Public Class RolRepositorio
             End Using
 
             Return Respuesta.Ok("Permisos del rol guardados.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1644
             Return Respuesta.Fallo(ex.Message)
         Catch ex As MySqlException When ex.Number = 1452
@@ -408,6 +420,37 @@ Public Class RolRepositorio
 
         Return huboCambios
     End Function
+
+    ''' <summary>
+    ''' Revalida y bloquea la cuenta administradora dentro de la transacción
+    ''' que modifica roles. Evita que una sesión revocada entre la validación
+    ''' inicial y el commit pueda completar una operación privilegiada.
+    ''' </summary>
+    Private Sub ExigirAdministradorEnTransaccion(conexion As MySqlConnection,
+                                                  transaccion As MySqlTransaction)
+        Dim sesionActual As UsuarioSesion = Sesion.UsuarioActual
+        If sesionActual Is Nothing OrElse sesionActual.ID <= 0 OrElse
+           Not sesionActual.RolProtegido OrElse Not Permisos.AccesoTotal Then
+            Throw New UnauthorizedAccessException("La sesión administrativa ya no está disponible.")
+        End If
+
+        Dim autorizado As Boolean = False
+        Using comando As New MySqlCommand(
+            "SELECT u.ID FROM Usuarios u " &
+            "INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+            "WHERE u.ID = @usuario AND u.Activo = 1 AND r.Activo = 1 " &
+            "AND r.Protegido = 1 AND r.ID = @rol FOR UPDATE",
+            conexion, transaccion)
+            Parametro(comando, "@usuario", sesionActual.ID)
+            Parametro(comando, "@rol", sesionActual.IDRol)
+            autorizado = comando.ExecuteScalar() IsNot Nothing
+        End Using
+
+        If Not autorizado Then
+            Throw New UnauthorizedAccessException(
+                "La cuenta administradora fue desactivada o perdió el rol protegido. Vuelva a iniciar sesión.")
+        End If
+    End Sub
 
     Private Function EsAdministradorAutenticado() As Boolean
         If Sesion.UsuarioActual Is Nothing Then Return False
