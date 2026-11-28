@@ -17,7 +17,10 @@ Public Class ServicioConfiguracion
     Private Const ClavesReservadas As String = "Carpeta_Documentos,Carpeta_Respaldos"
 
     Public Function Listar() As DataTable
-        If Not Permisos.TieneAcceso("config.ver") Then Return New DataTable()
+        ' Quien puede editar necesita consultar los valores existentes para
+        ' modificarlos desde FrmConfiguracion. La escritura sigue validando
+        ' config.editar en Guardar y las claves reservadas permanecen bloqueadas.
+        If Not Permisos.TieneAccesoAlguno("config.ver", "config.editar") Then Return New DataTable()
         Return _repositorio.Listar()
     End Function
 
