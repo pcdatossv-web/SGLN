@@ -231,6 +231,9 @@ Public Class ServicioDocumentos
             End Try
 
             RegistroErrores.Escribir("Documentos - importar", ex)
+            If TypeOf ex Is UnauthorizedAccessException Then
+                Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
+            End If
             Return Respuesta.Fallo("No se pudo importar el documento. Verifique el archivo, los permisos de almacenamiento y la conexión con la base de datos.")
         End Try
     End Function
@@ -261,6 +264,8 @@ Public Class ServicioDocumentos
                 Return Respuesta.Fallo("El documento ya no existe o fue eliminado.")
             End If
             Return Respuesta.Ok("Metadatos del documento actualizados.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - actualizar metadatos", ex)
             Return Respuesta.Fallo("No se pudieron actualizar los metadatos. Verifique los vínculos, la conexión y los datos.")
@@ -310,6 +315,8 @@ Public Class ServicioDocumentos
 
             RegistrarAlertaIntegridad(id, "El hash SHA-256 no coincide con el valor registrado.")
             Return Respuesta.Fallo("ALERTA: el hash no coincide. El archivo pudo ser alterado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Documentos - verificar integridad", ex)
             Return Respuesta.Fallo("No se pudo verificar el documento. Revise la ruta, los permisos y la conexión.")
