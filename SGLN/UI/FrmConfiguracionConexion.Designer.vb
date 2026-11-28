@@ -79,7 +79,7 @@ Partial Class FrmConfiguracionConexion
         Me.grpServidor.Controls.Add(Me.lblServidor)
         Me.grpServidor.Location = New System.Drawing.Point(15, 12)
         Me.grpServidor.Name = "grpServidor"
-        Me.grpServidor.Size = New System.Drawing.Size(545, 410)
+        Me.grpServidor.Size = New System.Drawing.Size(545, 425)
         Me.grpServidor.TabIndex = 0
         Me.grpServidor.TabStop = False
         Me.grpServidor.Text = "Servidor MySQL"
@@ -87,7 +87,7 @@ Partial Class FrmConfiguracionConexion
         ' lblAyuda
         '
         Me.lblAyuda.ForeColor = System.Drawing.Color.DimGray
-        Me.lblAyuda.Location = New System.Drawing.Point(20, 228)
+        Me.lblAyuda.Location = New System.Drawing.Point(20, 252)
         Me.lblAyuda.Name = "lblAyuda"
         Me.lblAyuda.Size = New System.Drawing.Size(500, 32)
         Me.lblAyuda.TabIndex = 11
@@ -96,7 +96,7 @@ Partial Class FrmConfiguracionConexion
         ' Credenciales separadas para respaldos
         '
         Me.lblUsuarioRespaldo.AutoSize = True
-        Me.lblUsuarioRespaldo.Location = New System.Drawing.Point(20, 265)
+        Me.lblUsuarioRespaldo.Location = New System.Drawing.Point(20, 290)
         Me.lblUsuarioRespaldo.Name = "lblUsuarioRespaldo"
         Me.lblUsuarioRespaldo.Size = New System.Drawing.Size(110, 15)
         Me.lblUsuarioRespaldo.TabIndex = 12
@@ -105,7 +105,7 @@ Partial Class FrmConfiguracionConexion
         ' txtUsuarioRespaldo
         '
         Me.txtUsuarioRespaldo.MaxLength = 32
-        Me.txtUsuarioRespaldo.Location = New System.Drawing.Point(185, 260)
+        Me.txtUsuarioRespaldo.Location = New System.Drawing.Point(185, 285)
         Me.txtUsuarioRespaldo.Name = "txtUsuarioRespaldo"
         Me.txtUsuarioRespaldo.Size = New System.Drawing.Size(335, 23)
         Me.txtUsuarioRespaldo.TabIndex = 13
@@ -113,7 +113,7 @@ Partial Class FrmConfiguracionConexion
         ' lblPasswordRespaldo
         '
         Me.lblPasswordRespaldo.AutoSize = True
-        Me.lblPasswordRespaldo.Location = New System.Drawing.Point(20, 299)
+        Me.lblPasswordRespaldo.Location = New System.Drawing.Point(20, 324)
         Me.lblPasswordRespaldo.Name = "lblPasswordRespaldo"
         Me.lblPasswordRespaldo.Size = New System.Drawing.Size(125, 15)
         Me.lblPasswordRespaldo.TabIndex = 14
@@ -122,7 +122,7 @@ Partial Class FrmConfiguracionConexion
         ' txtPasswordRespaldo
         '
         Me.txtPasswordRespaldo.MaxLength = 128
-        Me.txtPasswordRespaldo.Location = New System.Drawing.Point(185, 294)
+        Me.txtPasswordRespaldo.Location = New System.Drawing.Point(185, 319)
         Me.txtPasswordRespaldo.Name = "txtPasswordRespaldo"
         Me.txtPasswordRespaldo.Size = New System.Drawing.Size(335, 23)
         Me.txtPasswordRespaldo.TabIndex = 15
@@ -131,7 +131,7 @@ Partial Class FrmConfiguracionConexion
         ' lblCertificadoCa
         '
         Me.lblCertificadoCa.AutoSize = True
-        Me.lblCertificadoCa.Location = New System.Drawing.Point(20, 333)
+        Me.lblCertificadoCa.Location = New System.Drawing.Point(20, 358)
         Me.lblCertificadoCa.Name = "lblCertificadoCa"
         Me.lblCertificadoCa.Size = New System.Drawing.Size(92, 15)
         Me.lblCertificadoCa.TabIndex = 16
@@ -140,14 +140,14 @@ Partial Class FrmConfiguracionConexion
         ' txtCertificadoCa
         '
         Me.txtCertificadoCa.MaxLength = 500
-        Me.txtCertificadoCa.Location = New System.Drawing.Point(185, 328)
+        Me.txtCertificadoCa.Location = New System.Drawing.Point(185, 353)
         Me.txtCertificadoCa.Name = "txtCertificadoCa"
         Me.txtCertificadoCa.Size = New System.Drawing.Size(245, 23)
         Me.txtCertificadoCa.TabIndex = 17
         '
         ' btnBuscarCertificado
         '
-        Me.btnBuscarCertificado.Location = New System.Drawing.Point(440, 326)
+        Me.btnBuscarCertificado.Location = New System.Drawing.Point(440, 351)
         Me.btnBuscarCertificado.Name = "btnBuscarCertificado"
         Me.btnBuscarCertificado.Size = New System.Drawing.Size(80, 27)
         Me.btnBuscarCertificado.TabIndex = 18
@@ -157,7 +157,7 @@ Partial Class FrmConfiguracionConexion
         ' lblModoSsl
         '
         Me.lblModoSsl.AutoSize = True
-        Me.lblModoSsl.Location = New System.Drawing.Point(20, 367)
+        Me.lblModoSsl.Location = New System.Drawing.Point(20, 392)
         Me.lblModoSsl.Name = "lblModoSsl"
         Me.lblModoSsl.Size = New System.Drawing.Size(88, 15)
         Me.lblModoSsl.TabIndex = 19
@@ -168,7 +168,7 @@ Partial Class FrmConfiguracionConexion
         Me.cmbModoSsl.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbModoSsl.FormattingEnabled = True
         Me.cmbModoSsl.Items.AddRange(New Object() {"VerifyCA", "VerifyFull"})
-        Me.cmbModoSsl.Location = New System.Drawing.Point(185, 362)
+        Me.cmbModoSsl.Location = New System.Drawing.Point(185, 387)
         Me.cmbModoSsl.Name = "cmbModoSsl"
         Me.cmbModoSsl.Size = New System.Drawing.Size(335, 23)
         Me.cmbModoSsl.TabIndex = 20
@@ -176,7 +176,7 @@ Partial Class FrmConfiguracionConexion
         ' chkMostrarClaves
         '
         Me.chkMostrarClaves.AutoSize = True
-        Me.chkMostrarClaves.Location = New System.Drawing.Point(185, 203)
+        Me.chkMostrarClaves.Location = New System.Drawing.Point(20, 203)
         Me.chkMostrarClaves.Name = "chkMostrarClaves"
         Me.chkMostrarClaves.Size = New System.Drawing.Size(119, 19)
         Me.chkMostrarClaves.TabIndex = 11
@@ -186,7 +186,7 @@ Partial Class FrmConfiguracionConexion
         ' chkEquipo
         '
         Me.chkEquipo.AutoSize = True
-        Me.chkEquipo.Location = New System.Drawing.Point(20, 203)
+        Me.chkEquipo.Location = New System.Drawing.Point(20, 228)
         Me.chkEquipo.Name = "chkEquipo"
         Me.chkEquipo.Size = New System.Drawing.Size(451, 19)
         Me.chkEquipo.TabIndex = 10
@@ -281,7 +281,7 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblEstado.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.lblEstado.ForeColor = System.Drawing.Color.DimGray
-        Me.lblEstado.Location = New System.Drawing.Point(15, 430)
+        Me.lblEstado.Location = New System.Drawing.Point(15, 445)
         Me.lblEstado.Name = "lblEstado"
         Me.lblEstado.Size = New System.Drawing.Size(545, 36)
         Me.lblEstado.TabIndex = 1
@@ -291,14 +291,14 @@ Partial Class FrmConfiguracionConexion
         '
         Me.lblRuta.AutoSize = True
         Me.lblRuta.ForeColor = System.Drawing.Color.DimGray
-        Me.lblRuta.Location = New System.Drawing.Point(15, 470)
+        Me.lblRuta.Location = New System.Drawing.Point(15, 485)
         Me.lblRuta.Name = "lblRuta"
         Me.lblRuta.Size = New System.Drawing.Size(0, 15)
         Me.lblRuta.TabIndex = 2
         '
         ' btnProbar
         '
-        Me.btnProbar.Location = New System.Drawing.Point(215, 495)
+        Me.btnProbar.Location = New System.Drawing.Point(215, 510)
         Me.btnProbar.Name = "btnProbar"
         Me.btnProbar.Size = New System.Drawing.Size(115, 30)
         Me.btnProbar.TabIndex = 3
@@ -307,7 +307,7 @@ Partial Class FrmConfiguracionConexion
         '
         ' btnGuardar
         '
-        Me.btnGuardar.Location = New System.Drawing.Point(340, 495)
+        Me.btnGuardar.Location = New System.Drawing.Point(340, 510)
         Me.btnGuardar.Name = "btnGuardar"
         Me.btnGuardar.Size = New System.Drawing.Size(100, 30)
         Me.btnGuardar.TabIndex = 4
@@ -317,7 +317,7 @@ Partial Class FrmConfiguracionConexion
         ' btnCancelar
         '
         Me.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancelar.Location = New System.Drawing.Point(450, 495)
+        Me.btnCancelar.Location = New System.Drawing.Point(450, 510)
         Me.btnCancelar.Name = "btnCancelar"
         Me.btnCancelar.Size = New System.Drawing.Size(100, 30)
         Me.btnCancelar.TabIndex = 5
@@ -330,7 +330,7 @@ Partial Class FrmConfiguracionConexion
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancelar
-        Me.ClientSize = New System.Drawing.Size(575, 540)
+        Me.ClientSize = New System.Drawing.Size(575, 555)
         Me.Controls.Add(Me.btnCancelar)
         Me.Controls.Add(Me.btnGuardar)
         Me.Controls.Add(Me.btnProbar)
