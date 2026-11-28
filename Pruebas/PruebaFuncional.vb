@@ -1332,13 +1332,18 @@ Module PruebaFuncional
             Dim desactivacionGestor As Respuesta = servicioUsuarios.Desactivar(idUsuarioGestor)
             Dim eliminacionGestor As Respuesta =
                 servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor, "TemporalClave99!")
-            Verificar("La cuenta temporal de gestor se desactiva y limpia al terminar la prueba",
-                      desactivacionGestor.Exito AndAlso eliminacionGestor.Exito,
+            Dim estadoGestorConservado As DataTable = usuarios.Obtener(idUsuarioGestor)
+            Verificar("La cuenta temporal de gestor se desactiva al terminar la prueba",
+                      desactivacionGestor.Exito AndAlso estadoGestorConservado.Rows.Count = 1 AndAlso
+                      Not UtileriasUI.Booleano(estadoGestorConservado.Rows(0), "Activo"),
+                      desactivacionGestor.Mensaje)
+            Verificar("La eliminación conserva la cuenta del gestor porque sus cambios de rol y clave ya tienen historial auditable",
+                      Not eliminacionGestor.Exito AndAlso estadoGestorConservado.Rows.Count = 1,
                       eliminacionGestor.Mensaje)
         End If
         If idRolGestor > 0 Then
-            Verificar("El rol temporal de gestor se limpia al terminar la prueba",
-                      roles.Eliminar(idRolGestor).Exito)
+            Verificar("El rol temporal de gestor se conserva mientras la cuenta inactiva mantiene referencias históricas",
+                      Not roles.Eliminar(idRolGestor).Exito)
         End If
 
         Dim actualizarSinCambios As Respuesta = servicioUsuarios.Actualizar(
