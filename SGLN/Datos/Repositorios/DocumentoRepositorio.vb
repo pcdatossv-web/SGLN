@@ -36,6 +36,27 @@ Public Class DocumentoRepositorio
                                  "documentos.metadatos")
     End Function
 
+    Private Const LongitudMaximaFiltroDocumentos As Integer = 200
+
+    ''' <summary>
+    ''' Limita los filtros incluso cuando el repositorio se invoca sin pasar
+    ''' por el servicio o la interfaz gráfica.
+    ''' </summary>
+    Private Shared Sub ValidarFiltroDocumentos(filtro As String, tipo As String)
+        If If(filtro, String.Empty).Length > LongitudMaximaFiltroDocumentos Then
+            Throw New ArgumentException(
+                "El filtro documental no puede superar " &
+                LongitudMaximaFiltroDocumentos.ToString() & " caracteres.",
+                NameOf(filtro))
+        End If
+
+        If If(tipo, String.Empty).Trim().Length > 50 Then
+            Throw New ArgumentException(
+                "El tipo de documento no puede superar 50 caracteres.",
+                NameOf(tipo))
+        End If
+    End Sub
+
     Private Const TamanoPaginaDocumentos As Integer = 100
 
     Private Shared Function EsHashSha256Completo(valor As String) As Boolean
@@ -58,6 +79,7 @@ Public Class DocumentoRepositorio
 
     Public Function Buscar(filtro As String, tipo As String, pagina As Integer) As DataTable
         If Not PuedeConsultarDocumentos() Then Return New DataTable()
+        ValidarFiltroDocumentos(filtro, tipo)
         If pagina < 1 Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
         Dim offset As Long = CLng(pagina - 1) * TamanoPaginaDocumentos
         If offset > Integer.MaxValue Then Throw New ArgumentOutOfRangeException(NameOf(pagina))
@@ -90,6 +112,7 @@ Public Class DocumentoRepositorio
 
     Public Function Contar(filtro As String, tipo As String) As Integer
         If Not PuedeConsultarDocumentos() Then Return 0
+        ValidarFiltroDocumentos(filtro, tipo)
         Dim hashExacto As Boolean = EsHashSha256Completo(filtro)
         Dim condicionBusqueda As String =
             If(hashExacto,
