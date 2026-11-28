@@ -143,9 +143,14 @@ Public Class ServicioUsuarios
     ''' actual invocando directamente este método.
     ''' </summary>
     Public Function EliminarDefinitivamente(id As Integer, claveAdministrador As String) As Respuesta
-        If Not Permisos.TieneAcceso("config.usuarios") OrElse Not Permisos.AccesoTotal OrElse
-           Sesion.UsuarioActual Is Nothing OrElse Not Sesion.UsuarioActual.RolProtegido Then
-            Return Respuesta.Fallo("Solo un administrador autenticado puede eliminar definitivamente usuarios.")
+        ' Revalidar la identidad y la matriz antes de autorizar una operación
+        ' física. Puede haber transcurrido tiempo desde que se abrió el formulario.
+        If Not Permisos.RevalidarSesion() OrElse
+           Not Permisos.Puede("config.usuarios") OrElse
+           Not Permisos.AccesoTotal OrElse
+           Sesion.UsuarioActual Is Nothing OrElse
+           Not Sesion.UsuarioActual.RolProtegido Then
+            Return Respuesta.Fallo("La sesión no tiene autorización vigente para eliminar usuarios.")
         End If
         If id <= 0 Then Return Respuesta.Fallo("Seleccione un usuario.")
         If id = Sesion.UsuarioActual.ID Then
@@ -155,14 +160,27 @@ Public Class ServicioUsuarios
             Return Respuesta.Fallo("Ingrese la clave actual del administrador.")
         End If
 
+        Dim idAdministrador As Integer = Sesion.UsuarioActual.ID
         Try
-            If Not _repositorio.VerificarClave(Sesion.UsuarioActual.ID, claveAdministrador) Then
+            If Not _repositorio.VerificarClave(idAdministrador, claveAdministrador) Then
                 Return Respuesta.Fallo("La clave del administrador no es correcta.")
             End If
         Catch ex As Exception
             RegistroErrores.Escribir("Usuarios - reautenticación para eliminación", ex)
             Return Respuesta.Fallo("No se pudo verificar la clave. La eliminación no se ejecutó.")
         End Try
+
+        ' La reautenticación puede tardar y no congela los permisos. Volver a
+        ' consultar la cuenta, el rol protegido y la matriz inmediatamente
+        ' antes de invocar el procedimiento transaccional de eliminación.
+        If Not Permisos.RevalidarSesion() OrElse
+           Not Permisos.Puede("config.usuarios") OrElse
+           Not Permisos.AccesoTotal OrElse
+           Sesion.UsuarioActual Is Nothing OrElse
+           Sesion.UsuarioActual.ID <> idAdministrador OrElse
+           Not Sesion.UsuarioActual.RolProtegido Then
+            Return Respuesta.Fallo("Los permisos administrativos cambiaron durante la operación. No se eliminó el usuario.")
+        End If
 
         Return _repositorio.EliminarSiNoTieneHistorial(id)
     End Function
