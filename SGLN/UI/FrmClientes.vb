@@ -186,17 +186,23 @@ Public Class FrmClientes
 
         Dim columna As String = dgvClientes.Columns(e.ColumnIndex).Name
         If columna = "Riesgo" Then
-            Dim riesgo As String = Convert.ToString(e.Value).Trim()
-            Select Case riesgo.ToUpperInvariant()
+            Dim riesgo As String = Convert.ToString(e.Value).Trim().ToUpperInvariant()
+            Select Case riesgo
                 Case "ALTO"
                     e.CellStyle.ForeColor = Color.DarkRed
+                    e.CellStyle.BackColor = Color.MistyRose
                 Case "MEDIO"
                     e.CellStyle.ForeColor = Color.DarkGoldenrod
+                    e.CellStyle.BackColor = Color.LemonChiffon
                 Case "BAJO"
                     e.CellStyle.ForeColor = Color.DarkGreen
+                    e.CellStyle.BackColor = Color.Honeydew
                 Case Else
-                    e.CellStyle.ForeColor = dgvClientes.DefaultCellStyle.ForeColor
+                    Return
             End Select
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
+            e.FormattingApplied = True
         ElseIf columna = "Activo" Then
             If e.Value Is Nothing OrElse Convert.IsDBNull(e.Value) Then Return
 
@@ -215,6 +221,9 @@ Public Class FrmClientes
             e.Value = If(activo, "Activo", "Inactivo")
             e.FormattingApplied = True
             e.CellStyle.ForeColor = If(activo, Color.DarkGreen, Color.DimGray)
+            e.CellStyle.BackColor = If(activo, Color.Honeydew, Color.Gainsboro)
+            e.CellStyle.SelectionBackColor = e.CellStyle.BackColor
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor
         End If
     End Sub
 
