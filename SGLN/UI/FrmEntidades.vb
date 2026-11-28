@@ -68,7 +68,6 @@ Public Class FrmEntidades
         btnNuevo.Enabled = puedeGestionar
         btnGuardar.Enabled = puedeGestionar
         btnDesactivar.Enabled = puedeGestionar AndAlso chkActivo.Checked
-        btnAgregarRep.Enabled = puedeGestionar AndAlso cboRepCliente.Items.Count > 0
         ActualizarEstadoRepresentantes()
 
         txtRazonSocial.ReadOnly = Not puedeGestionar
@@ -291,6 +290,10 @@ Public Class FrmEntidades
     End Sub
 
     Private Sub dgvRepresentantes_SelectionChanged(sender As Object, e As EventArgs) Handles dgvRepresentantes.SelectionChanged
+        ActualizarEstadoRepresentantes()
+    End Sub
+
+    Private Sub cboRepCliente_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboRepCliente.SelectedIndexChanged
         ActualizarEstadoRepresentantes()
     End Sub
 
