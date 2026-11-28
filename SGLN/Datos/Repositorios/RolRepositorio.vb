@@ -48,8 +48,19 @@ Public Class RolRepositorio
     End Function
 
     Public Function PermisosDeRol(idRol As Integer) As DataTable
-        If Not Permisos.TieneAcceso("config.roles") Then Return New DataTable()
-        Return CargarPermisosDeRol(idRol)
+        If Not Permisos.TieneAcceso("config.roles") OrElse idRol <= 0 Then Return New DataTable()
+
+        ' La pantalla administrativa también permite reactivar roles inactivos.
+        ' Debe recuperar su matriz completa para que una edición no la vacíe
+        ' accidentalmente. La carga de sesión conserva el filtro Activo = 1
+        ' en CargarPermisosDeRol, que es una ruta distinta y deliberada.
+        Return Consultar(
+            "SELECT rp.Codigo FROM Roles r " &
+            "LEFT JOIN Rol_Permiso rp ON rp.ID_Rol = r.ID " &
+            "WHERE r.ID = @rol",
+            Sub(comando As MySqlCommand)
+                Parametro(comando, "@rol", idRol)
+            End Sub)
     End Function
 
     ''' <summary>
