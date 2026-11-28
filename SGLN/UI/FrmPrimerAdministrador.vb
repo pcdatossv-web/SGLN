@@ -65,6 +65,9 @@ Partial Public Class FrmPrimerAdministrador
             ' No conservar credenciales tras un intento fallido de alta.
             txtClave.Clear()
             txtConfirmar.Clear()
+            chkMostrarClave.Checked = False
+            txtClave.UseSystemPasswordChar = True
+            txtConfirmar.UseSystemPasswordChar = True
             txtClave.Focus()
         Finally
             Cursor = Cursors.Default
