@@ -486,8 +486,14 @@ Module PruebaFuncional
                   altaAdminTemporal.Exito AndAlso idAdminTemporal > 0 AndAlso
                   sesionAdminTemporal IsNot Nothing AndAlso sesionAdminTemporal.RolProtegido)
         If idAdminTemporal > 0 Then
-            Verificar("La eliminación segura permite retirar un administrador temporal si queda otro activo",
-                      servicioUsuarios.EliminarDefinitivamente(idAdminTemporal, "TemporalClave99!").Exito)
+            Dim desactivacionAdminTemporal As Respuesta = servicioUsuarios.Desactivar(idAdminTemporal)
+            Verificar("Se desactiva el administrador temporal antes de retirarlo",
+                      desactivacionAdminTemporal.Exito, desactivacionAdminTemporal.Mensaje)
+            Dim eliminacionAdminTemporal As Respuesta =
+                servicioUsuarios.EliminarDefinitivamente(idAdminTemporal, "TemporalClave99!")
+            Verificar("La eliminación segura permite retirar un administrador temporal inactivo si queda otro activo",
+                      desactivacionAdminTemporal.Exito AndAlso eliminacionAdminTemporal.Exito,
+                      eliminacionAdminTemporal.Mensaje)
         End If
 
         Dim permisosAdmin As List(Of String) = roles.PermisosDeRol(idRolAdmin)
@@ -1323,8 +1329,12 @@ Module PruebaFuncional
         Sesion.UsuarioActual = admin
         Sesion.CargarPermisos()
         If idUsuarioGestor > 0 Then
-            Verificar("La cuenta temporal de gestor se limpia al terminar la prueba",
-                      servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor, "TemporalClave99!").Exito)
+            Dim desactivacionGestor As Respuesta = servicioUsuarios.Desactivar(idUsuarioGestor)
+            Dim eliminacionGestor As Respuesta =
+                servicioUsuarios.EliminarDefinitivamente(idUsuarioGestor, "TemporalClave99!")
+            Verificar("La cuenta temporal de gestor se desactiva y limpia al terminar la prueba",
+                      desactivacionGestor.Exito AndAlso eliminacionGestor.Exito,
+                      eliminacionGestor.Mensaje)
         End If
         If idRolGestor > 0 Then
             Verificar("El rol temporal de gestor se limpia al terminar la prueba",
@@ -2072,11 +2082,15 @@ Module PruebaFuncional
                 Exit For
             End If
         Next
+        Dim desactivacionReferenciaNombre As Respuesta =
+            servicioUsuarios.Desactivar(idReferenciaNombre)
         Dim eliminacionReferenciaNombre As Respuesta =
             servicioUsuarios.EliminarDefinitivamente(idReferenciaNombre, "TemporalClave99!")
-        Verificar("No se elimina una cuenta cuyo nombre completo figura como responsable histórico",
+        Verificar("No se elimina una cuenta inactiva cuyo nombre completo figura como responsable histórico",
                   altaReferenciaNombre.Exito AndAlso idReferenciaNombre > 0 AndAlso
-                  Not eliminacionReferenciaNombre.Exito,
+                  desactivacionReferenciaNombre.Exito AndAlso
+                  Not eliminacionReferenciaNombre.Exito AndAlso
+                  eliminacionReferenciaNombre.Mensaje.Contains("referencias textuales"),
                   eliminacionReferenciaNombre.Mensaje)
 
         Dim excepcionExp As String = ""
