@@ -439,7 +439,9 @@ Public Class RolRepositorio
             "SELECT u.ID FROM Usuarios u " &
             "INNER JOIN Roles r ON r.ID = u.ID_Rol " &
             "WHERE u.ID = @usuario AND u.Activo = 1 AND r.Activo = 1 " &
-            "AND r.Protegido = 1 AND r.ID = @rol FOR UPDATE",
+            "AND r.Protegido = 1 AND r.ID = @rol " &
+            "AND EXISTS (SELECT 1 FROM Rol_Permiso rp " &
+            "WHERE rp.ID_Rol = r.ID AND rp.Codigo = 'config.roles') FOR UPDATE",
             conexion, transaccion)
             Parametro(comando, "@usuario", sesionActual.ID)
             Parametro(comando, "@rol", sesionActual.IDRol)
