@@ -277,7 +277,12 @@ Public Class FrmUsuarios
         ' El repositorio exige una sesión Administrador para restablecer
         ' credenciales de terceros. Reflejar esa misma regla en la interfaz
         ' evita ofrecer una acción que terminaría rechazada por autorización.
-        btnRestablecer.Enabled = esOtroUsuario AndAlso EsAdministradorActual()
+        Dim puedeRestablecer As Boolean = esOtroUsuario AndAlso EsAdministradorActual()
+        btnRestablecer.Enabled = puedeRestablecer
+        ' Las cajas de clave se usan para crear cuentas nuevas o restablecer
+        ' cuentas ajenas; no deben quedar editables al seleccionar la propia.
+        txtClaveNueva.Enabled = _idSeleccionado = 0 OrElse puedeRestablecer
+        txtClaveConfirmar.Enabled = _idSeleccionado = 0 OrElse puedeRestablecer
         ' La eliminación física exige que la cuenta ya esté desactivada.
         ' El procedimiento MySQL repite esta condición dentro de la transacción.
         btnEliminar.Enabled = EsAdministradorActual() AndAlso esOtroUsuario AndAlso Not chkActivo.Checked
