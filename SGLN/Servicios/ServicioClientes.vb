@@ -40,6 +40,8 @@ Public Class ServicioClientes
         Catch ex As MySqlException When ex.Number = 1062
             ' La restricción única del DUI y la del perfil se aplican en el servidor.
             Return Respuesta.Fallo("El DUI ya está registrado o existe un perfil LDA/FT duplicado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
@@ -56,6 +58,8 @@ Public Class ServicioClientes
             Dim filas As Integer = _repositorio.Desactivar(id)
             If filas = 0 Then Return Respuesta.Fallo("El cliente no existe o ya estaba desactivado.")
             Return Respuesta.Ok("Cliente desactivado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
             RegistroErrores.Escribir("Clientes - desactivar", ex)
             Return Respuesta.Fallo("No se pudo desactivar el cliente. Verifique la conexión con la base de datos.")
