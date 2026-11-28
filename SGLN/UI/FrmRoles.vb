@@ -109,10 +109,41 @@ Public Class FrmRoles
             If txtBuscar.TextLength > 0 Then txtBuscar_TextChanged(txtBuscar, EventArgs.Empty)
 
             If dgvRoles.Columns.Contains("ID") Then dgvRoles.Columns("ID").Visible = False
-            If dgvRoles.Columns.Contains("Protegido") Then dgvRoles.Columns("Protegido").FillWeight = 45
-            If dgvRoles.Columns.Contains("Activo") Then dgvRoles.Columns("Activo").FillWeight = 40
-            If dgvRoles.Columns.Contains("Usuarios") Then dgvRoles.Columns("Usuarios").FillWeight = 45
-            If dgvRoles.Columns.Contains("Permisos") Then dgvRoles.Columns("Permisos").FillWeight = 45
+
+            Dim encabezados As New Dictionary(Of String, String) From {
+                {"Nombre", "Rol"},
+                {"Descripcion", "Descripción"},
+                {"Activo", "Estado"},
+                {"Protegido", "Protegido"},
+                {"Usuarios", "Usuarios"},
+                {"Permisos", "Permisos"}
+            }
+
+            For Each par As KeyValuePair(Of String, String) In encabezados
+                If dgvRoles.Columns.Contains(par.Key) Then
+                    dgvRoles.Columns(par.Key).HeaderText = par.Value
+                    dgvRoles.Columns(par.Key).SortMode = DataGridViewColumnSortMode.Automatic
+                End If
+            Next
+
+            If dgvRoles.Columns.Contains("Nombre") Then dgvRoles.Columns("Nombre").FillWeight = 75
+            If dgvRoles.Columns.Contains("Descripcion") Then dgvRoles.Columns("Descripcion").FillWeight = 125
+            If dgvRoles.Columns.Contains("Protegido") Then
+                dgvRoles.Columns("Protegido").FillWeight = 55
+                dgvRoles.Columns("Protegido").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
+            If dgvRoles.Columns.Contains("Activo") Then
+                dgvRoles.Columns("Activo").FillWeight = 55
+                dgvRoles.Columns("Activo").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
+            If dgvRoles.Columns.Contains("Usuarios") Then
+                dgvRoles.Columns("Usuarios").FillWeight = 55
+                dgvRoles.Columns("Usuarios").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
+            If dgvRoles.Columns.Contains("Permisos") Then
+                dgvRoles.Columns("Permisos").FillWeight = 55
+                dgvRoles.Columns("Permisos").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            End If
         Catch ex As Exception
             RegistroErrores.Escribir("Roles - listar", ex)
             Mostrar("No se pudieron cargar los roles. Verifique la conexión con la base de datos.", False)
@@ -140,22 +171,57 @@ Public Class FrmRoles
     ''' Respeta los colores de selección para conservar la legibilidad del grid.
     ''' </summary>
     Private Sub dgvRoles_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs) Handles dgvRoles.CellFormatting
-        If e.RowIndex < 0 OrElse Not dgvRoles.Columns.Contains("Activo") Then Return
+        If e.RowIndex < 0 OrElse e.ColumnIndex < 0 Then Return
 
         Dim fila As DataGridViewRow = dgvRoles.Rows(e.RowIndex)
-        Dim valorEstado As Object = fila.Cells("Activo").Value
-        If valorEstado Is Nothing OrElse valorEstado Is DBNull.Value OrElse fila.Selected Then Return
+        Dim nombreColumna As String = dgvRoles.Columns(e.ColumnIndex).Name
+        Dim seleccionada As Boolean = fila.Selected
 
-        Dim activo As Boolean
+        If nombreColumna = "Activo" OrElse nombreColumna = "Protegido" Then
+            Dim valor As Object = fila.Cells(e.ColumnIndex).Value
+            If valor Is Nothing OrElse valor Is DBNull.Value Then Return
+
+            Dim estado As Boolean
+            Try
+                estado = Convert.ToBoolean(valor)
+            Catch
+                Return
+            End Try
+
+            If nombreColumna = "Activo" Then
+                e.Value = If(estado, "Activo", "Inactivo")
+                If Not seleccionada Then
+                    e.CellStyle.ForeColor = If(estado, Color.DarkGreen, Color.Firebrick)
+                    e.CellStyle.BackColor = If(estado, Color.Honeydew, Color.MistyRose)
+                End If
+            Else
+                e.Value = If(estado, "Sí", "No")
+                If Not seleccionada AndAlso estado Then
+                    e.CellStyle.ForeColor = Color.DarkSlateBlue
+                End If
+            End If
+
+            e.CellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter
+            e.FormattingApplied = True
+            Return
+        End If
+
+        If seleccionada OrElse Not dgvRoles.Columns.Contains("Activo") Then Return
+
+        Dim valorActivo As Object = fila.Cells("Activo").Value
+        If valorActivo Is Nothing OrElse valorActivo Is DBNull.Value Then Return
+
+        Dim activoFila As Boolean
         Try
-            activo = Convert.ToBoolean(valorEstado)
+            activoFila = Convert.ToBoolean(valorActivo)
         Catch
             Return
         End Try
 
-        If activo Then Return
-        e.CellStyle.ForeColor = Color.DimGray
-        e.CellStyle.BackColor = Color.FromArgb(245, 245, 245)
+        If Not activoFila Then
+            e.CellStyle.ForeColor = Color.DimGray
+            e.CellStyle.BackColor = Color.FromArgb(245, 245, 245)
+        End If
     End Sub
     ''' <summary>Filtra roles por nombre o descripción sin consultar MySQL por cada tecla.</summary>
     Private Sub txtBuscar_TextChanged(sender As Object, e As EventArgs) Handles txtBuscar.TextChanged
