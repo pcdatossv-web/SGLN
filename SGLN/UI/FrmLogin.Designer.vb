@@ -118,11 +118,14 @@ Partial Class FrmLogin
         '
         ' lblError
         '
+        Me.lblError.AutoEllipsis = True
+        Me.lblError.AutoSize = False
         Me.lblError.ForeColor = System.Drawing.Color.Firebrick
         Me.lblError.Location = New System.Drawing.Point(42, 282)
         Me.lblError.Name = "lblError"
-        Me.lblError.Size = New System.Drawing.Size(376, 34)
+        Me.lblError.Size = New System.Drawing.Size(376, 40)
         Me.lblError.TabIndex = 8
+        Me.lblError.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         ' lnkConfigurarServidor
         '
