@@ -844,7 +844,9 @@ Public Class UsuarioRepositorio
             "WHERE u.ID = @id AND u.Activo = 1 AND r.Activo = 1 " &
             "AND r.Protegido = 1 AND r.ID = @rol " &
             "AND EXISTS (SELECT 1 FROM Rol_Permiso rp " &
-            "WHERE rp.ID_Rol = r.ID AND rp.Codigo = 'config.usuarios') FOR UPDATE",
+            "WHERE rp.ID_Rol = r.ID AND rp.Codigo = 'config.usuarios') " &
+            "AND EXISTS (SELECT 1 FROM Rol_Permiso rp " &
+            "WHERE rp.ID_Rol = r.ID AND rp.Codigo = 'config.roles') FOR UPDATE",
             conexion, transaccion)
             Parametro(comando, "@id", actor.ID)
             Parametro(comando, "@rol", actor.IDRol)
