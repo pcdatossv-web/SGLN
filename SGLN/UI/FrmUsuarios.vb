@@ -181,6 +181,11 @@ Public Class FrmUsuarios
     Private Sub dgvUsuarios_SelectionChanged(sender As Object, e As EventArgs) Handles dgvUsuarios.SelectionChanged
         If _cargando Then Return
 
+        ' Las claves temporales nunca deben trasladarse de una cuenta a otra.
+        ' Una selección nueva puede cambiar el destino de la acción Restablecer.
+        txtClaveNueva.Clear()
+        txtClaveConfirmar.Clear()
+
         Dim fila As DataRow = UtileriasUI.FilaActual(dgvUsuarios)
         If fila Is Nothing Then
             ' No conservar un usuario operativo cuando la selección se limpia.
