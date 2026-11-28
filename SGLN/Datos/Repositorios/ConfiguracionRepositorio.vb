@@ -309,6 +309,15 @@ Public Class ConfiguracionRepositorio
 
             EjecutarMySqlDump(ejecutable, argumentos, temporalSalida)
             ValidarArchivoRespaldo(temporalSalida, baseDatos)
+
+            ' El respaldo puede tardar horas. La autorización comprobada al
+            ' inicio no debe bastar si el permiso fue revocado mientras
+            ' mysqldump trabajaba: impedir publicar el archivo en ese caso.
+            If Not Permisos.TieneAcceso("config.respaldos") Then
+                Throw New UnauthorizedAccessException(
+                    "El permiso para crear respaldos fue revocado durante la operación. El archivo temporal no se publicará.")
+            End If
+
             ' Revalidar inmediatamente antes del movimiento final y crear el
             ' destino sin reemplazar archivos existentes (operación no destructiva).
             ValidarCarpetaSinEnlaces(carpetaConfigurada)
