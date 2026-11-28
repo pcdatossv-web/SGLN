@@ -47,7 +47,7 @@ Public Class ServicioProtocolo
             Dim actual As DataTable
             Try
                 actual = _repositorio.ObtenerLibro(libro.ID)
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Protocolo - consultar libro para edición", ex)
