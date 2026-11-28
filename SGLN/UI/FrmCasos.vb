@@ -933,7 +933,27 @@ Public Class FrmCasos
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
-        CargarGrid(txtFiltro.Text)
+        ' Un refresco no debe cambiar silenciosamente el expediente en edición.
+        ' Conservar el ID, reconstruir la lista y volver a seleccionar el mismo
+        ' registro; si dejó de existir o ya no coincide con el filtro, usar la
+        ' primera fila disponible como comportamiento de respaldo.
+        Dim idCasoActual As Integer = _idCaso
+
+        CargarGrid(txtFiltro.Text, False)
+
+        If dgvCasos.DataSource Is Nothing Then
+            Limpiar()
+        ElseIf idCasoActual > 0 AndAlso SeleccionarCaso(idCasoActual) Then
+            ' Selección y detalle restaurados; no se requiere otra consulta.
+        Else
+            Dim filaActual As DataRow = UtileriasUI.FilaActual(dgvCasos)
+            If filaActual IsNot Nothing Then
+                CargarCaso(UtileriasUI.Entero(filaActual, "ID"))
+            Else
+                Limpiar()
+            End If
+        End If
+
         ActualizarVencidas()
     End Sub
 
