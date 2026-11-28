@@ -870,7 +870,7 @@ Public Class FrmCumplimiento
         txtFiltroOp.Focus()
     End Sub
 
-    Private Sub btnLimpiarOp_Click(sender As Object, e As EventArgs)
+    Private Sub btnLimpiarOp_Click(sender As Object, e As EventArgs) Handles btnLimpiarOp.Click
         LimpiarFiltroOperaciones()
     End Sub
 
@@ -890,7 +890,7 @@ Public Class FrmCumplimiento
         txtFiltroArco.Focus()
     End Sub
 
-    Private Sub btnLimpiarArco_Click(sender As Object, e As EventArgs)
+    Private Sub btnLimpiarArco_Click(sender As Object, e As EventArgs) Handles btnLimpiarArco.Click
         LimpiarFiltroArco()
     End Sub
 
