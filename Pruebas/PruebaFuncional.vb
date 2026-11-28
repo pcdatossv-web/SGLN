@@ -1380,6 +1380,18 @@ Module PruebaFuncional
         Next
         Verificar("Crear cuenta temporal para probar eliminación segura",
                   altaBorrable.Exito AndAlso idBorrable > 0, altaBorrable.Mensaje)
+        Dim eliminacionCuentaActiva As Respuesta =
+            servicioUsuarios.EliminarDefinitivamente(idBorrable, "TemporalClave99!")
+        Verificar("La eliminación definitiva rechaza una cuenta que todavía está activa",
+                  altaBorrable.Exito AndAlso idBorrable > 0 AndAlso
+                  Not eliminacionCuentaActiva.Exito AndAlso
+                  eliminacionCuentaActiva.Mensaje.Contains("desactivar"),
+                  eliminacionCuentaActiva.Mensaje)
+
+        Dim desactivacionBorrable As Respuesta = servicioUsuarios.Desactivar(idBorrable)
+        Verificar("La cuenta debe desactivarse antes de probar su eliminación definitiva",
+                  desactivacionBorrable.Exito, desactivacionBorrable.Mensaje)
+
         Dim eliminacionClaveIncorrecta As Respuesta =
             servicioUsuarios.EliminarDefinitivamente(idBorrable, "ClaveIncorrecta99!")
         Verificar("La eliminación definitiva rechaza una clave actual incorrecta",
