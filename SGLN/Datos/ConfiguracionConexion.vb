@@ -302,7 +302,7 @@ Public Class ConfiguracionConexion
 
                 If Not ExisteEsquemaSgln(conexion) Then
                     mensaje = String.Format(
-                        "Conectó a MySQL {0}, pero la base '{1}' no tiene el esquema de SGLN." & Environment.NewLine &
+                        "Conectó a MySQL {0}, pero faltan tablas esenciales del esquema de SGLN en la base '{1}'." & Environment.NewLine &
                         "Ejecute Scripts\Instalacion_Servidor_MySQL.sql, Esquema_MySQL.sql y Triggers_MySQL.sql.",
                         version, datos.BaseDatos)
                     Return False
@@ -521,11 +521,18 @@ Public Class ConfiguracionConexion
     End Function
 
     Private Shared Function ExisteEsquemaSgln(conexion As MySqlConnection) As Boolean
-        ' lower_case_table_names en Windows guarda los nombres en minúsculas.
+        ' No basta con encontrar Roles: una base vacía o incompleta puede
+        ' contener esa tabla y aun así no ser utilizable por la aplicación.
+        ' Se comprueba un conjunto de tablas esenciales del esquema base.
+        ' LOWER permite validar instalaciones Windows con lower_case_table_names.
+        Const tablasEsenciales As Integer = 12
         Using comando As New MySqlCommand(
-                "SELECT COUNT(*) FROM information_schema.tables " &
-                "WHERE table_schema = DATABASE() AND LOWER(table_name) = 'roles'", conexion)
-            Return Convert.ToInt32(comando.ExecuteScalar()) > 0
+                "SELECT COUNT(DISTINCT LOWER(table_name)) FROM information_schema.tables " &
+                "WHERE table_schema = DATABASE() AND LOWER(table_name) IN (" &
+                "'roles','permisos','rol_permiso','usuarios','intentos_acceso'," &
+                "'configuracion','feriados','clientes','casos'," &
+                "'actuaciones_procesales','libros_protocolo','instrumentos')", conexion)
+            Return Convert.ToInt32(comando.ExecuteScalar()) = tablasEsenciales
         End Using
     End Function
 
