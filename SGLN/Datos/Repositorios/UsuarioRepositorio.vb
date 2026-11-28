@@ -493,15 +493,25 @@ Public Class UsuarioRepositorio
             Dim resultado As Integer = EnTransaccion(
                 Function(conexion As MySqlConnection, transaccion As MySqlTransaction) As Integer
                     ExigirAdministradorEnTransaccion(conexion, transaccion)
-                    Dim estado As Object
+                    Dim estado As Object = Nothing
+                    Dim esAdministrador As Boolean = False
                     Using comandoEstado As New MySqlCommand(
-                        "SELECT u.Activo FROM Usuarios u WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
+                        "SELECT u.Activo, r.Protegido FROM Usuarios u " &
+                        "INNER JOIN Roles r ON r.ID = u.ID_Rol " &
+                        "WHERE u.ID = @id FOR UPDATE", conexion, transaccion)
                         Parametro(comandoEstado, "@id", id)
-                        estado = comandoEstado.ExecuteScalar()
+                        Using lector As MySqlDataReader = comandoEstado.ExecuteReader()
+                            If lector.Read() Then
+                                estado = lector("Activo")
+                                esAdministrador = Convert.ToInt32(lector("Protegido")) = 1
+                            End If
+                        End Using
                     End Using
                     If estado Is Nothing OrElse estado Is DBNull.Value Then Return 0
                     If Not Convert.ToBoolean(estado) Then Return 2
 
+                    ' Primero se bloquean usuario y rol asignado; después el rol
+                    ' protegido. Este orden coincide con el trigger de Usuarios.
                     ' Serializa la desactivación de cuentas Administrador.
                     ' Sin este bloqueo, dos transacciones podrían contar a la
                     ' otra cuenta como último administrador y desactivarse a la vez.
@@ -518,13 +528,6 @@ Public Class UsuarioRepositorio
                         administradoresRestantes = Convert.ToInt32(comandoAdmin.ExecuteScalar())
                     End Using
 
-                    Dim esAdministrador As Boolean
-                    Using comandoRol As New MySqlCommand(
-                        "SELECT COUNT(*) FROM Usuarios u INNER JOIN Roles r ON r.ID = u.ID_Rol " &
-                        "WHERE u.ID = @id AND r.Protegido = 1", conexion, transaccion)
-                        Parametro(comandoRol, "@id", id)
-                        esAdministrador = Convert.ToInt32(comandoRol.ExecuteScalar()) > 0
-                    End Using
                     If esAdministrador AndAlso Not EsAdministradorAutenticado() Then Return -2
                     If esAdministrador AndAlso administradoresRestantes = 0 Then Return -1
 
