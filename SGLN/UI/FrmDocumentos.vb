@@ -134,6 +134,9 @@ Public Class FrmDocumentos
             Return
         End If
 
+        Dim podiaConsultarAntes As Boolean =
+            _puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos
+
         _puedeVer = Permisos.Puede("documentos.ver")
         _puedeImportar = Permisos.Puede("documentos.importar")
         _puedeVerificar = Permisos.Puede("documentos.verificar")
@@ -144,7 +147,18 @@ Public Class FrmDocumentos
             Return
         End If
 
+        Dim puedeConsultarAhora As Boolean =
+            _puedeVer OrElse _puedeVerificar OrElse _puedeMetadatos
+
         AplicarPermisosInterfaz()
+
+        ' Si el formulario se abrió en modo importación y luego se concede
+        ' lectura, recuperar la lista automáticamente. De lo contrario los
+        ' botones quedarían habilitados sobre una grilla vacía hasta refrescar.
+        If Not podiaConsultarAntes AndAlso puedeConsultarAhora Then
+            _paginaActual = 1
+            CargarGrid()
+        End If
     End Sub
 
     Private Function TiposDocumento() As String()
