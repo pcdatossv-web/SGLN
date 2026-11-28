@@ -15,7 +15,6 @@ Public Class FrmAuditoria
     Private _permisosInicializados As Boolean
 
     Private Sub FrmAuditoria_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler btnLimpiar.Click, AddressOf btnLimpiar_Click
         If Not Permisos.Exigir("auditoria.ver", Me) Then Return
 
         ' La exportación es independiente del permiso de consulta. Mantener
