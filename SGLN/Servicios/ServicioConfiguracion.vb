@@ -155,6 +155,14 @@ Public Class ServicioConfiguracion
             Dim informacion As New FileInfo(ruta)
             Return Respuesta.Ok(
                 "Respaldo creado: " & ruta & " (" & (informacion.Length \ 1024).ToString("N0") & " KB)")
+        Catch ex As UnauthorizedAccessException
+            RegistroErrores.Escribir("Configuración - respaldo sin autorización o acceso al archivo", ex)
+            If Not String.IsNullOrWhiteSpace(ruta) AndAlso File.Exists(ruta) Then
+                Return Respuesta.Fallo(
+                    "El respaldo se generó, pero no se pudo confirmar la operación por falta de autorización o acceso. Revise la bitácora antes de repetirlo. Archivo: " & ruta)
+            End If
+            Return Respuesta.Fallo(
+                "No se publicó el respaldo porque se revocó el permiso o se denegó el acceso a un recurso. Verifique los permisos y vuelva a intentarlo.")
         Catch ex As Exception
             RegistroErrores.Escribir("Configuración - respaldo", ex)
             If Not String.IsNullOrWhiteSpace(ruta) AndAlso File.Exists(ruta) Then
