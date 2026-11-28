@@ -1311,8 +1311,25 @@ Public Class FrmProtocolo
     End Sub
 
     Private Sub btnRefrescar_Click(sender As Object, e As EventArgs) Handles btnRefrescar.Click
+        Dim idLibroActual As Integer = _idLibro
+        Dim idInstrumentoActual As Integer = _idInstrumento
+        Dim filtroInstrumentosActual As String = txtBuscarInstrumento.Text
+        Dim filtroTestimoniosActual As String = txtBuscarTestimonio.Text
+
         CargarClientes()
-        CargarLibros(_idLibro)
+        CargarLibros(idLibroActual)
+
+        If idLibroActual > 0 AndAlso _idLibro = idLibroActual Then
+            ' CargarLibros reconstruye el contexto dependiente. Restaurar el
+            ' instrumento por ID, nunca por posición, para evitar operar sobre
+            ' una escritura distinta después de una actualización.
+            If idInstrumentoActual > 0 Then SeleccionarInstrumento(idInstrumentoActual)
+
+            txtBuscarInstrumento.Text = filtroInstrumentosActual
+            AplicarFiltroInstrumentosInterno()
+            txtBuscarTestimonio.Text = filtroTestimoniosActual
+            AplicarFiltroTestimoniosInterno()
+        End If
     End Sub
 
     Private Sub btnNuevoLibro_Click(sender As Object, e As EventArgs) Handles btnNuevoLibro.Click
