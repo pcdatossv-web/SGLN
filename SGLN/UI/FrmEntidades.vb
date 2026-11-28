@@ -68,7 +68,6 @@ Public Class FrmEntidades
         btnNuevo.Enabled = puedeGestionar
         btnGuardar.Enabled = puedeGestionar
         btnDesactivar.Enabled = puedeGestionar AndAlso chkActivo.Checked
-        ActualizarEstadoRepresentantes()
 
         txtRazonSocial.ReadOnly = Not puedeGestionar
         txtNIT.ReadOnly = Not puedeGestionar
