@@ -64,7 +64,7 @@ Public Class ServicioCumplimiento
             Dim actual As DataTable
             Try
                 actual = _repositorio.ObtenerOperacion(operacion.ID)
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - consultar operación para edición", ex)
@@ -104,7 +104,7 @@ Public Class ServicioCumplimiento
                     calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Analisis_Dias", 5))
                 operacion.FechaVencimientoReporte =
                     calculadora.CalcularVencimiento(operacion.FechaOperacion, DiasConfigurados("LDA_Reporte_Dias", 15))
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - calcular plazos LDA/FT", ex)
@@ -136,7 +136,7 @@ Public Class ServicioCumplimiento
                 If operacion.Monto >= UmbralEfectivo() Then
                     mensaje &= " Supera el umbral de efectivo configurado."
                 End If
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - consultar umbral de efectivo", ex)
@@ -264,7 +264,7 @@ Public Class ServicioCumplimiento
             Dim actual As DataTable
             Try
                 actual = _repositorio.ObtenerSolicitud(solicitud.ID)
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - consultar solicitud ARCO para edición", ex)
@@ -307,7 +307,7 @@ Public Class ServicioCumplimiento
             Try
                 solicitud.FechaVencimiento = NuevaCalculadora().CalcularVencimiento(
                     solicitud.FechaSolicitud, DiasConfigurados("ARCO_Dias_Respuesta", 10))
-            Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                 RegistroErrores.Escribir("Cumplimiento - calcular plazo inicial ARCO", ex)
@@ -320,7 +320,7 @@ Public Class ServicioCumplimiento
                 Try
                     solicitud.FechaVencimientoProrroga = NuevaCalculadora().CalcularVencimiento(
                         solicitud.FechaVencimiento, DiasConfigurados("ARCO_Dias_Prorroga", 5))
-                Catch ex As UnauthorizedAccessException
+        Catch ex As UnauthorizedAccessException
             Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As Exception
                     RegistroErrores.Escribir("Cumplimiento - calcular prórroga ARCO", ex)
