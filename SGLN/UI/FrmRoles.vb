@@ -50,7 +50,14 @@ Public Class FrmRoles
             Return
         End If
 
-        If Not Permisos.Puede("config.roles") Then Close()
+        If Not Permisos.Puede("config.roles") Then
+            Close()
+            Return
+        End If
+
+        ' El permiso de consulta no implica autorización para modificar la matriz.
+        ' Sincronizar la interfaz si la sesión perdió el rol Administrador.
+        ActualizarEstadoAccionesRol()
     End Sub
 
     ''' <summary>
@@ -194,6 +201,7 @@ Public Class FrmRoles
             btnEliminar.Enabled = Not _esProtegido
 
             MarcarPermisos(_servicio.PermisosDeRol(_idSeleccionado))
+            ActualizarEstadoAccionesRol()
             Mostrar("", True)
         Catch ex As Exception
             Nuevo()
@@ -247,8 +255,9 @@ Public Class FrmRoles
             clbPermisos.SetItemChecked(indice, False)
         Next
 
+        ActualizarEstadoAccionesRol()
         Mostrar("", True)
-        txtNombre.Focus()
+        If txtNombre.Enabled Then txtNombre.Focus()
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
@@ -317,6 +326,38 @@ Public Class FrmRoles
             Mostrar("No se pudo completar la operación. Verifique la conexión y vuelva a intentarlo.", False)
         End Try
     End Sub
+
+    ''' <summary>
+    ''' La consulta de roles puede estar autorizada para un operador de solo lectura,
+    ''' pero las modificaciones de la matriz son exclusivas del administrador.
+    ''' La capa de servicio vuelve a validar cada operación.
+    ''' </summary>
+    Private Sub ActualizarEstadoAccionesRol()
+        Dim puedeAdministrar As Boolean =
+            Sesion.UsuarioActual IsNot Nothing AndAlso
+            Sesion.UsuarioActual.RolProtegido AndAlso
+            Permisos.AccesoTotal AndAlso
+            Permisos.Puede("config.roles")
+
+        Dim catalogoListo As Boolean = _catalogoDisponible
+        btnNuevo.Enabled = puedeAdministrar AndAlso catalogoListo
+        btnGuardar.Enabled = puedeAdministrar AndAlso catalogoListo
+        btnEliminar.Enabled =
+            puedeAdministrar AndAlso catalogoListo AndAlso
+            _idSeleccionado > 0 AndAlso Not _esProtegido
+
+        txtNombre.Enabled = puedeAdministrar AndAlso Not _esProtegido
+        txtDescripcion.Enabled = puedeAdministrar
+        chkActivo.Enabled = puedeAdministrar AndAlso
+                            (_idSeleccionado = 0 OrElse Not _esProtegido)
+        clbPermisos.Enabled = puedeAdministrar AndAlso catalogoListo
+    End Sub
+
+    Private Function EsAdministradorActual() As Boolean
+        Return Sesion.UsuarioActual IsNot Nothing AndAlso
+               Sesion.UsuarioActual.RolProtegido AndAlso
+               Permisos.AccesoTotal
+    End Function
 
     Private Sub Mostrar(mensaje As String, correcto As Boolean)
         lblMensaje.Text = mensaje
