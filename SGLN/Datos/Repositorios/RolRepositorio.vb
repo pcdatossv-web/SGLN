@@ -80,6 +80,10 @@ Public Class RolRepositorio
     End Function
 
     Public Function Crear(nombre As String, descripcion As String,
+        If codigos Is Nothing Then
+            Return Respuesta.Fallo("La lista de permisos no fue proporcionada. No se modificó el rol.")
+        End If
+
                           codigos As List(Of String)) As Respuesta
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
@@ -136,6 +140,10 @@ Public Class RolRepositorio
     End Function
 
     Public Function Actualizar(id As Integer, nombre As String, descripcion As String,
+        If codigos Is Nothing Then
+            Return Respuesta.Fallo("La lista de permisos no fue proporcionada. No se modificó el rol.")
+        End If
+
                                activo As Boolean, codigos As List(Of String)) As Respuesta
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede crear o modificar roles y sus permisos.")
@@ -298,6 +306,10 @@ Public Class RolRepositorio
     ''' Se conserva este método público para operaciones puntuales y pruebas.
     ''' </summary>
     Public Function GuardarPermisos(idRol As Integer, codigos As List(Of String)) As Respuesta
+        If codigos Is Nothing Then
+            Return Respuesta.Fallo("La lista de permisos no fue proporcionada. No se modificaron los permisos.")
+        End If
+
         If Not EsAdministradorAutenticado() Then
             Return Respuesta.Fallo("Solo un administrador puede modificar los permisos de roles.")
         End If
