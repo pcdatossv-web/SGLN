@@ -54,6 +54,7 @@ Partial Class FrmDocumentos
         ' txtFiltro
         '
         Me.txtFiltro.Location = New System.Drawing.Point(12, 12)
+        Me.txtFiltro.MaxLength = 200
         Me.txtFiltro.Name = "txtFiltro"
         Me.txtFiltro.Size = New System.Drawing.Size(300, 23)
         Me.txtFiltro.TabIndex = 0
