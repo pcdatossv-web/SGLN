@@ -26,6 +26,15 @@ Public Class FrmLogin
         If Not _limpiandoCredenciales Then lblError.Text = ""
     End Sub
 
+    Private Sub LimpiarClave()
+        _limpiandoCredenciales = True
+        Try
+            txtClave.Clear()
+        Finally
+            _limpiandoCredenciales = False
+        End Try
+    End Sub
+
     Private Sub LimpiarCamposCredenciales()
         _limpiandoCredenciales = True
         Try
@@ -75,7 +84,7 @@ Public Class FrmLogin
 
             If usuario Is Nothing Then
                 lblError.Text = "Usuario o clave incorrectos."
-                LimpiarCamposCredenciales()
+                LimpiarClave()
                 chkMostrarClave.Checked = False
                 txtClave.Focus()
                 Return
@@ -85,7 +94,7 @@ Public Class FrmLogin
                 Dim claveNueva As String = SolicitarCambioClaveInicial()
                 If String.IsNullOrEmpty(claveNueva) Then
                     lblError.Text = "Debe cambiar la clave inicial para ingresar al sistema."
-                    LimpiarCamposCredenciales()
+                    LimpiarClave()
                     chkMostrarClave.Checked = False
                     txtClave.Focus()
                     Return
@@ -99,7 +108,7 @@ Public Class FrmLogin
                 If Not cambio.Exito Then
                     Sesion.Limpiar()
                     lblError.Text = cambio.Mensaje
-                    txtClave.Clear()
+                    LimpiarClave()
                     chkMostrarClave.Checked = False
                     txtClave.Focus()
                     Return
@@ -122,7 +131,7 @@ Public Class FrmLogin
             ' Si falla la carga de permisos después de validar la contraseña,
             ' no debe quedar una sesión parcialmente inicializada en memoria.
             Sesion.Limpiar()
-            LimpiarCamposCredenciales()
+            LimpiarClave()
             chkMostrarClave.Checked = False
             RegistroErrores.Escribir("Inicio de sesión", ex)
             lblError.Text = "No se pudo iniciar sesión. Verifique sus credenciales y la conexión con el servidor."
