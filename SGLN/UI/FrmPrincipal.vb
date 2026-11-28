@@ -110,8 +110,10 @@ Public Class FrmPrincipal
                 For Each fila As DataGridViewRow In dgvAlertas.Rows
                     Dim vista As DataRowView = TryCast(fila.DataBoundItem, DataRowView)
                     If vista Is Nothing Then Continue For
-                    If String.Equals(Convert.ToString(vista("Tipo")), tipoSeleccionado, StringComparison.OrdinalIgnoreCase) AndAlso
-                       Convert.ToInt32(vista("ID_Referencia")) = idSeleccionado Then
+                    Dim idFila As Integer
+                    If Integer.TryParse(Convert.ToString(vista("ID_Referencia")), idFila) AndAlso
+                       String.Equals(Convert.ToString(vista("Tipo")), tipoSeleccionado, StringComparison.OrdinalIgnoreCase) AndAlso
+                       idFila = idSeleccionado Then
                         fila.Selected = True
                         For Each columna As DataGridViewColumn In dgvAlertas.Columns
                             If columna.Visible Then
