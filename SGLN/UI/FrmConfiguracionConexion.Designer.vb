@@ -179,7 +179,7 @@ Partial Class FrmConfiguracionConexion
         Me.chkMostrarClaves.Location = New System.Drawing.Point(20, 203)
         Me.chkMostrarClaves.Name = "chkMostrarClaves"
         Me.chkMostrarClaves.Size = New System.Drawing.Size(119, 19)
-        Me.chkMostrarClaves.TabIndex = 11
+        Me.chkMostrarClaves.TabIndex = 10
         Me.chkMostrarClaves.Text = "Mostrar contraseñas"
         Me.chkMostrarClaves.UseVisualStyleBackColor = True
         '
@@ -189,7 +189,7 @@ Partial Class FrmConfiguracionConexion
         Me.chkEquipo.Location = New System.Drawing.Point(20, 228)
         Me.chkEquipo.Name = "chkEquipo"
         Me.chkEquipo.Size = New System.Drawing.Size(451, 19)
-        Me.chkEquipo.TabIndex = 10
+        Me.chkEquipo.TabIndex = 11
         Me.chkEquipo.Text = "Compartir servidor; contraseñas privadas por usuario Windows"
         Me.chkEquipo.UseVisualStyleBackColor = True
         '
