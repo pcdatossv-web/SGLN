@@ -59,6 +59,8 @@ Public Class ServicioCasos
             End If
         Catch ex As MySqlException When ex.Number = 1062
             Return Respuesta.Fallo("Ya existe un caso con ese número de expediente en el mismo juzgado.")
+        Catch ex As UnauthorizedAccessException
+            Return Respuesta.Fallo("La sesión o los permisos cambiaron. Inicie sesión nuevamente o solicite el acceso correspondiente.")
         Catch ex As InvalidOperationException
             Return Respuesta.Fallo(ex.Message)
         Catch ex As Exception
