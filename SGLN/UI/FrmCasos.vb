@@ -982,6 +982,7 @@ Public Class FrmCasos
     End Sub
 
     Private Sub dtpFechaNotificacion_ValueChanged(sender As Object, e As EventArgs) Handles dtpFechaNotificacion.ValueChanged
+        If _cargando Then Return
         _fechaPropuesta = Nothing
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
@@ -989,6 +990,7 @@ Public Class FrmCasos
     End Sub
 
     Private Sub nudPlazoDias_ValueChanged(sender As Object, e As EventArgs) Handles nudPlazoDias.ValueChanged
+        If _cargando Then Return
         _fechaPropuesta = Nothing
         lblPropuesta.Text = "Sin cálculo. Presione ""Calcular"" y confirme el resultado."
         lblPropuesta.ForeColor = Color.DimGray
